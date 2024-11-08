@@ -1,0 +1,582 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */; };
+		A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47362CDE6ECE00B2E727 /* ContentView.swift */; };
+		A37D47392CDE6ECF00B2E727 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A37D47382CDE6ECF00B2E727 /* Assets.xcassets */; };
+		A37D473C2CDE6ECF00B2E727 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A37D473B2CDE6ECF00B2E727 /* Preview Assets.xcassets */; };
+		A37D47472CDE6ECF00B2E727 /* Hyper_NoteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47462CDE6ECF00B2E727 /* Hyper_NoteTests.swift */; };
+		A37D47512CDE6ECF00B2E727 /* Hyper_NoteUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47502CDE6ECF00B2E727 /* Hyper_NoteUITests.swift */; };
+		A37D47532CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A37D47432CDE6ECF00B2E727 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A37D47292CDE6ECE00B2E727 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A37D47302CDE6ECE00B2E727;
+			remoteInfo = "Hyper Note";
+		};
+		A37D474D2CDE6ECF00B2E727 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A37D47292CDE6ECE00B2E727 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A37D47302CDE6ECE00B2E727;
+			remoteInfo = "Hyper Note";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		A37D47312CDE6ECE00B2E727 /* Hyper Note.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hyper Note.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteApp.swift; sourceTree = "<group>"; };
+		A37D47362CDE6ECE00B2E727 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A37D47382CDE6ECF00B2E727 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A37D473B2CDE6ECF00B2E727 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		A37D473D2CDE6ECF00B2E727 /* Hyper_Note.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hyper_Note.entitlements; sourceTree = "<group>"; };
+		A37D47422CDE6ECF00B2E727 /* Hyper NoteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hyper NoteTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37D47462CDE6ECF00B2E727 /* Hyper_NoteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteTests.swift; sourceTree = "<group>"; };
+		A37D474C2CDE6ECF00B2E727 /* Hyper NoteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hyper NoteUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37D47502CDE6ECF00B2E727 /* Hyper_NoteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteUITests.swift; sourceTree = "<group>"; };
+		A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A37D472E2CDE6ECE00B2E727 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A37D473F2CDE6ECF00B2E727 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A37D47492CDE6ECF00B2E727 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A37D47282CDE6ECE00B2E727 = {
+			isa = PBXGroup;
+			children = (
+				A37D47332CDE6ECE00B2E727 /* Hyper Note */,
+				A37D47452CDE6ECF00B2E727 /* Hyper NoteTests */,
+				A37D474F2CDE6ECF00B2E727 /* Hyper NoteUITests */,
+				A37D47322CDE6ECE00B2E727 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A37D47322CDE6ECE00B2E727 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A37D47312CDE6ECE00B2E727 /* Hyper Note.app */,
+				A37D47422CDE6ECF00B2E727 /* Hyper NoteTests.xctest */,
+				A37D474C2CDE6ECF00B2E727 /* Hyper NoteUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A37D47332CDE6ECE00B2E727 /* Hyper Note */ = {
+			isa = PBXGroup;
+			children = (
+				A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */,
+				A37D47362CDE6ECE00B2E727 /* ContentView.swift */,
+				A37D47382CDE6ECF00B2E727 /* Assets.xcassets */,
+				A37D473D2CDE6ECF00B2E727 /* Hyper_Note.entitlements */,
+				A37D473A2CDE6ECF00B2E727 /* Preview Content */,
+			);
+			path = "Hyper Note";
+			sourceTree = "<group>";
+		};
+		A37D473A2CDE6ECF00B2E727 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				A37D473B2CDE6ECF00B2E727 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		A37D47452CDE6ECF00B2E727 /* Hyper NoteTests */ = {
+			isa = PBXGroup;
+			children = (
+				A37D47462CDE6ECF00B2E727 /* Hyper_NoteTests.swift */,
+			);
+			path = "Hyper NoteTests";
+			sourceTree = "<group>";
+		};
+		A37D474F2CDE6ECF00B2E727 /* Hyper NoteUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A37D47502CDE6ECF00B2E727 /* Hyper_NoteUITests.swift */,
+				A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */,
+			);
+			path = "Hyper NoteUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A37D47302CDE6ECE00B2E727 /* Hyper Note */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A37D47562CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper Note" */;
+			buildPhases = (
+				A37D472D2CDE6ECE00B2E727 /* Sources */,
+				A37D472E2CDE6ECE00B2E727 /* Frameworks */,
+				A37D472F2CDE6ECE00B2E727 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Hyper Note";
+			productName = "Hyper Note";
+			productReference = A37D47312CDE6ECE00B2E727 /* Hyper Note.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A37D47412CDE6ECF00B2E727 /* Hyper NoteTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A37D47592CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteTests" */;
+			buildPhases = (
+				A37D473E2CDE6ECF00B2E727 /* Sources */,
+				A37D473F2CDE6ECF00B2E727 /* Frameworks */,
+				A37D47402CDE6ECF00B2E727 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A37D47442CDE6ECF00B2E727 /* PBXTargetDependency */,
+			);
+			name = "Hyper NoteTests";
+			productName = "Hyper NoteTests";
+			productReference = A37D47422CDE6ECF00B2E727 /* Hyper NoteTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A37D474B2CDE6ECF00B2E727 /* Hyper NoteUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A37D475C2CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteUITests" */;
+			buildPhases = (
+				A37D47482CDE6ECF00B2E727 /* Sources */,
+				A37D47492CDE6ECF00B2E727 /* Frameworks */,
+				A37D474A2CDE6ECF00B2E727 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A37D474E2CDE6ECF00B2E727 /* PBXTargetDependency */,
+			);
+			name = "Hyper NoteUITests";
+			productName = "Hyper NoteUITests";
+			productReference = A37D474C2CDE6ECF00B2E727 /* Hyper NoteUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A37D47292CDE6ECE00B2E727 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A37D47302CDE6ECE00B2E727 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					A37D47412CDE6ECF00B2E727 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A37D47302CDE6ECE00B2E727;
+					};
+					A37D474B2CDE6ECF00B2E727 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A37D47302CDE6ECE00B2E727;
+					};
+				};
+			};
+			buildConfigurationList = A37D472C2CDE6ECE00B2E727 /* Build configuration list for PBXProject "Hyper Note" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A37D47282CDE6ECE00B2E727;
+			productRefGroup = A37D47322CDE6ECE00B2E727 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A37D47302CDE6ECE00B2E727 /* Hyper Note */,
+				A37D47412CDE6ECF00B2E727 /* Hyper NoteTests */,
+				A37D474B2CDE6ECF00B2E727 /* Hyper NoteUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A37D472F2CDE6ECE00B2E727 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A37D473C2CDE6ECF00B2E727 /* Preview Assets.xcassets in Resources */,
+				A37D47392CDE6ECF00B2E727 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A37D47402CDE6ECF00B2E727 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A37D474A2CDE6ECF00B2E727 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A37D472D2CDE6ECE00B2E727 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */,
+				A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A37D473E2CDE6ECF00B2E727 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A37D47472CDE6ECF00B2E727 /* Hyper_NoteTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A37D47482CDE6ECF00B2E727 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A37D47512CDE6ECF00B2E727 /* Hyper_NoteUITests.swift in Sources */,
+				A37D47532CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A37D47442CDE6ECF00B2E727 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A37D47302CDE6ECE00B2E727 /* Hyper Note */;
+			targetProxy = A37D47432CDE6ECF00B2E727 /* PBXContainerItemProxy */;
+		};
+		A37D474E2CDE6ECF00B2E727 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A37D47302CDE6ECE00B2E727 /* Hyper Note */;
+			targetProxy = A37D474D2CDE6ECF00B2E727 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A37D47542CDE6ECF00B2E727 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A37D47552CDE6ECF00B2E727 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A37D47572CDE6ECF00B2E727 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Hyper Note/Hyper_Note.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Hyper Note/Preview Content\"";
+				DEVELOPMENT_TEAM = 32RM54L485;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-Note";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A37D47582CDE6ECF00B2E727 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Hyper Note/Hyper_Note.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Hyper Note/Preview Content\"";
+				DEVELOPMENT_TEAM = 32RM54L485;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-Note";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A37D475A2CDE6ECF00B2E727 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 32RM54L485;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-NoteTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hyper Note.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hyper Note";
+			};
+			name = Debug;
+		};
+		A37D475B2CDE6ECF00B2E727 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 32RM54L485;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-NoteTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hyper Note.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hyper Note";
+			};
+			name = Release;
+		};
+		A37D475D2CDE6ECF00B2E727 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 32RM54L485;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-NoteUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Hyper Note";
+			};
+			name = Debug;
+		};
+		A37D475E2CDE6ECF00B2E727 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 32RM54L485;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-NoteUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Hyper Note";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A37D472C2CDE6ECE00B2E727 /* Build configuration list for PBXProject "Hyper Note" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A37D47542CDE6ECF00B2E727 /* Debug */,
+				A37D47552CDE6ECF00B2E727 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A37D47562CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper Note" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A37D47572CDE6ECF00B2E727 /* Debug */,
+				A37D47582CDE6ECF00B2E727 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A37D47592CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A37D475A2CDE6ECF00B2E727 /* Debug */,
+				A37D475B2CDE6ECF00B2E727 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A37D475C2CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A37D475D2CDE6ECF00B2E727 /* Debug */,
+				A37D475E2CDE6ECF00B2E727 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A37D47292CDE6ECE00B2E727 /* Project object */;
+}
