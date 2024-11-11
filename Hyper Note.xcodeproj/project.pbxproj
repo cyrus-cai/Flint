@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
+		A30FF3852CE058710034F9DC /* CharacterCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3842CE058710034F9DC /* CharacterCount.swift */; };
+		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
+		A30FF3942CE102F30034F9DC /* SwiftDown in Frameworks */ = {isa = PBXBuildFile; productRef = A30FF3932CE102F30034F9DC /* SwiftDown */; };
+		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
 		A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */; };
 		A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47362CDE6ECE00B2E727 /* ContentView.swift */; };
 		A37D47392CDE6ECF00B2E727 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A37D47382CDE6ECF00B2E727 /* Assets.xcassets */; };
@@ -34,6 +39,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
+		A30FF3842CE058710034F9DC /* CharacterCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterCount.swift; sourceTree = "<group>"; };
+		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
+		A30FF3952CE1057D0034F9DC /* markdownconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = markdownconfig.json; sourceTree = "<group>"; };
 		A37D47312CDE6ECE00B2E727 /* Hyper Note.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hyper Note.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteApp.swift; sourceTree = "<group>"; };
 		A37D47362CDE6ECE00B2E727 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -52,6 +61,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A30FF3942CE102F30034F9DC /* SwiftDown in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,6 +82,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */ = {
+			isa = PBXGroup;
+			children = (
+				A30FF3802CDFDA000034F9DC /* TitleBarView.swift */,
+				A30FF3842CE058710034F9DC /* CharacterCount.swift */,
+			);
+			path = ContentViewComponents;
+			sourceTree = "<group>";
+		};
+		A30FF3922CE102F30034F9DC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A37D47282CDE6ECE00B2E727 = {
 			isa = PBXGroup;
 			children = (
@@ -79,6 +105,7 @@
 				A37D47452CDE6ECF00B2E727 /* Hyper NoteTests */,
 				A37D474F2CDE6ECF00B2E727 /* Hyper NoteUITests */,
 				A37D47322CDE6ECE00B2E727 /* Products */,
+				A30FF3922CE102F30034F9DC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -95,11 +122,14 @@
 		A37D47332CDE6ECE00B2E727 /* Hyper Note */ = {
 			isa = PBXGroup;
 			children = (
+				A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */,
 				A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */,
 				A37D47362CDE6ECE00B2E727 /* ContentView.swift */,
 				A37D47382CDE6ECF00B2E727 /* Assets.xcassets */,
 				A37D473D2CDE6ECF00B2E727 /* Hyper_Note.entitlements */,
 				A37D473A2CDE6ECF00B2E727 /* Preview Content */,
+				A30FF38F2CE084E10034F9DC /* MainWindowController.swift */,
+				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
 			);
 			path = "Hyper Note";
 			sourceTree = "<group>";
@@ -145,6 +175,9 @@
 			dependencies = (
 			);
 			name = "Hyper Note";
+			packageProductDependencies = (
+				A30FF3932CE102F30034F9DC /* SwiftDown */,
+			);
 			productName = "Hyper Note";
 			productReference = A37D47312CDE6ECE00B2E727 /* Hyper Note.app */;
 			productType = "com.apple.product-type.application";
@@ -217,6 +250,9 @@
 				Base,
 			);
 			mainGroup = A37D47282CDE6ECE00B2E727;
+			packageReferences = (
+				A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */,
+			);
 			productRefGroup = A37D47322CDE6ECE00B2E727 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -235,6 +271,7 @@
 			files = (
 				A37D473C2CDE6ECF00B2E727 /* Preview Assets.xcassets in Resources */,
 				A37D47392CDE6ECF00B2E727 /* Assets.xcassets in Resources */,
+				A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,6 +298,9 @@
 			files = (
 				A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */,
 				A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */,
+				A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */,
+				A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */,
+				A30FF3852CE058710034F9DC /* CharacterCount.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -577,6 +617,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/qeude/SwiftDown.git";
+			requirement = {
+				branch = develop;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A30FF3932CE102F30034F9DC /* SwiftDown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */;
+			productName = SwiftDown;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A37D47292CDE6ECE00B2E727 /* Project object */;
 }

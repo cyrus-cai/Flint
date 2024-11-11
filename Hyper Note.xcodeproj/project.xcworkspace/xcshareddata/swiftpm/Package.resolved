@@ -1,0 +1,24 @@
+{
+  "originHash" : "8e6b6c186abe62c31315b03268f61959fefc4338cbd8c09eac9d4823a537ccd1",
+  "pins" : [
+    {
+      "identity" : "down",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/johnxnguyen/Down.git",
+      "state" : {
+        "revision" : "f34b166be1f1db4aa8f573067e901d72f2a6be57",
+        "version" : "0.11.0"
+      }
+    },
+    {
+      "identity" : "swiftdown",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/qeude/SwiftDown.git",
+      "state" : {
+        "branch" : "develop",
+        "revision" : "3a988bfa50ffbc55ee312749c326f8791d7f87ad"
+      }
+    }
+  ],
+  "version" : 3
+}
