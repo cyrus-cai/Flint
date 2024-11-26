@@ -18,7 +18,7 @@
 					<key>StartingLineNumber</key>
 					<string>0</string>
 					<key>Timestamp</key>
-					<string>752949609.386481</string>
+					<string>754242047.633934</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -43,8 +43,6 @@ import SwiftUI
 
 </string>
 			</dict>
-			<key>title</key>
-			<string>背景圆角在这里实现</string>
 			<key>type</key>
 			<string>bookmark</string>
 		</dict>

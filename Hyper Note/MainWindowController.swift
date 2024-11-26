@@ -2,42 +2,90 @@ import Foundation
 import AppKit
 import SwiftUI
 
-class MainWindowController: NSWindowController {
-    // 窗口默认尺寸
-    private let defaultWidth: CGFloat = 400
-    private let defaultHeight: CGFloat = 120
+class WindowManager {
+    static let shared = WindowManager()
+    private var windows: [MainWindowController] = []
     
-    // 用于跟踪窗口的事件监听
-    private var trackingArea: NSTrackingArea?
+    func createNewWindow() {
+        let windowController = MainWindowController()
+        windows.append(windowController)
+        windowController.showWindow(nil)
+        
+        // 设置新窗口位置（稍微错开）
+        if let lastWindow = windows.dropLast().last,
+           let frame = lastWindow.window?.frame {
+            windowController.window?.setFrameOrigin(NSPoint(
+                x: frame.origin.x + 20,
+                y: frame.origin.y - 20
+            ))
+        }
+    }
     
-    // MARK: - Initialization
+    func createSettingsWindow() {
+           SettingsWindowController.shared.showWindow(nil)
+       }
+    
+    
+    func closeWindow(_ windowController: MainWindowController) {
+        if let index = windows.firstIndex(where: { $0 === windowController }) {
+            windows.remove(at: index)
+        }
+    }
+}
+
+class SettingsWindowController: NSWindowController {
+    static let shared = SettingsWindowController()
+    
     init() {
-        // 创建窗口
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 300),
+            styleMask: [.titled, .closable, .miniaturizable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        super.init(window: window)
+        
+        window.center()
+        window.title = "设置"
+        window.contentView = NSHostingView(rootView: SettingsView())
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class MainWindowController: NSWindowController {
+    private let defaultWidth: CGFloat = 425
+    private let defaultHeight: CGFloat = 120
+    private let minHeight: CGFloat = 120
+    private var maxHeight: CGFloat {
+        return (NSScreen.main?.frame.height ?? 720) * 0.75
+    }
+    
+    private var trackingArea: NSTrackingArea?
+    private var isResizing: Bool = false
+    
+    init() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: defaultWidth, height: defaultHeight),
             styleMask: [
                 .titled,
                 .closable,
-                .fullSizeContentView
+                .fullSizeContentView,
+                .resizable
             ],
-            backing: .buffered,
+            backing:.buffered,
             defer: false
         )
         
-        // 调用父类初始化
         super.init(window: window)
         
-        // 配置窗口
         configureWindow()
-        // 设置内容视图
         setupContentView()
-        // 设置窗口位置
         setupInitialPosition()
         
-        // 注册通知
-        setupNotifications()
-        
-        // 延迟设置跟踪区域，确保窗口完全加载
         DispatchQueue.main.async { [weak self] in
             self?.setupTrackingArea()
         }
@@ -47,53 +95,57 @@ class MainWindowController: NSWindowController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Window Configuration
     private func configureWindow() {
         guard let window = window else { return }
         
-        // 基础设置
         window.title = "Hyper Note"
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.backgroundColor = .clear
-        window.hasShadow = true  // 确保窗口有阴影
-        window.invalidateShadow()  // 刷新阴影
+        window.hasShadow = true
+        window.invalidateShadow()
 
-        window.level = .floating  // 改用 floating 级别
+        window.level = .floating
         window.collectionBehavior = [
-               .canJoinAllSpaces,      // 允许在所有空间显示
-               .fullScreenAuxiliary,   // 全屏时保持显示
-               .stationary,            // 保持位置固定
-               .transient             // 添加这个确保窗口跟随
-           ]
-
+            .canJoinAllSpaces,
+            .fullScreenAuxiliary,
+            .stationary,
+            .transient
+        ]
         
-        // 窗口行为
-        window.level = .statusBar + 1
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isReleasedWhenClosed = false
         window.hidesOnDeactivate = false
         window.ignoresMouseEvents = false
-        
-        // 允许在非激活状态下响应鼠标事件
         window.acceptsMouseMovedEvents = true
-        
-        // 窗口交互
         window.isMovableByWindowBackground = true
         window.isOpaque = false
         
-        // 窗口大小
-        window.minSize = NSSize(width: defaultWidth, height: defaultHeight)
-        window.maxSize = NSSize(width: defaultWidth, height: defaultHeight)
+        window.minSize = NSSize(width: defaultWidth, height: minHeight)
+        window.maxSize = NSSize(width: defaultWidth, height: maxHeight)
         
-        // 确保视图正确显示
+        let visualEffectView = NSVisualEffectView()
+        visualEffectView.material = .sidebar
+        visualEffectView.state = .active
+        visualEffectView.blendingMode = .withinWindow
+        
         if let contentView = window.contentView {
-            contentView.wantsLayer = true
-            contentView.layer?.cornerRadius = 16
-            contentView.layer?.masksToBounds = true
+            visualEffectView.frame = contentView.bounds
+            contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
+            
+            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            ])
         }
         
+        window.backgroundColor = NSColor.windowBackgroundColor
+//        window.backgroundColor = NSColor.windowBackgroundColor
+        
         configureWindowButtons()
+        setupResizeNotifications()
     }
     
     private func configureWindowButtons() {
@@ -102,28 +154,43 @@ class MainWindowController: NSWindowController {
               let minimizeButton = window.standardWindowButton(.miniaturizeButton),
               let zoomButton = window.standardWindowButton(.zoomButton) else { return }
         
-        // 禁用最小化按钮
-        minimizeButton.isEnabled = false
-        
-        // 设置按钮颜色
-        closeButton.contentTintColor = .systemRed
-        minimizeButton.contentTintColor = .systemYellow
-        zoomButton.contentTintColor = .systemGreen
-        
-        // 初始状态设置按钮为半透明
+        minimizeButton.isHidden = true
+        zoomButton.isHidden=true
+        closeButton.contentTintColor = .systemGray
+
         setButtonsAlpha(0)
     }
     
-    // MARK: - Mouse Tracking
+    private func setupResizeNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowWillResize),
+            name: NSWindow.willStartLiveResizeNotification,
+            object: window
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowDidEndResize),
+            name: NSWindow.didEndLiveResizeNotification,
+            object: window
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowDidResize),
+            name: NSWindow.didResizeNotification,
+            object: window
+        )
+    }
+    
     private func setupTrackingArea() {
         guard let contentView = window?.contentView else { return }
         
-        // 移除已存在的跟踪区域
         if let existingTrackingArea = trackingArea {
             contentView.removeTrackingArea(existingTrackingArea)
         }
         
-        // 创建新的跟踪区域，覆盖整个contentView
         let trackingArea = NSTrackingArea(
             rect: contentView.bounds,
             options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
@@ -135,7 +202,6 @@ class MainWindowController: NSWindowController {
         self.trackingArea = trackingArea
     }
     
-    // MARK: - Mouse Event Handling
     override func mouseEntered(with event: NSEvent) {
         super.mouseEntered(with: event)
         setButtonsAlpha(1.0)
@@ -155,34 +221,61 @@ class MainWindowController: NSWindowController {
         }
     }
     
-    // MARK: - Content View Setup
+    private var heightObserver: NSKeyValueObservation?
+    
+    
     private func setupContentView() {
-        let contentView = ContentView()
-        let hostingController = NSHostingController(rootView: contentView)
-        window?.contentViewController = hostingController
+            let contentView = ContentView()
+                .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
+                    print("changed")
+                    self?.updateWindowHeight(height)
+                }
+            
+            let hostingController = NSHostingController(rootView: contentView)
+            window?.contentViewController = hostingController
+            
+            // Observe content view frame changes
+            heightObserver = hostingController.view.observe(\.frame) { [weak self] view, _ in
+                let contentHeight = view.frame.height
+                self?.updateWindowHeight(contentHeight)
+            }
+        }
+    
+    private func updateWindowHeight(_ contentHeight: CGFloat) {
+            guard !isResizing, let window = window else { return }
+            
+        window.minSize = NSSize(width: defaultWidth, height: minHeight)
+        window.maxSize = NSSize(width: defaultWidth, height: maxHeight)
         
-        // 监听contentView的frame变化，更新trackingArea
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(contentViewFrameDidChange),
-            name: NSView.frameDidChangeNotification,
-            object: window?.contentView
-        )
-    }
+        let newHeight = min(max(contentHeight, minHeight), maxHeight)
+            var frame = window.frame
+            frame.origin.y += frame.height - newHeight
+            frame.size.height = newHeight
+        
+            print(frame.size.height,"height")
+            
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.0
+                window.animator().setFrame(frame, display: true)
+            }
+        }
     
     @objc private func contentViewFrameDidChange(_ notification: Notification) {
         setupTrackingArea()
     }
     
-    // MARK: - Window Position
     private func setupInitialPosition() {
         guard let window = window else { return }
         
+        if let savedSize = loadSavedSize() {
+            var frame = window.frame
+            frame.size = savedSize
+            window.setFrame(frame, display: true)
+        }
+        
         if let savedPosition = getSavedPosition() {
-            // 使用保存的位置
             window.setFrameTopLeftPoint(savedPosition)
         } else {
-            // 首次显示，设置在右上角
             setDefaultPosition()
         }
     }
@@ -197,7 +290,6 @@ class MainWindowController: NSWindowController {
         window.setFrameTopLeftPoint(NSPoint(x: rightTopX, y: rightTopY))
     }
     
-    // MARK: - Window State Management
     func toggleWindow() {
         guard let window = window else { return }
         
@@ -211,7 +303,6 @@ class MainWindowController: NSWindowController {
     private func showWindow() {
         guard let window = window else { return }
         
-        // 确保窗口在可见位置
         if !isPositionVisible(window.frame.origin) {
             setDefaultPosition()
         }
@@ -225,13 +316,55 @@ class MainWindowController: NSWindowController {
         window?.orderOut(nil)
     }
     
-    // MARK: - Position Management
     private func isPositionVisible(_ position: NSPoint) -> Bool {
         return NSScreen.screens.contains { screen in
             screen.frame.contains(position)
         }
     }
     
+    // MARK: - Size Management
+    @objc private func windowWillResize(_ notification: Notification) {
+        isResizing = true
+    }
+    
+    @objc private func windowDidEndResize(_ notification: Notification) {
+        isResizing = false
+        saveWindowSize()
+    }
+    
+    @objc private func windowDidResize(_ notification: Notification) {
+        guard let window = window else { return }
+        
+        var frame = window.frame
+        
+        // Constrain width to defaultWidth
+        frame.size.width = defaultWidth
+        
+        // Constrain height between minHeight and maxHeight
+        frame.size.height = min(max(frame.size.height, minHeight), maxHeight)
+        
+        // Apply the constrained frame if it differs from current
+        if frame != window.frame {
+            window.setFrame(frame, display: true)
+        }
+    }
+    
+    private func saveWindowSize() {
+        guard let window = window else { return }
+        let size = window.frame.size
+        UserDefaults.standard.set(["width": size.width, "height": size.height], forKey: "WindowSize")
+    }
+    
+    private func loadSavedSize() -> NSSize? {
+        guard let sizeData = UserDefaults.standard.object(forKey: "WindowSize") as? [String: CGFloat],
+              let width = sizeData["width"],
+              let height = sizeData["height"] else {
+            return nil
+        }
+        return NSSize(width: width, height: height)
+    }
+    
+    // MARK: - Position Management
     private func getSavedPosition() -> NSPoint? {
         let defaults = UserDefaults.standard
         guard let positionData = defaults.object(forKey: "WindowPosition") as? [String: CGFloat],
@@ -251,37 +384,20 @@ class MainWindowController: NSWindowController {
         UserDefaults.standard.set(positionData, forKey: "WindowPosition")
     }
     
-    // MARK: - Notifications
-    private func setupNotifications() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(windowDidMove),
-            name: NSWindow.didMoveNotification,
-            object: window
-        )
-        
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(windowDidBecomeKey),
-            name: NSWindow.didBecomeKeyNotification,
-            object: window
-        )
-    }
-    
     @objc private func windowDidMove(_ notification: Notification) {
         savePosition()
     }
     
     @objc private func windowDidBecomeKey(_ notification: Notification) {
-        window?.level = .floating  // 同样改用 floating 级别
+        window?.level = .floating
     }
     
-    // MARK: - Cleanup
     deinit {
         if let trackingArea = trackingArea,
            let contentView = window?.contentView {
             contentView.removeTrackingArea(trackingArea)
         }
         NotificationCenter.default.removeObserver(self)
+        WindowManager.shared.closeWindow(self)
     }
 }
