@@ -38,43 +38,6 @@ struct TitleBarView: View {
     }
 }
 
-// MARK: - TitleBar Toolbar
-//struct TitleBarToolbar: View {
-//    @ObservedObject var state: TitleBarToolbarState
-//    let isVisible: Bool
-//    
-//    var body: some View {
-//        HStack(spacing: 4) {
-//            TitleBarButton(
-//                icon: .command,
-////                isActive: state.isListVisible,
-//                action: { state.openSettings() }
-//            )
-//            
-//            TitleBarButton(
-//                icon: .note,
-////                isActive: state.isListVisible,
-//                action: { state.openFileDictionary() }
-//            ) 
-//            .popover(isPresented: $state.showRecentNotes) {
-//                RecentNotesListView(
-//                    notes: state.recentNotes,
-//                    onSelectNote: { content in
-//                        state.onSelectNote?(content)
-//                    }
-//                )
-//            }
-//            
-//            TitleBarButton(
-//                icon: .plus,
-//                action: { state.addNew() }
-//            )
-//        }
-//        .padding(.horizontal,8)
-//        .opacity(isVisible ? 1 : 0)
-//    }
-//}
-
 struct TitleBarToolbar: View {
     @ObservedObject var state: TitleBarToolbarState
     let isVisible: Bool
@@ -92,21 +55,14 @@ struct TitleBarToolbar: View {
             )
             .popover(isPresented: $state.showRecentNotes) {
                 RecentNotesListView(
-                    notes: state.recentNotes
-//                    onSelectNote: { content in
-                        // 使用 DispatchQueue.main.async 确保状态更新不在视图更新周期中发生
-//                        DispatchQueue.main.async {
-//                            state.onSelectNote?(content)
-//                            state.showRecentNotes = false
-//                        }
-//                    }
+                    notes: state.recentNotes,
+                    onSelectNote: { content in
+                        DispatchQueue.main.async {
+                            state.onSelectNote?(content)
+                            state.showRecentNotes = false
+                        }
+                    }
                 )
-//                .onDisappear {
-//                    // 使用 DispatchQueue.main.async 处理 popover 消失时的状态更新
-//                    DispatchQueue.main.async {
-//                        state.showRecentNotes = false
-//                    }
-//                }
             }
             
             TitleBarButton(
@@ -135,7 +91,6 @@ struct TitleBarButton: View {
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(.secondary)
                     .frame(width: 28, height: 28)
-                //                .help(icon.tooltip)
                     .overlay(
                         Group {
                             if showTooltip {

@@ -13,7 +13,7 @@ struct RecentNote: Identifiable {
 // MARK: - Recent Notes List View
 struct RecentNotesListView: View {
     let notes: [RecentNote]
-//    let onSelectNote: (String) -> Void
+    let onSelectNote: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 //    let fileManager = FileManager.default
@@ -22,7 +22,7 @@ struct RecentNotesListView: View {
         VStack(spacing: 0) {
             ForEach(notes) { note in
                 NoteRow(note: note) {
-//                    onSelectNote(note.content)
+                    onSelectNote(note.content)
                     dismiss()
                 }
                 
