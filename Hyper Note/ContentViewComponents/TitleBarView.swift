@@ -7,6 +7,7 @@ struct TitleBarView: View {
     let isHovered: Bool
 //    @StateObject var toolbarState = TitleBarToolbarState()
     @ObservedObject var toolbarState: TitleBarToolbarState
+    let onNoteSelected: (String) -> Void  // 新增参数
     
     var body: some View {
         ZStack {
@@ -15,7 +16,6 @@ struct TitleBarView: View {
                 .frame(height: 32)
             
             HStack {
-//                TitleBarToolbar(state: toolbarState, isVisible: isHovered).opacity(0)
                 VStack{}.frame(width: 96.0)
                 
                 Spacer()
@@ -24,7 +24,7 @@ struct TitleBarView: View {
                 Spacer()
                 
                 // 右侧工具栏
-                TitleBarToolbar(state: toolbarState, isVisible: isHovered)
+                TitleBarToolbar(state: toolbarState, isVisible: isHovered,onNoteSelected:onNoteSelected)
             }
         }
     }
@@ -41,6 +41,7 @@ struct TitleBarView: View {
 struct TitleBarToolbar: View {
     @ObservedObject var state: TitleBarToolbarState
     let isVisible: Bool
+    let onNoteSelected: (String) -> Void
     
     var body: some View {
         HStack(spacing: 4) {
@@ -56,12 +57,7 @@ struct TitleBarToolbar: View {
             .popover(isPresented: $state.showRecentNotes) {
                 RecentNotesListView(
                     notes: state.recentNotes,
-                    onSelectNote: { content in
-                        DispatchQueue.main.async {
-                            state.onSelectNote?(content)
-                            state.showRecentNotes = false
-                        }
-                    }
+                    onSelectNote: onNoteSelected
                 )
             }
             
@@ -192,7 +188,7 @@ class TitleBarToolbarState: ObservableObject {
     
     func openFileDictionary() {
            showRecentNotes = true
-//           refreshRecentNotes()
+           refreshRecentNotes()
        }
    
     func openSettings() {

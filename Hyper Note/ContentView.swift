@@ -32,6 +32,10 @@ struct ContentView: View {
            }
        }
     
+    private func loadNoteContent(_ content: String) {
+          text = content
+      }
+    
     private let autoSaveTimer = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
 
     
@@ -46,7 +50,7 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                TitleBarView(title: title, isHovered: isHovered, toolbarState: toolbarState)
+                TitleBarView(title: title, isHovered: isHovered, toolbarState: toolbarState,onNoteSelected: loadNoteContent)
 //                    .zIndex(10)
                 
                 VStack(spacing: 0) {

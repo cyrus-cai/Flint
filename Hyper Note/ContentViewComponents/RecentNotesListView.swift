@@ -16,8 +16,11 @@ struct RecentNotesListView: View {
     let onSelectNote: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-//    let fileManager = FileManager.default
     
+  private func openInFinder() {
+      NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
+  }
+
     var body: some View {
         VStack(spacing: 0) {
             ForEach(notes) { note in
@@ -28,14 +31,30 @@ struct RecentNotesListView: View {
                 
                 if note.id != notes.last?.id {
                     Divider()
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 12)
                 }
             }
+       
+        Divider()
+                       .padding(.horizontal, 12)
+                   
+        Button(action: openInFinder) {
+                       HStack {
+                           Text("Show All in Finder")
+                               .font(.system(size: 14))
+                       }
+                       .frame(maxWidth: .infinity)
+                       .padding(.vertical, 8)
+                       .padding(.horizontal, 12)
+                   }
+                   .buttonStyle(PlainButtonStyle())
+                   .foregroundColor(.blue)
         }
         .frame(width: 280)
         .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
         .cornerRadius(8)
         .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
+        .padding(.vertical, 2)
     }
 }
 
@@ -43,6 +62,26 @@ struct RecentNotesListView: View {
 struct NoteRow: View {
     let note: RecentNote
     let onTap: () -> Void
+    @State private var isHovered = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private func getRelativeTime(from date: Date) -> String {
+        let now = Date()
+        let diffInSeconds = Int(now.timeIntervalSince(date))
+        let diffInMinutes = diffInSeconds / 60
+        let diffInHours = diffInMinutes / 60
+        let diffInDays = diffInHours / 24
+        
+        if diffInMinutes < 1 {
+            return "less than 1 min"
+        } else if diffInMinutes < 60 {
+            return "\(diffInMinutes) min"
+        } else if diffInHours < 24 {
+            return "\(diffInHours) hr \(diffInMinutes-diffInDays*24*60-diffInHours*60) min"
+        } else {
+            return "\(diffInDays) day \(diffInHours-diffInDays*24) hr"
+        }
+    }
     
     var body: some View {
         Button(action: onTap) {
@@ -52,7 +91,7 @@ struct NoteRow: View {
                     .foregroundColor(.primary)
                     .lineLimit(1)
                 
-                Text(note.lastModified, style: .relative)
+                Text(getRelativeTime(from: note.lastModified))
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
             }
@@ -61,6 +100,17 @@ struct NoteRow: View {
             .padding(.vertical, 8)
         }
         .buttonStyle(PlainButtonStyle())
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(isHovered ?
+                    (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.9)) :
+                    Color.clear)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+        )
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }
 
@@ -90,7 +140,7 @@ extension FileManager {
             
             // 排序并限制数量
             notesWithDates.sort { $0.1 > $1.1 }
-            let recentURLs = notesWithDates.prefix(4)
+            let recentURLs = notesWithDates.prefix(5)
             
             // 转换为 RecentNote 对象
             var recentNotes: [RecentNote] = []
