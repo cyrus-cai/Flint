@@ -61,7 +61,7 @@ struct SettingsView: View {
                         Spacer()
                         Text("今日已使用:\(counter.todayCount)/50次").opacity(0.5)
     //                        .foregroundColor(.purple)
-                        Button("Hyper + 可无限使用") {
+                        Button("Unlimited in Hyper +") {
                             // 处理升级操作
                         } .buttonStyle(.borderedProminent)
                             .tint(.purple)

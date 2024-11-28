@@ -63,6 +63,7 @@ struct TitleBarToolbar: View {
             
             TitleBarButton(
                 icon: .plus,
+                isDisabled: state.isEmpty, // Add disabled state
                 action: { state.addNew() }
             )
         }
@@ -71,21 +72,27 @@ struct TitleBarToolbar: View {
     }
 }
 
+
 // MARK: - TitleBar Button
 struct TitleBarButton: View {
     let icon: TitleBarIcon
-//    var isActive: Bool = false
     let action: () -> Void
+    let isDisabled: Bool // New parameter
     @State private var showTooltip = false
     @Environment(\.colorScheme) var colorScheme: ColorScheme
-
+    
+    init(icon: TitleBarIcon, isDisabled: Bool = false, action: @escaping () -> Void) {
+        self.icon = icon
+        self.isDisabled = isDisabled
+        self.action = action
+    }
     
     var body: some View {
         ZStack {
             Button(action: action) {
                 Image(systemName: icon.systemName)
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(isDisabled ? .secondary.opacity(0.3) : .secondary)
                     .frame(width: 28, height: 28)
                     .overlay(
                         Group {
@@ -95,10 +102,10 @@ struct TitleBarButton: View {
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 3)
                                     .background(
-                                            colorScheme == .dark ?
-                                                Color(white: 0.2) :  // 深色模式下用20%白
-                                                Color(white: 0.85)   // 浅色模式下用95%白
-                                        )
+                                        colorScheme == .dark ?
+                                            Color(white: 0.2) :
+                                            Color(white: 0.85)
+                                    )
                                     .foregroundColor(Color.primary)
                                     .zIndex(40)
                                     .cornerRadius(6)
@@ -109,24 +116,15 @@ struct TitleBarButton: View {
                         }
                     )
                     .onHover { hovering in
-                        print("hovering")
-                        // Start a delay when the mouse hovers over the button
                         withAnimation(.easeInOut(duration: 0.1)) {
-                            if hovering {
-                                DispatchQueue.main.async { //
-                                    showTooltip = true
-                                    print("hovering true")
-                                }
-                            } else {
-                                showTooltip = false
-                            }
+                            showTooltip = hovering && !isDisabled
                         }
                     }
             }
             .buttonStyle(.plain)
-           
+            .disabled(isDisabled)
         }
-  }
+    }
 }
 
 // MARK: - TitleBar Icon Enum
@@ -165,6 +163,7 @@ class TitleBarToolbarState: ObservableObject {
     @Published var isListVisible = false
     @Published var showRecentNotes = false
     @Published var recentNotes: [RecentNote] = []
+    @Published var isEmpty: Bool = true // Add isEmpty state
     
     var onAddNew: (() -> Void)? // 添加闭包属性
     var onSelectNote: ((String) -> Void)?

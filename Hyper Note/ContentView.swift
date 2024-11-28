@@ -61,9 +61,13 @@ struct ContentView: View {
              
             }
         }
-        .onAppear {
-                   toolbarState.onAddNew = { text = "" } // 设置清空逻辑
+        .onChange(of: text) { newValue in
+                   toolbarState.isEmpty = newValue.isEmpty
                }
+        .onAppear {
+                  toolbarState.onAddNew = { text = "" }
+                  toolbarState.isEmpty = text.isEmpty
+              }
         .ignoresSafeArea()
         .listStyle(.sidebar)
         // 移除固定的深色模式设置，改为响应系统
