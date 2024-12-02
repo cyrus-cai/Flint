@@ -15,11 +15,18 @@ struct ContentView: View {
     @State private var isHovered = false
     @Environment(\.colorScheme) private var colorScheme // 添加对当前颜色方案的引用
     @StateObject private var toolbarState = TitleBarToolbarState()
+    @State private var showToast = false
     
     @State private var lastSaveDate: Date?
     @State private var saveError: Error?
     
-    private func saveDocument() {
+    enum SaveTrigger {
+            case timer
+            case focusLost
+            case addNew
+        }
+    
+    private func saveDocument(trigger: SaveTrigger) {
            do {
                let fileURL = FileManager.shared.fileURL(for: title)
                try text.write(to: fileURL, atomically: true, encoding: .utf8)
@@ -30,6 +37,18 @@ struct ContentView: View {
                saveError = error
                print("保存失败：\(error.localizedDescription)")
            }
+        
+        if trigger == .addNew {
+                 withAnimation {
+                     showToast = true
+                 }
+                 // 3秒后自动隐藏
+                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                     withAnimation {
+                         showToast = false
+                     }
+                 }
+             }
        }
     
     private func loadNoteContent(_ content: String) {
@@ -75,13 +94,13 @@ struct ContentView: View {
         }
         .onReceive(autoSaveTimer) { _ in
                    if !text.isEmpty {
-                       saveDocument()
+                       saveDocument(trigger: .timer)
                        print("document saved")
                    }
                }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in
                            if !text.isEmpty {
-                               saveDocument()
+                               saveDocument(trigger: .focusLost)
                                print("document saved by losing focus")
                            }
                        }
@@ -89,11 +108,44 @@ struct ContentView: View {
                    // 设置工具栏保存回调
                    toolbarState.onSave = {
                        if !text.isEmpty {
-                           saveDocument()
+                           saveDocument(trigger: .addNew)
                            print("document saved before adding new")
                        }
                    }
                }
+        .overlay(
+                   ToastView(message: "内容已自动保存", isShowing: $showToast)
+               )
+    }
+}
+
+struct ToastView: View {
+    let message: String
+    @Binding var isShowing: Bool
+    
+    var body: some View {
+        if isShowing {
+            VStack {
+                Spacer()
+                   HStack {
+                       // 绿色发光点
+                       Circle()
+                           .fill(Color.green)
+                           .frame(width: 8, height: 8)
+                           .shadow(color: .green.opacity(0.5), radius: 4)
+                       
+                       Text(message)
+                   }
+                   .padding(.horizontal, 16)
+                   .padding(.vertical, 8)
+                   .background(.gray.opacity(0.2))
+                   .background(.thickMaterial)
+                   .foregroundColor(.primary)
+                   .cornerRadius(40)
+                   .transition(.opacity)
+                   .padding(.bottom, 28)
+            }
+        }
     }
 }
 
