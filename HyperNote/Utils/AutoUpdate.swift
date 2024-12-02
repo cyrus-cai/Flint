@@ -7,6 +7,7 @@
 
 import Foundation
 import Cocoa
+import Combine
 
 class AutoUpdater {
     // 版本信息接口地址
@@ -15,6 +16,12 @@ class AutoUpdater {
     private var currentVersion: String
     // 临时下载目录
     private let downloadDirectory: URL
+    
+    private let progressSubject = PassthroughSubject<Double, Never>()
+    var progressPublisher: AnyPublisher<Double, Never> {
+        progressSubject.eraseToAnyPublisher()
+    }
+    
     
     init() {
         // 从 Info.plist 获取当前版本
@@ -26,7 +33,7 @@ class AutoUpdater {
         
         // 设置下载目录
         self.downloadDirectory = Foundation.FileManager.default.temporaryDirectory
-            .appendingPathComponent("Hyper Note")
+            .appendingPathComponent("HyperNote")
             .appendingPathComponent("Updates")
     }
     
@@ -41,83 +48,75 @@ class AutoUpdater {
             return compareVersions(updateInfo.version, isGreaterThan: currentVersion) ? updateInfo : nil
         }
     
-    // 下载更新包
+    private class DownloadDelegate: NSObject, URLSessionDownloadDelegate {
+        let progressHandler: (Double) -> Void
+        
+        init(progressHandler: @escaping (Double) -> Void) {
+            self.progressHandler = progressHandler
+        }
+        
+        // 下载进度更新时调用
+        func urlSession(_ session: URLSession,
+                       downloadTask: URLSessionDownloadTask,
+                       didWriteData bytesWritten: Int64,
+                       totalBytesWritten: Int64,
+                       totalBytesExpectedToWrite: Int64) {
+            let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+            progressHandler(progress)
+        }
+        
+        // 下载完成时调用（必需实现的方法）
+        func urlSession(_ session: URLSession,
+                       downloadTask: URLSessionDownloadTask,
+                       didFinishDownloadingTo location: URL) {
+            // 这个方法是必需的，但在我们的实现中不需要做任何事
+            // 因为我们在 downloadUpdate 方法中处理文件移动
+        }
+        
+        // 可选：处理下载完成或错误
+        func urlSession(_ session: URLSession,
+                       task: URLSessionTask,
+                       didCompleteWithError error: Error?) {
+            if let error = error {
+                print("Download error: \(error)")
+            }
+        }
+    }
+    
     func downloadUpdate(from url: URL) async throws -> URL {
-            let fileManager = Foundation.FileManager.default
-            try fileManager.createDirectory(at: downloadDirectory,
-                                          withIntermediateDirectories: true)
-            
-            let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
-            
-            // Check if the file already exists
-            if fileManager.fileExists(atPath: destinationURL.path) {
-                print("Update package already exists, using existing file")
-                return destinationURL
-            }
-            
-            // If file doesn't exist, download it
-            let (downloadURL, _) = try await URLSession.shared.download(from: url)
-            
-            // If a file exists at the destination, remove it first
-            if fileManager.fileExists(atPath: destinationURL.path) {
-                try fileManager.removeItem(at: destinationURL)
-            }
-            
-            try fileManager.moveItem(at: downloadURL, to: destinationURL)
+        let fileManager = Foundation.FileManager.default
+        try fileManager.createDirectory(at: downloadDirectory,
+                                      withIntermediateDirectories: true)
+        
+        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
+        
+        // Check if the file already exists
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            print("Update package already exists, using existing file")
+            progressSubject.send(1.0) // 如果文件已存在，直接发送完成进度
             return destinationURL
         }
+        
+        // 创建带代理的 URLSession
+        let delegate = DownloadDelegate(progressHandler: { [weak self] progress in
+            self?.progressSubject.send(progress)
+        })
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        
+        // 执行下载
+        let (downloadURL, _) = try await session.download(from: url)
+        
+        // 如果目标位置已存在文件，先删除
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+        }
+        
+        try fileManager.moveItem(at: downloadURL, to: destinationURL)
+        progressSubject.send(1.0) // 发送完成进度
+        return destinationURL
+    }
+
     
-    // 安装更新
-//    func installUpdate(from updateFile: URL) throws {
-//           let fileManager = Foundation.FileManager.default
-//           
-//           // Clean and create extraction directory
-//           let updateDirectory = downloadDirectory.appendingPathComponent("extracted")
-//           print(updateDirectory, "updateDirectory")
-//           if fileManager.fileExists(atPath: updateDirectory.path) {
-//               try fileManager.removeItem(at: updateDirectory)
-//           }
-//           try fileManager.createDirectory(at: updateDirectory,
-//                                         withIntermediateDirectories: true)
-//           
-//           // Extract files
-//           print("Extracting update file...")
-//           try shell("unzip \"\(updateFile.path)\" -d \"\(updateDirectory.path)\"")
-//           
-//           guard let currentAppPath = Bundle.main.bundleURL.path.removingPercentEncoding,
-//                 !currentAppPath.isEmpty else {
-//               throw UpdateError.invalidAppPath
-//           }
-//           
-//           let newAppPath = updateDirectory.appendingPathComponent("Hyper Note.app").path
-//           guard fileManager.fileExists(atPath: newAppPath) else {
-//               throw UpdateError.invalidUpdateFile
-//           }
-//           
-//           let scriptContent = """
-//           #!/bin/bash
-//           
-//           sleep 2
-//           
-//           if [ -e "\(currentAppPath)" ]; then
-//               rm -rf "\(currentAppPath)"
-//           fi
-//           
-//           cp -R "\(newAppPath)" "\(currentAppPath)"
-//           chmod -R 755 "\(currentAppPath)"
-//           rm -rf "\(downloadDirectory.path)"
-//           open "\(currentAppPath)"
-//           """
-//           
-//           print("Creating update script...")
-//           let scriptURL = downloadDirectory.appendingPathComponent("update.sh")
-//           try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
-//           try shell("chmod +x \"\(scriptURL.path)\"")
-//           
-//           print("Running update script and terminating application...")
-//           try shell("\"\(scriptURL.path)\" &")
-//           NSApplication.shared.terminate(nil)
-//       }
     func installUpdate(from updateFile: URL) throws {
         let fileManager = Foundation.FileManager.default
         
@@ -128,7 +127,7 @@ class AutoUpdater {
             try fileManager.removeItem(at: updateDirectory)
         }
         try fileManager.createDirectory(at: updateDirectory,
-                                      withIntermediateDirectories: true)
+                                        withIntermediateDirectories: true)
         
         // Extract files
         print("Extracting update file...")
@@ -157,7 +156,7 @@ class AutoUpdater {
             throw UpdateError.invalidAppPath
         }
         
-        let newAppPath = updateDirectory.appendingPathComponent("Hyper Note.app").path
+        let newAppPath = updateDirectory.appendingPathComponent("HyperNote.app").path
         guard fileManager.fileExists(atPath: newAppPath) else {
             throw UpdateError.invalidUpdateFile
         }
@@ -168,13 +167,13 @@ class AutoUpdater {
         }
         
         // 构建目标路径
-        let targetAppPath = applicationsDirectory.appendingPathComponent("Hyper Note.app")
+        let targetAppPath = applicationsDirectory.appendingPathComponent("HyperNote.app")
         
         // 在主队列中执行更新操作
         DispatchQueue.main.async { [self] in
             do {
                 // 复制新版本到临时位置
-                let tempAppPath = self.downloadDirectory.appendingPathComponent("Hyper Note.app")
+                let tempAppPath = self.downloadDirectory.appendingPathComponent("HyperNote.app")
                 if fileManager.fileExists(atPath: tempAppPath.path) {
                     try fileManager.removeItem(at: tempAppPath)
                 }
@@ -191,6 +190,14 @@ class AutoUpdater {
                     // 用户确认后，打开新版本
                     NSWorkspace.shared.open(tempAppPath)
                     
+                    // 清理更新文件夹
+                    do {
+                        try fileManager.removeItem(at: self.downloadDirectory)
+                        print("Update files cleaned up successfully")
+                    } catch {
+                        print("Error cleaning up update files: \(error)")
+                    }
+                    
                     // 退出当前应用
                     NSApplication.shared.terminate(nil)
                 }
@@ -200,8 +207,7 @@ class AutoUpdater {
                 let errorAlert = NSAlert(error: error)
                 errorAlert.runModal()
             }
-        }
-    }
+        }}
 
     // 更新错误枚举
     enum UpdateError: Error {

@@ -12,6 +12,18 @@ struct RecentNote: Identifiable {
 
 class RecentNotesViewModel: ObservableObject {
     @Published var notes: [RecentNote] = []
+    @Published var searchText: String = ""
+    
+    var filteredNotes: [RecentNote] {
+           if searchText.isEmpty {
+               return notes
+           }
+           return notes.filter { note in
+               note.title.localizedCaseInsensitiveContains(searchText) ||
+               note.content.localizedCaseInsensitiveContains(searchText)
+           }
+       }
+       
     
     init() {
         notes = FileManager.getRecentNotes()
@@ -36,6 +48,7 @@ struct RecentNotesListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = RecentNotesViewModel()
+    @FocusState private var searchFocused: Bool
     
     private func openInFinder() {
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
@@ -43,32 +56,69 @@ struct RecentNotesListView: View {
 
     var body: some View {
             VStack(spacing: 0) {
+                HStack {
+                               Image(systemName: "magnifyingglass")
+                                   .foregroundColor(.secondary)
+                               TextField("Search notes...", text: $viewModel.searchText)
+                                   .textFieldStyle(PlainTextFieldStyle())
+                                   .font(.system(size: 14))
+                                   .tint(.purple)
+                                   .focused($searchFocused)
+                               if !viewModel.searchText.isEmpty {
+                                   Button(action: { viewModel.searchText = "" }) {
+                                       Image(systemName: "xmark.circle.fill")
+                                           .foregroundColor(.secondary)
+                                           .font(.system(size: 12))
+                                   }
+                                   .buttonStyle(PlainButtonStyle())
+                               }
+                           }
+                           .padding(.horizontal, 12)
+                           .padding(.vertical, 12)
                 ScrollView {
-                    VStack(spacing: 0) {
-                        ForEach(viewModel.notes) { note in
-                            NoteRow(note: note, onTap: {
-                                onSelectNote(note.content)
-                                dismiss()
-                            }, onDelete: {
-                                viewModel.deleteNote(note)
-                            })
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-                .frame(maxHeight: 400)
+                               VStack(spacing: 0) {
+                                   ForEach(viewModel.filteredNotes) { note in
+                                       NoteRow(note: note, onTap: {
+                                           onSelectNote(note.content)
+                                           dismiss()
+                                       }, onDelete: {
+                                           viewModel.deleteNote(note)
+                                       })
+                                   }
+                               }
+                               .padding(.vertical, 4)
+                           }
+                           .frame(maxHeight: 400)
+                           .onHover { _ in
+                               // 当鼠标移动到滚动区域时，自动取消搜索框的焦点
+                               if searchFocused {
+                                   searchFocused = false
+                               }
+                           }
+                           .zIndex(0)
                 
-                Button(action: openInFinder) {
-                    HStack {
-                        Text("Show All")
-                            .font(.system(size: 14))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
+                if viewModel.notes.isEmpty || viewModel.filteredNotes.isEmpty {
+                    Text("No more notes")
+                        .padding(.top,12)
+                        .padding(.bottom,20)
+                        .opacity(0.5)
                 }
-                .buttonStyle(PlainButtonStyle())
-                .foregroundColor(.blue)
+                
+                if !viewModel.notes.isEmpty {
+                    HStack{
+                        Button(action: openInFinder) {
+                            HStack {
+                                Text("Show All")
+                                    .font(.system(size: 14))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .foregroundColor(.purple)
+                    }
+                    }
             }
             .frame(width: 280)
             .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
@@ -118,6 +168,7 @@ struct NoteRow: View {
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle()) 
             }
             .buttonStyle(PlainButtonStyle())
             

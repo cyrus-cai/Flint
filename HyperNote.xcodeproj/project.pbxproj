@@ -55,15 +55,15 @@
 		A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentNotesListView.swift; sourceTree = "<group>"; };
 		A35E117D2CF9F65400EF949D /* AutoUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoUpdate.swift; sourceTree = "<group>"; };
 		A3717AC82CF600890073E925 /* FileManagerExtend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtend.swift; sourceTree = "<group>"; };
-		A37D47312CDE6ECE00B2E727 /* Hyper Note.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hyper Note.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37D47312CDE6ECE00B2E727 /* HyperNote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HyperNote.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteApp.swift; sourceTree = "<group>"; };
 		A37D47362CDE6ECE00B2E727 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A37D47382CDE6ECF00B2E727 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A37D473B2CDE6ECF00B2E727 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A37D473D2CDE6ECF00B2E727 /* Hyper_Note.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hyper_Note.entitlements; sourceTree = "<group>"; };
-		A37D47422CDE6ECF00B2E727 /* Hyper NoteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hyper NoteTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37D47422CDE6ECF00B2E727 /* HyperNoteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HyperNoteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37D47462CDE6ECF00B2E727 /* Hyper_NoteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteTests.swift; sourceTree = "<group>"; };
-		A37D474C2CDE6ECF00B2E727 /* Hyper NoteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hyper NoteUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37D474C2CDE6ECF00B2E727 /* HyperNoteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HyperNoteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37D47502CDE6ECF00B2E727 /* Hyper_NoteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteUITests.swift; sourceTree = "<group>"; };
 		A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandler.swift; sourceTree = "<group>"; };
@@ -129,9 +129,9 @@
 		A37D47282CDE6ECE00B2E727 = {
 			isa = PBXGroup;
 			children = (
-				A37D47332CDE6ECE00B2E727 /* Hyper Note */,
-				A37D47452CDE6ECF00B2E727 /* Hyper NoteTests */,
-				A37D474F2CDE6ECF00B2E727 /* Hyper NoteUITests */,
+				A37D47332CDE6ECE00B2E727 /* HyperNote */,
+				A37D47452CDE6ECF00B2E727 /* HyperNoteTests */,
+				A37D474F2CDE6ECF00B2E727 /* HyperNoteUITests */,
 				A37D47322CDE6ECE00B2E727 /* Products */,
 				A30FF3922CE102F30034F9DC /* Frameworks */,
 			);
@@ -140,14 +140,14 @@
 		A37D47322CDE6ECE00B2E727 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A37D47312CDE6ECE00B2E727 /* Hyper Note.app */,
-				A37D47422CDE6ECF00B2E727 /* Hyper NoteTests.xctest */,
-				A37D474C2CDE6ECF00B2E727 /* Hyper NoteUITests.xctest */,
+				A37D47312CDE6ECE00B2E727 /* HyperNote.app */,
+				A37D47422CDE6ECF00B2E727 /* HyperNoteTests.xctest */,
+				A37D474C2CDE6ECF00B2E727 /* HyperNoteUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A37D47332CDE6ECE00B2E727 /* Hyper Note */ = {
+		A37D47332CDE6ECE00B2E727 /* HyperNote */ = {
 			isa = PBXGroup;
 			children = (
 				A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */,
@@ -162,7 +162,7 @@
 				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
 				A3B1E21D2CF3330700C75E71 /* SettingsView.swift */,
 			);
-			path = "Hyper Note";
+			path = HyperNote;
 			sourceTree = "<group>";
 		};
 		A37D473A2CDE6ECF00B2E727 /* Preview Content */ = {
@@ -173,29 +173,29 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		A37D47452CDE6ECF00B2E727 /* Hyper NoteTests */ = {
+		A37D47452CDE6ECF00B2E727 /* HyperNoteTests */ = {
 			isa = PBXGroup;
 			children = (
 				A37D47462CDE6ECF00B2E727 /* Hyper_NoteTests.swift */,
 			);
-			path = "Hyper NoteTests";
+			path = HyperNoteTests;
 			sourceTree = "<group>";
 		};
-		A37D474F2CDE6ECF00B2E727 /* Hyper NoteUITests */ = {
+		A37D474F2CDE6ECF00B2E727 /* HyperNoteUITests */ = {
 			isa = PBXGroup;
 			children = (
 				A37D47502CDE6ECF00B2E727 /* Hyper_NoteUITests.swift */,
 				A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */,
 			);
-			path = "Hyper NoteUITests";
+			path = HyperNoteUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A37D47302CDE6ECE00B2E727 /* Hyper Note */ = {
+		A37D47302CDE6ECE00B2E727 /* HyperNote */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A37D47562CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper Note" */;
+			buildConfigurationList = A37D47562CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "HyperNote" */;
 			buildPhases = (
 				A37D472D2CDE6ECE00B2E727 /* Sources */,
 				A37D472E2CDE6ECE00B2E727 /* Frameworks */,
@@ -205,17 +205,17 @@
 			);
 			dependencies = (
 			);
-			name = "Hyper Note";
+			name = HyperNote;
 			packageProductDependencies = (
 				A30FF3932CE102F30034F9DC /* SwiftDown */,
 			);
 			productName = "Hyper Note";
-			productReference = A37D47312CDE6ECE00B2E727 /* Hyper Note.app */;
+			productReference = A37D47312CDE6ECE00B2E727 /* HyperNote.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A37D47412CDE6ECF00B2E727 /* Hyper NoteTests */ = {
+		A37D47412CDE6ECF00B2E727 /* HyperNoteTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A37D47592CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteTests" */;
+			buildConfigurationList = A37D47592CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "HyperNoteTests" */;
 			buildPhases = (
 				A37D473E2CDE6ECF00B2E727 /* Sources */,
 				A37D473F2CDE6ECF00B2E727 /* Frameworks */,
@@ -226,14 +226,14 @@
 			dependencies = (
 				A37D47442CDE6ECF00B2E727 /* PBXTargetDependency */,
 			);
-			name = "Hyper NoteTests";
+			name = HyperNoteTests;
 			productName = "Hyper NoteTests";
-			productReference = A37D47422CDE6ECF00B2E727 /* Hyper NoteTests.xctest */;
+			productReference = A37D47422CDE6ECF00B2E727 /* HyperNoteTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		A37D474B2CDE6ECF00B2E727 /* Hyper NoteUITests */ = {
+		A37D474B2CDE6ECF00B2E727 /* HyperNoteUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A37D475C2CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteUITests" */;
+			buildConfigurationList = A37D475C2CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "HyperNoteUITests" */;
 			buildPhases = (
 				A37D47482CDE6ECF00B2E727 /* Sources */,
 				A37D47492CDE6ECF00B2E727 /* Frameworks */,
@@ -244,9 +244,9 @@
 			dependencies = (
 				A37D474E2CDE6ECF00B2E727 /* PBXTargetDependency */,
 			);
-			name = "Hyper NoteUITests";
+			name = HyperNoteUITests;
 			productName = "Hyper NoteUITests";
-			productReference = A37D474C2CDE6ECF00B2E727 /* Hyper NoteUITests.xctest */;
+			productReference = A37D474C2CDE6ECF00B2E727 /* HyperNoteUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -272,7 +272,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A37D472C2CDE6ECE00B2E727 /* Build configuration list for PBXProject "Hyper Note" */;
+			buildConfigurationList = A37D472C2CDE6ECE00B2E727 /* Build configuration list for PBXProject "HyperNote" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -288,9 +288,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A37D47302CDE6ECE00B2E727 /* Hyper Note */,
-				A37D47412CDE6ECF00B2E727 /* Hyper NoteTests */,
-				A37D474B2CDE6ECF00B2E727 /* Hyper NoteUITests */,
+				A37D47302CDE6ECE00B2E727 /* HyperNote */,
+				A37D47412CDE6ECF00B2E727 /* HyperNoteTests */,
+				A37D474B2CDE6ECF00B2E727 /* HyperNoteUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -364,12 +364,12 @@
 /* Begin PBXTargetDependency section */
 		A37D47442CDE6ECF00B2E727 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A37D47302CDE6ECE00B2E727 /* Hyper Note */;
+			target = A37D47302CDE6ECE00B2E727 /* HyperNote */;
 			targetProxy = A37D47432CDE6ECF00B2E727 /* PBXContainerItemProxy */;
 		};
 		A37D474E2CDE6ECF00B2E727 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A37D47302CDE6ECE00B2E727 /* Hyper Note */;
+			target = A37D47302CDE6ECE00B2E727 /* HyperNote */;
 			targetProxy = A37D474D2CDE6ECF00B2E727 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -499,11 +499,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = "Hyper Note/Hyper_Note.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_ASSET_PATHS = "\"Hyper Note/Preview Content\"";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"HyperNote/Preview Content\"";
 				DEVELOPMENT_TEAM = 32RM54L485;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -515,8 +516,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-Note";
+				MARKETING_VERSION = 0.1.7;
+				PRODUCT_BUNDLE_IDENTIFIER = HyperNote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -529,11 +530,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = "Hyper Note/Hyper_Note.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_ASSET_PATHS = "\"Hyper Note/Preview Content\"";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"HyperNote/Preview Content\"";
 				DEVELOPMENT_TEAM = 32RM54L485;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -545,8 +547,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-Note";
+				MARKETING_VERSION = 0.1.7;
+				PRODUCT_BUNDLE_IDENTIFIER = HyperNote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -624,7 +626,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A37D472C2CDE6ECE00B2E727 /* Build configuration list for PBXProject "Hyper Note" */ = {
+		A37D472C2CDE6ECE00B2E727 /* Build configuration list for PBXProject "HyperNote" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A37D47542CDE6ECF00B2E727 /* Debug */,
@@ -633,7 +635,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A37D47562CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper Note" */ = {
+		A37D47562CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "HyperNote" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A37D47572CDE6ECF00B2E727 /* Debug */,
@@ -642,7 +644,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A37D47592CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteTests" */ = {
+		A37D47592CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "HyperNoteTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A37D475A2CDE6ECF00B2E727 /* Debug */,
@@ -651,7 +653,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A37D475C2CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Hyper NoteUITests" */ = {
+		A37D475C2CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "HyperNoteUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A37D475D2CDE6ECF00B2E727 /* Debug */,
