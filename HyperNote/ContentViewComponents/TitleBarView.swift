@@ -5,7 +5,6 @@ import SwiftUI
 struct TitleBarView: View {
     let title: String
     let isHovered: Bool
-//    @StateObject var toolbarState = TitleBarToolbarState()
     @ObservedObject var toolbarState: TitleBarToolbarState
     let onNoteSelected: (String) -> Void  // 新增参数
     
@@ -164,6 +163,7 @@ class TitleBarToolbarState: ObservableObject {
     @Published var showRecentNotes = false
     @Published var recentNotes: [RecentNote] = []
     @Published var isEmpty: Bool = true // Add isEmpty state
+    var onSave: (() -> Void)? // 添加保存回调
     
     var onAddNew: (() -> Void)? // 添加闭包属性
     var onSelectNote: ((String) -> Void)?
@@ -194,14 +194,9 @@ class TitleBarToolbarState: ObservableObject {
         WindowManager.shared.createSettingsWindow()
     }
     
-    
-//    func openFileDictionary() {
-//        let notesURL = FileManager.shared.notesDirectory
-//        NSWorkspace.shared.open(notesURL)
-//    }
-    
     func addNew() {
-        onAddNew?() 
+        onSave?() // 保存当前文档
+        onAddNew?()
        }
 }
 

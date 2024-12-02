@@ -70,7 +70,6 @@ struct ContentView: View {
               }
         .ignoresSafeArea()
         .listStyle(.sidebar)
-        // 移除固定的深色模式设置，改为响应系统
         .onHover { hovering in
             isHovered = hovering
         }
@@ -78,6 +77,21 @@ struct ContentView: View {
                    if !text.isEmpty {
                        saveDocument()
                        print("document saved")
+                   }
+               }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in
+                           if !text.isEmpty {
+                               saveDocument()
+                               print("document saved by losing focus")
+                           }
+                       }
+        .onAppear {
+                   // 设置工具栏保存回调
+                   toolbarState.onSave = {
+                       if !text.isEmpty {
+                           saveDocument()
+                           print("document saved before adding new")
+                       }
                    }
                }
     }
