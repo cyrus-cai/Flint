@@ -12,7 +12,9 @@
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
 		A30FF3942CE102F30034F9DC /* SwiftDown in Frameworks */ = {isa = PBXBuildFile; productRef = A30FF3932CE102F30034F9DC /* SwiftDown */; };
 		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
+		A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32671EB2CF8D15100162AF4 /* checkUpdates.swift */; };
 		A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */; };
+		A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35E117D2CF9F65400EF949D /* AutoUpdate.swift */; };
 		A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3717AC82CF600890073E925 /* FileManagerExtend.swift */; };
 		A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */; };
 		A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47362CDE6ECE00B2E727 /* ContentView.swift */; };
@@ -48,7 +50,10 @@
 		A30FF3842CE058710034F9DC /* CharacterCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterCount.swift; sourceTree = "<group>"; };
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		A30FF3952CE1057D0034F9DC /* markdownconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = markdownconfig.json; sourceTree = "<group>"; };
+		A32671EB2CF8D15100162AF4 /* checkUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = checkUpdates.swift; sourceTree = "<group>"; };
+		A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Hyper-Note-Info.plist"; sourceTree = SOURCE_ROOT; };
 		A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentNotesListView.swift; sourceTree = "<group>"; };
+		A35E117D2CF9F65400EF949D /* AutoUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoUpdate.swift; sourceTree = "<group>"; };
 		A3717AC82CF600890073E925 /* FileManagerExtend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtend.swift; sourceTree = "<group>"; };
 		A37D47312CDE6ECE00B2E727 /* Hyper Note.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hyper Note.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteApp.swift; sourceTree = "<group>"; };
@@ -115,6 +120,8 @@
 				A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */,
 				A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */,
 				A3717AC82CF600890073E925 /* FileManagerExtend.swift */,
+				A32671EB2CF8D15100162AF4 /* checkUpdates.swift */,
+				A35E117D2CF9F65400EF949D /* AutoUpdate.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -143,6 +150,7 @@
 		A37D47332CDE6ECE00B2E727 /* Hyper Note */ = {
 			isa = PBXGroup;
 			children = (
+				A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */,
 				A3243A372CF0E6EC009D39FF /* Utils */,
 				A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */,
 				A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */,
@@ -322,10 +330,12 @@
 				A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */,
 				A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */,
 				A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */,
+				A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */,
 				A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */,
 				A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */,
 				A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */,
 				A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */,
+				A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */,
 				A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */,
 				A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */,
 				A30FF3852CE058710034F9DC /* CharacterCount.swift in Sources */,
@@ -498,13 +508,14 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Hyper-Note-Info.plist";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.2;
+				MARKETING_VERSION = 0.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-Note";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -527,13 +538,14 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Hyper-Note-Info.plist";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.2;
+				MARKETING_VERSION = 0.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-Note";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

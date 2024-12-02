@@ -49,14 +49,14 @@ class HotkeyCounter: ObservableObject {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+//    let updater = AutoUpdater()
     private var windowController: MainWindowController?
     private var statusItem: NSStatusItem?
     private var hotKey: HotKey?
 //    let hotkeyCounter = HotkeyCounter()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // 设置深色模式
-//        NSApp.appearance = NSAppearance(named: .darkAqua)
+      
         
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)

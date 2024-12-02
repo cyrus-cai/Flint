@@ -10,58 +10,79 @@ struct RecentNote: Identifiable {
     let fileURL: URL
 }
 
+class RecentNotesViewModel: ObservableObject {
+    @Published var notes: [RecentNote] = []
+    
+    init() {
+        notes = FileManager.getRecentNotes()
+    }
+    
+    func deleteNote(_ note: RecentNote) {
+        do {
+            try Foundation.FileManager.default.removeItem(at: note.fileURL)
+            if let index = notes.firstIndex(where: { $0.id == note.id }) {
+                notes.remove(at: index)
+            }
+        } catch {
+            print("Error deleting note: \(error)")
+        }
+    }
+}
+
 // MARK: - Recent Notes List View
 struct RecentNotesListView: View {
     let notes: [RecentNote]
     let onSelectNote: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @StateObject private var viewModel = RecentNotesViewModel()
     
-  private func openInFinder() {
-      NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
-  }
+    private func openInFinder() {
+        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ForEach(notes) { note in
-                NoteRow(note: note) {
-                    onSelectNote(note.content)
-                    dismiss()
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(viewModel.notes) { note in
+                            NoteRow(note: note, onTap: {
+                                onSelectNote(note.content)
+                                dismiss()
+                            }, onDelete: {
+                                viewModel.deleteNote(note)
+                            })
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
+                .frame(maxHeight: 400)
                 
-                if note.id != notes.last?.id {
-                    Divider()
-                        .padding(.horizontal, 12)
+                Button(action: openInFinder) {
+                    HStack {
+                        Text("Show All")
+                            .font(.system(size: 14))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
                 }
+                .buttonStyle(PlainButtonStyle())
+                .foregroundColor(.blue)
             }
-       
-        Divider()
-                       .padding(.horizontal, 12)
-                   
-        Button(action: openInFinder) {
-                       HStack {
-                           Text("Show All in Finder")
-                               .font(.system(size: 14))
-                       }
-                       .frame(maxWidth: .infinity)
-                       .padding(.vertical, 8)
-                       .padding(.horizontal, 12)
-                   }
-                   .buttonStyle(PlainButtonStyle())
-                   .foregroundColor(.blue)
+            .frame(width: 280)
+            .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+            .cornerRadius(8)
+            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
+//
         }
-        .frame(width: 280)
-        .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
-        .padding(.vertical, 2)
-    }
 }
 
 // MARK: - Note Row View
 struct NoteRow: View {
     let note: RecentNote
     let onTap: () -> Void
+    let onDelete: () -> Void
     @State private var isHovered = false
     @Environment(\.colorScheme) private var colorScheme
     
@@ -84,32 +105,47 @@ struct NoteRow: View {
     }
     
     var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(note.title)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                
-                Text(getRelativeTime(from: note.lastModified))
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+        HStack {
+            Button(action: onTap) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(note.title)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                    
+                    Text(getRelativeTime(from: note.lastModified))
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .buttonStyle(PlainButtonStyle())
+            
+            if isHovered {
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+//                        .foregroundColor(.red)
+                        .font(.system(size: 13))
+                        .padding(.horizontal,2)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .transition(.opacity)
+            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle(cornerRadius: 8)
                 .fill(isHovered ?
-                    (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.9)) :
+                    (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85)) :
                     Color.clear)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
         )
         .onHover { hovering in
-            isHovered = hovering
+            withAnimation {
+                isHovered = hovering
+            }
         }
     }
 }
@@ -140,7 +176,7 @@ extension FileManager {
             
             // 排序并限制数量
             notesWithDates.sort { $0.1 > $1.1 }
-            let recentURLs = notesWithDates.prefix(5)
+            let recentURLs = notesWithDates.prefix(50)
             
             // 转换为 RecentNote 对象
             var recentNotes: [RecentNote] = []

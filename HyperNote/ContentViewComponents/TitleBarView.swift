@@ -92,7 +92,7 @@ struct TitleBarButton: View {
             Button(action: action) {
                 Image(systemName: icon.systemName)
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(isDisabled ? .secondary.opacity(0.3) : .secondary)
+                    .foregroundColor(isDisabled ? .secondary.opacity(0.6) : .secondary)
                     .frame(width: 28, height: 28)
                     .overlay(
                         Group {
