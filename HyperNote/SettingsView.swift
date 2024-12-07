@@ -103,6 +103,7 @@ struct SettingsView: View {
                                             alert.messageText = "发现新版本"
                                             alert.informativeText = """
                                                 新版本 \(updateInfo.version) 已发布
+                                                 \(updateInfo.description)
                                                 是否现在更新？
                                                 """
                                             alert.alertStyle = .informational

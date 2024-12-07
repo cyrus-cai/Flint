@@ -25,6 +25,24 @@ struct TitleBarView: View {
                 // 右侧工具栏
                 TitleBarToolbar(state: toolbarState, isVisible: isHovered,onNoteSelected:onNoteSelected)
             }
+        }.onAppear {
+            NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                if event.modifierFlags.contains(.command) {
+                    switch event.charactersIgnoringModifiers {
+                    case "f":
+                        toolbarState.openFileDictionary()
+                        return nil
+                    case "n":
+                        if !toolbarState.isEmpty {
+                            toolbarState.addNew()
+                            return nil
+                        }
+                    default:
+                        break
+                    }
+                }
+                return event
+            }
         }
     }
     
@@ -44,10 +62,18 @@ struct TitleBarToolbar: View {
     
     var body: some View {
         HStack(spacing: 4) {
+            
             TitleBarButton(
-                icon: .command,
-                action: { state.openSettings() }
-            )
+                           icon: .command,
+                           action: { state.showSettingsList = true }
+                       )
+                       .popover(isPresented: $state.showSettingsList) {
+                           SettingsListView(
+                               onRename: state.renameFile,
+                               onDelete: state.deleteFile,
+                               onSettings: state.openSettings
+                           )
+                       }
             
             TitleBarButton(
                 icon: .note,
@@ -146,7 +172,7 @@ enum TitleBarIcon {
     var tooltip: String {
            switch self {
            case .command:
-               return "Settings"
+               return "Command"
            case .note:
                return "All"
            case .plus:
@@ -158,14 +184,17 @@ enum TitleBarIcon {
 
 // MARK: - Toolbar State
 class TitleBarToolbarState: ObservableObject {
+    @Published var showSettingsList = false
     @Published var isSplitActive = false
     @Published var isListVisible = false
     @Published var showRecentNotes = false
     @Published var recentNotes: [RecentNote] = []
     @Published var isEmpty: Bool = true // Add isEmpty state
-    var onSave: (() -> Void)? // 添加保存回调
-    
-    var onAddNew: (() -> Void)? // 添加闭包属性
+
+    var onRename: (() -> Void)?
+    var onDelete: (() -> Void)?
+    var onSave: (() -> Void)?
+    var onAddNew: (() -> Void)?
     var onSelectNote: ((String) -> Void)?
     
     init() {
@@ -175,7 +204,16 @@ class TitleBarToolbarState: ObservableObject {
     func refreshRecentNotes() {
         recentNotes =  FileManager.getRecentNotes()
     }
-//    
+    
+    func renameFile() {
+           onRename?()
+       }
+       
+   func deleteFile() {
+       onDelete?()
+   }
+    
+//
     func scan() {
         ScreenCaptureManager.shared.startCapture { text in
                   NotificationCenter.default.post(
@@ -210,7 +248,3 @@ struct DraggableView: NSViewRepresentable {
     
     func updateNSView(_ nsView: NSView, context: Context) {}
 }
-
-//#Preview {
-//    TitleBarView(title: "78787", isHovered: true)
-//}

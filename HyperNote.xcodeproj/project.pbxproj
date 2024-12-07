@@ -23,6 +23,7 @@
 		A37D47472CDE6ECF00B2E727 /* Hyper_NoteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47462CDE6ECF00B2E727 /* Hyper_NoteTests.swift */; };
 		A37D47512CDE6ECF00B2E727 /* Hyper_NoteUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47502CDE6ECF00B2E727 /* Hyper_NoteUITests.swift */; };
 		A37D47532CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */; };
+		A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3847FA52CFF3C3300722D35 /* SettingsListView.swift */; };
 		A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */; };
 		A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */; };
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
@@ -66,6 +67,7 @@
 		A37D474C2CDE6ECF00B2E727 /* HyperNoteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HyperNoteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37D47502CDE6ECF00B2E727 /* Hyper_NoteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteUITests.swift; sourceTree = "<group>"; };
 		A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		A3847FA52CFF3C3300722D35 /* SettingsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListView.swift; sourceTree = "<group>"; };
 		A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandler.swift; sourceTree = "<group>"; };
 		A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureManager.swift; sourceTree = "<group>"; };
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -103,6 +105,7 @@
 				A30FF3802CDFDA000034F9DC /* TitleBarView.swift */,
 				A30FF3842CE058710034F9DC /* CharacterCount.swift */,
 				A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */,
+				A3847FA52CFF3C3300722D35 /* SettingsListView.swift */,
 			);
 			path = ContentViewComponents;
 			sourceTree = "<group>";
@@ -331,6 +334,7 @@
 				A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */,
 				A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */,
 				A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */,
+				A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */,
 				A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */,
 				A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */,
 				A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */,
@@ -516,7 +520,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.7;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = HyperNote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -547,7 +551,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.7;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = HyperNote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

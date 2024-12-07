@@ -79,6 +79,14 @@ struct ContentView: View {
 //                .zIndex(5)
              
             }
+            if showToast {
+                                VStack {
+                                    Spacer()
+                                    ToastView(message: "内容已自动保存", isShowing: $showToast)
+                                        .padding(.bottom, 12)
+                                }
+                                .transition(.opacity)
+                            }
         }
         .onChange(of: text) { newValue in
                    toolbarState.isEmpty = newValue.isEmpty
@@ -113,9 +121,9 @@ struct ContentView: View {
                        }
                    }
                }
-        .overlay(
-                   ToastView(message: "内容已自动保存", isShowing: $showToast)
-               )
+//        .overlay(
+//                   ToastView(message: "内容已自动保存", isShowing: $showToast)
+//               )
     }
 }
 
@@ -138,7 +146,7 @@ struct ToastView: View {
                    }
                    .padding(.horizontal, 16)
                    .padding(.vertical, 8)
-                   .background(.gray.opacity(0.2))
+                   .background(.gray.opacity(0.15))
                    .background(.thickMaterial)
                    .foregroundColor(.primary)
                    .cornerRadius(40)

@@ -50,13 +50,14 @@ struct RecentNotesListView: View {
     @StateObject private var viewModel = RecentNotesViewModel()
     @FocusState private var searchFocused: Bool
     
+    
     private func openInFinder() {
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
     }
 
     var body: some View {
             VStack(spacing: 0) {
-                HStack {
+                        HStack {
                                Image(systemName: "magnifyingglass")
                                    .foregroundColor(.secondary)
                                TextField("Search notes...", text: $viewModel.searchText)
@@ -73,10 +74,9 @@ struct RecentNotesListView: View {
                                    .buttonStyle(PlainButtonStyle())
                                }
                            }
-                           .padding(.horizontal, 12)
-                           .padding(.vertical, 12)
-                ScrollView {
-                               VStack(spacing: 0) {
+                               .padding(.horizontal, 12)
+                               .padding(.vertical, 12)
+                            ScrollView {
                                    ForEach(viewModel.filteredNotes) { note in
                                        NoteRow(note: note, onTap: {
                                            onSelectNote(note.content)
@@ -85,42 +85,42 @@ struct RecentNotesListView: View {
                                            viewModel.deleteNote(note)
                                        })
                                    }
-                               }
-                               .padding(.vertical, 4)
+                               .padding(.vertical, 2)
                            }
-                           .frame(maxHeight: 400)
+                           .frame(maxHeight: 360)
                            .onHover { _ in
                                // 当鼠标移动到滚动区域时，自动取消搜索框的焦点
                                if searchFocused {
                                    searchFocused = false
                                }
                            }
-                           .zIndex(0)
+//                           .zIndex(0)
                 
                 if viewModel.notes.isEmpty || viewModel.filteredNotes.isEmpty {
                     Text("No more notes")
-                        .padding(.top,12)
-                        .padding(.bottom,20)
+//                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .opacity(0.5)
+                        .padding(.bottom,20)
+                        .padding(.bottom,20)
+//                        .padding(.bottom,100)
                 }
                 
-                if !viewModel.notes.isEmpty {
+                if !viewModel.notes.isEmpty || !viewModel.filteredNotes.isEmpty {
                     HStack{
                         Button(action: openInFinder) {
                             HStack {
                                 Text("Show All")
-                                    .font(.system(size: 14))
+                                    .font(.system(size: 13))
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
+                            .padding(.bottom, 8)
+                            .padding(.top, 4)
                         }
                         .buttonStyle(PlainButtonStyle())
                         .foregroundColor(.purple)
-                    }
-                    }
+                    }}
             }
-            .frame(width: 280)
+            .frame(width: 320)
             .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
             .cornerRadius(8)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
@@ -155,17 +155,25 @@ struct NoteRow: View {
     }
     
     var body: some View {
-        HStack {
+        HStack(spacing:2) {
             Button(action: onTap) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(note.title)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.primary)
                         .lineLimit(1)
-                    
-                    Text(getRelativeTime(from: note.lastModified))
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4){
+                        Text("\(getRelativeTime(from: note.lastModified)) ago")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                        Text("·")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                        Text("\(note.content.count) characters")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }.opacity(0.6)
+              
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle()) 
@@ -184,7 +192,7 @@ struct NoteRow: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isHovered ?
