@@ -17,18 +17,18 @@ struct SettingsView: View {
     
     var body: some View {
         List {
-            Section("账户") {
+            Section("Account") {
                 HStack {
-                    Label("电子邮件", systemImage: "envelope")
+                    Label("Account", systemImage: "envelope")
                     Spacer()
-                    Text("未登录")
+                    Text("Not Logging in")
                         .foregroundColor(.gray)
                 }
                 
                 HStack {
-                    Label("订阅", systemImage: "plus.square")
+                    Label("Plan", systemImage: "plus.square")
                     Spacer()
-                    Text("Free 套餐")
+                    Text("Free")
                         .foregroundColor(.gray)
                         .buttonStyle(.borderedProminent)
                         .tint(.purple)
@@ -36,24 +36,24 @@ struct SettingsView: View {
                 }
                 
                 HStack {
-                    Label("数据管理", systemImage: "externaldrive")
+                    Label("Data", systemImage: "externaldrive")
                     Spacer()
-                    Text("所有数据存储于本地")
+                    Text("All data is stored locally.")
                         .foregroundColor(.gray)
                 }
             }
             
-            Section("快捷键") {
+            Section("Hotkey") {
                 VStack{
                     HStack {
-                        Label("快捷唤醒", systemImage: "bolt.square")
+                        Label("Quick wake-up", systemImage: "bolt.square")
                         Spacer()
                         Text("⌥ + C")
                             .foregroundColor(.gray)
                     }
                     HStack {
                         Spacer()
-                        Text("今日已使用:\(counter.todayCount)/50次").opacity(0.5)
+                        Text("Today used:\(counter.todayCount)/50").opacity(0.5)
                         Button("Unlimited in Hyper +") {
                             // 处理升级操作
                         } .buttonStyle(.borderedProminent)
@@ -63,24 +63,24 @@ struct SettingsView: View {
                    
                 }
                 HStack {
-                    Label("历史记录", systemImage: "clock")
+                    Label("History", systemImage: "clock")
                     Spacer()
                     Text("⌘ + H / ⌘ + F")
                         .foregroundColor(.gray)
                 }
                 HStack {
-                    Label("新建笔记", systemImage: "plus")
+                    Label("New Note", systemImage: "plus")
                     Spacer()
                     Text("⌘ + N / ⌘ + K")
                         .foregroundColor(.gray)
                 }
             }
             
-            Section("通用") {
+            Section("General") {
                 HStack {
-                    Label("应用语言", systemImage: "globe")
+                    Label("Language", systemImage: "globe")
                     Spacer()
-                    Text("中文")
+                    Text("English")
                         .foregroundColor(.gray)
                 }
             }
@@ -89,12 +89,12 @@ struct SettingsView: View {
                 Spacer()
                 VStack {
                     if isDownloading {
-                        ProgressView("下载中...\(Int(downloadProgress * 100))%", value: downloadProgress, total: 1.0)
+                        ProgressView("Downloading...\(Int(downloadProgress * 100))%", value: downloadProgress, total: 1.0)
                             .progressViewStyle(.linear)
                             .frame(width: 200)
                             .padding()
                     } else {
-                        Button(isCheckingUpdate ? "检查中..." : "检查更新") {
+                        Button(isCheckingUpdate ? "Checking..." : "Check for updates") {
                             Task {
                                 isCheckingUpdate = true
                                 print("checking update")
@@ -107,22 +107,21 @@ struct SettingsView: View {
                                             guard let downloadURL = URL(string: updateInfo.downloadURL) else {
                                                 print("Invalid download URL: \(updateInfo.downloadURL)")
                                                 let errorAlert = NSAlert()
-                                                errorAlert.messageText = "更新失败"
-                                                errorAlert.informativeText = "下载链接无效"
+                                                errorAlert.messageText = "Update failed"
+                                                errorAlert.informativeText = "Invalid download link"
                                                 errorAlert.alertStyle = .critical
-                                                errorAlert.addButton(withTitle: "确定")
+                                                errorAlert.addButton(withTitle: "OK")
                                                 errorAlert.runModal()
                                                 return
                                             }
-                                            alert.messageText = "发现新版本"
+                                            alert.messageText = "New version available"
                                             alert.informativeText = """
-                                                新版本 \(updateInfo.version) 已发布
+                                                Version \(updateInfo.version)
                                                  \(updateInfo.description)
-                                                是否现在更新？
                                                 """
                                             alert.alertStyle = .informational
-                                            alert.addButton(withTitle: "更新")
-                                            alert.addButton(withTitle: "稍后")
+                                            alert.addButton(withTitle: "Update")
+                                            alert.addButton(withTitle: "Later")
                                             
                                             let response = alert.runModal()
                                             
@@ -149,29 +148,29 @@ struct SettingsView: View {
                                                         progressSubscription?.cancel()
                                                         isDownloading = false
                                                         let errorAlert = NSAlert()
-                                                        errorAlert.messageText = "更新失败"
+                                                        errorAlert.messageText = "Update failed"
                                                         errorAlert.informativeText = error.localizedDescription
                                                         errorAlert.alertStyle = .critical
-                                                        errorAlert.addButton(withTitle: "确定")
+                                                        errorAlert.addButton(withTitle: "OK")
                                                         errorAlert.runModal()
                                                     }
                                                 }
                                             }
                                         } else {
-                                            alert.messageText = "检查更新"
-                                            alert.informativeText = "当前已是最新版本"
+                                            alert.messageText = "Check for updates"
+                                            alert.informativeText = "The current version is already the latest."
                                             alert.alertStyle = .informational
-                                            alert.addButton(withTitle: "确定")
+                                            alert.addButton(withTitle: "OK")
                                             alert.runModal()
                                         }
                                     }
                                 } catch {
                                     await MainActor.run {
                                         let alert = NSAlert()
-                                        alert.messageText = "检查更新失败"
+                                        alert.messageText = "Failed to check for updates"
                                         alert.informativeText = error.localizedDescription
                                         alert.alertStyle = .critical
-                                        alert.addButton(withTitle: "确定")
+                                        alert.addButton(withTitle: "OK")
                                         alert.runModal()
                                     }
                                 }
@@ -182,10 +181,10 @@ struct SettingsView: View {
                     }
                     
                     if let latest = latestVersion {
-                        Text("最新版本: \(latest)")
+                        Text("Latest version: \(latest)")
                             .opacity(0.25)
                     }
-                    Text("当前版本: \(version ?? "") build\(buildNumber ?? "")")
+                    Text("Current version: \(version ?? "") build\(buildNumber ?? "")")
                         .opacity(0.25)
                 }
                 Spacer()

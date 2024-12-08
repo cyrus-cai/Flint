@@ -453,7 +453,7 @@ struct CustomTextEditor: NSViewRepresentable {
         textView.delegate = context.coordinator
         textView.backgroundColor = .clear
         textView.isEditable = true
-        textView.drawsBackground = false
+    textView.drawsBackground = false
         
         // 启用链接点击
         textView.isSelectable = true
