@@ -29,13 +29,10 @@ struct TitleBarView: View {
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 if event.modifierFlags.contains(.command) {
                     switch event.charactersIgnoringModifiers {
-                    case "f":
+                    case "f","h":
                         toolbarState.openFileDictionary()
                         return nil
-                    case "h":
-                        toolbarState.openFileDictionary()
-                        return nil
-                    case "n":
+                    case "n","k":
                         if !toolbarState.isEmpty {
                             toolbarState.addNew()
                             return nil
