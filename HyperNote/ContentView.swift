@@ -2,7 +2,7 @@ import SwiftDown
 import SwiftUI
 
 struct ContentHeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
+    static var defaultValue: CGFloat = 106
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
         print("window height changed",value)
@@ -86,15 +86,18 @@ struct ContentView: View {
                 .transition(.opacity)
             }
         }
-//        .onChange(of: text) { newValue in
-//                   toolbarState.isEmpty = newValue.isEmpty
-//               }
         .onChange(of: text) {
                    toolbarState.isEmpty = text.isEmpty
                }
         .onAppear {
                   toolbarState.onAddNew = { text = "" }
                   toolbarState.isEmpty = text.isEmpty
+                  toolbarState.onSave = {
+                        if !text.isEmpty {
+                            saveDocument(trigger: .addNew)
+                            print("document saved before adding new")
+                        }
+                    }
               }
         .ignoresSafeArea()
         .listStyle(.sidebar)
@@ -113,18 +116,6 @@ struct ContentView: View {
                                print("document saved by losing focus")
                            }
                        }
-        .onAppear {
-                   // 设置工具栏保存回调
-                   toolbarState.onSave = {
-                       if !text.isEmpty {
-                           saveDocument(trigger: .addNew)
-                           print("document saved before adding new")
-                       }
-                   }
-               }
-//        .overlay(
-//                   ToastView(message: "内容已自动保存", isShowing: $showToast)
-//               )
     }
 }
 
@@ -225,13 +216,12 @@ struct EditorView: View {
                     .disableAutocorrection(true)
                     .scrollContentBackground(.hidden)
                     .scrollIndicators(.automatic)
-                //                       .scrollDisabled(true)
                     .background(Color.clear)
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
                     .focused($isEditing)
-                //                       .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .onAppear {
+                        print("确保视图出现后立即获取焦点")
                                    // 确保视图出现后立即获取焦点
                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                        isEditing = true
@@ -239,8 +229,6 @@ struct EditorView: View {
                                }
                     .preference(
                         key: ContentHeightPreferenceKey.self,
-                        //                           value: geometry.size.height
-                        //                           value: debouncedHeightUpdate(for: text, width: geometry.size.width)
                         value: calculateHeight(for: text, width: geometry.size.width)
                     )
                     .tint(.purple)  // 设置光标颜色
@@ -251,16 +239,17 @@ struct EditorView: View {
                             }
                         }
                     )
-//                   .onChange(of: text) { newValue in
-//                       if newValue.isEmpty {
-//                           isPlaceholderVisible = true
-//                       }
-//                   }
                    .onChange(of: text) {
                        if text.isEmpty {
                            isPlaceholderVisible = true
                        }
                    }
+                   .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
+                       print("receive focus change")
+                                       DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                           isEditing = true
+                                       }
+                                   }
 
                 //                       .fixedSize(horizontal: false, vertical: true)
                 

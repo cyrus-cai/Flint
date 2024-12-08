@@ -36,7 +36,6 @@ struct SettingsListView: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 6)
-
         .frame(width: 160)
         .background(Color(NSColor.windowBackgroundColor))
     }

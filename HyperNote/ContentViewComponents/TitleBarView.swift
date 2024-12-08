@@ -180,7 +180,7 @@ enum TitleBarIcon {
            case .command:
                return "Command"
            case .note:
-               return "All"
+               return "Recents"
            case .plus:
                return "New"
            }

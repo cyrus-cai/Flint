@@ -71,7 +71,7 @@ struct SettingsView: View {
                 HStack {
                     Label("新建笔记", systemImage: "plus")
                     Spacer()
-                    Text("⌘ + N")
+                    Text("⌘ + N / ⌘ + K")
                         .foregroundColor(.gray)
                 }
             }
@@ -192,7 +192,7 @@ struct SettingsView: View {
             }
         }
         .listStyle(.sidebar)
-        .frame(width: 500)
+//        .frame(width: 560)
     }
 }
 

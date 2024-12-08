@@ -1,113 +1,113 @@
 //// MARK: - File Manager Extension
 extension FileManager {
-//    static func getRecentNotes() -> [RecentNote] {
-//        do {
-//            let notesURL = FileManager.shared.notesDirectory
-//            let resourceKeys = Set([URLResourceKey.contentModificationDateKey])
-////            let fileManager = Foundation.FileManager.default
-//            // 获取目录内容
-//            let fileURLs = try Foundation.FileManager.default.contentsOfDirectory(
-//                at: notesURL,
-//                includingPropertiesForKeys: Array(resourceKeys)
-//            )
-//            
-//            // 过滤并获取文件信息
-//            var notesWithDates: [(URL, Date)] = []
-//            for url in fileURLs {
-//                if url.pathExtension == "txt" {
-//                    let resourceValues = try url.resourceValues(forKeys: resourceKeys)
-//                    if let modificationDate = resourceValues.contentModificationDate {
-//                        notesWithDates.append((url, modificationDate))
-//                    }
-//                }
-//            }
-//            
-//            // 排序并限制数量
-//            notesWithDates.sort { $0.1 > $1.1 }
-//            let recentURLs = notesWithDates.prefix(50)
-//            
-//            // 转换为 RecentNote 对象
-//            var recentNotes: [RecentNote] = []
-//            for (url, date) in recentURLs {
-//                if let content = try? String(contentsOf: url, encoding: .utf8) {
-//                    let lines = content.components(separatedBy: .newlines)
-//                    let title = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
-//                    
-//                    let note = RecentNote(
-//                        title: title,
-//                        content: content,
-//                        lastModified: date,
-//                        fileURL: url
-//                    )
-//                    recentNotes.append(note)
-//                }
-//            }
-//            
-//            return recentNotes
-//            
-//        } catch {
-//            print("Error getting recent notes: \(error)")
-//            return []
-//        }
-//    }
     static func getRecentNotes() -> [RecentNote] {
         do {
             let notesURL = FileManager.shared.notesDirectory
-            let resourceKeys: Set<URLResourceKey> = [
-                .contentModificationDateKey,
-                .fileSizeKey
-            ]
+            let resourceKeys = Set([URLResourceKey.contentModificationDateKey])
+//            let fileManager = Foundation.FileManager.default
+            // 获取目录内容
+            let fileURLs = try Foundation.FileManager.default.contentsOfDirectory(
+                at: notesURL,
+                includingPropertiesForKeys: Array(resourceKeys)
+            )
             
-            // 收集并排序文件信息
-            let notesWithDates = try Foundation.FileManager.default
-                .contentsOfDirectory(at: notesURL, includingPropertiesForKeys: Array(resourceKeys))
-                .compactMap { url -> (URL, Date, Int64)? in
-                    guard url.pathExtension == "txt",
-                          let resourceValues = try? url.resourceValues(forKeys: resourceKeys),
-                          let modificationDate = resourceValues.contentModificationDate,
-                          let fileSize = resourceValues.fileSize
-                    else { return nil }
-                    
-                    return (url, modificationDate, Int64(fileSize))
-                }
-                .sorted { $0.1 > $1.1 }
-                .prefix(50)
-            
-            // 读取文件预览内容
-            return notesWithDates.compactMap { url, date, fileSize in
-                do {
-                    let handle = try FileHandle(forReadingFrom: url)
-                    defer { try? handle.close() }
-                    
-                    // 只读取1KB预览内容
-                    let headerSize = min(1024, fileSize)
-                    let headerData = handle.readData(ofLength: Int(headerSize))
-                    
-                    guard let previewText = String(data: headerData, encoding: .utf8) else {
-                        return nil
+            // 过滤并获取文件信息
+            var notesWithDates: [(URL, Date)] = []
+            for url in fileURLs {
+                if url.pathExtension == "txt" {
+                    let resourceValues = try url.resourceValues(forKeys: resourceKeys)
+                    if let modificationDate = resourceValues.contentModificationDate {
+                        notesWithDates.append((url, modificationDate))
                     }
+                }
+            }
+            
+            // 排序并限制数量
+            notesWithDates.sort { $0.1 > $1.1 }
+            let recentURLs = notesWithDates.prefix(50)
+            
+            // 转换为 RecentNote 对象
+            var recentNotes: [RecentNote] = []
+            for (url, date) in recentURLs {
+                if let content = try? String(contentsOf: url, encoding: .utf8) {
+                    let lines = content.components(separatedBy: .newlines)
+                    let title = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
                     
-                    // 提取标题和预览
-                    let lines = previewText.components(separatedBy: .newlines)
-                    let title = lines.first?.trimmingCharacters(in: .whitespacesAndNewlines)
-                    let finalTitle = (title?.isEmpty ?? true) ? "Untitled" : title!
-                    
-                    return RecentNote(
-                        title: finalTitle,
-                        content: previewText,
+                    let note = RecentNote(
+                        title: title,
+                        content: content,
                         lastModified: date,
                         fileURL: url
                     )
-                } catch {
-                    print("Error reading file at \(url): \(error)")
-                    return nil
+                    recentNotes.append(note)
                 }
             }
+            
+            return recentNotes
+            
         } catch {
             print("Error getting recent notes: \(error)")
             return []
         }
     }
+//    static func getRecentNotes() -> [RecentNote] {
+//        do {
+//            let notesURL = FileManager.shared.notesDirectory
+//            let resourceKeys: Set<URLResourceKey> = [
+//                .contentModificationDateKey,
+//                .fileSizeKey
+//            ]
+//            
+//            // 收集并排序文件信息
+//            let notesWithDates = try Foundation.FileManager.default
+//                .contentsOfDirectory(at: notesURL, includingPropertiesForKeys: Array(resourceKeys))
+//                .compactMap { url -> (URL, Date, Int64)? in
+//                    guard url.pathExtension == "txt",
+//                          let resourceValues = try? url.resourceValues(forKeys: resourceKeys),
+//                          let modificationDate = resourceValues.contentModificationDate,
+//                          let fileSize = resourceValues.fileSize
+//                    else { return nil }
+//                    
+//                    return (url, modificationDate, Int64(fileSize))
+//                }
+//                .sorted { $0.1 > $1.1 }
+//                .prefix(50)
+//            
+//            // 读取文件预览内容
+//            return notesWithDates.compactMap { url, date, fileSize in
+//                do {
+//                    let handle = try FileHandle(forReadingFrom: url)
+//                    defer { try? handle.close() }
+//                    
+//                    // 只读取1KB预览内容
+//                    let headerSize = min(1024, fileSize)
+//                    let headerData = handle.readData(ofLength: Int(headerSize))
+//                    
+//                    guard let previewText = String(data: headerData, encoding: .utf8) else {
+//                        return nil
+//                    }
+//                    
+//                    // 提取标题和预览
+//                    let lines = previewText.components(separatedBy: .newlines)
+//                    let title = lines.first?.trimmingCharacters(in: .whitespacesAndNewlines)
+//                    let finalTitle = (title?.isEmpty ?? true) ? "Untitled" : title!
+//                    
+//                    return RecentNote(
+//                        title: finalTitle,
+//                        content: previewText,
+//                        lastModified: date,
+//                        fileURL: url
+//                    )
+//                } catch {
+//                    print("Error reading file at \(url): \(error)")
+//                    return nil
+//                }
+//            }
+//        } catch {
+//            print("Error getting recent notes: \(error)")
+//            return []
+//        }
+//    }
 }
 
 import SwiftUI
@@ -178,7 +178,7 @@ class RecentNotesViewModel: ObservableObject {
         isHoverEnabled = false
         
         // 延迟重新启用悬停效果
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.isHoverEnabled = true
         }
         
@@ -196,7 +196,7 @@ class RecentNotesViewModel: ObservableObject {
         isHoverEnabled = false
         
         // 延迟重新启用悬停效果
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.isHoverEnabled = true
         }
         
@@ -255,21 +255,68 @@ struct RecentNotesListView: View {
     @State private var isShowAllHovered = false
     @State private var eventMonitor: Any?
     
+    private func setupKeyboardMonitor() {
+        removeKeyboardMonitor()
+        
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+            switch event.keyCode {
+            case 125: // Down arrow
+                // 上下键始终用于导航，不管搜索框是否聚焦
+                viewModel.selectNextNote()
+                return nil
+            case 126: // Up arrow
+                // 上下键始终用于导航，不管搜索框是否聚焦
+                viewModel.selectPreviousNote()
+                return nil
+            case 36: // Return key
+                // enter 键始终用于将该条内容填充到现在的文本框中
+                if let currentIndex = viewModel.currentNoteIndex {
+                    let currentNote = viewModel.filteredNotes[currentIndex]
+                    onSelectNote(currentNote.content)
+                    dismiss()
+                }
+                return nil
+            case 51: // Delete key
+                       if event.modifierFlags.contains(.command) {
+                           // Command+Delete: 删除当前选中的条目
+                           if let currentIndex = viewModel.currentNoteIndex {
+                               let currentNote = viewModel.filteredNotes[currentIndex]
+                               viewModel.deleteNote(currentNote)
+                           }
+                           return nil
+                       }
+                       return event
+            case 53: // ESC key
+                dismiss()
+                return nil
+            default:
+                // 其他所有按键都正常传递
+                return event
+            }
+        }
+    }
+    
 //    private func setupKeyboardMonitor() {
 //        removeKeyboardMonitor()
 //        
 //        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+//            // 只有在搜索框未获得焦点时才处理导航键
+//            if !searchFocused {
+//                switch event.keyCode {
+//                case 125: // Down arrow
+//                    viewModel.selectNextNote()
+//                    return nil
+//                case 126: // Up arrow
+//                    viewModel.selectPreviousNote()
+//                    return nil
+//                default:
+//                    return nil
+//                }
+//            }
+//            
+//            // 始终处理 Enter 和 ESC
 //            switch event.keyCode {
-//            case 125: // Down arrow
-//                // 上下键始终用于导航，不管搜索框是否聚焦
-//                viewModel.selectNextNote()
-//                return nil
-//            case 126: // Up arrow
-//                // 上下键始终用于导航，不管搜索框是否聚焦
-//                viewModel.selectPreviousNote()
-//                return nil
 //            case 36: // Return key
-//                // enter 键始终用于将该条内容填充到现在的文本框中
 //                if let currentIndex = viewModel.currentNoteIndex {
 //                    let currentNote = viewModel.filteredNotes[currentIndex]
 //                    onSelectNote(currentNote.content)
@@ -280,47 +327,10 @@ struct RecentNotesListView: View {
 //                dismiss()
 //                return nil
 //            default:
-//                // 其他所有按键都正常传递
 //                return event
 //            }
 //        }
 //    }
-    
-    private func setupKeyboardMonitor() {
-        removeKeyboardMonitor()
-        
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
-            // 只有在搜索框未获得焦点时才处理导航键
-            if !searchFocused {
-                switch event.keyCode {
-                case 125: // Down arrow
-                    viewModel.selectNextNote()
-                    return nil
-                case 126: // Up arrow
-                    viewModel.selectPreviousNote()
-                    return nil
-                default:
-                    return nil
-                }
-            }
-            
-            // 始终处理 Enter 和 ESC
-            switch event.keyCode {
-            case 36: // Return key
-                if let currentIndex = viewModel.currentNoteIndex {
-                    let currentNote = viewModel.filteredNotes[currentIndex]
-                    onSelectNote(currentNote.content)
-                    dismiss()
-                }
-                return nil
-            case 53: // ESC key
-                dismiss()
-                return nil
-            default:
-                return event
-            }
-        }
-    }
     
     private func removeKeyboardMonitor() {
         if let monitor = eventMonitor {
@@ -332,7 +342,7 @@ struct RecentNotesListView: View {
     private func openInFinder() {
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Search Bar
@@ -443,8 +453,10 @@ struct RecentNotesListView: View {
             setupKeyboardMonitor()
         }
         .onDisappear {
+            searchFocused = false
+            print("searchFocused rmvd")
             removeKeyboardMonitor()
-            searchFocused = true
+
         }
     }
 }
