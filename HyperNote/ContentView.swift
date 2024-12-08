@@ -250,8 +250,6 @@ struct EditorView: View {
                                            isEditing = true
                                        }
                                    }
-
-                //                       .fixedSize(horizontal: false, vertical: true)
                 
                 if text.isEmpty {
                     Text("Start writing...")
