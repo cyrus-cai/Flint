@@ -117,7 +117,7 @@ class HotKey {
         let selfPtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         
         let handlerCallback: EventHandlerUPP = { _, eventRef, userData in
-            guard let eventRef = eventRef else { return OSStatus(eventNotHandledErr) }
+//            guard let eventRef = eventRef else { return OSStatus(eventNotHandledErr) }
             guard let userData = userData else { return OSStatus(eventNotHandledErr) }
             
             let hotKey = Unmanaged<HotKey>.fromOpaque(userData).takeUnretainedValue()
@@ -138,7 +138,9 @@ class HotKey {
         guard status == noErr else { return nil }
         
         // 注册热键
-        var hotKeyID = EventHotKeyID(signature: OSType(0x4850524E), // "HPRN"
+//        var hotKeyID = EventHotKeyID(signature: OSType(0x4850524E), // "HPRN"
+//                                   id: 1)
+        let hotKeyID = EventHotKeyID(signature: OSType(0x4850524E), // "HPRN"
                                    id: 1)
         
         let registerStatus = RegisterEventHotKey(

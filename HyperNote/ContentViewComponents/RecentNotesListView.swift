@@ -264,7 +264,7 @@ struct RecentNotesListView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 12)
-            .onChange(of: viewModel.searchText) { _ in
+            .onChange(of: viewModel.searchText) {
                 viewModel.resetSelection()
             }
             
@@ -295,7 +295,7 @@ struct RecentNotesListView: View {
                 }
                 .frame(maxHeight: 360)
                 .onChange(of: viewModel.currentNoteIndex) {
-                    if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {  // 使用逗号分隔多个条件
+                    if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
                         withAnimation {
                             proxy.scrollTo(index)
                         }

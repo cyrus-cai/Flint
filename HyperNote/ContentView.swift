@@ -86,8 +86,11 @@ struct ContentView: View {
                 .transition(.opacity)
             }
         }
-        .onChange(of: text) { newValue in
-                   toolbarState.isEmpty = newValue.isEmpty
+//        .onChange(of: text) { newValue in
+//                   toolbarState.isEmpty = newValue.isEmpty
+//               }
+        .onChange(of: text) {
+                   toolbarState.isEmpty = text.isEmpty
                }
         .onAppear {
                   toolbarState.onAddNew = { text = "" }
@@ -248,8 +251,13 @@ struct EditorView: View {
                             }
                         }
                     )
-                   .onChange(of: text) { newValue in
-                       if newValue.isEmpty {
+//                   .onChange(of: text) { newValue in
+//                       if newValue.isEmpty {
+//                           isPlaceholderVisible = true
+//                       }
+//                   }
+                   .onChange(of: text) {
+                       if text.isEmpty {
                            isPlaceholderVisible = true
                        }
                    }

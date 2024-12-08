@@ -223,14 +223,14 @@ class TitleBarToolbarState: ObservableObject {
    }
     
 //
-    func scan() {
-        ScreenCaptureManager.shared.startCapture { text in
-                  NotificationCenter.default.post(
-                      name: .init("InsertCapturedText"),
-                      object: text
-                  )
-              }
-    }
+//    func scan() {
+//        ScreenCaptureManager.shared.startCapture { text in
+//                  NotificationCenter.default.post(
+//                      name: .init("InsertCapturedText"),
+//                      object: text
+//                  )
+//              }
+//    }
     
     func openFileDictionary() {
            showRecentNotes = true
