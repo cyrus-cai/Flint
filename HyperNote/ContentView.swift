@@ -374,6 +374,7 @@ struct EditorView: View {
                     .focused($isEditing)
                     .onAppear {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            print("isEditing = true1")
                             isEditing = true
                             updateAttributedText(text)
                         }
@@ -396,9 +397,12 @@ struct EditorView: View {
                         }
                         updateAttributedText(text)
                     }
-                    .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            isEditing = true
+                    .onHover { hovering in
+                        if hovering {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                print("isEditing = true")
+                                isEditing = true
+                            }
                         }
                     }
                 

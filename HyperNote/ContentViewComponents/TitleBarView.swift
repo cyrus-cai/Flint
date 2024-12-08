@@ -124,31 +124,31 @@ struct TitleBarButton: View {
                               RoundedRectangle(cornerRadius: 6)
                                   .fill(isHovered ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) : Color.clear)
                           )
-                    .overlay(
-                        Group {
-                            if showTooltip {
-                                Text(icon.tooltip)
-                                    .font(.custom("PingFang SC", size: 12.0))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 3)
-                                    .background(
-                                        colorScheme == .dark ?
-                                            Color(white: 0.2) :
-                                            Color(white: 0.85)
-                                    )
-                                    .foregroundColor(Color.primary)
-                                    .zIndex(40)
-                                    .cornerRadius(6)
-                                    .offset(y: 28)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .transition(.opacity)
-                            }
-                        }
-                    )
+//                    .overlay(
+//                        Group {
+//                            if showTooltip {
+//                                Text(icon.tooltip)
+//                                    .font(.custom("PingFang SC", size: 12.0))
+//                                    .padding(.horizontal, 6)
+//                                    .padding(.vertical, 3)
+//                                    .background(
+//                                        colorScheme == .dark ?
+//                                            Color(white: 0.2) :
+//                                            Color(white: 0.85)
+//                                    )
+//                                    .foregroundColor(Color.primary)
+//                                    .zIndex(40)
+//                                    .cornerRadius(6)
+//                                    .offset(y: 28)
+//                                    .fixedSize(horizontal: true, vertical: false)
+//                                    .transition(.opacity)
+//                            }
+//                        }
+//                    )
                     .onHover { hovering in
                         withAnimation(.easeInOut(duration: 0.1)) {
                             isHovered = hovering && !isDisabled
-                            showTooltip = hovering && !isDisabled
+//                            showTooltip = hovering && !isDisabled
                         }
                     }
             }

@@ -38,7 +38,7 @@ struct SettingsView: View {
                 HStack {
                     Label("Data", systemImage: "externaldrive")
                     Spacer()
-                    Text("All data is stored locally.")
+                    Text("All data is stored locally")
                         .foregroundColor(.gray)
                 }
             }

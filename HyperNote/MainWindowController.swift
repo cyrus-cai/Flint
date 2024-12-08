@@ -47,7 +47,7 @@ class SettingsWindowController: NSWindowController {
         super.init(window: window)
         
         window.center()
-        window.title = "设置"
+        window.title = "Settings"
         window.contentView = NSHostingView(rootView: SettingsView())
     }
     
