@@ -43,12 +43,13 @@ struct SettingsView: View {
                 }
             }
             
-            Section("启动") {
+            Section("快捷键") {
                 VStack{
                     HStack {
                         Label("快捷唤醒", systemImage: "bolt.square")
                         Spacer()
-                        Text("Option + C")
+                        Text("⌥ + C")
+                            .foregroundColor(.gray)
                     }
                     HStack {
                         Spacer()
@@ -59,6 +60,19 @@ struct SettingsView: View {
                             .tint(.purple)
                             .controlSize(.small)
                     }
+                   
+                }
+                HStack {
+                    Label("历史记录", systemImage: "clock")
+                    Spacer()
+                    Text("⌘ + H / ⌘ + F")
+                        .foregroundColor(.gray)
+                }
+                HStack {
+                    Label("新建笔记", systemImage: "plus")
+                    Spacer()
+                    Text("⌘ + N")
+                        .foregroundColor(.gray)
                 }
             }
             
@@ -128,7 +142,8 @@ struct SettingsView: View {
                                                         let updateFile = try await updater.downloadUpdate(from: downloadURL)
                                                         progressSubscription?.cancel()
                                                         
-                                                        try await updater.installUpdate(from: updateFile)
+//                                                        try await updater.installUpdate(from: updateFile)
+                                                        try updater.installUpdate(from: updateFile)
                                                         isDownloading = false
                                                     } catch {
                                                         progressSubscription?.cancel()

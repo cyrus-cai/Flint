@@ -23,13 +23,16 @@ struct TitleBarView: View {
                 Spacer()
                 
                 // 右侧工具栏
-                TitleBarToolbar(state: toolbarState, isVisible: isHovered,onNoteSelected:onNoteSelected)
+                TitleBarToolbar(state: toolbarState, isVisible: isHovered || toolbarState.showRecentNotes || toolbarState.showSettingsList, onNoteSelected:onNoteSelected)
             }
         }.onAppear {
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 if event.modifierFlags.contains(.command) {
                     switch event.charactersIgnoringModifiers {
                     case "f":
+                        toolbarState.openFileDictionary()
+                        return nil
+                    case "h":
                         toolbarState.openFileDictionary()
                         return nil
                     case "n":
@@ -102,7 +105,8 @@ struct TitleBarToolbar: View {
 struct TitleBarButton: View {
     let icon: TitleBarIcon
     let action: () -> Void
-    let isDisabled: Bool // New parameter
+    let isDisabled: Bool
+    @State private var isHovered = false  // 新增状态追踪悬停
     @State private var showTooltip = false
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     
@@ -118,7 +122,11 @@ struct TitleBarButton: View {
                 Image(systemName: icon.systemName)
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(isDisabled ? .secondary.opacity(0.6) : .secondary)
-                    .frame(width: 28, height: 28)
+                    .frame(width: 26, height: 28)
+                    .background(
+                              RoundedRectangle(cornerRadius: 6)
+                                  .fill(isHovered ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) : Color.clear)
+                          )
                     .overlay(
                         Group {
                             if showTooltip {
@@ -134,7 +142,7 @@ struct TitleBarButton: View {
                                     .foregroundColor(Color.primary)
                                     .zIndex(40)
                                     .cornerRadius(6)
-                                    .offset(y: 24)
+                                    .offset(y: 28)
                                     .fixedSize(horizontal: true, vertical: false)
                                     .transition(.opacity)
                             }
@@ -142,6 +150,7 @@ struct TitleBarButton: View {
                     )
                     .onHover { hovering in
                         withAnimation(.easeInOut(duration: 0.1)) {
+                            isHovered = hovering && !isDisabled
                             showTooltip = hovering && !isDisabled
                         }
                     }

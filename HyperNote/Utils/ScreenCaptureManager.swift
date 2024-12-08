@@ -129,8 +129,10 @@ class ScreenCaptureManager: ObservableObject {
         }
 
         let requestHandler = VNImageRequestHandler(cgImage: cgImage)
-        let request = VNRecognizeTextRequest { [weak self] request, error in
-            guard let self = self, error == nil,
+//        let request = VNRecognizeTextRequest { [weak self] request, error in
+        let request = VNRecognizeTextRequest { [] request, error in
+//            guard let self = self, error == nil,
+            guard error == nil,
                   let results = request.results as? [VNRecognizedTextObservation] else {
 //                self?.handleError(.ocrFailed)
                 completion(nil)

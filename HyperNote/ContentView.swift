@@ -70,23 +70,21 @@ struct ContentView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 TitleBarView(title: title, isHovered: isHovered, toolbarState: toolbarState,onNoteSelected: loadNoteContent)
-//                    .zIndex(10)
                 
                 VStack(spacing: 0) {
                     EditorView(text: $text)
                     CharacterCountView(count: text.count)
                 }
-//                .zIndex(5)
              
             }
             if showToast {
-                                VStack {
-                                    Spacer()
-                                    ToastView(message: "内容已自动保存", isShowing: $showToast)
-                                        .padding(.bottom, 12)
-                                }
-                                .transition(.opacity)
-                            }
+                VStack {
+                    Spacer()
+                    ToastView(message: "内容已自动保存", isShowing: $showToast)
+                        .padding(.bottom, 12)
+                }
+                .transition(.opacity)
+            }
         }
         .onChange(of: text) { newValue in
                    toolbarState.isEmpty = newValue.isEmpty

@@ -1,221 +1,10 @@
-import SwiftUI
-import Foundation
-
-// MARK: - Recent Note Model
-struct RecentNote: Identifiable {
-    let id = UUID()
-    let title: String
-    let content: String
-    let lastModified: Date
-    let fileURL: URL
-}
-
-class RecentNotesViewModel: ObservableObject {
-    @Published var notes: [RecentNote] = []
-    @Published var searchText: String = ""
-    
-    var filteredNotes: [RecentNote] {
-           if searchText.isEmpty {
-               return notes
-           }
-           return notes.filter { note in
-               note.title.localizedCaseInsensitiveContains(searchText) ||
-               note.content.localizedCaseInsensitiveContains(searchText)
-           }
-       }
-       
-    
-    init() {
-        notes = FileManager.getRecentNotes()
-    }
-    
-    func deleteNote(_ note: RecentNote) {
-        do {
-            try Foundation.FileManager.default.removeItem(at: note.fileURL)
-            if let index = notes.firstIndex(where: { $0.id == note.id }) {
-                notes.remove(at: index)
-            }
-        } catch {
-            print("Error deleting note: \(error)")
-        }
-    }
-}
-
-// MARK: - Recent Notes List View
-struct RecentNotesListView: View {
-    let notes: [RecentNote]
-    let onSelectNote: (String) -> Void
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
-    @StateObject private var viewModel = RecentNotesViewModel()
-    @FocusState private var searchFocused: Bool
-    
-    
-    private func openInFinder() {
-        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
-    }
-
-    var body: some View {
-            VStack(spacing: 0) {
-                        HStack {
-                               Image(systemName: "magnifyingglass")
-                                   .foregroundColor(.secondary)
-                               TextField("Search notes...", text: $viewModel.searchText)
-                                   .textFieldStyle(PlainTextFieldStyle())
-                                   .font(.system(size: 14))
-                                   .tint(.purple)
-                                   .focused($searchFocused)
-                               if !viewModel.searchText.isEmpty {
-                                   Button(action: { viewModel.searchText = "" }) {
-                                       Image(systemName: "xmark.circle.fill")
-                                           .foregroundColor(.secondary)
-                                           .font(.system(size: 12))
-                                   }
-                                   .buttonStyle(PlainButtonStyle())
-                               }
-                           }
-                               .padding(.horizontal, 12)
-                               .padding(.vertical, 12)
-                            ScrollView {
-                                   ForEach(viewModel.filteredNotes) { note in
-                                       NoteRow(note: note, onTap: {
-                                           onSelectNote(note.content)
-                                           dismiss()
-                                       }, onDelete: {
-                                           viewModel.deleteNote(note)
-                                       })
-                                   }
-                               .padding(.vertical, 2)
-                           }
-                           .frame(maxHeight: 360)
-                           .onHover { _ in
-                               // 当鼠标移动到滚动区域时，自动取消搜索框的焦点
-                               if searchFocused {
-                                   searchFocused = false
-                               }
-                           }
-//                           .zIndex(0)
-                
-                if viewModel.notes.isEmpty || viewModel.filteredNotes.isEmpty {
-                    Text("No more notes")
-//                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .opacity(0.5)
-                        .padding(.bottom,20)
-                        .padding(.bottom,20)
-//                        .padding(.bottom,100)
-                }
-                
-                if !viewModel.notes.isEmpty || !viewModel.filteredNotes.isEmpty {
-                    HStack{
-                        Button(action: openInFinder) {
-                            HStack {
-                                Text("Show All")
-                                    .font(.system(size: 13))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.bottom, 8)
-                            .padding(.top, 4)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .foregroundColor(.purple)
-                    }}
-            }
-            .frame(width: 320)
-            .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
-            .cornerRadius(8)
-            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
-//
-        }
-}
-
-// MARK: - Note Row View
-struct NoteRow: View {
-    let note: RecentNote
-    let onTap: () -> Void
-    let onDelete: () -> Void
-    @State private var isHovered = false
-    @Environment(\.colorScheme) private var colorScheme
-    
-    private func getRelativeTime(from date: Date) -> String {
-        let now = Date()
-        let diffInSeconds = Int(now.timeIntervalSince(date))
-        let diffInMinutes = diffInSeconds / 60
-        let diffInHours = diffInMinutes / 60
-        let diffInDays = diffInHours / 24
-        
-        if diffInMinutes < 1 {
-            return "less than 1 min"
-        } else if diffInMinutes < 60 {
-            return "\(diffInMinutes) min"
-        } else if diffInHours < 24 {
-            return "\(diffInHours) hr \(diffInMinutes-diffInDays*24*60-diffInHours*60) min"
-        } else {
-            return "\(diffInDays) day \(diffInHours-diffInDays*24) hr"
-        }
-    }
-    
-    var body: some View {
-        HStack(spacing:2) {
-            Button(action: onTap) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(note.title)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                    HStack(spacing: 4){
-                        Text("\(getRelativeTime(from: note.lastModified)) ago")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                        Text("·")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                        Text("\(note.content.count) characters")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                    }.opacity(0.6)
-              
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle()) 
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            if isHovered {
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-//                        .foregroundColor(.red)
-                        .font(.system(size: 13))
-                        .padding(.horizontal,2)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .transition(.opacity)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isHovered ?
-                    (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85)) :
-                    Color.clear)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-        )
-        .onHover { hovering in
-            withAnimation {
-                isHovered = hovering
-            }
-        }
-    }
-}
-
-// MARK: - File Manager Extension
+//// MARK: - File Manager Extension
 extension FileManager {
     static func getRecentNotes() -> [RecentNote] {
         do {
             let notesURL = FileManager.shared.notesDirectory
             let resourceKeys = Set([URLResourceKey.contentModificationDateKey])
-            let fileManager = Foundation.FileManager.default
+//            let fileManager = Foundation.FileManager.default
             // 获取目录内容
             let fileURLs = try Foundation.FileManager.default.contentsOfDirectory(
                 at: notesURL,
@@ -262,3 +51,400 @@ extension FileManager {
         }
     }
 }
+
+import SwiftUI
+import Foundation
+
+// MARK: - Recent Note Model
+struct RecentNote: Identifiable {
+    let id = UUID()
+    let title: String
+    let content: String
+    let lastModified: Date
+    let fileURL: URL
+}
+
+class RecentNotesViewModel: ObservableObject {
+    @Published var notes: [RecentNote] = []
+    @Published var searchText: String = ""
+    @Published var selectedNoteIndex: Int? = nil
+    @Published var hoveredNoteIndex: Int? = nil
+    @Published var currentNoteIndex: Int? = nil
+    @Published private var isHoverEnabled = true
+    
+    init() {
+        notes = FileManager.getRecentNotes()
+        if !notes.isEmpty {
+            currentNoteIndex = 0
+        }
+    }
+    
+    var filteredNotes: [RecentNote] {
+        if searchText.isEmpty {
+            return notes
+        }
+        return notes.filter { note in
+            note.title.localizedCaseInsensitiveContains(searchText) ||
+            note.content.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    
+    func deleteNote(_ note: RecentNote) {
+        do {
+            try Foundation.FileManager.default.removeItem(at: note.fileURL)
+            if let index = notes.firstIndex(where: { $0.id == note.id }) {
+                notes.remove(at: index)
+                updateSelectionAfterDeletion(deletedIndex: index)
+            }
+        } catch {
+            print("Error deleting note: \(error)")
+        }
+    }
+    
+    private func updateSelectionAfterDeletion(deletedIndex: Int) {
+        guard let selectedIndex = currentNoteIndex else { return }
+        
+        if deletedIndex == selectedIndex {
+            self.currentNoteIndex = min(selectedIndex, filteredNotes.count - 1)
+        } else if deletedIndex < selectedIndex {
+            self.currentNoteIndex = selectedIndex - 1
+        }
+    }
+    
+    // 键盘导航：保持单一职责，只处理选中状态
+    func selectNextNote() {
+        guard !filteredNotes.isEmpty else { return }
+        
+        // 暂时禁用悬停效果
+        isHoverEnabled = false
+        
+        // 延迟重新启用悬停效果
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.isHoverEnabled = true
+        }
+        
+        if let current = currentNoteIndex {
+            currentNoteIndex = min(current + 1, filteredNotes.count - 1)
+        } else {
+            currentNoteIndex = 0
+        }
+    }
+    
+    func selectPreviousNote() {
+        guard !filteredNotes.isEmpty else { return }
+        
+        // 暂时禁用悬停效果
+        isHoverEnabled = false
+        
+        // 延迟重新启用悬停效果
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.isHoverEnabled = true
+        }
+        
+        if let current = currentNoteIndex {
+            currentNoteIndex = max(current - 1, 0)
+        } else {
+            currentNoteIndex = filteredNotes.count - 1
+        }
+    }
+    
+    func setHoveredNote(_ index: Int?) {
+        // 只在允许悬停时更新状态
+        if isHoverEnabled {
+            currentNoteIndex = index
+        }
+    }
+
+    // 点击选择：同时更新选中状态并清除悬停状态
+    func selectNote(_ index: Int) {
+        currentNoteIndex = index
+//        hoveredNoteIndex = nil
+        
+        // 暂时禁用悬停效果
+        isHoverEnabled = false
+        
+        // 延迟重新启用悬停效果
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.isHoverEnabled = true
+        }
+    }
+    
+    // 重置选择：清除所有状态
+    func resetSelection() {
+        if !filteredNotes.isEmpty {
+            currentNoteIndex = 0
+        } else {
+            currentNoteIndex = nil
+        }
+        currentNoteIndex = nil
+    }
+    
+    var hoverEnabled: Bool {
+           get { isHoverEnabled }
+       }
+    
+}
+
+//MARK: - Main List View
+struct RecentNotesListView: View {
+    let notes: [RecentNote]
+    let onSelectNote: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @StateObject private var viewModel = RecentNotesViewModel()
+    @FocusState private var searchFocused: Bool
+    @State private var isShowAllHovered = false
+    @State private var eventMonitor: Any?
+    
+    private func setupKeyboardMonitor() {
+        removeKeyboardMonitor()
+        
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+            switch event.keyCode {
+            case 125: // Down arrow
+                // 上下键始终用于导航，不管搜索框是否聚焦
+                viewModel.selectNextNote()
+                return nil
+            case 126: // Up arrow
+                // 上下键始终用于导航，不管搜索框是否聚焦
+                viewModel.selectPreviousNote()
+                return nil
+            case 36: // Return key
+                // enter 键始终用于将该条内容填充到现在的文本框中
+                if let currentIndex = viewModel.currentNoteIndex {
+                    let currentNote = viewModel.filteredNotes[currentIndex]
+                    onSelectNote(currentNote.content)
+                    dismiss()
+                }
+                return nil
+            case 53: // ESC key
+                dismiss()
+                return nil
+            default:
+                // 其他所有按键都正常传递
+                return event
+            }
+        }
+    }
+    
+    private func removeKeyboardMonitor() {
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
+    }
+    
+    private func openInFinder() {
+        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Search Bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                TextField("Search notes...", text: $viewModel.searchText)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .font(.system(size: 14))
+                    .tint(.purple)
+                    .focused($searchFocused)
+                if !viewModel.searchText.isEmpty {
+                    Button(action: {
+                        viewModel.searchText = ""
+                        viewModel.resetSelection()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 12)
+            .onChange(of: viewModel.searchText) { _ in
+                viewModel.resetSelection()
+            }
+            
+            // Notes List
+            ScrollViewReader { proxy in
+                ScrollView {
+                    // 历史记录列表的高度间隔
+                    LazyVStack(spacing: 6) {
+                        ForEach(Array(viewModel.filteredNotes.enumerated()), id: \.element.id) { index, note in
+                            NoteRow(
+                                note: note,
+                                isHighLight: viewModel.currentNoteIndex == index ? true  : false,
+                                onTap: {
+                                    onSelectNote(note.content)
+                                    dismiss()
+                                },
+                                onDelete: {
+                                    viewModel.deleteNote(note)
+                                },
+                                onHover: { isHovered in
+                                    viewModel.setHoveredNote(isHovered ? index : nil)
+                                }
+                            )
+                            .id(index)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .frame(maxHeight: 360)
+                .onChange(of: viewModel.currentNoteIndex) {
+                    if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {  // 使用逗号分隔多个条件
+                        withAnimation {
+                            proxy.scrollTo(index)
+                        }
+                    }
+                }
+            }
+            .onHover { _ in
+                if searchFocused {
+                    searchFocused = false
+                }
+            }
+            
+            // Empty State
+            if viewModel.filteredNotes.isEmpty {
+                Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 20)
+            }
+            
+            // Footer
+            if !viewModel.notes.isEmpty {
+                Divider()
+                HStack {
+                    Button(action: openInFinder) {
+                        HStack {
+                            Text("Show All")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 0)
+                                .fill(isShowAllHovered ?
+                                    (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) :
+                                    Color.clear)
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .onHover { hovering in
+                        isShowAllHovered = hovering
+                    }
+                }
+            }
+        }
+        .frame(width: 320)
+        .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+        .cornerRadius(8)
+        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
+        .onAppear {
+            setupKeyboardMonitor()
+        }
+        .onDisappear {
+            removeKeyboardMonitor()
+            searchFocused = true
+        }
+    }
+}
+
+enum HighlightState {
+    case none
+    case selected
+    case hovered
+}
+
+
+// MARK: - Note Row View
+struct NoteRow: View {
+    let note: RecentNote
+//    let highlightState: HighlightState
+    let isHighLight:Bool
+    let onTap: () -> Void
+    let onDelete: () -> Void
+    let onHover: (Bool) -> Void
+    
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var isDeleteHovered = false
+    
+    private func getRelativeTime(from date: Date) -> String {
+        let now = Date()
+        let diffInSeconds = Int(now.timeIntervalSince(date))
+        let diffInMinutes = diffInSeconds / 60
+        let diffInHours = diffInMinutes / 60
+        let diffInDays = diffInHours / 24
+        
+        if diffInMinutes < 1 {
+            return "less than 1 min"
+        } else if diffInMinutes < 60 {
+            return "\(diffInMinutes) min"
+        } else if diffInHours < 24 {
+            return "\(diffInHours) hr \(diffInMinutes % 60) min"
+        } else {
+            return "\(diffInDays) day \(diffInHours % 24) hr"
+        }
+    }
+    
+    var body: some View {
+           HStack(spacing: 4) {
+               Button(action: onTap) {
+                   VStack(alignment: .leading, spacing: 2) {
+                       Text(note.title)
+                           .font(.system(size: 13, weight: .medium))
+                           .foregroundColor(.primary)
+                           .lineLimit(1)
+                       
+                       HStack(spacing: 4) {
+                           Text(getRelativeTime(from: note.lastModified))
+                               .font(.system(size: 11))
+                               .foregroundColor(.secondary)
+                           Text("·")
+                               .font(.system(size: 11))
+                               .foregroundColor(.secondary)
+                           Text("\(note.content.count) characters")
+                               .font(.system(size: 11))
+                               .foregroundColor(.secondary)
+                       }
+                       .opacity(0.6)
+                   }
+                   .frame(maxWidth: .infinity, alignment: .leading)
+                   .contentShape(Rectangle())
+               }
+               .buttonStyle(PlainButtonStyle())
+               
+               if isHighLight {
+                   Button(action: onDelete) {
+                       Image(systemName: "trash")
+                           .font(.system(size: 13))
+                           .foregroundColor(isDeleteHovered ? .red : .primary)
+                           .padding(.horizontal, 2)
+                   }
+                   .buttonStyle(PlainButtonStyle())
+                   .onHover { hovering in
+                       isDeleteHovered = hovering
+                   }
+                   .transition(.opacity)
+               }
+           }
+           .padding(.horizontal, 12)
+           .padding(.vertical, 4)
+           .background(
+               RoundedRectangle(cornerRadius: 8)
+                    .fill(isHighLight ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85)) : Color.clear)
+                   .opacity(0.5)
+                   .padding(.horizontal, 6)
+           )
+           .onHover { hovering in
+               withAnimation() {
+                   onHover(hovering)
+               }
+           }
+       }
+   }
