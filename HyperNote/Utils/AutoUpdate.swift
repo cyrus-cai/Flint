@@ -251,14 +251,14 @@ class AutoUpdater {
         let newAppPath = updateDirectory.appendingPathComponent("HyperNote.app")
         let targetAppPath = applicationsDirectory.appendingPathComponent("HyperNote.app")
         
-        // 在主队列中执行更新操作ç
+        // 在主队列中执行更新操作
         DispatchQueue.main.async {
             do {
                 let alert = NSAlert()
-                alert.messageText = "更新准备就绪"
-                alert.informativeText = "新版本已下载完成。点击确定开始安装更新，应用将自动重启。"
-                alert.addButton(withTitle: "确定")
-                alert.addButton(withTitle: "取消")
+                alert.messageText = "Update ready"
+                alert.informativeText = "The new version has been downloaded. Click OK to start the installation update, and the application will restart automatically."
+                alert.addButton(withTitle: "OK")
+                alert.addButton(withTitle: "Cancel")
                 
                 if alert.runModal() == .alertFirstButtonReturn {
                     // 1. 创建一个临时脚本来执行更新
@@ -308,13 +308,13 @@ class AutoUpdater {
         var localizedDescription: String {
             switch self {
             case .invalidAppPath:
-                return "无法获取应用路径"
+                return "Unable to obtain application path"
             case .shellCommandFailed:
-                return "执行更新命令失败"
+                return "Failed to execute update command"
             case .invalidUpdateFile:
-                return "更新文件无效或已损坏"
+                return "The update file is invalid or corrupted"
             case .updateInstallationFailed:
-                return "安装更新失败"
+                return "Installation of update failed"
             }
         }
     }
@@ -396,13 +396,13 @@ enum UpdateError: Error {
     var localizedDescription: String {
         switch self {
         case .invalidAppPath:
-            return "无法获取应用路径"
+            return "Unable to obtain application path"
         case .shellCommandFailed:
-            return "执行更新命令失败"
+            return "Failed to execute update command"
         case .invalidUpdateFile:
-            return "更新文件无效或已损坏"
+            return "The update file is invalid or corrupted"
         case .helperCompilationFailed:
-            return "更新辅助工具创建失败"
+            return "Update auxiliary tool creation failed"
         }
     }
 }

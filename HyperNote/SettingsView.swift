@@ -53,7 +53,7 @@ struct SettingsView: View {
                     }
                     HStack {
                         Spacer()
-                        Text("Today used:\(counter.todayCount)/50").opacity(0.5)
+                        Text("Today used:\(counter.todayCount)/25").opacity(0.5)
                         Button("Unlimited in Hyper +") {
                             // 处理升级操作
                         } .buttonStyle(.borderedProminent)
@@ -71,7 +71,7 @@ struct SettingsView: View {
                 HStack {
                     Label("New Note", systemImage: "plus")
                     Spacer()
-                    Text("⌘ + N / ⌘ + K")
+                    Text(" ⌘ + ⏎ / ⌘ + N / ⌘ + K")
                         .foregroundColor(.gray)
                 }
             }
@@ -158,7 +158,7 @@ struct SettingsView: View {
                                             }
                                         } else {
                                             alert.messageText = "Check for updates"
-                                            alert.informativeText = "The current version is already the latest."
+                                            alert.informativeText = "You’re up to date!"
                                             alert.alertStyle = .informational
                                             alert.addButton(withTitle: "OK")
                                             alert.runModal()

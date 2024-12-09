@@ -373,54 +373,49 @@ struct RecentNotesListView: View {
             }
             
             // Notes List
-            ScrollViewReader { proxy in
-                ScrollView {
-                    // 历史记录列表的高度间隔
-                    LazyVStack(spacing: 6) {
-                        ForEach(Array(viewModel.filteredNotes.enumerated()), id: \.element.id) { index, note in
-                            NoteRow(
-                                note: note,
-                                isHighLight: viewModel.currentNoteIndex == index ? true  : false,
-                                onTap: {
-                                    onSelectNote(note.content)
-                                    dismiss()
-                                },
-                                onDelete: {
-                                    viewModel.deleteNote(note)
-                                },
-                                onHover: { isHovered in
-                                    viewModel.setHoveredNote(isHovered ? index : nil)
-                                }
-                            )
-                            .id(index)
+            if !viewModel.filteredNotes.isEmpty{
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        // 历史记录列表的高度间隔
+                        LazyVStack(spacing: 6) {
+                            ForEach(Array(viewModel.filteredNotes.enumerated()), id: \.element.id) { index, note in
+                                NoteRow(
+                                    note: note,
+                                    isHighLight: viewModel.currentNoteIndex == index ? true  : false,
+                                    onTap: {
+                                        onSelectNote(note.content)
+                                        dismiss()
+                                    },
+                                    onDelete: {
+                                        viewModel.deleteNote(note)
+                                    },
+                                    onHover: { isHovered in
+                                        viewModel.setHoveredNote(isHovered ? index : nil)
+                                    }
+                                )
+                                .id(index)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .frame(maxHeight: 360)
+                    .onChange(of: viewModel.currentNoteIndex) {
+                        if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
+                            withAnimation {
+                                proxy.scrollTo(index)
+                            }
                         }
                     }
-                    .padding(.vertical, 4)
                 }
-                .frame(maxHeight: 360)
-                .onChange(of: viewModel.currentNoteIndex) {
-                    if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
-                        withAnimation {
-                            proxy.scrollTo(index)
-                        }
+                .onHover { _ in
+                    if searchFocused {
+                        searchFocused = false
                     }
                 }
-            }
-            .onHover { _ in
-                if searchFocused {
-                    searchFocused = false
-                }
-            }
-            
-            // Empty State
-            if viewModel.filteredNotes.isEmpty {
-                Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
-                    .foregroundColor(.secondary)
-                    .padding(.vertical, 20)
             }
             
             // Footer
-            if !viewModel.notes.isEmpty {
+            if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
                 Divider()
                 HStack {
                     Button(action: openInFinder) {
@@ -444,6 +439,15 @@ struct RecentNotesListView: View {
                     }
                 }
             }
+            
+            // Empty State
+            if viewModel.filteredNotes.isEmpty {
+                Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
+                    .foregroundColor(.secondary)
+                    .padding(24)
+            }
+            
+
         }
         .frame(width: 320)
         .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
