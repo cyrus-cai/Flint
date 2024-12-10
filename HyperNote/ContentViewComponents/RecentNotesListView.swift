@@ -148,27 +148,85 @@ class RecentNotesViewModel: ObservableObject {
     }
     
     
-    func deleteNote(_ note: RecentNote) {
-        do {
-            try Foundation.FileManager.default.removeItem(at: note.fileURL)
-            if let index = notes.firstIndex(where: { $0.id == note.id }) {
-                notes.remove(at: index)
-                updateSelectionAfterDeletion(deletedIndex: index)
-            }
-        } catch {
-            print("Error deleting note: \(error)")
-        }
-    }
+//    func deleteNote(_ note: RecentNote) {
+//        do {
+//            try Foundation.FileManager.default.removeItem(at: note.fileURL)
+//            if let index = notes.firstIndex(where: { $0.id == note.id }) {
+//                notes.remove(at: index)
+//                updateSelectionAfterDeletion(deletedIndex: index)
+//            }
+//        } catch {
+//            print("Error deleting note: \(error)")
+//        }
+//    }
     
-    private func updateSelectionAfterDeletion(deletedIndex: Int) {
-        guard let selectedIndex = currentNoteIndex else { return }
-        
-        if deletedIndex == selectedIndex {
-            self.currentNoteIndex = min(selectedIndex, filteredNotes.count - 1)
-        } else if deletedIndex < selectedIndex {
-            self.currentNoteIndex = selectedIndex - 1
+    func deleteNote(_ note: RecentNote) {
+            do {
+                // 1. 首先确保我们要删除的是正确的文件
+                let fileToDelete = note.fileURL
+                print("Attempting to delete file at: \(fileToDelete.path)")
+                
+                // 2. 验证文件仍然存在
+                let fileManager = Foundation.FileManager.default
+                guard fileManager.fileExists(atPath: fileToDelete.path) else {
+                    print("File does not exist at path: \(fileToDelete.path)")
+                    return
+                }
+                
+                // 3. 删除文件
+                try fileManager.removeItem(at: fileToDelete)
+                
+                // 4. 从内存中移除
+                notes.removeAll { $0.fileURL == note.fileURL }
+                
+                // 5. 更新选择状态
+                updateSelectionAfterDeletion()
+                
+            } catch {
+                print("Error deleting note: \(error)")
+                print("File path: \(note.fileURL.path)")
+                print("Error details: \(error.localizedDescription)")
+            }
         }
-    }
+    
+//    private func updateSelectionAfterDeletion(deletedIndex: Int) {
+//        guard let selectedIndex = currentNoteIndex else { return }
+//        
+//        if deletedIndex == selectedIndex {
+//            self.currentNoteIndex = min(selectedIndex, filteredNotes.count - 1)
+//        } else if deletedIndex < selectedIndex {
+//            self.currentNoteIndex = selectedIndex - 1
+//        }
+//    }
+    
+//    private func updateSelectionAfterDeletion(deletedFilteredIndex: Int) {
+//        guard let selectedIndex = currentNoteIndex else { return }
+//        
+//        // 确保更新后的索引基于过滤后的列表
+//        if deletedFilteredIndex == selectedIndex {
+//            self.currentNoteIndex = min(selectedIndex, filteredNotes.count - 1)
+//        } else if deletedFilteredIndex < selectedIndex {
+//            self.currentNoteIndex = selectedIndex - 1
+//        }
+//        
+//        // 如果过滤列表为空，重置选择
+//        if filteredNotes.isEmpty {
+//            self.currentNoteIndex = nil
+//        }
+//    }
+    
+    private func updateSelectionAfterDeletion() {
+           // 如果过滤后的列表为空，重置选择
+           if filteredNotes.isEmpty {
+               currentNoteIndex = nil
+               return
+           }
+           
+           // 否则确保选中索引在有效范围内
+           if let current = currentNoteIndex {
+               currentNoteIndex = min(current, filteredNotes.count - 1)
+           }
+       }
     
     // 键盘导航：保持单一职责，只处理选中状态
     func selectNextNote() {
@@ -281,7 +339,10 @@ struct RecentNotesListView: View {
                            // Command+Delete: 删除当前选中的条目
                            if let currentIndex = viewModel.currentNoteIndex {
                                let currentNote = viewModel.filteredNotes[currentIndex]
-                               viewModel.deleteNote(currentNote)
+                               withAnimation {  // 添加动画
+                                   viewModel.deleteNote(currentNote)
+                                                                      }
+                            
                            }
                            return nil
                        }
@@ -387,13 +448,16 @@ struct RecentNotesListView: View {
                                         dismiss()
                                     },
                                     onDelete: {
-                                        viewModel.deleteNote(note)
+                                        withAnimation {  // 添加动画
+                                           viewModel.deleteNote(note)
+                                       }
+//                                        viewModel.deleteNote(note)
                                     },
                                     onHover: { isHovered in
                                         viewModel.setHoveredNote(isHovered ? index : nil)
                                     }
                                 )
-                                .id(index)
+                                .id(note.id)
                             }
                         }
                         .padding(.vertical, 4)
