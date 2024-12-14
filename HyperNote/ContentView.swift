@@ -669,14 +669,8 @@ struct EditorView: View {
 struct DownFunctionView: View {
     let count: Int
     let links: [String]
-//    let icon: TitleBarIcon
-//    let action: () -> Void
     @State private var showTooltip = false 
     @State private var showLinksPopover = false
-    
-//    private var linksDisplay: String {
-//           links.joined(separator: "  •  ")
-//       }
     
     var body: some View {
         HStack(spacing:4){

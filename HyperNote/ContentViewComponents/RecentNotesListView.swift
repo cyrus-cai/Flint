@@ -357,42 +357,6 @@ struct RecentNotesListView: View {
         }
     }
     
-//    private func setupKeyboardMonitor() {
-//        removeKeyboardMonitor()
-//        
-//        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
-//            // 只有在搜索框未获得焦点时才处理导航键
-//            if !searchFocused {
-//                switch event.keyCode {
-//                case 125: // Down arrow
-//                    viewModel.selectNextNote()
-//                    return nil
-//                case 126: // Up arrow
-//                    viewModel.selectPreviousNote()
-//                    return nil
-//                default:
-//                    return nil
-//                }
-//            }
-//            
-//            // 始终处理 Enter 和 ESC
-//            switch event.keyCode {
-//            case 36: // Return key
-//                if let currentIndex = viewModel.currentNoteIndex {
-//                    let currentNote = viewModel.filteredNotes[currentIndex]
-//                    onSelectNote(currentNote.content)
-//                    dismiss()
-//                }
-//                return nil
-//            case 53: // ESC key
-//                dismiss()
-//                return nil
-//            default:
-//                return event
-//            }
-//        }
-//    }
-    
     private func removeKeyboardMonitor() {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
