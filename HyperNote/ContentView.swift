@@ -10,8 +10,57 @@ struct ContentHeightPreferenceKey: PreferenceKey {
     }
 }
 
+struct LinkDetector {
+    static func findLinks(in text: String) -> [String] {
+        let patterns = [
+            "(https?://(?:www\\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,})",
+            "(www\\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,})",
+            "(https?://(?:www\\.|(?!www))[a-zA-Z0-9]+\\.[^\\s]{2,})",
+            "(www\\.[a-zA-Z0-9]+\\.[^\\s]{2,})"
+        ]
+        
+        // Use an array to store matches with their positions
+        var linkMatches: [(link: String, position: Int)] = []
+        
+        for pattern in patterns {
+            do {
+                let regex = try NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+                let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
+                
+                for match in matches {
+                    if let range = Range(match.range, in: text) {
+                        let link = String(text[range])
+                        // Store both the link and its position in the text
+                        linkMatches.append((link: link, position: match.range.location))
+                    }
+                }
+            } catch {
+                print("正则表达式错误: \(error)")
+            }
+        }
+        
+        // Remove duplicates while preserving the earliest occurrence of each link
+        var seenLinks = Set<String>()
+        var orderedLinks: [(link: String, position: Int)] = []
+        
+        for match in linkMatches {
+            if !seenLinks.contains(match.link) {
+                seenLinks.insert(match.link)
+                orderedLinks.append(match)
+            }
+        }
+        
+        // Sort by position in the original text
+        orderedLinks.sort { $0.position < $1.position }
+        
+        // Return just the links in their sorted order
+        return orderedLinks.map { $0.link }
+    }
+}
+
 struct ContentView: View {
     @State private var text = ""
+    @State private var links: [String] = []
     @State private var isHovered = false
     @Environment(\.colorScheme) private var colorScheme // 添加对当前颜色方案的引用
     @StateObject private var toolbarState = TitleBarToolbarState()
@@ -69,12 +118,15 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                TitleBarView(title: title, isHovered: isHovered, toolbarState: toolbarState,onNoteSelected: loadNoteContent)
                 
-                VStack(spacing: 0) {
-                    EditorView(text: $text)
-                    CharacterCountView(count: text.count)
-                }
+//                VStack(spacing: 0) {
+                TitleBarView(title: title, isHovered: isHovered, links: links, toolbarState: toolbarState,onNoteSelected: loadNoteContent)
+                EditorView(text: $text)
+                  
+                DownFunctionView(count: text.count, links: links)
+//                    .frame(height: 32)
+//                }
+
              
             }
             if showToast {
@@ -87,6 +139,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: text) {
+            links = LinkDetector.findLinks(in: text)
                    toolbarState.isEmpty = text.isEmpty
                }
         .onAppear {
@@ -613,23 +666,95 @@ struct EditorView: View {
 //    }
 //}
 
-struct CharacterCountView: View {
+struct DownFunctionView: View {
     let count: Int
+    let links: [String]
 //    let icon: TitleBarIcon
 //    let action: () -> Void
     @State private var showTooltip = false 
+    @State private var showLinksPopover = false
+    
+//    private var linksDisplay: String {
+//           links.joined(separator: "  •  ")
+//       }
     
     var body: some View {
-        HStack{
-            Text("\(count) characters")
+        HStack(spacing:4){
+            Text("\(count) character\(count != 0 && count != 1 ? "s" : "")")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .padding(.vertical, 8)
-                .frame(maxWidth: .infinity, alignment: .center)
                 .opacity(0.5)
+//            Text("\(links.count) link\(links.count != 0 && links.count != 1 ? "s" : "")")
+//                .font(.system(size: 12))
+//                .foregroundColor(.secondary)
+//                .padding(.vertical, 8)
+//                .opacity(0.5)
+//            Button(action: {
+//                           showLinksPopover = true
+//                       }) {
+//                           Text("\(links.count) link\(links.count != 0 && links.count != 1 ? "s" : "")")
+//                               .font(.system(size: 12))
+//                               .foregroundColor(.secondary)
+//                               .opacity(0.5)
+//                       }
+//                       .buttonStyle(PlainButtonStyle())
+//                       .padding(.vertical, 8)
+//            
+//            if !links.isEmpty {
+//                                ScrollView(.horizontal, showsIndicators: false) {
+//                                    Text(linksDisplay)
+//                                        .font(.system(size: 12))
+//                                        .foregroundColor(.blue)
+//                                        .lineLimit(1)
+//                                }
+//                                .frame(maxWidth: .infinity, alignment: .center)
+//                            }
+//                       .presentationDetents([.medium, .large])
+//            HStack(spacing: 8) {
+//                ForEach(links, id: \.self) { link in
+//                    Button(action: {
+//                        if let url = URL(string: link) {
+//                            NSWorkspace.shared.open(url)
+//                        }
+//                    }) {
+//                        Text(link)
+//                            .foregroundColor(.blue)
+//                            .lineLimit(1)
+//                    }
+//                    .buttonStyle(PlainButtonStyle())
+//                }
+//            }
         }
-        
-        
+//        .zIndex(0)
+//        .frame(height: 32)
+        .padding(.horizontal,12)
+        .frame(maxWidth: .infinity, alignment: .center)
+
+    }
+}
+
+
+struct LinksPopoverView: View {
+    let links: [String]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(links, id: \.self) { link in
+                Button(action: {
+                    if let url = URL(string: link) {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    Text(link)
+                        .foregroundColor(.blue)
+                        .lineLimit(1)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .padding()
+        .frame(minWidth: 200)
     }
 }
 

@@ -5,6 +5,7 @@ import SwiftUI
 struct TitleBarView: View {
     let title: String
     let isHovered: Bool
+    let links: [String]
     @ObservedObject var toolbarState: TitleBarToolbarState
     let onNoteSelected: (String) -> Void  // 新增参数
     
@@ -23,7 +24,13 @@ struct TitleBarView: View {
                 Spacer()
                 
                 // 右侧工具栏
-                TitleBarToolbar(state: toolbarState, isVisible: isHovered || toolbarState.showRecentNotes || toolbarState.showSettingsList, onNoteSelected:onNoteSelected)
+                
+               TitleBarToolbar(
+                   state: toolbarState,
+                   isVisible: isHovered || toolbarState.showRecentNotes || toolbarState.showSettingsList,
+                   onNoteSelected: onNoteSelected,
+                   links: links  // Pass links to toolbar
+               )
             }
         }.onAppear {
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
@@ -59,9 +66,46 @@ struct TitleBarToolbar: View {
     @ObservedObject var state: TitleBarToolbarState
     let isVisible: Bool
     let onNoteSelected: (String) -> Void
+    let links: [String]  // Add links parameter
+    
+    private func openSingleLink() {
+          if let url = URL(string: links[0]) {
+              NSWorkspace.shared.open(url)
+          }
+      }
     
     var body: some View {
         HStack(spacing: 4) {
+            
+            if !links.isEmpty {
+//                           TitleBarButton(
+//                               icon: .paperclip,
+//                               action: { state.showAttachments = true }
+//                           )
+//                           .popover(isPresented: $state.showAttachments) {
+//                               LinkListView(
+//                                   links: links
+////                                   onSelectLink: onNoteSelected
+//                               )
+//                           }
+                if links.count == 1 {
+                                   // Single link - direct button
+                                   TitleBarButton(
+                                       icon: .paperclip,
+                                       action: openSingleLink
+                                   )
+                               } else {
+                                   // Multiple links - show popover
+                                   TitleBarButton(
+                                      icon: .paperclip,
+                                      badgeCount: links.count, // Pass the count here
+                                      action: { state.showAttachments = true }
+                                                      )
+                                   .popover(isPresented: $state.showAttachments) {
+                                       LinkListView(links: links)
+                                   }
+                               }
+                       }
             
             TitleBarButton(
                            icon: .command,
@@ -97,19 +141,171 @@ struct TitleBarToolbar: View {
     }
 }
 
+// MARK: - Link List View
+struct LinkListView: View {
+    let links: [String]
+//    let onSelectLink: (String) -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing:4){
+                Text("Attachments")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .padding(.leading, 12)
+                    .padding(.vertical, 8)
+                Text("\(links.count)")
+                    .font(.system(size: 10, weight: .medium))
+//                    .foregroundColor(Color.purple)  修改文字颜色为紫色
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(
+                        Capsule()
+                            .fill(.thinMaterial) // 使用系统材质实现毛玻璃效果
+                            .overlay(
+                                Capsule()
+                                    .fill(Color.primary.opacity(0.02)) // 叠加浅紫色
+                            )
+                            .overlay( // 添加描边
+                                    Capsule()
+                                        .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
+                                )
+                                )
+                    .frame(minWidth: 12)
+            }
+            
+            Divider()
+            
+            if links.isEmpty {
+                Text("No attachments")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .padding(12)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(links, id: \.self) { link in
+                            LinkItemView(link: link)
+                            if link != links.last {
+                                Divider()
+                            }
+                        }
+                    }
+                }
+                .frame(maxHeight: 300)
+            }
+        }
+        .frame(width: 280)
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+}
+
+// MARK: - Link Item View
+struct LinkItemView: View {
+    let link: String
+//    let onSelect: (String) -> Void
+    @State private var isHovered = false
+    
+    private func openLink() {
+            if let url = URL(string: link) {
+                NSWorkspace.shared.open(url)
+            }
+        }
+    
+    var body: some View {
+        Button(action: openLink) {
+            HStack {
+                Image(systemName: "link")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+                
+                Text(link)
+                    .font(.system(size: 13))
+                    .lineLimit(1)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(isHovered ? Color.gray.opacity(0.1) : Color.clear)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+//struct BadgeView: View {
+//    let count: Int
+//    
+//    var displayText: String {
+//        if count > 99 {
+//            return "99+"
+//        }
+//        return "\(count)"
+//    }
+//    
+//    var body: some View {
+//        Text(displayText)
+//            .font(.system(size: 8, weight: .medium))
+//            .foregroundColor(.white)
+//            .padding(.horizontal, 3)
+//            .padding(.vertical, 0.5)
+//            .background(
+//                Capsule()
+//                    .fill(Color.purple)
+//            )
+//            .frame(minWidth: 12)
+//    }
+//}
+
+struct BadgeView: View {
+    let count: Int
+    
+    var displayText: String {
+        if count > 99 {
+            return "99+"
+        }
+        return "\(count)"
+    }
+    
+    var body: some View {
+        Text(displayText)
+            .font(.system(size: 8, weight: .medium))
+            .foregroundColor(Color.purple) // 修改文字颜色为紫色
+            .padding(.horizontal, 3)
+            .padding(.vertical, 0.5)
+            .background(
+                            Capsule()
+                                .fill(.thinMaterial) // 使用系统材质实现毛玻璃效果
+                                .overlay(
+                                    Capsule()
+                                        .fill(Color.purple.opacity(0.02)) // 叠加浅紫色
+                                )
+                                .overlay( // 添加描边
+                                        Capsule()
+                                            .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
+                                    )
+                        )
+            .frame(minWidth: 12)
+    }
+}
 
 // MARK: - TitleBar Button
 struct TitleBarButton: View {
     let icon: TitleBarIcon
     let action: () -> Void
     let isDisabled: Bool
+    let badgeCount: Int?
     @State private var isHovered = false  // 新增状态追踪悬停
-    @State private var showTooltip = false
+//    @State private var showTooltip = false
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     
-    init(icon: TitleBarIcon, isDisabled: Bool = false, action: @escaping () -> Void) {
+    init(icon: TitleBarIcon, isDisabled: Bool = false,  badgeCount: Int? = nil, action: @escaping () -> Void) {
         self.icon = icon
         self.isDisabled = isDisabled
+        self.badgeCount = badgeCount
         self.action = action
     }
     
@@ -118,11 +314,11 @@ struct TitleBarButton: View {
             Button(action: action) {
                 Image(systemName: icon.systemName)
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(isDisabled ? .secondary.opacity(0.6) : .secondary)
+                    .foregroundColor(iconColor)
                     .frame(width: 26, height: 26)
                     .background(
                               RoundedRectangle(cornerRadius: 6)
-                                  .fill(isHovered ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) : Color.clear)
+                                .fill(backgroundColor)
                           )
                     .onHover { hovering in
                         withAnimation(.easeInOut(duration: 0.1)) {
@@ -133,18 +329,51 @@ struct TitleBarButton: View {
             }
             .buttonStyle(.plain)
             .disabled(isDisabled)
+            
+            if let count = badgeCount, count >= 2 {
+                           BadgeView(count: count)
+                               .offset(x: 8, y: -4)
+                       }
         }
     }
+    
+    private var iconColor: Color {
+           if isDisabled {
+               return .secondary.opacity(0.6)
+           }
+           // paperclip 图标使用紫色
+           if icon == .paperclip {
+               return .purple
+           }
+           return .secondary
+       }
+    
+    // hover 颜色
+   private var backgroundColor: Color {
+       if !isHovered {
+           return .clear
+       }
+       
+       if icon == .paperclip {
+//           return .purple.opacity(0.1)  // 紫色半透明背景
+           return colorScheme == .dark ? .purple.opacity(0.2) : .purple.opacity(0.1)
+       }
+       
+       return colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)
+   }
 }
 
 // MARK: - TitleBar Icon Enum
 enum TitleBarIcon {
+    case paperclip
     case command
     case note
     case plus
     
     var systemName: String {
         switch self {
+        case .paperclip:
+            return "paperclip"
         case .command:
             return "command"
         case .note:
@@ -154,22 +383,24 @@ enum TitleBarIcon {
         }
     }
     
-    var tooltip: String {
-           switch self {
-           case .command:
-               return "Command"
-           case .note:
-               return "Recents"
-           case .plus:
-               return "New"
-           }
-       }
-    
+//    var tooltip: String {
+//           switch self {
+//           case .paperclip:
+//               return "Paperclip"
+//           case .command:
+//               return "Command"
+//           case .note:
+//               return "Recents"
+//           case .plus:
+//               return "New"
+//           }
+//       }
 }
 
 // MARK: - Toolbar State
 class TitleBarToolbarState: ObservableObject {
     @Published var showSettingsList = false
+    @Published var showAttachments = false
     @Published var isSplitActive = false
     @Published var isListVisible = false
     @Published var showRecentNotes = false
