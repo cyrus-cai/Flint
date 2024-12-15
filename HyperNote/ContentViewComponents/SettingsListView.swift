@@ -1,18 +1,18 @@
-import SwiftUI
 import Foundation
+import SwiftUI
 
 struct SettingsListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    
+
     let onRename: () -> Void
     let onDelete: () -> Void
     let onSettings: () -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(SettingsItem.allCases) { item in
-                if item == .settings  {
+                if item == .settings {
                     HoverButton(
                         action: {
                             handleAction(item)
@@ -39,7 +39,7 @@ struct SettingsListView: View {
         .frame(width: 160)
         .background(Color(NSColor.windowBackgroundColor))
     }
-    
+
     private func handleAction(_ item: SettingsItem) {
         switch item {
         case .rename:
@@ -57,12 +57,12 @@ struct HoverButton: View {
     let label: () -> AnyView
     @State private var isHovered = false
     @Environment(\.colorScheme) private var colorScheme
-    
+
     init(action: @escaping () -> Void, @ViewBuilder label: @escaping () -> some View) {
         self.action = action
         self.label = { AnyView(label()) }
     }
-    
+
     var body: some View {
         Button(action: action) {
             label()
@@ -73,9 +73,10 @@ struct HoverButton: View {
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isHovered ?
-                    (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85)) :
-                    Color.clear)
+                .fill(
+                    isHovered
+                        ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85))
+                        : Color.clear)
         )
         .onHover { hovering in
             isHovered = hovering
@@ -90,11 +91,11 @@ struct HoverButton: View {
 
 class SettingsViewModel: ObservableObject {
     let fileURL: URL
-    
+
     init(fileURL: URL) {
         self.fileURL = fileURL
     }
-    
+
     func deleteNote() {
         do {
             try Foundation.FileManager.default.removeItem(at: fileURL)
@@ -108,9 +109,9 @@ enum SettingsItem: Int, CaseIterable, Identifiable {
     case rename
     case delete
     case settings
-    
+
     var id: Int { rawValue }
-    
+
     var title: String {
         switch self {
         case .rename:
@@ -121,7 +122,7 @@ enum SettingsItem: Int, CaseIterable, Identifiable {
             return "Settings"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .rename:

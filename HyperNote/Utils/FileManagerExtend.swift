@@ -19,7 +19,7 @@ class FileManager {
     
     // 获取应用程序专用的笔记存储目录
     var notesDirectory: URL {
-        let notesPath = documentsDirectory.appendingPathComponent("HyperNote", isDirectory: true)
+        let notesPath = documentsDirectory.appendingPathComponent("obsidian/Float", isDirectory: true)
         if !fm.fileExists(atPath: notesPath.path) {
             try? fm.createDirectory(at: notesPath, withIntermediateDirectories: true)
         }
@@ -30,7 +30,7 @@ class FileManager {
     func fileURL(for title: String) -> URL {
         let sanitizedTitle = title.replacingOccurrences(of: "/", with: "-")
             .replacingOccurrences(of: ":", with: "-")
-        return notesDirectory.appendingPathComponent("\(sanitizedTitle).txt")
+        return notesDirectory.appendingPathComponent("\(sanitizedTitle).md")
     }
     
     // 检查文件是否存在

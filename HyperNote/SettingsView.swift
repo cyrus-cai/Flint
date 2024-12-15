@@ -1,5 +1,5 @@
-import SwiftUI
 import Combine
+import SwiftUI
 
 struct SettingsView: View {
     @State private var progressSubscription: AnyCancellable?
@@ -14,7 +14,8 @@ struct SettingsView: View {
     let updater = AutoUpdater()
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
-    
+    @State private var IntegrateWithObsidian = true
+
     var body: some View {
         List {
             Section("Account") {
@@ -24,7 +25,7 @@ struct SettingsView: View {
                     Text("Not Logging in")
                         .foregroundColor(.gray)
                 }
-                
+
                 HStack {
                     Label("Plan", systemImage: "plus.square")
                     Spacer()
@@ -34,7 +35,7 @@ struct SettingsView: View {
                         .tint(.purple)
                         .controlSize(.small)
                 }
-                
+
                 HStack {
                     Label("Data", systemImage: "externaldrive")
                     Spacer()
@@ -42,9 +43,9 @@ struct SettingsView: View {
                         .foregroundColor(.gray)
                 }
             }
-            
+
             Section("Hotkey") {
-                VStack{
+                VStack {
                     HStack {
                         Label("Quick wake-up", systemImage: "bolt.square")
                         Spacer()
@@ -56,11 +57,11 @@ struct SettingsView: View {
                         Text("Today used:\(counter.todayCount)/25").opacity(0.5)
                         Button("Unlimited in Hyper +") {
                             // 处理升级操作
-                        } .buttonStyle(.borderedProminent)
+                        }.buttonStyle(.borderedProminent)
                             .tint(.purple)
                             .controlSize(.small)
                     }
-                   
+
                 }
                 HStack {
                     Label("History", systemImage: "clock")
@@ -75,7 +76,45 @@ struct SettingsView: View {
                         .foregroundColor(.gray)
                 }
             }
-            
+
+            Section("Default Integrate with") {
+                HStack {
+                    Image("obsidian-icon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                    Text("Obsidian")
+                    Spacer()
+                    Text("Applied")
+                        .foregroundColor(.gray)
+                    Toggle("", isOn: $IntegrateWithObsidian)
+                        .toggleStyle(.switch)
+                }
+
+                // HStack {
+                //     Image("no-integration-icon")
+                //         .resizable()
+                //         .aspectRatio(contentMode: .fit)
+                //         .frame(width: 16, height: 16)
+                //     Text("No Integration")
+                //     Spacer()
+                //     Text("Not Recommended")
+                //         .foregroundColor(.gray)
+                // }
+
+                HStack {
+                    Image("notion-icon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                    Text("Notion")
+                    Spacer()
+                    Text("Coming soon")
+                        .foregroundColor(.gray)
+                }
+                .opacity(0.5)
+            }
+
             Section("General") {
                 HStack {
                     Label("Language", systemImage: "globe")
@@ -84,15 +123,18 @@ struct SettingsView: View {
                         .foregroundColor(.gray)
                 }
             }
-            
+
             HStack {
                 Spacer()
                 VStack {
                     if isDownloading {
-                        ProgressView("Downloading...\(Int(downloadProgress * 100))%", value: downloadProgress, total: 1.0)
-                            .progressViewStyle(.linear)
-                            .frame(width: 200)
-                            .padding()
+                        ProgressView(
+                            "Downloading...\(Int(downloadProgress * 100))%",
+                            value: downloadProgress, total: 1.0
+                        )
+                        .progressViewStyle(.linear)
+                        .frame(width: 200)
+                        .padding()
                     } else {
                         Button(isCheckingUpdate ? "Checking..." : "Check for updates") {
                             Task {
@@ -100,12 +142,17 @@ struct SettingsView: View {
                                 print("checking update")
                                 do {
                                     let updateInfo = try await updater.checkForUpdates()
-                                    
+
                                     await MainActor.run {
                                         let alert = NSAlert()
                                         if let updateInfo = updateInfo {
-                                            guard let downloadURL = URL(string: updateInfo.downloadURL) else {
-                                                print("Invalid download URL: \(updateInfo.downloadURL)")
+                                            guard
+                                                let downloadURL = URL(
+                                                    string: updateInfo.downloadURL)
+                                            else {
+                                                print(
+                                                    "Invalid download URL: \(updateInfo.downloadURL)"
+                                                )
                                                 let errorAlert = NSAlert()
                                                 errorAlert.messageText = "Update failed"
                                                 errorAlert.informativeText = "Invalid download link"
@@ -122,26 +169,29 @@ struct SettingsView: View {
                                             alert.alertStyle = .informational
                                             alert.addButton(withTitle: "Update")
                                             alert.addButton(withTitle: "Later")
-                                            
+
                                             let response = alert.runModal()
-                                            
+
                                             if response == .alertFirstButtonReturn {
                                                 Task {
                                                     do {
                                                         isDownloading = true
                                                         downloadProgress = 0
-                                                        
+
                                                         // 开始下载并监听进度
-                                                        progressSubscription = updater.progressPublisher
+                                                        progressSubscription = updater
+                                                            .progressPublisher
                                                             .receive(on: RunLoop.main)
                                                             .sink { progress in
                                                                 downloadProgress = progress
                                                             }
-                                                            
-                                                        let updateFile = try await updater.downloadUpdate(from: downloadURL)
+
+                                                        let updateFile =
+                                                            try await updater.downloadUpdate(
+                                                                from: downloadURL)
                                                         progressSubscription?.cancel()
-                                                        
-//                                                        try await updater.installUpdate(from: updateFile)
+
+                                                        //                                                        try await updater.installUpdate(from: updateFile)
                                                         try updater.installUpdate(from: updateFile)
                                                         isDownloading = false
                                                     } catch {
@@ -149,7 +199,8 @@ struct SettingsView: View {
                                                         isDownloading = false
                                                         let errorAlert = NSAlert()
                                                         errorAlert.messageText = "Update failed"
-                                                        errorAlert.informativeText = error.localizedDescription
+                                                        errorAlert.informativeText =
+                                                            error.localizedDescription
                                                         errorAlert.alertStyle = .critical
                                                         errorAlert.addButton(withTitle: "OK")
                                                         errorAlert.runModal()
@@ -179,7 +230,7 @@ struct SettingsView: View {
                         }
                         .disabled(isCheckingUpdate)
                     }
-                    
+
                     if let latest = latestVersion {
                         Text("Latest version: \(latest)")
                             .opacity(0.25)
@@ -191,7 +242,7 @@ struct SettingsView: View {
             }
         }
         .listStyle(.sidebar)
-//        .frame(width: 560)
+        //        .frame(width: 560)
     }
 }
 
