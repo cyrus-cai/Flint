@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
-		A30FF3852CE058710034F9DC /* CharacterCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3842CE058710034F9DC /* CharacterCount.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
 		A30FF3942CE102F30034F9DC /* SwiftDown in Frameworks */ = {isa = PBXBuildFile; productRef = A30FF3932CE102F30034F9DC /* SwiftDown */; };
 		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
@@ -48,7 +47,6 @@
 
 /* Begin PBXFileReference section */
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
-		A30FF3842CE058710034F9DC /* CharacterCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterCount.swift; sourceTree = "<group>"; };
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		A30FF3952CE1057D0034F9DC /* markdownconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = markdownconfig.json; sourceTree = "<group>"; };
 		A32671EB2CF8D15100162AF4 /* checkUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = checkUpdates.swift; sourceTree = "<group>"; };
@@ -103,7 +101,6 @@
 			isa = PBXGroup;
 			children = (
 				A30FF3802CDFDA000034F9DC /* TitleBarView.swift */,
-				A30FF3842CE058710034F9DC /* CharacterCount.swift */,
 				A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */,
 				A3847FA52CFF3C3300722D35 /* SettingsListView.swift */,
 			);
@@ -342,7 +339,6 @@
 				A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */,
 				A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */,
 				A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */,
-				A30FF3852CE058710034F9DC /* CharacterCount.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

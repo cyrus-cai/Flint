@@ -212,7 +212,6 @@ struct EditorView: View {
     let linkColor = Color.purple
     @State private var isPlaceholderVisible = true
 
-    
     @State private var lastHeight: CGFloat = 0
     @State private var debounceTimer: Timer?
     
@@ -679,49 +678,7 @@ struct DownFunctionView: View {
                 .foregroundColor(.secondary)
                 .padding(.vertical, 8)
                 .opacity(0.5)
-//            Text("\(links.count) link\(links.count != 0 && links.count != 1 ? "s" : "")")
-//                .font(.system(size: 12))
-//                .foregroundColor(.secondary)
-//                .padding(.vertical, 8)
-//                .opacity(0.5)
-//            Button(action: {
-//                           showLinksPopover = true
-//                       }) {
-//                           Text("\(links.count) link\(links.count != 0 && links.count != 1 ? "s" : "")")
-//                               .font(.system(size: 12))
-//                               .foregroundColor(.secondary)
-//                               .opacity(0.5)
-//                       }
-//                       .buttonStyle(PlainButtonStyle())
-//                       .padding(.vertical, 8)
-//            
-//            if !links.isEmpty {
-//                                ScrollView(.horizontal, showsIndicators: false) {
-//                                    Text(linksDisplay)
-//                                        .font(.system(size: 12))
-//                                        .foregroundColor(.blue)
-//                                        .lineLimit(1)
-//                                }
-//                                .frame(maxWidth: .infinity, alignment: .center)
-//                            }
-//                       .presentationDetents([.medium, .large])
-//            HStack(spacing: 8) {
-//                ForEach(links, id: \.self) { link in
-//                    Button(action: {
-//                        if let url = URL(string: link) {
-//                            NSWorkspace.shared.open(url)
-//                        }
-//                    }) {
-//                        Text(link)
-//                            .foregroundColor(.blue)
-//                            .lineLimit(1)
-//                    }
-//                    .buttonStyle(PlainButtonStyle())
-//                }
-//            }
         }
-//        .zIndex(0)
-//        .frame(height: 32)
         .padding(.horizontal,12)
         .frame(maxWidth: .infinity, alignment: .center)
 
