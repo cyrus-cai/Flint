@@ -3,10 +3,66 @@ import SwiftUI
 
 //// MARK: - File Manager Extension
 extension FileManager {
+//    static func getRecentNotes() -> [RecentNote] {
+//        do {
+//            let notesURL = FileManager.shared.notesDirectory
+//            let resourceKeys = Set([URLResourceKey.contentModificationDateKey])
+//            // 获取目录内容
+//            let fileURLs = try Foundation.FileManager.default.contentsOfDirectory(
+//                at: notesURL,
+//                includingPropertiesForKeys: Array(resourceKeys)
+//            )
+//
+//            // 过滤并获取文件信息
+//            var notesWithDates: [(URL, Date)] = []
+//            for url in fileURLs {
+//                if url.pathExtension == "md" {
+//                    let resourceValues = try url.resourceValues(forKeys: resourceKeys)
+//                    if let modificationDate = resourceValues.contentModificationDate {
+//                        notesWithDates.append((url, modificationDate))
+//                    }
+//                }
+//            }
+//
+//            // 排序并限制数量
+//            notesWithDates.sort { $0.1 > $1.1 }
+//            let recentURLs = notesWithDates.prefix(50)
+//
+//            // 转换为 RecentNote 对象
+//            var recentNotes: [RecentNote] = []
+//            for (url, date) in recentURLs {
+//                if let content = try? String(contentsOf: url, encoding: .utf8) {
+//                    let lines = content.components(separatedBy: .newlines)
+//                    let title = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
+//
+//                    let note = RecentNote(
+//                        title: title,
+//                        content: content,
+//                        lastModified: date,
+//                        fileURL: url
+//                    )
+//                    recentNotes.append(note)
+//                }
+//            }
+//
+//            return recentNotes
+//
+//        } catch {
+//            print("Error getting recent notes: \(error)")
+//            return []
+//        }
+//    }
     static func getRecentNotes() -> [RecentNote] {
         do {
-            let notesURL = FileManager.shared.notesDirectory
+            // 首先确保可以获取到 notesDirectory
+            guard let notesURL = FileManager.shared.notesDirectory else {
+                throw NSError(domain: "FileError",
+                             code: -1,
+                             userInfo: [NSLocalizedDescriptionKey: "Could not access notes directory"])
+            }
+            
             let resourceKeys = Set([URLResourceKey.contentModificationDateKey])
+            
             // 获取目录内容
             let fileURLs = try Foundation.FileManager.default.contentsOfDirectory(
                 at: notesURL,
@@ -267,8 +323,15 @@ struct RecentNotesListView: View {
     }
 
     private func openInFinder() {
+        guard let notesDirectory = FileManager.shared.notesDirectory else {
+            print("Could not access notes directory")
+            return
+        }
+        
         NSWorkspace.shared.selectFile(
-            nil, inFileViewerRootedAtPath: FileManager.shared.notesDirectory.path)
+            nil,
+            inFileViewerRootedAtPath: notesDirectory.path
+        )
     }
 
     var body: some View {

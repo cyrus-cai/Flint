@@ -20,6 +20,7 @@ struct SettingsView: View {
     @State private var obsidianVaultPath: String = ""
     @State private var customPath: String = FileManager.shared.currentNotesPath
     @State private var showPathPicker = false
+    @State private var showPathAlert = false
 
     private func configureObsidianVault() {
         let openPanel = NSOpenPanel()
@@ -41,9 +42,13 @@ struct SettingsView: View {
         openPanel.title = "Select Notes Directory"
 
         if openPanel.runModal() == .OK {
-            if let selectedPath = openPanel.url?.path {
-                FileManager.shared.setCustomNotesDirectory(selectedPath)
-                customPath = selectedPath
+            if let selectedPath = openPanel.url {
+                // Migrate files before setting new directory
+                FileManager.shared.migrateFilesFromDefaultLocation(to: selectedPath)
+
+                // Set new directory
+                FileManager.shared.setCustomDirectory(selectedPath)
+                customPath = selectedPath.path
             }
         }
     }
@@ -84,38 +89,58 @@ struct SettingsView: View {
                         .frame(width: 16, height: 16)
                     Text("Obsidian")
                     Spacer()
-                    // Text("Applied")
-                    //     .foregroundColor(.gray)
 
-                    HStack {
-                        Toggle("", isOn: $integrateWithObsidian)
-                            .toggleStyle(.switch)
-                            .controlSize(.small)
+                    // HStack {
+                        // Toggle("", isOn: $integrateWithObsidian)
+                        //     .toggleStyle(.switch)
+                        //     .controlSize(.small)
 
-                        Menu {
-                            Button("Configure Vault Path", action: configureObsidianVault)
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .foregroundColor(.purple)  // 使用 foregroundColor 替代 foregroundStyle
-                            // .renderingMode(.original)
-                        }
-                        .buttonStyle(.borderless)
-                        .menuIndicator(.hidden)
-                        // .tint(.purple)  // 只需要在 Menu 层级设置一次 tint
-                    }
+                        // Menu {
+                        //     Button("Configure Vault Path", action: configureObsidianVault)
+                        // } label: {
+                        //     Image(systemName: "ellipsis.circle")
+                        //         .foregroundColor(.purple)
+                        // }
+                        // .buttonStyle(.borderless)
+                        // .menuIndicator(.hidden)
+                    // }
                 }
 
-                // HStack {
-                //     Image("no-integration-icon")
-                //         .resizable()
-                //         .aspectRatio(contentMode: .fit)
-                //         .frame(width: 16, height: 16)
-                //     Text("No Integration")
-                //     Spacer()
-                //     Toggle("", isOn: $noIntegration)
-                //         .toggleStyle(.switch)
-                //         .controlSize(.small)
-                // }
+                if integrateWithObsidian {
+                    if !FileManager.shared.isPathConfigured {
+                        Text("Please select a storage location")
+                            .foregroundColor(.red)
+                            .padding(.leading, 20)
+                            .onAppear {
+                                showPathAlert = true
+                            }
+                    }
+
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text("Storage Location:")
+                                .foregroundColor(.secondary)
+                            Text(customPath)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+
+                        HStack {
+                            Button("Change Location") {
+                                selectCustomDirectory()
+                            }
+
+                            // if FileManager.shared.isUsingCustomPath {
+                            //     Button("Reset to Default") {
+                            //         FileManager.shared.resetToDefaultDirectory()
+                            //         customPath = FileManager.shared.currentNotesPath
+                            //     }
+                            // }
+                        }
+                        .padding(.top, 4)
+                    }
+                    .padding(.leading, 20)
+                }
 
                 HStack {
                     Image("notion-icon")
@@ -169,32 +194,6 @@ struct SettingsView: View {
                     Spacer()
                     Text("English")
                         .foregroundColor(.gray)
-                }
-            }
-
-            Section("Storage Location") {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text("Current Path:")
-                            .foregroundColor(.secondary)
-                        Text(customPath)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    }
-
-                    HStack {
-                        Button("Change Location") {
-                            selectCustomDirectory()
-                        }
-
-                        if FileManager.shared.isUsingCustomPath {
-                            Button("Reset to Default") {
-                                FileManager.shared.resetToDefaultDirectory()
-                                customPath = FileManager.shared.currentNotesPath
-                            }
-                        }
-                    }
-                    .padding(.top, 4)
                 }
             }
 
@@ -317,6 +316,13 @@ struct SettingsView: View {
         }
         .listStyle(.sidebar)
         //        .frame(width: 560)
+        .alert("Configure Obsidian Folder", isPresented: $showPathAlert) {
+            Button("Select") {
+                selectCustomDirectory()
+            }
+        } message: {
+            Text("Float defaultly integrate with obsidian. Pick a folder in Obsidian dictionary.")
+        }
     }
 }
 

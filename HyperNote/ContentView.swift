@@ -71,24 +71,62 @@ struct ContentView: View {
     @State private var lastSaveDate: Date?
     @State private var saveError: Error?
 
+    @State private var isStorageConfigured = FileManager.shared.isPathConfigured
+
     enum SaveTrigger {
         case timer
         case focusLost
         case addNew
     }
 
+//    private func saveDocument(trigger: SaveTrigger) {
+//        guard !text.isEmpty else { return }
+//
+//        do {
+//            // 如果是已存在的笔记，先删除旧文件
+//            if let oldNoteId = currentNoteId {
+//                let oldFileURL = FileManager.shared.fileURL(for: oldNoteId)
+//                try? Foundation.FileManager.default.removeItem(at: oldFileURL)
+//            }
+//
+//            // 使用当前标题保存新文件
+//            let fileURL = FileManager.shared.fileURL(for: title)
+//            try text.write(to: fileURL, atomically: true, encoding: .utf8)
+//            currentNoteId = title  // 更新当前笔记ID
+//
+//            lastSaveDate = Date()
+//
+//            if trigger == .addNew {
+//                withAnimation {
+//                    showToast = true
+//                }
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+//                    withAnimation {
+//                        showToast = false
+//                    }
+//                }
+//            }
+//        } catch {
+//            saveError = error
+//            print("保存失败：\(error.localizedDescription)")
+//        }
+//    }
+
     private func saveDocument(trigger: SaveTrigger) {
         guard !text.isEmpty else { return }
 
         do {
             // 如果是已存在的笔记，先删除旧文件
-            if let oldNoteId = currentNoteId {
-                let oldFileURL = FileManager.shared.fileURL(for: oldNoteId)
+            if let oldNoteId = currentNoteId,
+               let oldFileURL = FileManager.shared.fileURL(for: oldNoteId) {  // Safely unwrap
                 try? Foundation.FileManager.default.removeItem(at: oldFileURL)
             }
 
             // 使用当前标题保存新文件
-            let fileURL = FileManager.shared.fileURL(for: title)
+            guard let fileURL = FileManager.shared.fileURL(for: title) else {  // Safely unwrap
+                throw NSError(domain: "FileError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
+            }
+
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
             currentNoteId = title  // 更新当前笔记ID
 
@@ -131,26 +169,44 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-
-                //                VStack(spacing: 0) {
-                TitleBarView(
-                    title: title, isHovered: isHovered, links: links, toolbarState: toolbarState,
-                    onNoteSelected: loadNoteContent)
-                EditorView(text: $text)
-
-                DownFunctionView(count: text.count, links: links)
-                //                    .frame(height: 32)
-                //                }
-
-            }
-            if showToast {
-                VStack {
-                    Spacer()
-                    ToastView(message: "Auto Saved", isShowing: $showToast)
-                        .padding(.bottom, 12)
+            if isStorageConfigured {
+                // 原有的编辑器视图
+                VStack(spacing: 0) {
+                    TitleBarView(
+                        title: title,
+                        isHovered: isHovered,
+                        links: links,
+                        toolbarState: toolbarState,
+                        onNoteSelected: loadNoteContent)
+                    EditorView(text: $text)
+                    DownFunctionView(count: text.count, links: links)
                 }
-                .transition(.opacity)
+
+                // Toast 视图
+                if showToast {
+                    VStack {
+                        Spacer()
+                        ToastView(message: "Auto Saved", isShowing: $showToast)
+                            .padding(.bottom, 12)
+                    }
+                    .transition(.opacity)
+                }
+            } else {
+                // 未配置存储路径时显示的视图
+                VStack(spacing: 8) {
+                    Text("Welcome to HyperNote!")
+                        .font(.title)
+                        .padding(.top, 20)
+
+                    Text("Please configure your storage location")
+                        .foregroundColor(.secondary)
+
+                    Button("Open Settings") {
+                        WindowManager.shared.createSettingsWindow()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .onChange(of: text) {
@@ -189,6 +245,9 @@ struct ContentView: View {
                 saveDocument(trigger: .focusLost)
                 print("document saved by losing focus")
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .storageLocationDidChange)) { _ in
+            isStorageConfigured = FileManager.shared.isPathConfigured
         }
     }
 }
