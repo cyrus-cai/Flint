@@ -24,10 +24,17 @@ struct SettingsListView: View {
                     },
                     label: {
                         HStack(spacing: 6) {
-                            Image(systemName: item.icon)
-                                .frame(width: 16)
-                                .foregroundColor(.primary)
-                                .opacity(0.9)
+                            if item == .openInObsidian {
+                                Image("obsidian-icon")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                Image(systemName: item.icon)
+                                    .frame(width: 16)
+                                    .foregroundColor(.primary)
+                                    .opacity(0.9)
+                            }
                             Text(item.title)
                                 .foregroundColor(.primary)
                         }
