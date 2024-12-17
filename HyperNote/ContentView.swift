@@ -61,6 +61,7 @@ struct LinkDetector {
 
 struct ContentView: View {
     @State private var text = ""
+    @State private var currentNoteId: String?  // 用于追踪当前正在编辑的笔记
     @State private var links: [String] = []
     @State private var isHovered = false
     @Environment(\.colorScheme) private var colorScheme  // 添加对当前颜色方案的引用
@@ -77,28 +78,41 @@ struct ContentView: View {
     }
 
     private func saveDocument(trigger: SaveTrigger) {
+        guard !text.isEmpty else { return }
+
         do {
+            // 如果是已存在的笔记，先删除旧文件
+            if let oldNoteId = currentNoteId {
+                let oldFileURL = FileManager.shared.fileURL(for: oldNoteId)
+                try? Foundation.FileManager.default.removeItem(at: oldFileURL)
+            }
+
+            // 使用当前标题保存新文件
             let fileURL = FileManager.shared.fileURL(for: title)
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
-            print("文件保存路径：\(FileManager.shared.notesDirectory.path)")
+            currentNoteId = title  // 更新当前笔记ID
+
             lastSaveDate = Date()
-            //               toolbarState.refreshRecentNotes()
+
+            if trigger == .addNew {
+                withAnimation {
+                    showToast = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    withAnimation {
+                        showToast = false
+                    }
+                }
+            }
         } catch {
             saveError = error
             print("保存失败：\(error.localizedDescription)")
         }
+    }
 
-        if trigger == .addNew {
-            withAnimation {
-                showToast = true
-            }
-            // 3秒后自动隐藏
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showToast = false
-                }
-            }
-        }
+    private func createNewNote() {
+        text = ""
+        currentNoteId = nil  // 重置当前笔记ID
     }
 
     private func loadNoteContent(_ content: String) {
@@ -144,7 +158,12 @@ struct ContentView: View {
             toolbarState.isEmpty = text.isEmpty
         }
         .onAppear {
-            toolbarState.onAddNew = { text = "" }
+            toolbarState.onAddNew = {
+                if !text.isEmpty {
+                    saveDocument(trigger: .addNew)
+                }
+                createNewNote()
+            }
             toolbarState.isEmpty = text.isEmpty
             toolbarState.onSave = {
                 if !text.isEmpty {

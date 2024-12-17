@@ -5,33 +5,36 @@ struct SettingsListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
-    let onRename: () -> Void
-    let onDelete: () -> Void
     let onSettings: () -> Void
+    let title: String?
+
+    private func generateObsidianURI(from title: String) -> String? {
+        guard !title.isEmpty else { return nil }
+        let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        return "obsidian://open?vault=obsidian&file=Float%2F\(encodedTitle)"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(SettingsItem.allCases) { item in
-                if item == .settings {
-                    HoverButton(
-                        action: {
-                            handleAction(item)
-                            dismiss()
-                        },
-                        label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: item.icon)
-                                    .frame(width: 16)
-                                    .foregroundColor(item == .delete ? .red : .primary)
-                                    .opacity(0.9)
-                                Text(item.title)
-                                    .foregroundColor(item == .delete ? .red : .primary)
-                            }
-                            .foregroundColor(.primary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                HoverButton(
+                    action: {
+                        handleAction(item)
+                        dismiss()
+                    },
+                    label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: item.icon)
+                                .frame(width: 16)
+                                .foregroundColor(.primary)
+                                .opacity(0.9)
+                            Text(item.title)
+                                .foregroundColor(.primary)
                         }
-                    )
-                }
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                )
             }
         }
         .padding(.vertical, 6)
@@ -42,10 +45,10 @@ struct SettingsListView: View {
 
     private func handleAction(_ item: SettingsItem) {
         switch item {
-        case .rename:
-            onRename()
-        case .delete:
-            onDelete()
+        case .openInObsidian:
+            if let title = title, let uri = generateObsidianURI(from: title) {
+                NSWorkspace.shared.open(URL(string: uri)!)
+            }
         case .settings:
             onSettings()
         }
@@ -89,35 +92,16 @@ struct HoverButton: View {
     }
 }
 
-class SettingsViewModel: ObservableObject {
-    let fileURL: URL
-
-    init(fileURL: URL) {
-        self.fileURL = fileURL
-    }
-
-    func deleteNote() {
-        do {
-            try Foundation.FileManager.default.removeItem(at: fileURL)
-        } catch {
-            print("Error deleting note: \(error)")
-        }
-    }
-}
-
 enum SettingsItem: Int, CaseIterable, Identifiable {
-    case rename
-    case delete
+    case openInObsidian
     case settings
 
     var id: Int { rawValue }
 
     var title: String {
         switch self {
-        case .rename:
-            return "Rename"
-        case .delete:
-            return "Delete"
+        case .openInObsidian:
+            return "Open in Obsidian"
         case .settings:
             return "Settings"
         }
@@ -125,12 +109,10 @@ enum SettingsItem: Int, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
-        case .rename:
-            return "pencil"
-        case .delete:
-            return "trash"
         case .settings:
             return "gear"
+        case .openInObsidian:
+            return "link.circle.fill"
         }
     }
 }

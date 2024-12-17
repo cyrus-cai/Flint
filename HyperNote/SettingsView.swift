@@ -14,7 +14,39 @@ struct SettingsView: View {
     let updater = AutoUpdater()
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
-    @State private var IntegrateWithObsidian = true
+    @State private var integrateWithObsidian = true
+    @State private var noIntegration = true
+
+    @State private var obsidianVaultPath: String = ""
+    @State private var customPath: String = FileManager.shared.currentNotesPath
+    @State private var showPathPicker = false
+
+    private func configureObsidianVault() {
+        let openPanel = NSOpenPanel()
+        openPanel.canChooseDirectories = true
+        openPanel.canChooseFiles = false
+        openPanel.allowsMultipleSelection = false
+        openPanel.title = "Select Obsidian Vault"
+
+        if openPanel.runModal() == .OK {
+            obsidianVaultPath = openPanel.url?.path ?? ""
+        }
+    }
+
+    private func selectCustomDirectory() {
+        let openPanel = NSOpenPanel()
+        openPanel.canChooseDirectories = true
+        openPanel.canChooseFiles = false
+        openPanel.allowsMultipleSelection = false
+        openPanel.title = "Select Notes Directory"
+
+        if openPanel.runModal() == .OK {
+            if let selectedPath = openPanel.url?.path {
+                FileManager.shared.setCustomNotesDirectory(selectedPath)
+                customPath = selectedPath
+            }
+        }
+    }
 
     var body: some View {
         List {
@@ -36,12 +68,66 @@ struct SettingsView: View {
                         .controlSize(.small)
                 }
 
+                // HStack {
+                //     Label("Data", systemImage: "externaldrive")
+                //     Spacer()
+                //     Text("All data is stored locally")
+                //         .foregroundColor(.gray)
+                // }
+            }
+
+            Section("Data & Default Integration") {
                 HStack {
-                    Label("Data", systemImage: "externaldrive")
+                    Image("obsidian-icon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                    Text("Obsidian")
                     Spacer()
-                    Text("All data is stored locally")
+                    // Text("Applied")
+                    //     .foregroundColor(.gray)
+
+                    HStack {
+                        Toggle("", isOn: $integrateWithObsidian)
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+
+                        Menu {
+                            Button("Configure Vault Path", action: configureObsidianVault)
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundColor(.purple)  // 使用 foregroundColor 替代 foregroundStyle
+                            // .renderingMode(.original)
+                        }
+                        .buttonStyle(.borderless)
+                        .menuIndicator(.hidden)
+                        // .tint(.purple)  // 只需要在 Menu 层级设置一次 tint
+                    }
+                }
+
+                // HStack {
+                //     Image("no-integration-icon")
+                //         .resizable()
+                //         .aspectRatio(contentMode: .fit)
+                //         .frame(width: 16, height: 16)
+                //     Text("No Integration")
+                //     Spacer()
+                //     Toggle("", isOn: $noIntegration)
+                //         .toggleStyle(.switch)
+                //         .controlSize(.small)
+                // }
+
+                HStack {
+                    Image("notion-icon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                    Text("Notion")
+                    Spacer()
+                    Text("Coming soon")
                         .foregroundColor(.gray)
                 }
+                .opacity(0.5)
             }
 
             Section("Hotkey") {
@@ -77,50 +163,38 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Default Integrate with") {
-                HStack {
-                    Image("obsidian-icon")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 16, height: 16)
-                    Text("Obsidian")
-                    Spacer()
-                    Text("Applied")
-                        .foregroundColor(.gray)
-                    Toggle("", isOn: $IntegrateWithObsidian)
-                        .toggleStyle(.switch)
-                }
-
-                // HStack {
-                //     Image("no-integration-icon")
-                //         .resizable()
-                //         .aspectRatio(contentMode: .fit)
-                //         .frame(width: 16, height: 16)
-                //     Text("No Integration")
-                //     Spacer()
-                //     Text("Not Recommended")
-                //         .foregroundColor(.gray)
-                // }
-
-                HStack {
-                    Image("notion-icon")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 16, height: 16)
-                    Text("Notion")
-                    Spacer()
-                    Text("Coming soon")
-                        .foregroundColor(.gray)
-                }
-                .opacity(0.5)
-            }
-
             Section("General") {
                 HStack {
                     Label("Language", systemImage: "globe")
                     Spacer()
                     Text("English")
                         .foregroundColor(.gray)
+                }
+            }
+
+            Section("Storage Location") {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text("Current Path:")
+                            .foregroundColor(.secondary)
+                        Text(customPath)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+
+                    HStack {
+                        Button("Change Location") {
+                            selectCustomDirectory()
+                        }
+
+                        if FileManager.shared.isUsingCustomPath {
+                            Button("Reset to Default") {
+                                FileManager.shared.resetToDefaultDirectory()
+                                customPath = FileManager.shared.currentNotesPath
+                            }
+                        }
+                    }
+                    .padding(.top, 4)
                 }
             }
 

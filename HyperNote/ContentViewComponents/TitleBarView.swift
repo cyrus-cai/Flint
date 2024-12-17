@@ -30,7 +30,8 @@ struct TitleBarView: View {
                     isVisible: isHovered || toolbarState.showRecentNotes
                         || toolbarState.showSettingsList,
                     onNoteSelected: onNoteSelected,
-                    links: links  // Pass links to toolbar
+                    links: links,  // Pass links to toolbar
+                    title: title
                 )
             }
         }.onAppear {
@@ -68,6 +69,7 @@ struct TitleBarToolbar: View {
     let isVisible: Bool
     let onNoteSelected: (String) -> Void
     let links: [String]  // Add links parameter
+    let title: String
 
     private func openSingleLink() {
         if let url = URL(string: links[0]) {
@@ -114,9 +116,10 @@ struct TitleBarToolbar: View {
             )
             .popover(isPresented: $state.showSettingsList) {
                 SettingsListView(
-                    onRename: state.renameFile,
-                    onDelete: state.deleteFile,
-                    onSettings: state.openSettings
+//                    onRename: state.renameFile,
+//                    onDelete: state.deleteFile,
+                    onSettings: state.openSettings,
+                    title: title
                 )
             }
 
