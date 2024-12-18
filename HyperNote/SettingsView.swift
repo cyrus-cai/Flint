@@ -342,7 +342,8 @@ struct AutoSaveIntervalSection: View {
     private let intervals = [
         (2, "2s"),
         (5, "5s"),
-        (10, "10s")
+        (10, "10s"),
+        (20, "20s")
     ]
 
     var body: some View {

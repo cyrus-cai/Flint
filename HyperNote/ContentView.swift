@@ -190,6 +190,7 @@ struct ContentView: View {
     }
 
     private func setupAutoSaveTimer() {
+        print("Setting up auto-save timer with interval: \(autoSaveInterval)")
         autoSaveTimer?.cancel()
 
         autoSaveTimer = Timer.publish(every: autoSaveInterval, on: .main, in: .common)
@@ -292,6 +293,13 @@ struct ContentView: View {
         }
         .onDisappear {
             stopMonitoringFile() // 视图消失时停止监听
+        }
+        .onChange(of: autoSaveInterval) {
+            print("Auto-save interval changed to: \(autoSaveInterval)")
+            NotificationCenter.default.post(
+                name: Notification.Name("autoSaveIntervalDidChange"),
+                object: nil
+            )
         }
     }
 }
