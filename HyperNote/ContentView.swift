@@ -74,6 +74,7 @@ struct ContentView: View {
     @State private var fileMonitor: DispatchSourceFileSystemObject?
     @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 10
     @State private var autoSaveTimer: AnyCancellable?
+    @State private var keyboardMonitor: Any?
 
     enum SaveTrigger {
         case timer
@@ -259,6 +260,7 @@ struct ContentView: View {
         }
         .onAppear {
             setupAutoSaveTimer()
+            setupKeyboardMonitor()
             toolbarState.onAddNew = {
                 if !text.isEmpty {
                     saveDocument(trigger: .addNew)
@@ -292,6 +294,7 @@ struct ContentView: View {
             isStorageConfigured = FileManager.shared.isPathConfigured
         }
         .onDisappear {
+            removeKeyboardMonitor()
             stopMonitoringFile() // 视图消失时停止监听
         }
         .onChange(of: autoSaveInterval) {
@@ -300,6 +303,25 @@ struct ContentView: View {
                 name: Notification.Name("autoSaveIntervalDidChange"),
                 object: nil
             )
+        }
+    }
+
+    private func setupKeyboardMonitor() {
+        keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { // ESC key
+                if let window = NSApp.keyWindow {
+                    window.orderOut(nil)
+                    return nil
+                }
+            }
+            return event
+        }
+    }
+
+    private func removeKeyboardMonitor() {
+        if let monitor = keyboardMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyboardMonitor = nil
         }
     }
 }
@@ -723,7 +745,7 @@ struct EditorView: View {
 //            // 取消之前的延迟更新
 //            updateWorkItem?.cancel()
 //
-//            // 创建新的延迟��新
+//            // 创建新的延迟更新
 //            let workItem = DispatchWorkItem { [weak self, weak textView] in
 //                guard let textView = textView else { return }
 //                let selectedRanges = textView.selectedRanges
