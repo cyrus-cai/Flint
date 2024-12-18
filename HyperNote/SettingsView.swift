@@ -1,6 +1,10 @@
 import Combine
 import SwiftUI
 
+extension Notification.Name {
+    static let autoSaveIntervalDidChange = Notification.Name("autoSaveIntervalDidChange")
+}
+
 struct SettingsView: View {
     @State private var progressSubscription: AnyCancellable?
     @State private var autoCorrect = false
@@ -195,6 +199,12 @@ struct SettingsView: View {
                     Text("English")
                         .foregroundColor(.gray)
                 }
+
+                HStack {
+                    Label("Auto-save Interval", systemImage: "timer")
+                    Spacer()
+                    AutoSaveIntervalSection()
+                }
             }
 
             HStack {
@@ -322,6 +332,31 @@ struct SettingsView: View {
             }
         } message: {
             Text("Float defaultly integrate with obsidian. Pick a folder in Obsidian dictionary.")
+        }
+    }
+}
+
+struct AutoSaveIntervalSection: View {
+    @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 10
+
+    private let intervals = [
+        (2, "2s"),
+        (5, "5s"),
+        (10, "10s")
+    ]
+
+    var body: some View {
+        Picker("", selection: $autoSaveInterval) {
+            ForEach(intervals, id: \.0) { interval in
+                Text(interval.1).tag(TimeInterval(interval.0))
+            }
+        }
+        .frame(width: 70)
+        .onChange(of: autoSaveInterval) {
+            NotificationCenter.default.post(
+                name: Notification.Name("autoSaveIntervalDidChange"),
+                object: nil
+            )
         }
     }
 }

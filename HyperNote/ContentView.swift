@@ -1,5 +1,6 @@
 import SwiftDown
 import SwiftUI
+import Combine
 
 struct ContentHeightPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 106
@@ -61,17 +62,18 @@ struct LinkDetector {
 
 struct ContentView: View {
     @State private var text = ""
-    @State private var currentNoteId: String?  // 用于追踪当前正在编辑的笔记
+    @State private var currentNoteId: String?
     @State private var links: [String] = []
     @State private var isHovered = false
-    @Environment(\.colorScheme) private var colorScheme  // 添加对当前颜色方案的引用
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var toolbarState = TitleBarToolbarState()
     @State private var showToast = false
-
     @State private var lastSaveDate: Date?
     @State private var saveError: Error?
-
     @State private var isStorageConfigured = FileManager.shared.isPathConfigured
+    @State private var fileMonitor: DispatchSourceFileSystemObject?
+    @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 10
+    @State private var autoSaveTimer: AnyCancellable?
 
     enum SaveTrigger {
         case timer
@@ -79,58 +81,76 @@ struct ContentView: View {
         case addNew
     }
 
-//    private func saveDocument(trigger: SaveTrigger) {
-//        guard !text.isEmpty else { return }
-//
-//        do {
-//            // 如果是已存在的笔记，先删除旧文件
-//            if let oldNoteId = currentNoteId {
-//                let oldFileURL = FileManager.shared.fileURL(for: oldNoteId)
-//                try? Foundation.FileManager.default.removeItem(at: oldFileURL)
-//            }
-//
-//            // 使用当前标题保存新文件
-//            let fileURL = FileManager.shared.fileURL(for: title)
-//            try text.write(to: fileURL, atomically: true, encoding: .utf8)
-//            currentNoteId = title  // 更新当前笔记ID
-//
-//            lastSaveDate = Date()
-//
-//            if trigger == .addNew {
-//                withAnimation {
-//                    showToast = true
-//                }
-//                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-//                    withAnimation {
-//                        showToast = false
-//                    }
-//                }
-//            }
-//        } catch {
-//            saveError = error
-//            print("保存失败：\(error.localizedDescription)")
-//        }
-//    }
+    private func startMonitoringFile() {
+        stopMonitoringFile() // 先停止之前的监听
+
+        guard let currentId = currentNoteId,
+              let fileURL = FileManager.shared.fileURL(for: currentId) else {
+            return
+        }
+
+        let fileDescriptor = open(fileURL.path, O_EVTONLY)
+        if fileDescriptor < 0 {
+            print("无法监听文件：\(fileURL.path)")
+            return
+        }
+
+        let monitor = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fileDescriptor,
+            eventMask: .write,
+            queue: DispatchQueue.main
+        )
+
+        monitor.setEventHandler {
+            do {
+                let newContent = try String(contentsOf: fileURL, encoding: .utf8)
+                if newContent != text {
+                    text = newContent
+                    let attributes = try Foundation.FileManager.default.attributesOfItem(atPath: fileURL.path)
+                    lastSaveDate = attributes[.modificationDate] as? Date
+                }
+            } catch {
+                print("读取文件失败：\(error.localizedDescription)")
+            }
+        }
+
+        monitor.setCancelHandler {
+            close(fileDescriptor)
+        }
+
+        monitor.resume()
+        fileMonitor = monitor
+    }
+
+    private func stopMonitoringFile() {
+        fileMonitor?.cancel()
+        fileMonitor = nil
+    }
 
     private func saveDocument(trigger: SaveTrigger) {
         guard !text.isEmpty else { return }
 
         do {
-            // 如果是已存在的笔记，先删除旧文件
-            if let oldNoteId = currentNoteId,
-               let oldFileURL = FileManager.shared.fileURL(for: oldNoteId) {  // Safely unwrap
-                try? Foundation.FileManager.default.removeItem(at: oldFileURL)
+            if let currentId = currentNoteId,
+               let fileURL = FileManager.shared.fileURL(for: currentId) {
+                // 停止监听，避免保存时触发文件变化事件
+                stopMonitoringFile()
+
+                // 删除旧文件
+                try? Foundation.FileManager.default.removeItem(at: fileURL)
             }
 
-            // 使用当前标题保存新文件
-            guard let fileURL = FileManager.shared.fileURL(for: title) else {  // Safely unwrap
+            // 保存新文件
+            guard let fileURL = FileManager.shared.fileURL(for: title) else {
                 throw NSError(domain: "FileError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
             }
 
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
-            currentNoteId = title  // 更新当前笔记ID
-
+            currentNoteId = title
             lastSaveDate = Date()
+
+            // 重新开始监听
+            startMonitoringFile()
 
             if trigger == .addNew {
                 withAnimation {
@@ -148,16 +168,39 @@ struct ContentView: View {
         }
     }
 
-    private func createNewNote() {
-        text = ""
-        currentNoteId = nil  // 重置当前笔记ID
-    }
-
     private func loadNoteContent(_ content: String) {
         text = content
+        if let currentId = currentNoteId,
+           let fileURL = FileManager.shared.fileURL(for: currentId) {
+            do {
+                let attributes = try Foundation.FileManager.default.attributesOfItem(atPath: fileURL.path)
+                lastSaveDate = attributes[.modificationDate] as? Date
+                // 开始监听新加载的文件
+                startMonitoringFile()
+            } catch {
+                print("获取文件修改时间失败：\(error.localizedDescription)")
+            }
+        }
     }
 
-    private let autoSaveTimer = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
+    private func createNewNote() {
+        stopMonitoringFile() // 停止监听当前文件
+        text = ""
+        currentNoteId = nil
+    }
+
+    private func setupAutoSaveTimer() {
+        autoSaveTimer?.cancel()
+
+        autoSaveTimer = Timer.publish(every: autoSaveInterval, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                if !text.isEmpty {
+                    saveDocument(trigger: .timer)
+                    print("document saved with interval: \(autoSaveInterval)s")
+                }
+            }
+    }
 
     private var title: String {
         let firstLine = text.components(separatedBy: .newlines).first ?? ""
@@ -214,6 +257,7 @@ struct ContentView: View {
             toolbarState.isEmpty = text.isEmpty
         }
         .onAppear {
+            setupAutoSaveTimer()
             toolbarState.onAddNew = {
                 if !text.isEmpty {
                     saveDocument(trigger: .addNew)
@@ -233,11 +277,8 @@ struct ContentView: View {
         .onHover { hovering in
             isHovered = hovering
         }
-        .onReceive(autoSaveTimer) { _ in
-            if !text.isEmpty {
-                saveDocument(trigger: .timer)
-                print("document saved")
-            }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("autoSaveIntervalDidChange"))) { _ in
+            setupAutoSaveTimer()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) {
             _ in
@@ -248,6 +289,9 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .storageLocationDidChange)) { _ in
             isStorageConfigured = FileManager.shared.isPathConfigured
+        }
+        .onDisappear {
+            stopMonitoringFile() // 视图消失时停止监听
         }
     }
 }
@@ -311,7 +355,7 @@ struct EditorView: View {
                 .font: NSFont(name: "PingFang SC", size: 14.0) ?? NSFont.systemFont(ofSize: 14.0)
             ], range: range)
 
-        // 计算实际需要的高度
+        // 计算实际需要高度
         manager.ensureLayout(for: container)
         let height = manager.usedRect(for: container).height
 
@@ -671,7 +715,7 @@ struct EditorView: View {
 //            // 取消之前的延迟更新
 //            updateWorkItem?.cancel()
 //
-//            // 创建新的延迟更新
+//            // 创建新的延迟��新
 //            let workItem = DispatchWorkItem { [weak self, weak textView] in
 //                guard let textView = textView else { return }
 //                let selectedRanges = textView.selectedRanges
