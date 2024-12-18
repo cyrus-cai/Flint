@@ -256,7 +256,7 @@ class AutoUpdater {
             do {
                 let alert = NSAlert()
                 alert.messageText = "Update ready"
-                alert.informativeText = "The new version has been downloaded. Click OK to start the installation update, and the application will restart automatically."
+                alert.informativeText =  "New version has been downloaded. Click OK to install."
                 alert.addButton(withTitle: "OK")
                 alert.addButton(withTitle: "Cancel")
 
