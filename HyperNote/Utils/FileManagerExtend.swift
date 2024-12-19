@@ -8,6 +8,7 @@
 import Foundation
 
 private let kCustomNotesDirectoryPath = "CustomNotesDirectoryPath"
+private let kMigrationCompletedKey = "MigrationCompleted"
 
 extension Notification.Name {
     static let storageLocationDidChange = Notification.Name("storageLocationDidChange")
@@ -17,102 +18,167 @@ class FileManager {
     static let shared = FileManager()
     let fm = Foundation.FileManager.default
 
-    // 获取应用程序文档目录
-    var documentsDirectory: URL {
-        let paths = fm.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0]
+    // Get current week folder name (e.g., "2024W50")
+    private var currentWeekFolder: String {
+        let calendar = Calendar.current
+        let today = Date()
+        let week = calendar.component(.weekOfYear, from: today)
+        let year = calendar.component(.year, from: today)
+        return "\(year)W\(String(format: "%02d", week))"
     }
 
-    // 获取应用程序专用的笔记存储目录
-    var notesDirectory: URL? {
+    // Get base notes directory (Obsidian vault)
+    var baseDirectory: URL? {
         guard let customPath = UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath) else {
             return nil
         }
-        let customURL = URL(fileURLWithPath: customPath)
-        if !fm.fileExists(atPath: customURL.path) {
-            try? fm.createDirectory(at: customURL, withIntermediateDirectories: true)
-        }
-        return customURL
+        return URL(fileURLWithPath: customPath)
     }
 
-    // 设置自定义路径
+    // Get Float directory
+    var floatDirectory: URL? {
+        guard let base = baseDirectory else { return nil }
+        let floatURL = base.appendingPathComponent("Float")
+        if !fm.fileExists(atPath: floatURL.path) {
+            try? fm.createDirectory(at: floatURL, withIntermediateDirectories: true)
+        }
+        return floatURL
+    }
+
+    // Get current week directory
+    var currentWeekDirectory: URL? {
+        guard let floatDir = floatDirectory else { return nil }
+        let weekURL = floatDir.appendingPathComponent(currentWeekFolder)
+        if !fm.fileExists(atPath: weekURL.path) {
+            try? fm.createDirectory(at: weekURL, withIntermediateDirectories: true)
+        }
+        return weekURL
+    }
+
+    // Set custom directory (Obsidian vault)
     func setCustomDirectory(_ url: URL) {
         UserDefaults.standard.set(url.path, forKey: kCustomNotesDirectoryPath)
+
+        // Create Float directory and current week directory
+        if let floatDir = floatDirectory,
+           let weekDir = currentWeekDirectory {
+            try? fm.createDirectory(at: floatDir, withIntermediateDirectories: true)
+            try? fm.createDirectory(at: weekDir, withIntermediateDirectories: true)
+
+            // 只在未执行过迁移时执行
+            if !UserDefaults.standard.bool(forKey: kMigrationCompletedKey) {
+                migrateExistingNotes()
+                // 标记迁移已完成
+                UserDefaults.standard.set(true, forKey: kMigrationCompletedKey)
+            }
+        }
+
         NotificationCenter.default.post(name: .storageLocationDidChange, object: nil)
     }
 
-    // 重置为默认路径
-    func resetToDefaultDirectory() {
-        UserDefaults.standard.removeObject(forKey: kCustomNotesDirectoryPath)
-        NotificationCenter.default.post(name: .storageLocationDidChange, object: nil)
-    }
-
-    // 获取当前路径
-    var currentNotesPath: String {
-        return notesDirectory?.path ?? "Not configured"
-    }
-
-    // Check if using custom path
-    var isUsingCustomPath: Bool {
-        return UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath) != nil
-    }
-
-    // 根据标题生成文件路径
+    // Generate file URL for a note
     func fileURL(for title: String) -> URL? {
-        guard let directory = notesDirectory else { return nil }
+        guard let weekDir = currentWeekDirectory else { return nil }
         let sanitizedTitle = title.replacingOccurrences(of: "/", with: "-")
             .replacingOccurrences(of: ":", with: "-")
-        return directory.appendingPathComponent("\(sanitizedTitle).md")
+        return weekDir.appendingPathComponent("\(sanitizedTitle).md")
     }
 
-    // 检查文件是否存在
-    func fileExists(at url: URL) -> Bool {
-        return fm.fileExists(atPath: url.path)
+    // Get all notes from Float directory and its subdirectories
+    func getAllNotes() -> [URL] {
+        guard let floatDir = floatDirectory else { return [] }
+        do {
+            let resourceKeys: Set<URLResourceKey> = [.contentModificationDateKey]
+            let enumerator = fm.enumerator(at: floatDir,
+                                         includingPropertiesForKeys: Array(resourceKeys),
+                                         options: [.skipsHiddenFiles])
+
+            var notes: [URL] = []
+            while let fileURL = enumerator?.nextObject() as? URL {
+                if fileURL.pathExtension == "md" {
+                    notes.append(fileURL)
+                }
+            }
+            return notes
+        } catch {
+            print("Error getting notes: \(error)")
+            return []
+        }
     }
 
-    // Add new method to check if path is configured
+    // Check if path is configured
     var isPathConfigured: Bool {
-        return UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath) != nil
+        return baseDirectory != nil
     }
 
-    func migrateFilesFromDefaultLocation(to newLocation: URL) {
-        let defaultLocation = documentsDirectory.appendingPathComponent("HyperNote")
+    // Get current notes path for display
+    var currentNotesPath: String {
+        if let floatDir = floatDirectory {
+            return floatDir.path
+        }
+        return "Not configured"
+    }
 
-        // Check if default directory exists
-        guard fm.fileExists(atPath: defaultLocation.path) else { return }
+    // Get notes directory (for Finder)
+    var notesDirectory: URL? {
+        return floatDirectory
+    }
+
+    // Add this method to the FileManager class
+
+    func migrateExistingNotes() {
+        guard let baseDir = baseDirectory else { return }
+        let fileManager = Foundation.FileManager.default
 
         do {
-            // Get all files from default directory
-            let files = try fm.contentsOfDirectory(at: defaultLocation,
-                                                 includingPropertiesForKeys: nil)
+            // 1. 获取所有 .md 文件
+            let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey]
+            let enumerator = fileManager.enumerator(at: baseDir,
+                                                  includingPropertiesForKeys: Array(resourceKeys),
+                                                  options: [.skipsHiddenFiles])
 
-            // Create new directory if it doesn't exist
-            if !fm.fileExists(atPath: newLocation.path) {
-                try fm.createDirectory(at: newLocation,
-                                     withIntermediateDirectories: true)
-            }
-
-            // Move each file
-            for file in files {
-                var fileName = file.lastPathComponent
-
-                // Convert .txt to .md
-                if fileName.hasSuffix(".txt") {
-                    fileName = fileName.replacingOccurrences(of: ".txt", with: ".md")
+            var notesToMigrate: [URL] = []
+            while let fileURL = enumerator?.nextObject() as? URL {
+                // 跳过 Float 目录
+                if fileURL.lastPathComponent == "Float" {
+                    enumerator?.skipDescendants()
+                    continue
                 }
 
-                let destination = newLocation.appendingPathComponent(fileName)
-
-                // If file already exists in destination, skip it
-                if !fm.fileExists(atPath: destination.path) {
-                    try fm.moveItem(at: file, to: destination)
+                // 只处理 .md 文件
+                if fileURL.pathExtension == "md" {
+                    notesToMigrate.append(fileURL)
                 }
             }
 
-            // Try to remove the old directory
-            try fm.removeItem(at: defaultLocation)
+            // 2. 移动文件到新的周目录
+            for oldURL in notesToMigrate {
+                // 获取文件属性以确定其创建时间
+                let attributes = try fileManager.attributesOfItem(atPath: oldURL.path)
+                let creationDate = attributes[.creationDate] as? Date ?? Date()
+
+                // 根据创建时间确定周目录
+                let calendar = Calendar.current
+                let week = calendar.component(.weekOfYear, from: creationDate)
+                let year = calendar.component(.year, from: creationDate)
+                let weekFolder = "\(year)W\(String(format: "%02d", week))"
+
+                // 创建目标目录
+                let floatURL = baseDir.appendingPathComponent("Float")
+                let weekURL = floatURL.appendingPathComponent(weekFolder)
+                try? fileManager.createDirectory(at: weekURL, withIntermediateDirectories: true)
+
+                // 构建新的文件路径
+                let newURL = weekURL.appendingPathComponent(oldURL.lastPathComponent)
+
+                // 移动文件
+                if !fileManager.fileExists(atPath: newURL.path) {
+                    try fileManager.moveItem(at: oldURL, to: newURL)
+                }
+            }
+
         } catch {
-            print("Migration error: \(error.localizedDescription)")
+            print("Migration error: \(error)")
         }
     }
 }

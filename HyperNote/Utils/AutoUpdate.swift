@@ -69,7 +69,7 @@ class AutoUpdater {
         func urlSession(_ session: URLSession,
                        downloadTask: URLSessionDownloadTask,
                        didFinishDownloadingTo location: URL) {
-            // 这个方法是必需的，但在我们的实现中不需要做任何事
+            // 这��方法是必需的，但在我们的实现中不需要做任何事
             // 因为我们在 downloadUpdate 方法中处理文件移动
         }
 
@@ -169,7 +169,7 @@ class AutoUpdater {
 //        // 构建目标路径
 //        let targetAppPath = applicationsDirectory.appendingPathComponent("HyperNote.app")
 //
-//        // 在主队列中执行更新操作
+//        // 在主队列中执行更新操��
 //        DispatchQueue.main.async { [self] in
 //            do {
 //                // 复制新版本到临时位置

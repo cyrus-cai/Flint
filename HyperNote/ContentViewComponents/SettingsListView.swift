@@ -10,8 +10,9 @@ struct SettingsListView: View {
 
     private func generateObsidianURI(from title: String) -> String? {
         guard !title.isEmpty else { return nil }
+        let weekFolder = FileManager.shared.currentWeekDirectory?.lastPathComponent ?? ""
         let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        return "obsidian://open?vault=obsidian&file=Float%2F\(encodedTitle)"
+        return "obsidian://open?vault=obsidian&file=Float%2F\(weekFolder)%2F\(encodedTitle)"
     }
 
     var body: some View {

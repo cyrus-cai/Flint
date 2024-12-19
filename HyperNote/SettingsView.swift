@@ -67,7 +67,7 @@ struct SettingsView: View {
         if openPanel.runModal() == .OK {
             if let selectedPath = openPanel.url {
                 // Migrate files before setting new directory
-                FileManager.shared.migrateFilesFromDefaultLocation(to: selectedPath)
+//                FileManager.shared.migrateFilesFromDefaultLocation(to: selectedPath)
 
                 // Set new directory
                 FileManager.shared.setCustomDirectory(selectedPath)
@@ -77,7 +77,7 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
             List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
                 Label(tab.rawValue, systemImage: tab.icon)
             }
@@ -122,6 +122,8 @@ struct SettingsView: View {
         } message: {
             Text("Float defaultly integrate with obsidian. Pick a folder in Obsidian dictionary.")
         }
+        .navigationSplitViewStyle(.automatic)
+        .toolbar(.automatic)
     }
 }
 
