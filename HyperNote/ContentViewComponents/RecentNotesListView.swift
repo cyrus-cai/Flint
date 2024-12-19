@@ -344,8 +344,16 @@ struct RecentNotesListView: View {
                 }
             }
 
+            // Empty State
+            if viewModel.filteredNotes.isEmpty {
+                Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
+                    .foregroundColor(.secondary)
+                    .padding(24)
+            }
+
             // Footer
-            if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
+            // if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
+            // {
                 Divider()
                 HStack {
                     Button(action: openInFinder) {
@@ -370,14 +378,7 @@ struct RecentNotesListView: View {
                         isShowAllHovered = hovering
                     }
                 }
-            }
-
-            // Empty State
-            if viewModel.filteredNotes.isEmpty {
-                Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
-                    .foregroundColor(.secondary)
-                    .padding(24)
-            }
+            // }
 
         }
         .frame(width: 320)

@@ -180,18 +180,17 @@ struct IntegrationSettingsView: View {
                 }
 
                 VStack(alignment: .leading) {
-                    HStack {
-                        Text("Storage Location:")
-                            .foregroundColor(.secondary)
-                        Text(customPath)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    }
+                    // HStack {
+                    //     Text("Configure your Obsidian folder:")
+                    //         .foregroundColor(.secondary)
+                    //     Text(customPath)
+                    //         .lineLimit(1)
+                    //         .truncationMode(.middle)
+                    // }
 
-                    Button("Change Location") {
+                    Button("Configure Obsidian folder") {
                         selectCustomDirectory()
                     }
-                    .padding(.top, 4)
                 }
                 .padding(.leading, 20)
             }
