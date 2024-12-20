@@ -28,7 +28,7 @@ struct SettingsListView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 0) {
             ForEach(SettingsItem.allCases) { item in
                 HoverButton(
                     action: {
@@ -58,21 +58,24 @@ struct SettingsListView: View {
                         }
                         .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
                     }
+                    //  .padding(.horizontal, 6)
                 )
-                .padding(.horizontal, 6)
+
 
                 // Add rectangle separator after Show All
                 if item == .showAll {
                     Rectangle()
                         .fill(Color(NSColor.separatorColor))
                         .frame(height: 4)
-                        .padding(.vertical, 4)
+                        // .padding(.vertical, 4)
                 }
             }
         }
-        .padding(.vertical, 6)
-        .frame(width: 160)
+        // .padding(.vertical, 6)
+        .frame(width: 180)
         .background(Color(NSColor.windowBackgroundColor))
     }
 
@@ -110,7 +113,7 @@ struct HoverButton: View {
         .padding(.horizontal, 4)
         .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 0)
                 .fill(
                     isHovered
                         ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85))
