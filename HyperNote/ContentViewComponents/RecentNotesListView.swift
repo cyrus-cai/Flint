@@ -115,7 +115,7 @@ class RecentNotesViewModel: ObservableObject {
             return
         }
 
-        // 否则确保选中索引在有效范围内
+        // 否则确保��有效范围内
         if let current = currentNoteIndex {
             currentNoteIndex = min(current, filteredNotes.count - 1)
         }
@@ -321,7 +321,8 @@ struct RecentNotesListView: View {
                                     },
                                     onHover: { isHovered in
                                         viewModel.setHoveredNote(isHovered ? index : nil)
-                                    }
+                                    },
+                                    searchText: viewModel.searchText
                                 )
                                 .id(note.id)
                             }
@@ -406,11 +407,11 @@ enum HighlightState {
 // MARK: - Note Row View
 struct NoteRow: View {
     let note: RecentNote
-    //    let highlightState: HighlightState
     let isHighLight: Bool
     let onTap: () -> Void
     let onDelete: () -> Void
     let onHover: (Bool) -> Void
+    let searchText: String
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDeleteHovered = false
@@ -444,14 +445,83 @@ struct NoteRow: View {
         }
     }
 
+    private func getMatchingContent() -> (title: String, contexts: [AttributedString]?) {
+        // 默认显示标题
+        let title = note.title.isEmpty ? "Untitled" : note.title
+
+        guard !searchText.isEmpty else {
+            return (title, nil)
+        }
+
+        // 调试打印
+        print("Searching for: \(searchText)")
+        print("Title: \(title)")
+        print("Content length: \(note.content.count)")
+
+        var matchingContexts: [AttributedString] = []
+
+        // 查找包含搜索词的段落和位置
+        let paragraphs = note.content.components(separatedBy: .newlines)
+        for paragraph in paragraphs {
+            if paragraph.localizedCaseInsensitiveContains(searchText) {
+                // 使用 NSString 来处理中文字符
+                let nsString = paragraph as NSString
+                let range = nsString.range(of: searchText, options: .caseInsensitive)
+
+                if range.location != NSNotFound {
+                    // 计算前后文的范围
+                    let preStart = max(0, range.location - 20)
+                    let preLength = min(20, range.location - preStart)
+                    let postStart = range.location + range.length
+                    let postLength = min(20, nsString.length - postStart)
+
+                    // 提取前后文
+                    let preContext = nsString.substring(with: NSRange(location: preStart, length: preLength))
+                    let matchText = nsString.substring(with: range)
+                    let postContext = nsString.substring(with: NSRange(location: postStart, length: postLength))
+
+                    // 组合完整的上下文
+                    let fullContext = "\(preContext)\(matchText)\(postContext)"
+                    var attributed = AttributedString(fullContext)
+
+                    // 计算高亮范围
+                    let highlightRange = (fullContext as NSString).range(of: matchText)
+                    if highlightRange.location != NSNotFound {
+                        let attribRange = Range(highlightRange, in: attributed)!
+                        attributed[attribRange].backgroundColor = .yellow.opacity(0.3)
+                        attributed[attribRange].foregroundColor = .primary
+                    }
+
+                    matchingContexts.append(attributed)
+                }
+            }
+        }
+
+        return (title, matchingContexts.isEmpty ? nil : matchingContexts)
+    }
+
     var body: some View {
         HStack(spacing: 4) {
             Button(action: onTap) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(note.title)
+                    let content = getMatchingContent()
+
+                    // 始终显示标题
+                    Text(content.title)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.primary)
                         .lineLimit(1)
+                        .multilineTextAlignment(.leading)
+
+                    // 如果有匹配的内容，显示所有匹配行
+                    if let contexts = content.contexts {
+                        ForEach(Array(contexts.enumerated()), id: \.offset) { _, context in
+                            Text(context)
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .multilineTextAlignment(.leading)
+                        }
+                    }
 
                     HStack(spacing: 4) {
                         Text(getRelativeTime(from: note.lastModified))
