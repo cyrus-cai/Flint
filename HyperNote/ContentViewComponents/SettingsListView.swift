@@ -38,6 +38,12 @@ struct SettingsListView: View {
                             }
                             Text(item.title)
                                 .foregroundColor(.primary)
+                            // if item == .openInObsidian {
+                            //     Spacer()
+                            //     Text("⌘ O")
+                            //         .foregroundColor(.secondary)
+                            //         .font(.system(size: 12))
+                            // }
                         }
                         .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)

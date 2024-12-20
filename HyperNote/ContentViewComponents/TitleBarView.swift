@@ -9,6 +9,24 @@ struct TitleBarView: View {
     @ObservedObject var toolbarState: TitleBarToolbarState
     let onNoteSelected: (String) -> Void  // 新增参数
 
+    private func generateObsidianURI(from title: String) -> String? {
+        // Get the Obsidian vault path from UserDefaults
+        let vaultPath = UserDefaults.standard.string(forKey: "obsidianVaultPath") ?? ""
+        guard !vaultPath.isEmpty else { return nil }
+
+        // Extract vault name from the path
+        let vaultName = (vaultPath as NSString).lastPathComponent
+
+        // Sanitize the title for URL
+        let sanitizedTitle = title
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)?
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: "-") ?? title
+
+        // Construct the URI
+        return "obsidian://open?vault=\(vaultName)&file=\(sanitizedTitle).md"
+    }
+
     var body: some View {
         ZStack {
             // 拖动区域
@@ -35,7 +53,8 @@ struct TitleBarView: View {
                 )
             }
         }.onAppear {
-            NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // 在这里设置事件监听器
+            let monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
                 if event.modifierFlags.contains(.command) {
                     switch event.charactersIgnoringModifiers {
                     case "f", "h":
@@ -46,11 +65,25 @@ struct TitleBarView: View {
                             toolbarState.addNew()
                             return nil
                         }
+                    case "o":
+                        if title != "Untitled" && !title.isEmpty,
+                           let uri = generateObsidianURI(from: title),
+                           let url = URL(string: uri) {
+                            NSWorkspace.shared.open(url)
+                            return nil
+                        }
                     default:
                         break
                     }
                 }
                 return event
+            }
+
+            // 在视图消失时移除监听器
+            onDisappear {
+                if let monitor = monitor {
+                    NSEvent.removeMonitor(monitor)
+                }
             }
         }
     }
@@ -77,20 +110,17 @@ struct TitleBarToolbar: View {
         }
     }
 
+    private func generateObsidianURI(from title: String) -> String? {
+        guard !title.isEmpty else { return nil }
+        let weekFolder = FileManager.shared.currentWeekDirectory?.lastPathComponent ?? ""
+        let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        return "obsidian://open?vault=obsidian&file=Float%2F\(weekFolder)%2F\(encodedTitle)"
+    }
+
     var body: some View {
         HStack(spacing: 4) {
 
             if !links.isEmpty {
-                //                           TitleBarButton(
-                //                               icon: .paperclip,
-                //                               action: { state.showAttachments = true }
-                //                           )
-                //                           .popover(isPresented: $state.showAttachments) {
-                //                               LinkListView(
-                //                                   links: links
-                ////                                   onSelectLink: onNoteSelected
-                //                               )
-                //                           }
                 if links.count == 1 {
                     // Single link - direct button
                     TitleBarButton(
@@ -240,29 +270,6 @@ struct LinkItemView: View {
     }
 }
 
-//struct BadgeView: View {
-//    let count: Int
-//
-//    var displayText: String {
-//        if count > 99 {
-//            return "99+"
-//        }
-//        return "\(count)"
-//    }
-//
-//    var body: some View {
-//        Text(displayText)
-//            .font(.system(size: 8, weight: .medium))
-//            .foregroundColor(.white)
-//            .padding(.horizontal, 3)
-//            .padding(.vertical, 0.5)
-//            .background(
-//                Capsule()
-//                    .fill(Color.purple)
-//            )
-//            .frame(minWidth: 12)
-//    }
-//}
 
 struct BadgeView: View {
     let count: Int
@@ -389,19 +396,6 @@ enum TitleBarIcon {
             return "plus"
         }
     }
-
-    //    var tooltip: String {
-    //           switch self {
-    //           case .paperclip:
-    //               return "Paperclip"
-    //           case .command:
-    //               return "Command"
-    //           case .note:
-    //               return "Recents"
-    //           case .plus:
-    //               return "New"
-    //           }
-    //       }
 }
 
 // MARK: - Toolbar State
@@ -435,16 +429,6 @@ class TitleBarToolbarState: ObservableObject {
     func deleteFile() {
         onDelete?()
     }
-
-    //
-    //    func scan() {
-    //        ScreenCaptureManager.shared.startCapture { text in
-    //                  NotificationCenter.default.post(
-    //                      name: .init("InsertCapturedText"),
-    //                      object: text
-    //                  )
-    //              }
-    //    }
 
     func openFileDictionary() {
         showRecentNotes = true

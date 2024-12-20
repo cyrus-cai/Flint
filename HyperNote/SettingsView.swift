@@ -54,6 +54,7 @@ struct SettingsView: View {
 
         if openPanel.runModal() == .OK {
             obsidianVaultPath = openPanel.url?.path ?? ""
+            UserDefaults.standard.set(obsidianVaultPath, forKey: "obsidianVaultPath")
         }
     }
 
@@ -178,20 +179,9 @@ struct IntegrationSettingsView: View {
                             showPathAlert = true
                         }
                 }
-
-                VStack(alignment: .leading) {
-                    // HStack {
-                    //     Text("Configure your Obsidian folder:")
-                    //         .foregroundColor(.secondary)
-                    //     Text(customPath)
-                    //         .lineLimit(1)
-                    //         .truncationMode(.middle)
-                    // }
-
                     Button("Configure Obsidian folder") {
                         selectCustomDirectory()
                     }
-                }
                 .padding(.leading, 20)
             }
 

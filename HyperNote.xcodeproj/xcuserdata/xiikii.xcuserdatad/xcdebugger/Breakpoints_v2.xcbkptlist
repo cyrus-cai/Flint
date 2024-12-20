@@ -8,15 +8,15 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "0322F37C-089D-4FCB-90D8-C65F6DA9E478"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "HyperNote/ContentViewComponents/TitleBarView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "432"
-            endingLineNumber = "432"
-            landmarkName = "renameFile()"
+            startingLineNumber = "435"
+            endingLineNumber = "435"
+            landmarkName = "openFileDictionary()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

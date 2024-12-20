@@ -14,13 +14,10 @@ struct ContentHeightPreferenceKey: PreferenceKey {
 struct LinkDetector {
     static func findLinks(in text: String) -> [String] {
         let patterns = [
-            "(https?://(?:www\\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,})",
-            "(www\\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,})",
-            "(https?://(?:www\\.|(?!www))[a-zA-Z0-9]+\\.[^\\s]{2,})",
-            "(www\\.[a-zA-Z0-9]+\\.[^\\s]{2,})",
+            // 匹配完整的 URL（包含或不包含 www.）
+            "(?:@)?(?:https?://)?(?:www\\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,}",
         ]
 
-        // Use an array to store matches with their positions
         var linkMatches: [(link: String, position: Int)] = []
 
         for pattern in patterns {
@@ -32,8 +29,10 @@ struct LinkDetector {
                 for match in matches {
                     if let range = Range(match.range, in: text) {
                         let link = String(text[range])
-                        // Store both the link and its position in the text
-                        linkMatches.append((link: link, position: match.range.location))
+                        // 如果链接以 @ 开头��保留完整形式
+                        // 否则，去除可能的 @ 前缀
+                        let cleanLink = link.hasPrefix("@") ? link : String(link.drop(while: { $0 == "@" }))
+                        linkMatches.append((link: cleanLink, position: match.range.location))
                     }
                 }
             } catch {
@@ -41,22 +40,11 @@ struct LinkDetector {
             }
         }
 
-        // Remove duplicates while preserving the earliest occurrence of each link
-        var seenLinks = Set<String>()
-        var orderedLinks: [(link: String, position: Int)] = []
+        // 由于现在只使用一个正则表达式，不需要去重
+        // 但我们仍然按位置排序以保持顺序
+        linkMatches.sort { $0.position < $1.position }
 
-        for match in linkMatches {
-            if !seenLinks.contains(match.link) {
-                seenLinks.insert(match.link)
-                orderedLinks.append(match)
-            }
-        }
-
-        // Sort by position in the original text
-        orderedLinks.sort { $0.position < $1.position }
-
-        // Return just the links in their sorted order
-        return orderedLinks.map { $0.link }
+        return linkMatches.map { $0.link }
     }
 }
 
@@ -237,7 +225,7 @@ struct ContentView: View {
                     .transition(.opacity)
                 }
             } else {
-                // 未配置存储路径时显示的视图
+                // 未配置存储��径时显示的视图
                 VStack(spacing: 8) {
                     Text("Welcome to HyperNote!")
                         .font(.title)
