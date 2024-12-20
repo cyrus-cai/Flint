@@ -15,6 +15,18 @@ struct SettingsListView: View {
         return "obsidian://open?vault=obsidian&file=Float%2F\(weekFolder)%2F\(encodedTitle)"
     }
 
+    private func openInFinder() {
+        guard let notesDirectory = FileManager.shared.notesDirectory else {
+            print("Could not access notes directory")
+            return
+        }
+
+        NSWorkspace.shared.selectFile(
+            nil,
+            inFileViewerRootedAtPath: notesDirectory.path
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(SettingsItem.allCases) { item in
@@ -30,6 +42,11 @@ struct SettingsListView: View {
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: 16, height: 16)
+                            } else if item == .showAll {
+                                Image("finder-icon")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 16, height: 16)
                             } else {
                                 Image(systemName: item.icon)
                                     .frame(width: 16)
@@ -38,21 +55,23 @@ struct SettingsListView: View {
                             }
                             Text(item.title)
                                 .foregroundColor(.primary)
-                            // if item == .openInObsidian {
-                            //     Spacer()
-                            //     Text("⌘ O")
-                            //         .foregroundColor(.secondary)
-                            //         .font(.system(size: 12))
-                            // }
                         }
                         .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 )
+                .padding(.horizontal, 6)
+
+                // Add rectangle separator after Show All
+                if item == .showAll {
+                    Rectangle()
+                        .fill(Color(NSColor.separatorColor))
+                        .frame(height: 4)
+                        .padding(.vertical, 4)
+                }
             }
         }
         .padding(.vertical, 6)
-        .padding(.horizontal, 6)
         .frame(width: 160)
         .background(Color(NSColor.windowBackgroundColor))
     }
@@ -63,6 +82,8 @@ struct SettingsListView: View {
             if let title = title, let uri = generateObsidianURI(from: title) {
                 NSWorkspace.shared.open(URL(string: uri)!)
             }
+        case .showAll:
+            openInFinder()
         case .settings:
             onSettings()
         }
@@ -108,6 +129,7 @@ struct HoverButton: View {
 
 enum SettingsItem: Int, CaseIterable, Identifiable {
     case openInObsidian
+    case showAll
     case settings
 
     var id: Int { rawValue }
@@ -116,6 +138,8 @@ enum SettingsItem: Int, CaseIterable, Identifiable {
         switch self {
         case .openInObsidian:
             return "Open in Obsidian"
+        case .showAll:
+            return "Show in Finder"
         case .settings:
             return "Settings"
         }
@@ -127,6 +151,8 @@ enum SettingsItem: Int, CaseIterable, Identifiable {
             return "gear"
         case .openInObsidian:
             return "link.circle.fill"
+        case .showAll:
+            return "folder"
         }
     }
 }

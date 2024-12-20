@@ -354,30 +354,30 @@ struct RecentNotesListView: View {
             // Footer
             // if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
             // {
-                Divider()
-                HStack {
-                    Button(action: openInFinder) {
-                        HStack {
-                            Text("Show All")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 0)
-                                .fill(
-                                    isShowAllHovered
-                                        ? (colorScheme == .dark
-                                            ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                                        : Color.clear)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .onHover { hovering in
-                        isShowAllHovered = hovering
-                    }
-                }
+                // Divider()
+                // HStack {
+                //     Button(action: openInFinder) {
+                //         HStack {
+                //             Text("Show All")
+                //                 .font(.system(size: 12))
+                //                 .foregroundColor(.secondary)
+                //         }
+                //         .frame(maxWidth: .infinity)
+                //         .padding(.vertical, 8)
+                //         .background(
+                //             RoundedRectangle(cornerRadius: 0)
+                //                 .fill(
+                //                     isShowAllHovered
+                //                         ? (colorScheme == .dark
+                //                             ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                //                         : Color.clear)
+                //         )
+                //     }
+                //     .buttonStyle(PlainButtonStyle())
+                //     .onHover { hovering in
+                //         isShowAllHovered = hovering
+                //     }
+                // }
             // }
 
         }
