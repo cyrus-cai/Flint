@@ -115,7 +115,7 @@ class RecentNotesViewModel: ObservableObject {
             return
         }
 
-        // 否则确保��效范围内
+        // 否则确保有效范围内
         if let current = currentNoteIndex {
             currentNoteIndex = min(current, filteredNotes.count - 1)
         }
@@ -220,21 +220,15 @@ struct RecentNotesListView: View {
                 viewModel.selectPreviousNote()
                 return nil
             case 36:  // Return key
-                // 检查是否正在使用输入法
-                if let inputContext = NSTextInputContext.current {
-//                    if inputContext.client.markedRange() != nil {
-                        // 如果正在输入法编辑中，让事件继续传递
-                        return event
-//                    }
-                }
-
-                // 不在输入法编辑中时，执行原有的选择逻辑
+                // 如果有选中的笔记，执行选择操作
                 if let currentIndex = viewModel.currentNoteIndex {
                     let currentNote = viewModel.filteredNotes[currentIndex]
                     onSelectNote(currentNote.content)
                     dismiss()
+                    return nil
                 }
-                return nil
+                // 如果没有选中的笔记，让事件继续传递（比如在搜索框中）
+                return event
             case 51:  // Delete key
                 if event.modifierFlags.contains(.command) {
                     // Command+Delete: 删除当前选中的条目
@@ -368,30 +362,30 @@ struct RecentNotesListView: View {
             // Footer
             // if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
             // {
-                // Divider()
-                // HStack {
-                //     Button(action: openInFinder) {
-                //         HStack {
-                //             Text("Show All")
-                //                 .font(.system(size: 12))
-                //                 .foregroundColor(.secondary)
-                //         }
-                //         .frame(maxWidth: .infinity)
-                //         .padding(.vertical, 8)
-                //         .background(
-                //             RoundedRectangle(cornerRadius: 0)
-                //                 .fill(
-                //                     isShowAllHovered
-                //                         ? (colorScheme == .dark
-                //                             ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                //                         : Color.clear)
-                //         )
-                //     }
-                //     .buttonStyle(PlainButtonStyle())
-                //     .onHover { hovering in
-                //         isShowAllHovered = hovering
-                //     }
-                // }
+            // Divider()
+            // HStack {
+            //     Button(action: openInFinder) {
+            //         HStack {
+            //             Text("Show All")
+            //                 .font(.system(size: 12))
+            //                 .foregroundColor(.secondary)
+            //         }
+            //         .frame(maxWidth: .infinity)
+            //         .padding(.vertical, 8)
+            //         .background(
+            //             RoundedRectangle(cornerRadius: 0)
+            //                 .fill(
+            //                     isShowAllHovered
+            //                         ? (colorScheme == .dark
+            //                             ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+            //                         : Color.clear)
+            //         )
+            //     }
+            //     .buttonStyle(PlainButtonStyle())
+            //     .onHover { hovering in
+            //         isShowAllHovered = hovering
+            //     }
+            // }
             // }
 
         }
@@ -489,9 +483,11 @@ struct NoteRow: View {
                     let postLength = min(20, nsString.length - postStart)
 
                     // 提取前后文
-                    let preContext = nsString.substring(with: NSRange(location: preStart, length: preLength))
+                    let preContext = nsString.substring(
+                        with: NSRange(location: preStart, length: preLength))
                     let matchText = nsString.substring(with: range)
-                    let postContext = nsString.substring(with: NSRange(location: postStart, length: postLength))
+                    let postContext = nsString.substring(
+                        with: NSRange(location: postStart, length: postLength))
 
                     // 组合完整的上下文
                     let fullContext = "\(preContext)\(matchText)\(postContext)"

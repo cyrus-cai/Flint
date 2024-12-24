@@ -64,7 +64,6 @@
 //                     //  .padding(.horizontal, 6)
 //                 )
 
-
 //                 // Add rectangle separator after Show All
 //                 if item == .showAll {
 //                     Rectangle()
