@@ -222,10 +222,10 @@ struct RecentNotesListView: View {
             case 36:  // Return key
                 // 检查是否正在使用输入法
                 if let inputContext = NSTextInputContext.current {
-                    if inputContext.client.markedRange() != nil {
+//                    if inputContext.client.markedRange() != nil {
                         // 如果正在输入法编辑中，让事件继续传递
                         return event
-                    }
+//                    }
                 }
 
                 // 不在输入法编辑中时，执行原有的选择逻辑
