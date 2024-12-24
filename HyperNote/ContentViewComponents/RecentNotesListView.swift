@@ -115,7 +115,7 @@ class RecentNotesViewModel: ObservableObject {
             return
         }
 
-        // 否则确保��有效范围内
+        // 否则确保有效范围内
         if let current = currentNoteIndex {
             currentNoteIndex = min(current, filteredNotes.count - 1)
         }
@@ -280,6 +280,11 @@ struct RecentNotesListView: View {
                     .font(.system(size: 14))
                     .tint(.purple)
                     .focused($searchFocused)
+                    .onHover { isHovered in
+                        if isHovered {
+                            searchFocused = true
+                        }
+                    }
                 if !viewModel.searchText.isEmpty {
                     Button(action: {
                         viewModel.searchText = ""
@@ -480,7 +485,7 @@ struct NoteRow: View {
                     let matchText = nsString.substring(with: range)
                     let postContext = nsString.substring(with: NSRange(location: postStart, length: postLength))
 
-                    // 组合完整的上下文
+                    // 组合完整的上下��
                     let fullContext = "\(preContext)\(matchText)\(postContext)"
                     var attributed = AttributedString(fullContext)
 
