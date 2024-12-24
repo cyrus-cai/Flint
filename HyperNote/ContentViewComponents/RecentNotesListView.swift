@@ -115,7 +115,7 @@ class RecentNotesViewModel: ObservableObject {
             return
         }
 
-        // 否则确保有效范围内
+        // 否则确保��效范围内
         if let current = currentNoteIndex {
             currentNoteIndex = min(current, filteredNotes.count - 1)
         }
@@ -220,7 +220,15 @@ struct RecentNotesListView: View {
                 viewModel.selectPreviousNote()
                 return nil
             case 36:  // Return key
-                // enter 键始终用于将该条内容填充到现在的文本框中
+                // 检查是否正在使用输入法
+                if let inputContext = NSTextInputContext.current {
+                    if inputContext.client.markedRange() != nil {
+                        // 如果正在输入法编辑中，让事件继续传递
+                        return event
+                    }
+                }
+
+                // 不在输入法编辑中时，执行原有的选择逻辑
                 if let currentIndex = viewModel.currentNoteIndex {
                     let currentNote = viewModel.filteredNotes[currentIndex]
                     onSelectNote(currentNote.content)
@@ -485,7 +493,7 @@ struct NoteRow: View {
                     let matchText = nsString.substring(with: range)
                     let postContext = nsString.substring(with: NSRange(location: postStart, length: postLength))
 
-                    // 组合完整的上下��
+                    // 组合完整的上下文
                     let fullContext = "\(preContext)\(matchText)\(postContext)"
                     var attributed = AttributedString(fullContext)
 
