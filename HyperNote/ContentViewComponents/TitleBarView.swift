@@ -18,7 +18,8 @@ struct TitleBarView: View {
         let vaultName = (vaultPath as NSString).lastPathComponent
 
         // Sanitize the title for URL
-        let sanitizedTitle = title
+        let sanitizedTitle =
+            title
             .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)?
             .replacingOccurrences(of: "/", with: "-")
             .replacingOccurrences(of: ":", with: "-") ?? title
@@ -67,8 +68,9 @@ struct TitleBarView: View {
                         }
                     case "o":
                         if title != "Untitled" && !title.isEmpty,
-                           let uri = generateObsidianURI(from: title),
-                           let url = URL(string: uri) {
+                            let uri = generateObsidianURI(from: title),
+                            let url = URL(string: uri)
+                        {
                             NSWorkspace.shared.open(url)
                             return nil
                         }
@@ -146,8 +148,8 @@ struct TitleBarToolbar: View {
             )
             .popover(isPresented: $state.showSettingsList) {
                 SettingsListView(
-//                    onRename: state.renameFile,
-//                    onDelete: state.deleteFile,
+                    //                    onRename: state.renameFile,
+                    //                    onDelete: state.deleteFile,
                     onSettings: state.openSettings,
                     title: title
                 )
@@ -269,7 +271,6 @@ struct LinkItemView: View {
         }
     }
 }
-
 
 struct BadgeView: View {
     let count: Int

@@ -164,7 +164,8 @@ class MainWindowController: NSWindowController {
         customCloseButton.bezelStyle = .regularSquare
         customCloseButton.isBordered = false
         customCloseButton.title = ""
-        customCloseButton.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: nil)
+        customCloseButton.image = NSImage(
+            systemSymbolName: "xmark.circle.fill", accessibilityDescription: nil)
         customCloseButton.contentTintColor = .systemGray
         customCloseButton.alphaValue = 0  // 默认完全隐藏
         customCloseButton.target = window
@@ -219,7 +220,8 @@ class MainWindowController: NSWindowController {
     override func mouseEntered(with event: NSEvent) {
         super.mouseEntered(with: event)
         if let userInfo = event.trackingArea?.userInfo as? [String: NSButton],
-           let button = userInfo["button"] {
+            let button = userInfo["button"]
+        {
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.1
                 button.animator().alphaValue = 0.8
@@ -232,7 +234,8 @@ class MainWindowController: NSWindowController {
     override func mouseExited(with event: NSEvent) {
         super.mouseExited(with: event)
         if let userInfo = event.trackingArea?.userInfo as? [String: NSButton],
-           let button = userInfo["button"] {
+            let button = userInfo["button"]
+        {
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.1
                 button.animator().alphaValue = 0.5
@@ -245,7 +248,9 @@ class MainWindowController: NSWindowController {
     private func setButtonsAlpha(_ alpha: CGFloat) {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.2
-            if let closeButton = window?.standardWindowButton(.closeButton)?.superview?.subviews.last as? NSButton {
+            if let closeButton = window?.standardWindowButton(.closeButton)?.superview?.subviews
+                .last as? NSButton
+            {
                 closeButton.animator().alphaValue = alpha == 0 ? 0 : 0.8  // 悬停时显示，非悬停时完全隐藏
             }
         }
