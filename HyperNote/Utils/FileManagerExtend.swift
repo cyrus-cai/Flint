@@ -1,10 +1,3 @@
-//
-//  FileManagerExtend.swift
-//  Hyper Note
-//
-//  Created by LC John on 2024/11/26.
-//
-
 import Foundation
 
 private let kCustomNotesDirectoryPath = "CustomNotesDirectoryPath"
@@ -19,7 +12,7 @@ class FileManager {
     let fm = Foundation.FileManager.default
 
     // Get current week folder name (e.g., "2024W50")
-    private var currentWeekFolder: String {
+    public var currentWeekFolder: String {
         let calendar = Calendar.current
         let today = Date()
         let week = calendar.component(.weekOfYear, from: today)
@@ -29,7 +22,8 @@ class FileManager {
 
     // Get base notes directory (Obsidian vault)
     var baseDirectory: URL? {
-        guard let customPath = UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath) else {
+        guard let customPath = UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath)
+        else {
             return nil
         }
         return URL(fileURLWithPath: customPath)
@@ -61,7 +55,8 @@ class FileManager {
 
         // Create Float directory and current week directory
         if let floatDir = floatDirectory,
-           let weekDir = currentWeekDirectory {
+            let weekDir = currentWeekDirectory
+        {
             try? fm.createDirectory(at: floatDir, withIntermediateDirectories: true)
             try? fm.createDirectory(at: weekDir, withIntermediateDirectories: true)
 
@@ -89,9 +84,10 @@ class FileManager {
         guard let floatDir = floatDirectory else { return [] }
         do {
             let resourceKeys: Set<URLResourceKey> = [.contentModificationDateKey]
-            let enumerator = fm.enumerator(at: floatDir,
-                                         includingPropertiesForKeys: Array(resourceKeys),
-                                         options: [.skipsHiddenFiles])
+            let enumerator = fm.enumerator(
+                at: floatDir,
+                includingPropertiesForKeys: Array(resourceKeys),
+                options: [.skipsHiddenFiles])
 
             var notes: [URL] = []
             while let fileURL = enumerator?.nextObject() as? URL {
@@ -133,9 +129,10 @@ class FileManager {
         do {
             // 1. 获取所有 .md 文件
             let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey]
-            let enumerator = fileManager.enumerator(at: baseDir,
-                                                  includingPropertiesForKeys: Array(resourceKeys),
-                                                  options: [.skipsHiddenFiles])
+            let enumerator = fileManager.enumerator(
+                at: baseDir,
+                includingPropertiesForKeys: Array(resourceKeys),
+                options: [.skipsHiddenFiles])
 
             var notesToMigrate: [URL] = []
             while let fileURL = enumerator?.nextObject() as? URL {

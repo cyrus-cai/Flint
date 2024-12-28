@@ -31,7 +31,6 @@ struct ContributionGraph: View {
     // Change to 53 columns (approximately 1 year of weeks)
     private let columns = Array(repeating: GridItem(.fixed(10), spacing: 4), count: 53)
     private let calendar = Calendar.current
-
     private var last365Days: [[(date: Date, count: Int)]] {
         let endDate = Date()
         let startDate = calendar.date(byAdding: .day, value: -242, to: endDate)!
@@ -182,6 +181,11 @@ struct SettingsView: View {
     @State private var customPath: String = FileManager.shared.currentNotesPath
     @State private var showPathPicker = false
     @State private var showPathAlert = false
+
+    // Feishu related settings
+    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
+    @State private var feishuAccessToken = ""
+    @State private var showFeishuTokenAlert = false
 
     let updater = AutoUpdater()
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
@@ -373,6 +377,21 @@ struct IntegrationSettingsView: View {
                     .foregroundColor(.gray)
             }
             .opacity(0.5)
+
+            HStack {
+                // Image("notion-icon")
+                //     .resizable()
+                //     .aspectRatio(contentMode: .fit)
+                //     .frame(width: 16, height: 16)
+                Text("test")
+                Spacer()
+                Button("Test Feishu Authorization") {
+                    if let authURL = FeishuAuthManager.generateAuthorizationURL() {
+                        NSWorkspace.shared.open(authURL)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
         }
     }
 }

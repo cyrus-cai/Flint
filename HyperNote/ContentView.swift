@@ -102,7 +102,7 @@ struct ContentView: View {
                     lastSaveDate = attributes[.modificationDate] as? Date
                 }
             } catch {
-                print("读取文��失败：\(error.localizedDescription)")
+                print("读取文件失败：\(error.localizedDescription)")
             }
         }
 
@@ -121,6 +121,8 @@ struct ContentView: View {
 
     private func saveDocument(trigger: SaveTrigger) {
         guard !text.isEmpty else { return }
+
+        print("Saving document with trigger: \(trigger)")
 
         do {
             // Local save
@@ -143,24 +145,24 @@ struct ContentView: View {
             startMonitoringFile()
 
             // Feishu sync
-            if FeishuAPI.shared.isEnabled {
-                Task {
-                    do {
-                        // Ensure root folder exists
-                        let rootToken = try await FeishuAPI.shared.ensureRootFolder()
+            // if FeishuAPI.shared.isEnabled {
+            Task {
+                do {
+                    // Ensure root folder exists
+                    let rootToken = try await FeishuAPI.shared.ensureRootFolder()
 
-                        // Create week folder
-                        let weekFolder = FileManager.shared.currentWeekFolder
-                        let weekToken = try await FeishuAPI.shared.createWeekFolder(
-                            parentToken: rootToken, weekName: weekFolder)
+                    // Create week folder
+                    let weekFolder = FileManager.shared.currentWeekFolder
+                    let weekToken = try await FeishuAPI.shared.createWeekFolder(
+                        parentToken: rootToken, weekName: weekFolder)
 
-                        // Create document
-                        try await FeishuAPI.shared.createDocument(
-                            folderToken: weekToken, title: title, content: text)
-                    } catch {
-                        print("Feishu sync error:", error)
-                    }
+                    // Create document
+                    try await FeishuAPI.shared.createDocument(
+                        folderToken: weekToken, title: title, content: text)
+                } catch {
+                    print("Feishu sync error:", error)
                 }
+                // }
             }
 
             if trigger == .addNew {
@@ -452,7 +454,7 @@ struct EditorView: View {
                     }
                     .onHover { _ in
                         print("确保 hover 后立即获取焦点")
-                        // 确保视图出现后立即获取焦点
+                        // 确保视图出现后立即��取焦点
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             isEditing = true
                         }
@@ -663,7 +665,7 @@ struct EditorView: View {
 //            return
 //        }
 //
-//        // 检查点击位置是否有链接
+//        // ���查点击位置是否有链接
 //        if let attr = attributedString().attribute(.link, at: index, effectiveRange: nil) as? String {
 //            if let url = URL(string: attr) {
 //                print("url is", url)

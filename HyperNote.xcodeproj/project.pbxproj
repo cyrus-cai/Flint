@@ -13,6 +13,8 @@
 		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
 		A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32671EB2CF8D15100162AF4 /* checkUpdates.swift */; };
 		A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */; };
+		A35B0BAE2D2019B700E277FA /* FeishuAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */; };
+		A35B0BB12D201A1C00E277FA /* FeishuTokenGenerate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */; };
 		A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35E117D2CF9F65400EF949D /* AutoUpdate.swift */; };
 		A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3717AC82CF600890073E925 /* FileManagerExtend.swift */; };
 		A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */; };
@@ -52,6 +54,8 @@
 		A32671EB2CF8D15100162AF4 /* checkUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = checkUpdates.swift; sourceTree = "<group>"; };
 		A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Hyper-Note-Info.plist"; sourceTree = SOURCE_ROOT; };
 		A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentNotesListView.swift; sourceTree = "<group>"; };
+		A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeishuAPI.swift; sourceTree = "<group>"; };
+		A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeishuTokenGenerate.swift; sourceTree = "<group>"; };
 		A35E117D2CF9F65400EF949D /* AutoUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoUpdate.swift; sourceTree = "<group>"; };
 		A3717AC82CF600890073E925 /* FileManagerExtend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtend.swift; sourceTree = "<group>"; };
 		A37D47312CDE6ECE00B2E727 /* HyperNote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HyperNote.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -126,6 +130,15 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		A35B0BAF2D2019BE00E277FA /* APIs */ = {
+			isa = PBXGroup;
+			children = (
+				A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */,
+				A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */,
+			);
+			path = APIs;
+			sourceTree = "<group>";
+		};
 		A37D47282CDE6ECE00B2E727 = {
 			isa = PBXGroup;
 			children = (
@@ -150,6 +163,7 @@
 		A37D47332CDE6ECE00B2E727 /* HyperNote */ = {
 			isa = PBXGroup;
 			children = (
+				A35B0BAF2D2019BE00E277FA /* APIs */,
 				A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */,
 				A3243A372CF0E6EC009D39FF /* Utils */,
 				A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */,
@@ -329,9 +343,11 @@
 			files = (
 				A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */,
 				A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */,
+				A35B0BB12D201A1C00E277FA /* FeishuTokenGenerate.swift in Sources */,
 				A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */,
 				A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */,
 				A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */,
+				A35B0BAE2D2019B700E277FA /* FeishuAPI.swift in Sources */,
 				A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */,
 				A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */,
 				A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */,
