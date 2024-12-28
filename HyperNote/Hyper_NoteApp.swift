@@ -114,8 +114,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     do {
                         let tokenResponse = try await FeishuAuthManager.getAccessToken(code: code)
 
-                        // Configure FeishuAPI with the new access token
-                        FeishuAPI.shared.configure(accessToken: tokenResponse.accessToken)
+                        // Configure FeishuAPI with the new access token and expiration
+                        FeishuAPI.shared.configure(
+                            accessToken: tokenResponse.accessToken,
+                            expiresIn: tokenResponse.expiresIn
+                        )
                         FeishuAPI.shared.isEnabled = true
 
                         // Show success notification

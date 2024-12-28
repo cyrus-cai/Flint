@@ -8,6 +8,7 @@ public class FeishuAPI {
     // Configuration keys
     private let kFeishuEnabled = "FeishuSyncEnabled"
     private let kFeishuAccessToken = "FeishuAccessToken"
+    private let kFeishuTokenExpiration = "FeishuTokenExpiration"
 
     var isEnabled: Bool {
         get {
@@ -18,9 +19,51 @@ public class FeishuAPI {
         }
     }
 
-    func configure(accessToken: String) {
+    private init() {
+        // Try to load saved token on initialization
+        loadSavedToken()
+    }
+
+    func configure(accessToken: String, expiresIn: Int = 7200) {
         self.accessToken = accessToken
-        UserDefaults.standard.set(accessToken, forKey: kFeishuAccessToken)
+
+        // Save token and expiration time
+        let defaults = UserDefaults.standard
+        defaults.set(accessToken, forKey: kFeishuAccessToken)
+
+        // Calculate and save expiration date
+        let expirationDate = Date().addingTimeInterval(TimeInterval(expiresIn))
+        defaults.set(expirationDate, forKey: kFeishuTokenExpiration)
+    }
+
+    private func loadSavedToken() {
+        let defaults = UserDefaults.standard
+
+        // Check if we have a saved token and it hasn't expired
+        if let savedToken = defaults.string(forKey: kFeishuAccessToken),
+            let expirationDate = defaults.object(forKey: kFeishuTokenExpiration) as? Date,
+            expirationDate > Date()
+        {
+            self.accessToken = savedToken
+            self.isEnabled = true
+        } else {
+            // Token is either missing or expired
+            self.accessToken = nil
+            self.isEnabled = false
+
+            // Clean up expired token
+            defaults.removeObject(forKey: kFeishuAccessToken)
+            defaults.removeObject(forKey: kFeishuTokenExpiration)
+        }
+    }
+
+    func clearToken() {
+        self.accessToken = nil
+        self.isEnabled = false
+
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: kFeishuAccessToken)
+        defaults.removeObject(forKey: kFeishuTokenExpiration)
     }
 
     func ensureRootFolder() async throws -> String {
