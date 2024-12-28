@@ -1,6 +1,6 @@
+import Combine
 import SwiftDown
 import SwiftUI
-import Combine
 
 struct ContentHeightPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 106
@@ -15,7 +15,7 @@ struct LinkDetector {
     static func findLinks(in text: String) -> [String] {
         let patterns = [
             // 匹配完整的 URL（包含或不包含 www.）
-            "(?:@)?(?:https?://)?(?:www\\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,}",
+            "(?:@)?(?:https?://)?(?:www\\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,}"
         ]
 
         var linkMatches: [(link: String, position: Int)] = []
@@ -29,9 +29,10 @@ struct LinkDetector {
                 for match in matches {
                     if let range = Range(match.range, in: text) {
                         let link = String(text[range])
-                        // 如果链接以 @ 开头��保留完整形式
+                        // 如果链接以 @ 开头保留完整形式
                         // 否则，去除可能的 @ 前缀
-                        let cleanLink = link.hasPrefix("@") ? link : String(link.drop(while: { $0 == "@" }))
+                        let cleanLink =
+                            link.hasPrefix("@") ? link : String(link.drop(while: { $0 == "@" }))
                         linkMatches.append((link: cleanLink, position: match.range.location))
                     }
                 }
@@ -71,10 +72,11 @@ struct ContentView: View {
     }
 
     private func startMonitoringFile() {
-        stopMonitoringFile() // 先停止之前的监听
+        stopMonitoringFile()  // 先停止之前的监听
 
         guard let currentId = currentNoteId,
-              let fileURL = FileManager.shared.fileURL(for: currentId) else {
+            let fileURL = FileManager.shared.fileURL(for: currentId)
+        else {
             return
         }
 
@@ -95,11 +97,12 @@ struct ContentView: View {
                 let newContent = try String(contentsOf: fileURL, encoding: .utf8)
                 if newContent != text {
                     text = newContent
-                    let attributes = try Foundation.FileManager.default.attributesOfItem(atPath: fileURL.path)
+                    let attributes = try Foundation.FileManager.default.attributesOfItem(
+                        atPath: fileURL.path)
                     lastSaveDate = attributes[.modificationDate] as? Date
                 }
             } catch {
-                print("读取文件失败：\(error.localizedDescription)")
+                print("读取文��失败：\(error.localizedDescription)")
             }
         }
 
@@ -120,26 +123,45 @@ struct ContentView: View {
         guard !text.isEmpty else { return }
 
         do {
+            // Local save
             if let currentId = currentNoteId,
-               let fileURL = FileManager.shared.fileURL(for: currentId) {
-                // 停止监听，避免保存时触发文件变化事件
+                let fileURL = FileManager.shared.fileURL(for: currentId)
+            {
                 stopMonitoringFile()
-
-                // 删除旧文件
                 try? Foundation.FileManager.default.removeItem(at: fileURL)
             }
 
-            // 保存新文件
             guard let fileURL = FileManager.shared.fileURL(for: title) else {
-                throw NSError(domain: "FileError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
+                throw NSError(
+                    domain: "FileError", code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
             }
 
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
             currentNoteId = title
             lastSaveDate = Date()
-
-            // 重新开始监听
             startMonitoringFile()
+
+            // Feishu sync
+            if FeishuAPI.shared.isEnabled {
+                Task {
+                    do {
+                        // Ensure root folder exists
+                        let rootToken = try await FeishuAPI.shared.ensureRootFolder()
+
+                        // Create week folder
+                        let weekFolder = FileManager.shared.currentWeekFolder
+                        let weekToken = try await FeishuAPI.shared.createWeekFolder(
+                            parentToken: rootToken, weekName: weekFolder)
+
+                        // Create document
+                        try await FeishuAPI.shared.createDocument(
+                            folderToken: weekToken, title: title, content: text)
+                    } catch {
+                        print("Feishu sync error:", error)
+                    }
+                }
+            }
 
             if trigger == .addNew {
                 withAnimation {
@@ -153,16 +175,18 @@ struct ContentView: View {
             }
         } catch {
             saveError = error
-            print("保存失败：\(error.localizedDescription)")
+            print("Save failed:", error.localizedDescription)
         }
     }
 
     private func loadNoteContent(_ content: String) {
         text = content
         if let currentId = currentNoteId,
-           let fileURL = FileManager.shared.fileURL(for: currentId) {
+            let fileURL = FileManager.shared.fileURL(for: currentId)
+        {
             do {
-                let attributes = try Foundation.FileManager.default.attributesOfItem(atPath: fileURL.path)
+                let attributes = try Foundation.FileManager.default.attributesOfItem(
+                    atPath: fileURL.path)
                 lastSaveDate = attributes[.modificationDate] as? Date
                 // 开始监听新加载的文件
                 startMonitoringFile()
@@ -173,7 +197,7 @@ struct ContentView: View {
     }
 
     private func createNewNote() {
-        stopMonitoringFile() // 停止监听当前文件
+        stopMonitoringFile()  // 停止监听当前文件
         text = ""
         currentNoteId = nil
     }
@@ -225,7 +249,7 @@ struct ContentView: View {
                     .transition(.opacity)
                 }
             } else {
-                // 未配置存储��径时显示的视图
+                // 未配置存储径时显示的视图
                 VStack(spacing: 8) {
                     Text("Welcome to HyperNote!")
                         .font(.title)
@@ -268,7 +292,10 @@ struct ContentView: View {
         .onHover { hovering in
             isHovered = hovering
         }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("autoSaveIntervalDidChange"))) { _ in
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("autoSaveIntervalDidChange"))
+        ) { _ in
             setupAutoSaveTimer()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) {
@@ -283,7 +310,7 @@ struct ContentView: View {
         }
         .onDisappear {
             removeKeyboardMonitor()
-            stopMonitoringFile() // 视图消失时停止监听
+            stopMonitoringFile()  // 视图消失时停止监听
         }
         .onChange(of: autoSaveInterval) {
             print("Auto-save interval changed to: \(autoSaveInterval)")
@@ -296,7 +323,7 @@ struct ContentView: View {
 
     private func setupKeyboardMonitor() {
         keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.keyCode == 53 { // ESC key
+            if event.keyCode == 53 {  // ESC key
                 if let window = NSApp.keyWindow {
                     window.orderOut(nil)
                     return nil

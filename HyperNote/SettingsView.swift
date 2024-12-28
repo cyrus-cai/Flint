@@ -427,32 +427,44 @@ struct AboutSettingsView: View {
     let latestVersion: String?
     let updater: AutoUpdater
     @Binding var progressSubscription: AnyCancellable?
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack {
-            if isDownloading {
-                ProgressView(
-                    "Downloading...\(Int(downloadProgress * 100))%",
-                    value: downloadProgress,
-                    total: 1.0
-                )
-                .progressViewStyle(.linear)
-                .frame(width: 200)
-                .padding()
-            } else {
-                Button(isCheckingUpdate ? "Checking..." : "Check for updates") {
-                    checkForUpdates()
-                }
-                .disabled(isCheckingUpdate)
-            }
+        VStack(spacing: 20) {
+            // Brand Icon and Name
+            Image(colorScheme == .dark ? "brand-name-icon-dark" : "brand-name-icon")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 48)
+                .padding(.top)
 
-            if let latest = latestVersion {
-                Text("Latest version: \(latest)")
+            // Update Section
+            VStack(spacing: 8) {
+                if isDownloading {
+                    ProgressView(
+                        "Downloading...\(Int(downloadProgress * 100))%",
+                        value: downloadProgress,
+                        total: 1.0
+                    )
+                    .progressViewStyle(.linear)
+                    .frame(width: 200)
+                    .padding()
+                } else {
+                    Button(isCheckingUpdate ? "Checking..." : "Check for updates") {
+                        checkForUpdates()
+                    }
+                    .disabled(isCheckingUpdate)
+                }
+
+                if let latest = latestVersion {
+                    Text("Latest version: \(latest)")
+                        .opacity(0.25)
+                }
+                Text("Current version: \(version ?? "") build\(buildNumber ?? "")")
                     .opacity(0.25)
             }
-            Text("Current version: \(version ?? "") build\(buildNumber ?? "")")
-                .opacity(0.25)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func checkForUpdates() {
