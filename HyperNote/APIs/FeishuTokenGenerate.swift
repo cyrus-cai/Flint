@@ -20,8 +20,12 @@ import Foundation
 
 struct FeishuAuthConfig {
     static let clientId = "cli_a7e563ddc4b8501c"  // 替换为你的 App ID
+    static let clientSecret = "UA3w8tyCE36wXbq5bJlrizzkZNEwBEKu"  // 添加 client secret
     static let redirectUri = "https://float-auth-landingpage.vercel.app/"
-    static let scopes = ["auth:user.id:read", "offline_access", "docx:document"]  // 需要的权限范围
+    static let scopes = [
+        "auth:user.id:read", "offline_access", "docx:document", "drive:drive",
+        "space:folder:create",
+    ]  // 需要的权限范围
 }
 
 class FeishuAuthManager {
@@ -72,5 +76,68 @@ class FeishuAuthManager {
             print("❌ No auth code found in callback")
             return nil
         }
+    }
+
+    static func getAccessToken(code: String) async throws -> FeishuTokenResponse {
+        print("🔑 Requesting access token with code: \(String(code.prefix(6)))...")
+
+        let url = URL(string: "https://open.feishu.cn/open-apis/authen/v2/oauth/token")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "grant_type": "authorization_code",
+            "client_id": FeishuAuthConfig.clientId,
+            "client_secret": FeishuAuthConfig.clientSecret,
+            "code": code,
+            "redirect_uri": FeishuAuthConfig.redirectUri,
+        ]
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        print("📤 Sending token request to Feishu...")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("❌ Invalid response received from Feishu")
+            throw FeishuError.invalidResponse
+        }
+
+        if httpResponse.statusCode != 200 {
+            print("❌ HTTP error: \(httpResponse.statusCode)")
+            // Print response body for debugging if possible
+            if let errorBody = String(data: data, encoding: .utf8) {
+                print("Error details: \(errorBody)")
+            }
+            throw FeishuError.httpError(statusCode: httpResponse.statusCode)
+        }
+
+        let tokenResponse = try JSONDecoder().decode(FeishuTokenResponse.self, from: data)
+        print("✅ Successfully obtained access token")
+        print("📎 Token expires in: \(tokenResponse.expiresIn) seconds")
+        print("🔑 Token type: \(tokenResponse.tokenType)")
+        print("🎯 Granted scopes: \(tokenResponse.scope)")
+
+        return tokenResponse
+    }
+}
+
+// 添加响应模型
+struct FeishuTokenResponse: Codable {
+    let accessToken: String
+    let expiresIn: Int
+    let refreshToken: String?
+    let refreshTokenExpiresIn: Int?
+    let tokenType: String
+    let scope: String
+
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case expiresIn = "expires_in"
+        case refreshToken = "refresh_token"
+        case refreshTokenExpiresIn = "refresh_token_expires_in"
+        case tokenType = "token_type"
+        case scope
     }
 }

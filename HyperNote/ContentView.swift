@@ -6,7 +6,7 @@ struct ContentHeightPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 106
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
-        print("window height changed", value)
+        // print("window height changed", value)
 
     }
 }

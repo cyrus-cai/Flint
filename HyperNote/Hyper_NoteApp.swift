@@ -109,14 +109,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Successfully got the authorization code
                 print("✅ Received auth code:", code)
 
-                // TODO: Exchange the code for access token
-                // This is where you would make the token exchange request
+                // Exchange the code for access token
+                Task {
+                    do {
+                        let tokenResponse = try await FeishuAuthManager.getAccessToken(code: code)
 
-                // Show success notification
-                let notification = NSUserNotification()
-                notification.title = "Authorization Successful"
-                notification.informativeText = "Successfully connected to Feishu"
-                NSUserNotificationCenter.default.deliver(notification)
+                        // Configure FeishuAPI with the new access token
+                        FeishuAPI.shared.configure(accessToken: tokenResponse.accessToken)
+                        FeishuAPI.shared.isEnabled = true
+
+                        // Show success notification
+                        DispatchQueue.main.async {
+                            let notification = NSUserNotification()
+                            notification.title = "Authorization Successful"
+                            notification.informativeText = "Successfully connected to Feishu"
+                            NSUserNotificationCenter.default.deliver(notification)
+                        }
+                    } catch {
+                        print("❌ Failed to get access token:", error)
+
+                        // Show error notification
+                        DispatchQueue.main.async {
+                            let notification = NSUserNotification()
+                            notification.title = "Authorization Failed"
+                            notification.informativeText =
+                                "Failed to connect to Feishu: \(error.localizedDescription)"
+                            NSUserNotificationCenter.default.deliver(notification)
+                        }
+                    }
+                }
             } else {
                 // Handle error
                 let notification = NSUserNotification()
