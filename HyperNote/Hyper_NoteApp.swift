@@ -99,6 +99,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func toggleWindow() {
         windowController?.toggleWindow()
     }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first else { return }
+
+        // Check if this is an OAuth callback
+        if url.scheme == "hypernote" && url.host == "oauth" && url.path == "/callback" {
+            if let code = FeishuAuthManager.handleAuthCallback(url: url) {
+                // Successfully got the authorization code
+                print("✅ Received auth code:", code)
+
+                // TODO: Exchange the code for access token
+                // This is where you would make the token exchange request
+
+                // Show success notification
+                let notification = NSUserNotification()
+                notification.title = "Authorization Successful"
+                notification.informativeText = "Successfully connected to Feishu"
+                NSUserNotificationCenter.default.deliver(notification)
+            } else {
+                // Handle error
+                let notification = NSUserNotification()
+                notification.title = "Authorization Failed"
+                notification.informativeText = "Failed to connect to Feishu"
+                NSUserNotificationCenter.default.deliver(notification)
+            }
+        }
+    }
 }
 
 // MARK: - HotKey Implementation
