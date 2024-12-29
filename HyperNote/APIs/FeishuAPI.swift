@@ -622,6 +622,85 @@ public class FeishuAPI {
         print("❌ No exact match found for: \(name)")
         return nil
     }
+
+    func getDocumentContent(documentId: String) async throws -> String {
+        print("Fetching document content:")
+        print("- Document ID: \(documentId)")
+
+        var allBlocks: [BlocksResponse.Block] = []
+        var pageToken: String? = nil
+        var content = ""
+
+        repeat {
+            let blocksEndpoint = "\(baseURL)/docx/v1/documents/\(documentId)/blocks"
+            guard var components = URLComponents(string: blocksEndpoint),
+                let accessToken = self.accessToken
+            else {
+                print("❌ Invalid configuration - URL or access token missing")
+                throw FeishuError.invalidConfiguration
+            }
+
+            var queryItems = [
+                URLQueryItem(name: "page_size", value: "500")
+            ]
+            if let pageToken = pageToken {
+                queryItems.append(URLQueryItem(name: "page_token", value: pageToken))
+            }
+            components.queryItems = queryItems
+
+            guard let url = components.url else {
+                throw FeishuError.invalidConfiguration
+            }
+
+            var blocksRequest = URLRequest(url: url)
+            blocksRequest.httpMethod = "GET"
+            blocksRequest.setValue(
+                "application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+            blocksRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+            let (blocksData, blocksResponse) = try await URLSession.shared.data(for: blocksRequest)
+            guard let blocksHttpResponse = blocksResponse as? HTTPURLResponse,
+                blocksHttpResponse.statusCode == 200,
+                let blocksResponseData = try? JSONDecoder().decode(
+                    BlocksResponse.self, from: blocksData)
+            else {
+                print("❌ Failed to get document blocks")
+                throw FeishuError.requestFailed
+            }
+
+            allBlocks.append(contentsOf: blocksResponseData.data.items)
+            pageToken = blocksResponseData.data.hasMore ? blocksResponseData.data.pageToken : nil
+
+        } while pageToken != nil
+
+        // Build content string from blocks
+        for block in allBlocks {
+            if block.blockType == 2 {  // text block
+                if let text = block.text,
+                    let elements = text.elements,
+                    let firstElement = elements.first,
+                    let textRun = firstElement.textRun,
+                    let blockContent = textRun.content
+                {
+                    content += blockContent + "\n"
+                }
+            }
+        }
+
+        return content.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func checkDocumentUpdate(documentId: String, currentContent: String) async throws -> String? {
+        let remoteContent = try await getDocumentContent(documentId: documentId)
+
+        // 如果远程内容与当前内容不同，返回新内容
+        if remoteContent != currentContent {
+            print("📝 Remote document content changed")
+            return remoteContent
+        }
+
+        return nil
+    }
 }
 
 enum FeishuError: Error {
