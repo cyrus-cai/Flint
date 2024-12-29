@@ -379,18 +379,30 @@ struct IntegrationSettingsView: View {
             .opacity(0.5)
 
             HStack {
-                // Image("notion-icon")
-                //     .resizable()
-                //     .aspectRatio(contentMode: .fit)
-                //     .frame(width: 16, height: 16)
                 Text("test")
                 Spacer()
-                Button("Test Feishu Authorization") {
-                    if let authURL = FeishuAuthManager.generateAuthorizationURL() {
-                        NSWorkspace.shared.open(authURL)
+                HStack(spacing: 8) {
+                    if UserDefaults.standard.string(forKey: "FeishuAccessToken") != nil,
+                        let expirationDate = UserDefaults.standard.object(
+                            forKey: "FeishuTokenExpiration") as? Date,
+                        expirationDate > Date()
+                    {
+                        // Green dot indicator
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 6, height: 6)
+
+                        Text("Authorized")
+                            .foregroundColor(.secondary)
                     }
+
+                    Button("Re-authorize Feishu") {
+                        if let authURL = FeishuAuthManager.generateAuthorizationURL() {
+                            NSWorkspace.shared.open(authURL)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
-                .buttonStyle(.borderedProminent)
             }
         }
     }

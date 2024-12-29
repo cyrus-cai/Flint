@@ -9,6 +9,7 @@ public class FeishuAPI {
     private let kFeishuEnabled = "FeishuSyncEnabled"
     private let kFeishuAccessToken = "FeishuAccessToken"
     private let kFeishuTokenExpiration = "FeishuTokenExpiration"
+    private let kFeishuRefreshToken = "FeishuRefreshToken"
 
     var isEnabled: Bool {
         get {
@@ -24,8 +25,9 @@ public class FeishuAPI {
         loadSavedToken()
     }
 
-    func configure(accessToken: String, expiresIn: Int = 7200) {
+    func configure(accessToken: String, expiresIn: Int = 7200, refreshToken: String? = nil) {
         self.accessToken = accessToken
+        self.isEnabled = true
 
         // Save token and expiration time
         let defaults = UserDefaults.standard
@@ -34,6 +36,11 @@ public class FeishuAPI {
         // Calculate and save expiration date
         let expirationDate = Date().addingTimeInterval(TimeInterval(expiresIn))
         defaults.set(expirationDate, forKey: kFeishuTokenExpiration)
+
+        // Save refresh token if provided
+        if let refreshToken = refreshToken {
+            defaults.set(refreshToken, forKey: kFeishuRefreshToken)
+        }
     }
 
     private func loadSavedToken() {
@@ -41,19 +48,44 @@ public class FeishuAPI {
 
         // Check if we have a saved token and it hasn't expired
         if let savedToken = defaults.string(forKey: kFeishuAccessToken),
-            let expirationDate = defaults.object(forKey: kFeishuTokenExpiration) as? Date,
-            expirationDate > Date()
+            let expirationDate = defaults.object(forKey: kFeishuTokenExpiration) as? Date
         {
-            self.accessToken = savedToken
-            self.isEnabled = true
-        } else {
-            // Token is either missing or expired
-            self.accessToken = nil
-            self.isEnabled = false
+            // If token will expire in less than 10 minutes, try to refresh it
+            let tenMinutesFromNow = Date().addingTimeInterval(600)  // 10 minutes in seconds
 
-            // Clean up expired token
-            defaults.removeObject(forKey: kFeishuAccessToken)
-            defaults.removeObject(forKey: kFeishuTokenExpiration)
+            if expirationDate <= tenMinutesFromNow {
+                // Token is about to expire, try to refresh
+                if let refreshToken = defaults.string(forKey: kFeishuRefreshToken) {
+                    Task {
+                        do {
+                            let newTokens = try await FeishuAuthManager.refreshAccessToken(
+                                refreshToken: refreshToken)
+                            // Configure with new tokens
+                            self.configure(
+                                accessToken: newTokens.accessToken,
+                                expiresIn: newTokens.expiresIn,
+                                refreshToken: newTokens.refreshToken
+                            )
+                        } catch {
+                            print("Failed to refresh token: \(error)")
+                            // If refresh fails and current token is already expired
+                            if expirationDate <= Date() {
+                                self.clearToken()
+                            }
+                        }
+                    }
+                }
+            } else if expirationDate > Date() {
+                // Token is still valid
+                self.accessToken = savedToken
+                self.isEnabled = true
+            } else {
+                // Token is expired and we can't refresh it
+                self.clearToken()
+            }
+        } else {
+            // No token saved or expired
+            self.clearToken()
         }
     }
 
@@ -64,6 +96,12 @@ public class FeishuAPI {
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: kFeishuAccessToken)
         defaults.removeObject(forKey: kFeishuTokenExpiration)
+
+        // Don't clear refresh token as it's valid for 365 days
+        // Only clear it when:
+        // 1. User explicitly logs out
+        // 2. Server returns refresh token expired error (20037)
+        // 3. Server returns refresh token revoked error (20064)
     }
 
     func ensureRootFolder() async throws -> String {

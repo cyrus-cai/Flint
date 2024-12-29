@@ -18,6 +18,9 @@ import Foundation
 //"token_type": "Bearer"
 //}
 
+//3、刷新 access_token
+//https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/authentication-management/access-token/refresh-user-access-token
+
 struct FeishuAuthConfig {
     static let clientId = "cli_a7e563ddc4b8501c"  // 替换为你的 App ID
     static let clientSecret = "UA3w8tyCE36wXbq5bJlrizzkZNEwBEKu"  // 添加 client secret
@@ -116,6 +119,55 @@ class FeishuAuthManager {
         let tokenResponse = try JSONDecoder().decode(FeishuTokenResponse.self, from: data)
         print("✅ Successfully obtained access token")
         print("📎 Token expires in: \(tokenResponse.expiresIn) seconds")
+        print("🔑 Token type: \(tokenResponse.tokenType)")
+        print("🎯 Granted scopes: \(tokenResponse.scope)")
+
+        return tokenResponse
+    }
+
+    static func refreshAccessToken(refreshToken: String, scope: String? = nil) async throws
+        -> FeishuTokenResponse
+    {
+        print("🔄 Refreshing access token...")
+
+        let url = URL(string: "https://open.feishu.cn/open-apis/authen/v2/oauth/token")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+
+        var body: [String: Any] = [
+            "grant_type": "refresh_token",
+            "client_id": FeishuAuthConfig.clientId,
+            "client_secret": FeishuAuthConfig.clientSecret,
+            "refresh_token": refreshToken,
+        ]
+
+        // Add scope if provided
+        if let scope = scope {
+            body["scope"] = scope
+        }
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        print("📤 Sending refresh token request to Feishu...")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("❌ Invalid response received from Feishu")
+            throw FeishuError.invalidResponse
+        }
+
+        if httpResponse.statusCode != 200 {
+            print("❌ HTTP error: \(httpResponse.statusCode)")
+            if let errorBody = String(data: data, encoding: .utf8) {
+                print("Error details: \(errorBody)")
+            }
+            throw FeishuError.httpError(statusCode: httpResponse.statusCode)
+        }
+
+        let tokenResponse = try JSONDecoder().decode(FeishuTokenResponse.self, from: data)
+        print("✅ Successfully refreshed access token")
+        print("📎 New token expires in: \(tokenResponse.expiresIn) seconds")
         print("🔑 Token type: \(tokenResponse.tokenType)")
         print("🎯 Granted scopes: \(tokenResponse.scope)")
 
