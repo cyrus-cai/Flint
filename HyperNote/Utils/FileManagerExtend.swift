@@ -13,10 +13,12 @@ class FileManager {
 
     // Get current week folder name (e.g., "2024W50")
     public var currentWeekFolder: String {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .iso8601)
         let today = Date()
+
         let week = calendar.component(.weekOfYear, from: today)
-        let year = calendar.component(.year, from: today)
+        let year = calendar.component(.yearForWeekOfYear, from: today)
+
         return "\(year)W\(String(format: "%02d", week))"
     }
 
