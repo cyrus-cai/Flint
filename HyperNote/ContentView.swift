@@ -123,8 +123,6 @@ struct ContentView: View {
         guard !text.isEmpty else { return }
 
         print("Saving document with trigger: \(trigger)")
-
-        // Get the title before any async operations
         let documentTitle = title  // Compute title once and reuse
 
         do {
@@ -150,18 +148,32 @@ struct ContentView: View {
             // Feishu sync
             Task {
                 do {
-                    // Ensure root folder exists
-                    let rootToken = try await FeishuAPI.shared.ensureRootFolder()
+                    // Get existing document ID if exists
+                    if let documentId = UserDefaults.standard.string(
+                        forKey: "feishu_doc_\(documentTitle)")
+                    {
+                        // Check remote content before syncing
+                        let remoteContent = try await FeishuAPI.shared.getDocumentContent(
+                            documentId: documentId)
 
-                    // Create week folder
+                        // Compare content
+                        if remoteContent.trimmingCharacters(in: .whitespacesAndNewlines)
+                            != text.trimmingCharacters(in: .whitespacesAndNewlines)
+                        {
+                            print("⚠️ Content mismatch detected - skipping Feishu sync")
+                            print("Local content length: \(text.count)")
+                            print("Remote content length: \(remoteContent.count)")
+                            return
+                        }
+                    }
+
+                    // Continue with normal sync process
+                    let rootToken = try await FeishuAPI.shared.ensureRootFolder()
                     let weekFolder = FileManager.shared.currentWeekFolder
                     let weekToken = try await FeishuAPI.shared.createWeekFolder(
                         parentToken: rootToken, weekName: weekFolder)
-
-                    // Create document and add content
                     let documentId = try await FeishuAPI.shared.createDocument(
                         folderToken: weekToken, title: documentTitle)
-                    // 保存 documentId，可以存在 UserDefaults 中，用标题作为 key
                     UserDefaults.standard.set(documentId, forKey: "feishu_doc_\(documentTitle)")
                     try await FeishuAPI.shared.addDocumentContent(
                         documentId: documentId, content: text)
