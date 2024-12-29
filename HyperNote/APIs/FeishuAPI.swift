@@ -44,7 +44,7 @@ public class FeishuAPI {
     }
 
     private func loadSavedToken() {
-        let defaults = UserDefaults.standard
+        let defaults: UserDefaults = UserDefaults.standard
 
         // Check if we have a saved token and it hasn't expired
         if let savedToken = defaults.string(forKey: kFeishuAccessToken),
@@ -193,9 +193,10 @@ public class FeishuAPI {
         print("- Document ID: \(documentId)")
         print("- Content length: \(content.count) characters")
 
-        // Get all blocks with pagination
+        // Get all blocks with pagination to check current content
         var allBlocks: [BlocksResponse.Block] = []
         var pageToken: String? = nil
+        var currentContent = ""
 
         repeat {
             let blocksEndpoint = "\(baseURL)/docx/v1/documents/\(documentId)/blocks"
@@ -242,6 +243,28 @@ public class FeishuAPI {
             pageToken = blocksResponseData.data.hasMore ? blocksResponseData.data.pageToken : nil
 
         } while pageToken != nil
+
+        // Build current content string from blocks
+        for block in allBlocks {
+            if block.blockType == 2 {  // text block
+                if let text = block.text,
+                    let elements = text.elements,
+                    let firstElement = elements.first,
+                    let textRun = firstElement.textRun,
+                    let content = textRun.content
+                {
+                    currentContent += content + "\n"
+                }
+            }
+        }
+
+        // Compare content and only proceed if different
+        if currentContent.trimmingCharacters(in: .whitespacesAndNewlines)
+            == content.trimmingCharacters(in: .whitespacesAndNewlines)
+        {
+            print("✅ Content unchanged, skipping update")
+            return
+        }
 
         // Delete all existing blocks except the root
         let deleteEndpoint =
@@ -627,13 +650,31 @@ struct BlocksResponse: Codable {
         let blockType: Int
         let children: [String]?
         let parentId: String?
+        let text: TextContent?
 
         enum CodingKeys: String, CodingKey {
             case blockId = "block_id"
             case blockType = "block_type"
             case children
             case parentId = "parent_id"
+            case text
         }
+    }
+
+    struct TextContent: Codable {
+        let elements: [TextElement]?
+    }
+
+    struct TextElement: Codable {
+        let textRun: TextRun?
+
+        enum CodingKeys: String, CodingKey {
+            case textRun = "text_run"
+        }
+    }
+
+    struct TextRun: Codable {
+        let content: String?
     }
 
     let code: Int
