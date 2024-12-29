@@ -367,19 +367,11 @@ struct IntegrationSettingsView: View {
             }
 
             HStack {
-                Image("notion-icon")
+                Image("feishu-icon")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 16, height: 16)
-                Text("Notion")
-                Spacer()
-                Text("Coming soon")
-                    .foregroundColor(.gray)
-            }
-            .opacity(0.5)
-
-            HStack {
-                Text("test")
+                Text("Feishu(One-way synchronization)")
                 Spacer()
                 HStack(spacing: 8) {
                     if UserDefaults.standard.string(forKey: "FeishuAccessToken") != nil,
@@ -404,6 +396,18 @@ struct IntegrationSettingsView: View {
                     .buttonStyle(.borderedProminent)
                 }
             }
+
+            HStack {
+                Image("notion-icon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16)
+                Text("Notion")
+                Spacer()
+                Text("Coming soon")
+                    .foregroundColor(.gray)
+            }
+            .opacity(0.5)
         }
     }
 }

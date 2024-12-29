@@ -161,6 +161,8 @@ struct ContentView: View {
                     // Create document and add content
                     let documentId = try await FeishuAPI.shared.createDocument(
                         folderToken: weekToken, title: documentTitle)
+                    // 保存 documentId，可以存在 UserDefaults 中，用标题作为 key
+                    UserDefaults.standard.set(documentId, forKey: "feishu_doc_\(documentTitle)")
                     try await FeishuAPI.shared.addDocumentContent(
                         documentId: documentId, content: text)
                 } catch {
@@ -449,14 +451,14 @@ struct EditorView: View {
                     .padding(.top, 8)
                     .focused($isEditing)
                     .onAppear {
-//                        print("确保视图出现后立即获取焦点")
+                        //                        print("确保视图出现后立即获取焦点")
                         // 确保视图出现后立即获取焦点
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             isEditing = true
                         }
                     }
                     .onHover { _ in
-//                        print("确保 hover 后立即获取焦点")
+                        //                        print("确保 hover 后立即获取焦点")
                         // 确保视图出现后立即获取焦点
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             isEditing = true
