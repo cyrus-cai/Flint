@@ -124,6 +124,9 @@ struct ContentView: View {
 
         print("Saving document with trigger: \(trigger)")
 
+        // Get the title before any async operations
+        let documentTitle = title  // Compute title once and reuse
+
         do {
             // Local save
             if let currentId = currentNoteId,
@@ -133,19 +136,18 @@ struct ContentView: View {
                 try? Foundation.FileManager.default.removeItem(at: fileURL)
             }
 
-            guard let fileURL = FileManager.shared.fileURL(for: title) else {
+            guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
                 throw NSError(
                     domain: "FileError", code: -1,
                     userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
             }
 
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
-            currentNoteId = title
+            currentNoteId = documentTitle
             lastSaveDate = Date()
             startMonitoringFile()
 
             // Feishu sync
-            // if FeishuAPI.shared.isEnabled {
             Task {
                 do {
                     // Ensure root folder exists
@@ -156,13 +158,14 @@ struct ContentView: View {
                     let weekToken = try await FeishuAPI.shared.createWeekFolder(
                         parentToken: rootToken, weekName: weekFolder)
 
-                    // Create document
-                    try await FeishuAPI.shared.createDocument(
-                        folderToken: weekToken, title: title, content: text)
+                    // Create document and add content
+                    let documentId = try await FeishuAPI.shared.createDocument(
+                        folderToken: weekToken, title: documentTitle)
+                    try await FeishuAPI.shared.addDocumentContent(
+                        documentId: documentId, content: text)
                 } catch {
                     print("Feishu sync error:", error)
                 }
-                // }
             }
 
             if trigger == .addNew {
@@ -446,15 +449,15 @@ struct EditorView: View {
                     .padding(.top, 8)
                     .focused($isEditing)
                     .onAppear {
-                        print("确保视图出现后立即获取焦点")
+//                        print("确保视图出现后立即获取焦点")
                         // 确保视图出现后立即获取焦点
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             isEditing = true
                         }
                     }
                     .onHover { _ in
-                        print("确保 hover 后立即获取焦点")
-                        // 确保视图出现后立即��取焦点
+//                        print("确保 hover 后立即获取焦点")
+                        // 确保视图出现后立即获取焦点
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             isEditing = true
                         }
@@ -665,7 +668,7 @@ struct EditorView: View {
 //            return
 //        }
 //
-//        // ���查点击位置是否有链接
+//        // 检查点击位置是否有链接
 //        if let attr = attributedString().attribute(.link, at: index, effectiveRange: nil) as? String {
 //            if let url = URL(string: attr) {
 //                print("url is", url)
