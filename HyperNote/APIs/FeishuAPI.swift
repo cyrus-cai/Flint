@@ -41,6 +41,9 @@ public class FeishuAPI {
         if let refreshToken = refreshToken {
             defaults.set(refreshToken, forKey: kFeishuRefreshToken)
         }
+
+        // Start token refresh timer
+        startTokenRefreshTimer()
     }
 
     private func loadSavedToken() {
@@ -93,15 +96,14 @@ public class FeishuAPI {
         self.accessToken = nil
         self.isEnabled = false
 
+        tokenRefreshTimer?.invalidate()
+        tokenRefreshTimer = nil
+
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: kFeishuAccessToken)
         defaults.removeObject(forKey: kFeishuTokenExpiration)
-
-        // Don't clear refresh token as it's valid for 365 days
-        // Only clear it when:
-        // 1. User explicitly logs out
-        // 2. Server returns refresh token expired error (20037)
-        // 3. Server returns refresh token revoked error (20064)
+        // Keep the refresh token since it's valid for much longer
+        // defaults.removeObject(forKey: kFeishuRefreshToken)
     }
 
     func ensureRootFolder() async throws -> String {
@@ -700,6 +702,56 @@ public class FeishuAPI {
         }
 
         return nil
+    }
+
+    private func refreshTokenIfNeeded() async {
+        let defaults = UserDefaults.standard
+
+        guard let expirationDate = defaults.object(forKey: kFeishuTokenExpiration) as? Date,
+            let refreshToken = defaults.string(forKey: kFeishuRefreshToken)
+        else {
+            return
+        }
+
+        // If token will expire in less than 30 minutes, try to refresh
+        let thirtyMinutesFromNow = Date().addingTimeInterval(1800)  // 30 minutes in seconds
+
+        if expirationDate <= thirtyMinutesFromNow {
+            do {
+                let newTokens = try await FeishuAuthManager.refreshAccessToken(
+                    refreshToken: refreshToken)
+
+                // Configure with new tokens
+                self.configure(
+                    accessToken: newTokens.accessToken,
+                    expiresIn: newTokens.expiresIn,
+                    refreshToken: newTokens.refreshToken
+                )
+
+                print("✅ Successfully refreshed Feishu token")
+                print("📎 New token expires in: \(newTokens.expiresIn) seconds")
+            } catch {
+                print("❌ Failed to refresh token: \(error)")
+                if expirationDate <= Date() {
+                    self.clearToken()
+                }
+            }
+        }
+    }
+
+    private var tokenRefreshTimer: Timer?
+
+    private func startTokenRefreshTimer() {
+        // Cancel existing timer if any
+        tokenRefreshTimer?.invalidate()
+
+        // Check token status every 15 minutes
+        tokenRefreshTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) {
+            [weak self] _ in
+            Task {
+                await self?.refreshTokenIfNeeded()
+            }
+        }
     }
 }
 
