@@ -156,13 +156,16 @@ struct ContentView: View {
                         let remoteContent = try await FeishuAPI.shared.getDocumentContent(
                             documentId: documentId)
 
-                        // Compare content
-                        if remoteContent.trimmingCharacters(in: .whitespacesAndNewlines)
-                            != text.trimmingCharacters(in: .whitespacesAndNewlines)
+                        // Check if local content is an increment of remote content
+                        if text.contains(
+                            remoteContent.trimmingCharacters(in: .whitespacesAndNewlines))
                         {
-                            print("⚠️ Content mismatch detected - skipping Feishu sync")
-                            print("Local content length: \(text.count)")
-                            print("Remote content length: \(remoteContent.count)")
+                            // Local content contains all remote content - safe to sync
+                            try await FeishuAPI.shared.addDocumentContent(
+                                documentId: documentId, content: text)
+                        } else {
+                            print("⚠️ Content conflict detected - skipping Feishu sync")
+                            print("Local content may have conflicting changes with remote content")
                             return
                         }
                     }
