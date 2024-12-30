@@ -299,9 +299,19 @@ struct GeneralSettingsView: View {
                         Toggle("", isOn: $launchAtLogin)
                             .onChange(of: launchAtLogin) { newValue in
                                 if newValue {
+                                    // First set the toggle to true
+                                    launchAtLogin = true
+
+                                    // Then request permission
                                     loginManager.requestLaunchPermission { granted in
-                                        if !granted {
-                                            launchAtLogin = false
+                                        if granted {
+                                            // If granted, enable launch at login
+                                            loginManager.enableLaunchAtLogin()
+                                        } else {
+                                            // If not granted, set toggle back to false
+                                            DispatchQueue.main.async {
+                                                launchAtLogin = false
+                                            }
                                         }
                                     }
                                 } else {
