@@ -276,10 +276,15 @@ struct SettingsView: View {
 
 struct GeneralSettingsView: View {
     @StateObject private var viewModel = GeneralSettingsViewModel()
+    @AppStorage("launchAtLogin") private var launchAtLogin = false
+    @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
+
+    private let loginManager = LoginManager.shared
 
     var body: some View {
         Form {
             VStack(alignment: .leading, spacing: 16) {
+
                 Section("Account") {
                     HStack {
                         Label("Account", systemImage: "envelope")
@@ -288,6 +293,25 @@ struct GeneralSettingsView: View {
                             .foregroundColor(.gray)
                     }
 
+                    HStack {
+                        Label("Launch at login", systemImage: "power")
+                        Spacer()
+                        Toggle("", isOn: $launchAtLogin)
+                            .onChange(of: launchAtLogin) { newValue in
+                                if newValue {
+                                    loginManager.requestLaunchPermission { granted in
+                                        if !granted {
+                                            launchAtLogin = false
+                                        }
+                                    }
+                                } else {
+                                    loginManager.disableLaunchAtLogin()
+                                }
+                            }
+                    }
+                }
+
+                Section("Plan") {
                     HStack {
                         Label("Plan", systemImage: "plus.square")
                         Spacer()

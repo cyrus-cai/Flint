@@ -1,4 +1,6 @@
+import AppKit
 import Carbon
+import ServiceManagement
 import SwiftUI
 
 @main
@@ -65,6 +67,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // 设置快捷键
         setupGlobalHotkey()
+
+        // Check if we should request launch permission
+        if UserDefaults.standard.bool(forKey: "launchAtLogin")
+            && !UserDefaults.standard.bool(forKey: "hasRequestedPermission")
+        {
+            LoginManager.shared.requestLaunchPermission { granted in
+                if !granted {
+                    UserDefaults.standard.set(false, forKey: "launchAtLogin")
+                }
+                UserDefaults.standard.set(true, forKey: "hasRequestedPermission")
+            }
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool)
