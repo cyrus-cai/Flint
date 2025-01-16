@@ -96,16 +96,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupGlobalHotkey() {
-        // 创建快捷键：Option + C
         hotKey = HotKey(
             keyCode: UInt32(kVK_ANSI_C), modifiers: UInt32(optionKey),
             handler: { [weak self] in
-                let wasHidden = self?.windowController?.window?.isVisible == false
-
-                self?.toggleWindow()
-                if wasHidden {
-                    HotkeyCounter.shared.increment()
-                    print("Shortcut count increased - window was hidden")
+                if HotkeyCounter.shared.todayCount >= 25 {
+                    // Show limit exceeded window
+                    let limitExceededWindow = LimitExceededWindowController()
+                    limitExceededWindow.showWindow(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                } else {
+                    let wasHidden = self?.windowController?.window?.isVisible == false
+                    self?.toggleWindow()
+                    if wasHidden {
+                        HotkeyCounter.shared.increment()
+                        print("Shortcut count increased - window was hidden")
+                    }
                 }
             })
     }
