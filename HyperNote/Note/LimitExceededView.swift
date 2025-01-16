@@ -88,13 +88,20 @@ class LimitExceededWindowController: NSWindowController {
 
         super.init(window: window)
 
-        // Center the window vertically and horizontally on the screen
+        // Center the window both horizontally and vertically on the screen
         if let screen = NSScreen.main {
-            let screenFrame = screen.visibleFrame
+            let screenFrame = screen.frame
             let windowFrame = window.frame
-            let newOriginX = screenFrame.midX - windowFrame.width / 2
-            let newOriginY = screenFrame.midY - windowFrame.height / 2
-            window.setFrameOrigin(NSPoint(x: newOriginX, y: newOriginY))
+
+            // Calculate center position
+            let centerX = screenFrame.midX
+            let centerY = screenFrame.midY
+
+            // Calculate window origin to achieve center position
+            let windowX = centerX - (windowFrame.width / 2) - centerX / 4
+            let windowY = centerY - (windowFrame.height / 2)
+
+            window.setFrameOrigin(NSPoint(x: windowX, y: windowY))
         }
     }
 
