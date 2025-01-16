@@ -171,19 +171,16 @@
 			isa = PBXGroup;
 			children = (
 				A35B0BAF2D2019BE00E277FA /* APIs */,
+				A398BF822D3966CB00187871 /* Configs */,
+				A398BF812D3966A400187871 /* Settings */,
+				A398BF802D39666F00187871 /* Note */,
 				A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */,
 				A3243A372CF0E6EC009D39FF /* Utils */,
-				A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */,
 				A37D47342CDE6ECE00B2E727 /* Hyper_NoteApp.swift */,
-				A37D47362CDE6ECE00B2E727 /* ContentView.swift */,
+				A30FF38F2CE084E10034F9DC /* MainWindowController.swift */,
 				A37D47382CDE6ECF00B2E727 /* Assets.xcassets */,
 				A37D473D2CDE6ECF00B2E727 /* Hyper_Note.entitlements */,
 				A37D473A2CDE6ECF00B2E727 /* Preview Content */,
-				A30FF38F2CE084E10034F9DC /* MainWindowController.swift */,
-				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
-				A3B1E21D2CF3330700C75E71 /* SettingsView.swift */,
-				A398BF7C2D39434600187871 /* LimitExceededView.swift */,
-				A398BF7E2D394A6D00187871 /* AppConfig.swift */,
 			);
 			path = HyperNote;
 			sourceTree = "<group>";
@@ -211,6 +208,33 @@
 				A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */,
 			);
 			path = HyperNoteUITests;
+			sourceTree = "<group>";
+		};
+		A398BF802D39666F00187871 /* Note */ = {
+			isa = PBXGroup;
+			children = (
+				A398BF7C2D39434600187871 /* LimitExceededView.swift */,
+				A37D47362CDE6ECE00B2E727 /* ContentView.swift */,
+				A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */,
+			);
+			path = Note;
+			sourceTree = "<group>";
+		};
+		A398BF812D3966A400187871 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A3B1E21D2CF3330700C75E71 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A398BF822D3966CB00187871 /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				A398BF7E2D394A6D00187871 /* AppConfig.swift */,
+				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
+			);
+			path = Configs;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
