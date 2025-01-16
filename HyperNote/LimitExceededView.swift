@@ -15,29 +15,35 @@ struct LimitExceededView: View {
                 .font(.system(size: 40))
                 .foregroundColor(.yellow)
 
-            Text("ShortCut Daily Limit Reached")
+            Text("Limit Reached")
                 .font(.headline)
 
             Text(
-                "Reached daily limit of \(AppConfig.QuickWakeup.dailyLimit) quick wake-ups."
+                "Reached daily limit of \(AppConfig.QuickWakeup.dailyLimit) shortcut wake-ups."
+            )
+            .multilineTextAlignment(.center)
+            .foregroundColor(.secondary)
+            
+            Text(
+                "You can still launch normally from dock."
             )
             .multilineTextAlignment(.center)
             .foregroundColor(.secondary)
 
-            Button("Upgrade to Hyper+") {
+            Button("Unlimited on Hyper+") {
                 // Handle upgrade action
             }
             .buttonStyle(.borderedProminent)
             .tint(.purple)
         }
         .padding()
-        .frame(width: 300)
+        .frame(width: 360)
     }
 }
 
 class LimitExceededWindowController: NSWindowController {
     private let defaultWidth: CGFloat = 300
-    private let defaultHeight: CGFloat = 200
+    private let defaultHeight: CGFloat = 280
 
     init() {
         let window = NSWindow(
