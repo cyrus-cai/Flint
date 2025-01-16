@@ -114,56 +114,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         windowController?.toggleWindow()
     }
 
-    func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first else { return }
-
-        // Check if this is an OAuth callback
-        if url.scheme == "hypernote" && url.host == "oauth" && url.path == "/callback" {
-            if let code = FeishuAuthManager.handleAuthCallback(url: url) {
-                // Successfully got the authorization code
-                print("✅ Received auth code:", code)
-
-                // Exchange the code for access token
-                Task {
-                    do {
-                        let tokenResponse = try await FeishuAuthManager.getAccessToken(code: code)
-
-                        // Configure FeishuAPI with the new access token and expiration
-                        FeishuAPI.shared.configure(
-                            accessToken: tokenResponse.accessToken,
-                            expiresIn: tokenResponse.expiresIn
-                        )
-                        FeishuAPI.shared.isEnabled = true
-
-                        // Show success notification
-                        DispatchQueue.main.async {
-                            let notification = NSUserNotification()
-                            notification.title = "Authorization Successful"
-                            notification.informativeText = "Successfully connected to Feishu"
-                            NSUserNotificationCenter.default.deliver(notification)
-                        }
-                    } catch {
-                        print("❌ Failed to get access token:", error)
-
-                        // Show error notification
-                        DispatchQueue.main.async {
-                            let notification = NSUserNotification()
-                            notification.title = "Authorization Failed"
-                            notification.informativeText =
-                                "Failed to connect to Feishu: \(error.localizedDescription)"
-                            NSUserNotificationCenter.default.deliver(notification)
-                        }
-                    }
-                }
-            } else {
-                // Handle error
-                let notification = NSUserNotification()
-                notification.title = "Authorization Failed"
-                notification.informativeText = "Failed to connect to Feishu"
-                NSUserNotificationCenter.default.deliver(notification)
-            }
-        }
-    }
+    //    func application(_ application: NSApplication, open urls: [URL]) {
+    //        guard let url = urls.first else { return }
+    //
+    //        // Check if this is an OAuth callback
+    //        if url.scheme == "hypernote" && url.host == "oauth" && url.path == "/callback" {
+    //            if let code = FeishuAuthManager.handleAuthCallback(url: url) {
+    //                // Successfully got the authorization code
+    //                print("✅ Received auth code:", code)
+    //
+    //                // Exchange the code for access token
+    //                Task {
+    //                    do {
+    //                        let tokenResponse = try await FeishuAuthManager.getAccessToken(code: code)
+    //
+    //                        // Configure FeishuAPI with the new access token and expiration
+    //                        FeishuAPI.shared.configure(
+    //                            accessToken: tokenResponse.accessToken,
+    //                            expiresIn: tokenResponse.expiresIn
+    //                        )
+    //                        FeishuAPI.shared.isEnabled = true
+    //
+    //                        // Show success notification
+    //                        DispatchQueue.main.async {
+    //                            let notification = NSUserNotification()
+    //                            notification.title = "Authorization Successful"
+    //                            notification.informativeText = "Successfully connected to Feishu"
+    //                            NSUserNotificationCenter.default.deliver(notification)
+    //                        }
+    //                    } catch {
+    //                        print("❌ Failed to get access token:", error)
+    //
+    //                        // Show error notification
+    //                        DispatchQueue.main.async {
+    //                            let notification = NSUserNotification()
+    //                            notification.title = "Authorization Failed"
+    //                            notification.informativeText =
+    //                                "Failed to connect to Feishu: \(error.localizedDescription)"
+    //                            NSUserNotificationCenter.default.deliver(notification)
+    //                        }
+    //                    }
+    //                }
+    //            } else {
+    //                // Handle error
+    //                let notification = NSUserNotification()
+    //                notification.title = "Authorization Failed"
+    //                notification.informativeText = "Failed to connect to Feishu"
+    //                NSUserNotificationCenter.default.deliver(notification)
+    //            }
+    //        }
+    //    }
 }
 
 // MARK: - HotKey Implementation

@@ -183,9 +183,9 @@ struct SettingsView: View {
     @State private var showPathAlert = false
 
     // Feishu related settings
-    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
-    @State private var feishuAccessToken = ""
-    @State private var showFeishuTokenAlert = false
+    //    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
+    //    @State private var feishuAccessToken = ""
+    //    @State private var showFeishuTokenAlert = false
 
     let updater = AutoUpdater()
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
@@ -265,10 +265,15 @@ struct SettingsView: View {
                 selectCustomDirectory()
             }
         } message: {
-            Text("Float defaultly integrate with obsidian. Pick a folder in Obsidian dictionary.")
+            VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "Float defaultly integrates with Obsidian. Pick a folder in your Obsidian vault."
+                )
+            }
         }
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
+
     }
 }
 
@@ -383,65 +388,73 @@ struct IntegrationSettingsView: View {
                             showPathAlert = true
                         }
                 }
-                HStack {
+                VStack(alignment: .leading, spacing: 8) {
                     Button("Configure Obsidian folder") {
                         selectCustomDirectory()
                     }
 
-                    // Button(role: .destructive) {
-                    //     if let defaultURL = Foundation.FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                    //         FileManager.shared.setCustomDirectory(defaultURL)
-                    //         customPath = defaultURL.path
-                    //     }
-                    // } label: {
-                    //     Label("Reset", systemImage: "arrow.counterclockwise")
-                    // }
+                    // Image("obsidian-root-example")
+                    //     .resizable()
+                    //     .scaledToFit()
+                    //     .frame(maxHeight: 200)
+                    //     .cornerRadius(8)
+
+                    Button(role: .destructive) {
+                        if let defaultURL = Foundation.FileManager.default.urls(
+                            for: .documentDirectory, in: .userDomainMask
+                        ).first {
+                            FileManager.shared.setCustomDirectory(defaultURL)
+                            customPath = defaultURL.path
+                        }
+                    } label: {
+                        Label("Reset", systemImage: "arrow.counterclockwise")
+                    }
                 }
                 .padding(.leading, 20)
             }
 
-            HStack {
-                Image("feishu-icon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-                Text("Feishu(One-way synchronization)")
-                Spacer()
-                HStack(spacing: 8) {
-                    if UserDefaults.standard.string(forKey: "FeishuAccessToken") != nil,
-                        let expirationDate = UserDefaults.standard.object(
-                            forKey: "FeishuTokenExpiration") as? Date,
-                        expirationDate > Date()
-                    {
-                        // Green dot indicator
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 6, height: 6)
+            //            HStack {
+            //                Image("feishu-icon")
+            //                    .resizable()
+            //                    .aspectRatio(contentMode: .fit)
+            //                    .frame(width: 16, height: 16)
+            //                Text("Feishu(One-way synchronization)")
+            //                Spacer()
+            //                HStack(spacing: 8) {
+            //                    if UserDefaults.standard.string(forKey: "FeishuAccessToken") != nil,
+            //                        let expirationDate = UserDefaults.standard.object(
+            //                            forKey: "FeishuTokenExpiration") as? Date,
+            //                        expirationDate > Date()
+            //                    {
+            //                        // Green dot indicator
+            //                        Circle()
+            //                            .fill(Color.green)
+            //                            .frame(width: 6, height: 6)
+            //
+            //                        Text("Authorized")
+            //                            .foregroundColor(.secondary)
+            //                    }
+            //
+            //                    Button("Re-authorize Feishu") {
+            //                        if let authURL = FeishuAuthManager.generateAuthorizationURL() {
+            //                            NSWorkspace.shared.open(authURL)
+            //                        }
+            //                    }
+            //                    .buttonStyle(.borderedProminent)
+            //                }
+            //            }
 
-                        Text("Authorized")
-                            .foregroundColor(.secondary)
-                    }
-
-                    Button("Re-authorize Feishu") {
-                        if let authURL = FeishuAuthManager.generateAuthorizationURL() {
-                            NSWorkspace.shared.open(authURL)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-            }
-
-            HStack {
-                Image("notion-icon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-                Text("Notion")
-                Spacer()
-                Text("Coming soon")
-                    .foregroundColor(.gray)
-            }
-            .opacity(0.5)
+            //            HStack {
+            //                Image("notion-icon")
+            //                    .resizable()
+            //                    .aspectRatio(contentMode: .fit)
+            //                    .frame(width: 16, height: 16)
+            //                Text("Notion")
+            //                Spacer()
+            //                Text("Coming soon")
+            //                    .foregroundColor(.gray)
+            //            }
+            //            .opacity(0.5)
         }
     }
 }
