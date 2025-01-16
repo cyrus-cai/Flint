@@ -55,6 +55,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowController: MainWindowController?
     private var statusItem: NSStatusItem?
     private var hotKey: HotKey?
+    private var limitExceededWindow: LimitExceededWindowController?
     //    let hotkeyCounter = HotkeyCounter()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -100,10 +101,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             keyCode: UInt32(kVK_ANSI_C), modifiers: UInt32(optionKey),
             handler: { [weak self] in
                 if HotkeyCounter.shared.todayCount >= 25 {
-                    // Show limit exceeded window
-                    let limitExceededWindow = LimitExceededWindowController()
-                    limitExceededWindow.showWindow(nil)
-                    NSApp.activate(ignoringOtherApps: true)
+                    // 检查是否已经显示了限制窗口
+                    if self?.limitExceededWindow == nil {
+                        // 创建并显示限制窗口
+                        let window = LimitExceededWindowController()
+                        window.showWindow(nil)
+                        NSApp.activate(ignoringOtherApps: true)
+                        self?.limitExceededWindow = window
+
+                        // 添加窗口关闭的观察
+                        NotificationCenter.default.addObserver(
+                            self as Any,
+                            selector: #selector(self?.limitExceededWindowDidClose),
+                            name: NSWindow.willCloseNotification,
+                            object: window.window
+                        )
+                    }
                 } else {
                     let wasHidden = self?.windowController?.window?.isVisible == false
                     self?.toggleWindow()
@@ -113,6 +126,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             })
+    }
+
+    @objc private func limitExceededWindowDidClose(_ notification: Notification) {
+        limitExceededWindow = nil
+        NotificationCenter.default.removeObserver(
+            self,
+            name: NSWindow.willCloseNotification,
+            object: notification.object
+        )
     }
 
     @objc func toggleWindow() {
