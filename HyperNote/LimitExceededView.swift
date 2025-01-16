@@ -15,12 +15,14 @@ struct LimitExceededView: View {
                 .font(.system(size: 40))
                 .foregroundColor(.yellow)
 
-            Text("Daily Limit Reached")
+            Text("ShortCut Daily Limit Reached")
                 .font(.headline)
 
-            Text("You've reached the daily limit of 25 quick wake-ups.")
-                .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
+            Text(
+                "Reached daily limit of \(AppConfig.QuickWakeup.dailyLimit) quick wake-ups."
+            )
+            .multilineTextAlignment(.center)
+            .foregroundColor(.secondary)
 
             Button("Upgrade to Hyper+") {
                 // Handle upgrade action

@@ -100,7 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hotKey = HotKey(
             keyCode: UInt32(kVK_ANSI_C), modifiers: UInt32(optionKey),
             handler: { [weak self] in
-                if HotkeyCounter.shared.todayCount >= 25 {
+                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit {
                     // 检查是否已经显示了限制窗口
                     if self?.limitExceededWindow == nil {
                         // 创建并显示限制窗口

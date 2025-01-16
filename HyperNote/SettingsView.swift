@@ -473,7 +473,8 @@ struct HotkeySettingsView: View {
                 }
                 HStack {
                     Spacer()
-                    Text("Today used:\(counter.todayCount)/25").opacity(0.5)
+                    Text("Today used:\(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)")
+                        .opacity(0.5)
                     Button("Unlimited in Hyper +") {
                         // Handle upgrade action
                     }

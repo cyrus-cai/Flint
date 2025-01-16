@@ -27,6 +27,7 @@
 		A37D47532CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */; };
 		A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3847FA52CFF3C3300722D35 /* SettingsListView.swift */; };
 		A398BF7D2D39434600187871 /* LimitExceededView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398BF7C2D39434600187871 /* LimitExceededView.swift */; };
+		A398BF7F2D394A6D00187871 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398BF7E2D394A6D00187871 /* AppConfig.swift */; };
 		A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */; };
 		A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */; };
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
@@ -74,6 +75,7 @@
 		A37D47522CDE6ECF00B2E727 /* Hyper_NoteUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hyper_NoteUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		A3847FA52CFF3C3300722D35 /* SettingsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListView.swift; sourceTree = "<group>"; };
 		A398BF7C2D39434600187871 /* LimitExceededView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitExceededView.swift; sourceTree = "<group>"; };
+		A398BF7E2D394A6D00187871 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandler.swift; sourceTree = "<group>"; };
 		A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureManager.swift; sourceTree = "<group>"; };
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
 				A3B1E21D2CF3330700C75E71 /* SettingsView.swift */,
 				A398BF7C2D39434600187871 /* LimitExceededView.swift */,
+				A398BF7E2D394A6D00187871 /* AppConfig.swift */,
 			);
 			path = HyperNote;
 			sourceTree = "<group>";
@@ -357,6 +360,7 @@
 				A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */,
 				A35B0BAE2D2019B700E277FA /* FeishuAPI.swift in Sources */,
 				A37D47352CDE6ECE00B2E727 /* Hyper_NoteApp.swift in Sources */,
+				A398BF7F2D394A6D00187871 /* AppConfig.swift in Sources */,
 				A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */,
 				A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */,
 				A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */,
