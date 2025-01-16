@@ -18,9 +18,11 @@ class HotkeyCounter: ObservableObject {
     static let shared = HotkeyCounter()
 
     @Published private(set) var todayCount: Int
+    private var midnightTimer: Timer?
 
     private init() {
         self.todayCount = Self.loadTodayCount()
+        scheduleMidnightCheck()
     }
 
     private static func loadTodayCount() -> Int {
@@ -37,6 +39,35 @@ class HotkeyCounter: ObservableObject {
         return !Calendar.current.isDate(lastDate, inSameDayAs: Date())
     }
 
+    private func scheduleMidnightCheck() {
+        // 取消现有的定时器
+        midnightTimer?.invalidate()
+
+        // 计算下一个午夜的时间
+        let calendar = Calendar.current
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()),
+            let nextMidnight = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow)
+        else {
+            return
+        }
+
+        // 设置新的定时器
+        midnightTimer = Timer(fire: nextMidnight, interval: 86400, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.resetCount()
+            }
+        }
+
+        // 将定时器添加到 RunLoop
+        RunLoop.main.add(midnightTimer!, forMode: .common)
+    }
+
+    private func resetCount() {
+        todayCount = 0
+        UserDefaults.standard.set(0, forKey: "hotkeyCount")
+        UserDefaults.standard.set(Date(), forKey: "lastHotkeyDate")
+    }
+
     func increment() {
         if Self.isNewDay() {
             todayCount = 1
@@ -47,6 +78,10 @@ class HotkeyCounter: ObservableObject {
         // 保存到 UserDefaults
         UserDefaults.standard.set(todayCount, forKey: "hotkeyCount")
         UserDefaults.standard.set(Date(), forKey: "lastHotkeyDate")
+    }
+
+    deinit {
+        midnightTimer?.invalidate()
     }
 }
 
