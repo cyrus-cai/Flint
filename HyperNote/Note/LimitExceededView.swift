@@ -23,7 +23,7 @@ struct LimitExceededView: View {
             )
             .multilineTextAlignment(.center)
             .foregroundColor(.secondary)
-            
+
             Text(
                 "You can still launch normally from dock."
             )
@@ -58,7 +58,6 @@ class LimitExceededWindowController: NSWindowController {
         )
 
         window.title = "Daily Limit Reached"
-        window.center()
         window.isReleasedWhenClosed = false
         window.level = .floating
 
@@ -88,6 +87,15 @@ class LimitExceededWindowController: NSWindowController {
         }
 
         super.init(window: window)
+
+        // Center the window vertically and horizontally on the screen
+        if let screen = NSScreen.main {
+            let screenFrame = screen.visibleFrame
+            let windowFrame = window.frame
+            let newOriginX = screenFrame.midX - windowFrame.width / 2
+            let newOriginY = screenFrame.midY - windowFrame.height / 2
+            window.setFrameOrigin(NSPoint(x: newOriginX, y: newOriginY))
+        }
     }
 
     required init?(coder: NSCoder) {
