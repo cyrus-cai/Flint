@@ -50,6 +50,7 @@ class LimitExceededWindowController: NSWindowController {
         window.title = "Daily Limit Reached"
         window.center()
         window.isReleasedWhenClosed = false
+        window.level = .floating
 
         let hostingController = NSHostingController(rootView: LimitExceededView())
         window.contentViewController = hostingController
