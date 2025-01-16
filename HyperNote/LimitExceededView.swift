@@ -42,7 +42,11 @@ class LimitExceededWindowController: NSWindowController {
     init() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: defaultWidth, height: defaultHeight),
-            styleMask: [.titled, .closable],
+            styleMask: [
+                .titled,
+                .closable,
+                .fullSizeContentView,
+            ],
             backing: .buffered,
             defer: false
         )
@@ -52,8 +56,30 @@ class LimitExceededWindowController: NSWindowController {
         window.isReleasedWhenClosed = false
         window.level = .floating
 
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.backgroundColor = NSColor.windowBackgroundColor
+
+        let visualEffectView = NSVisualEffectView()
+        visualEffectView.material = .sidebar
+        visualEffectView.state = .active
+        visualEffectView.blendingMode = .behindWindow
+
         let hostingController = NSHostingController(rootView: LimitExceededView())
         window.contentViewController = hostingController
+
+        if let contentView = window.contentView {
+            visualEffectView.frame = contentView.bounds
+            contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
+
+            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            ])
+        }
 
         super.init(window: window)
     }
