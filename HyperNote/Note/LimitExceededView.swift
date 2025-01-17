@@ -98,7 +98,7 @@ class LimitExceededWindowController: NSWindowController {
             let centerY = screenFrame.midY
 
             // Calculate window origin to achieve center position
-            let windowX = centerX - (windowFrame.width / 2) - centerX / 4
+            let windowX = centerX - (windowFrame.width / 2) - 180
             let windowY = centerY - (windowFrame.height / 2)
 
             window.setFrameOrigin(NSPoint(x: windowX, y: windowY))
