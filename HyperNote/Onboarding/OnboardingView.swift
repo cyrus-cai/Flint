@@ -10,7 +10,7 @@ import SwiftUI
 
 struct OnboardingView: View {
     @Binding var isFirstLaunch: Bool
-    
+
     var body: some View {
         VStack(spacing: 30) {
             // Header
@@ -18,16 +18,16 @@ struct OnboardingView: View {
                 Image(systemName: "note.text")
                     .font(.system(size: 60))
                     .foregroundColor(.purple)
-                
+
                 Text("Welcome to HyperNote")
                     .font(.title)
                     .bold()
-                
+
                 Text("Your quick capture companion")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             // Features
             VStack(alignment: .leading, spacing: 20) {
                 FeatureRow(
@@ -35,13 +35,13 @@ struct OnboardingView: View {
                     title: "Quick Wake-up",
                     description: "Press ⌥ + C to quickly capture your thoughts"
                 )
-                
+
                 FeatureRow(
                     icon: "clock",
                     title: "History Access",
                     description: "Press ⌘ + H to access your note history"
                 )
-                
+
                 FeatureRow(
                     icon: "link",
                     title: "Smart Links",
@@ -49,11 +49,22 @@ struct OnboardingView: View {
                 )
             }
             .padding(.horizontal)
-            
+
             // Get Started Button
             Button("Get Started") {
                 withAnimation {
                     isFirstLaunch = false
+                    // 关闭引导页后打开主窗口
+                    DispatchQueue.main.async {
+                        // 关闭当前引导窗口
+                        if let window = NSApplication.shared.windows.first(where: {
+                            $0.title == "Welcome to HyperNote"
+                        }) {
+                            window.close()
+                        }
+                        // 创建并显示主窗口
+                        WindowManager.shared.createNewWindow()
+                    }
                 }
             }
             .buttonStyle(.borderedProminent)
@@ -69,18 +80,18 @@ struct FeatureRow: View {
     let icon: String
     let title: String
     let description: String
-    
+
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.system(size: 24))
                 .foregroundColor(.purple)
                 .frame(width: 32)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
-                
+
                 Text(description)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
