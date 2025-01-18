@@ -94,12 +94,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     //    let hotkeyCounter = HotkeyCounter()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)
 
-        // 初始化主窗口
-        setupMainWindow()
+        // 检查是否需要显示引导页
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+
+        if hasCompletedOnboarding {
+            // 如果已完成引导，正常初始化
+            setupMainWindow()
+        } else {
+            // 如果未完成引导，只显示引导页
+            WindowManager.shared.showOnboardingIfNeeded()
+        }
 
         // 设置快捷键
         setupGlobalHotkey()
@@ -115,8 +122,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 UserDefaults.standard.set(true, forKey: "hasRequestedPermission")
             }
         }
-
-        WindowManager.shared.showOnboardingIfNeeded()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool)
