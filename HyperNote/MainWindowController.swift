@@ -32,6 +32,18 @@ class WindowManager {
             windows.remove(at: index)
         }
     }
+
+    func showOnboardingIfNeeded() {
+        
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        print(hasCompletedOnboarding) // 打印出布尔值
+        
+        if !hasCompletedOnboarding {
+            let onboardingController = OnboardingWindowController()
+            onboardingController.showWindow(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
 }
 
 class SettingsWindowController: NSWindowController {

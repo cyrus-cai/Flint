@@ -115,6 +115,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 UserDefaults.standard.set(true, forKey: "hasRequestedPermission")
             }
         }
+
+        WindowManager.shared.showOnboardingIfNeeded()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool)

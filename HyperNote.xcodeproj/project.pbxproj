@@ -28,6 +28,8 @@
 		A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3847FA52CFF3C3300722D35 /* SettingsListView.swift */; };
 		A398BF7D2D39434600187871 /* LimitExceededView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398BF7C2D39434600187871 /* LimitExceededView.swift */; };
 		A398BF7F2D394A6D00187871 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398BF7E2D394A6D00187871 /* AppConfig.swift */; };
+		A3A50DA42D3AB27D00382A2A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A50DA32D3AB27D00382A2A /* OnboardingView.swift */; };
+		A3A50DA62D3AB2FD00382A2A /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */; };
 		A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */; };
 		A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */; };
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
@@ -76,6 +78,8 @@
 		A3847FA52CFF3C3300722D35 /* SettingsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListView.swift; sourceTree = "<group>"; };
 		A398BF7C2D39434600187871 /* LimitExceededView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitExceededView.swift; sourceTree = "<group>"; };
 		A398BF7E2D394A6D00187871 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		A3A50DA32D3AB27D00382A2A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindowController.swift; sourceTree = "<group>"; };
 		A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandler.swift; sourceTree = "<group>"; };
 		A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureManager.swift; sourceTree = "<group>"; };
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -170,6 +174,7 @@
 		A37D47332CDE6ECE00B2E727 /* HyperNote */ = {
 			isa = PBXGroup;
 			children = (
+				A3A50DA22D3AB13B00382A2A /* Onboarding */,
 				A35B0BAF2D2019BE00E277FA /* APIs */,
 				A398BF822D3966CB00187871 /* Configs */,
 				A398BF812D3966A400187871 /* Settings */,
@@ -235,6 +240,15 @@
 				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
 			);
 			path = Configs;
+			sourceTree = "<group>";
+		};
+		A3A50DA22D3AB13B00382A2A /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A3A50DA32D3AB27D00382A2A /* OnboardingView.swift */,
+				A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -377,6 +391,8 @@
 				A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */,
 				A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */,
 				A35B0BB12D201A1C00E277FA /* FeishuTokenGenerate.swift in Sources */,
+				A3A50DA62D3AB2FD00382A2A /* OnboardingWindowController.swift in Sources */,
+				A3A50DA42D3AB27D00382A2A /* OnboardingView.swift in Sources */,
 				A398BF7D2D39434600187871 /* LimitExceededView.swift in Sources */,
 				A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */,
 				A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */,
