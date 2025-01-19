@@ -113,9 +113,8 @@ struct OnboardingView: View {
                         Image(imageName)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 440, height: 320)
-                            .clipped()
-
+                            .frame(width: 460, height: 320)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                             .transition(.opacity)
                     }
                 }
