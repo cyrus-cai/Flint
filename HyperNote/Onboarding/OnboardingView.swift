@@ -119,7 +119,6 @@ struct OnboardingView: View {
                     }
                 }
                 .padding(40)
-                .background(Color(.windowBackgroundColor))
             }
 
             // Navigation buttons - 现在在底部，跨越整个宽度
