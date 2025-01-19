@@ -26,13 +26,13 @@ struct OnboardingView: View {
             detail: "",
             imageName: "quick-wake-demo"
         ),
-        OnboardingStep(
-            icon: "paperplane",
-            title: "Quick Publish",
-            description: "Press ⌘ + Enter or ⌘ + K to publish your note",
-            detail: "",
-            imageName: "quick-publish-demo"
-        ),
+        // OnboardingStep(
+        //     icon: "paperplane",
+        //     title: "Quick Publish",
+        //     description: "Press ⌘ + Enter or ⌘ + K to publish your note",
+        //     detail: "",
+        //     imageName: "quick-publish-demo"
+        // ),
         OnboardingStep(
             icon: "folder.badge.gearshape",
             title: "Configure Storage",
@@ -43,7 +43,7 @@ struct OnboardingView: View {
         ),
         OnboardingStep(
             icon: "star",
-            title: "Unlock Pro Features",
+            title: "Get Pro",
             description: "Get more with HyperNote Pro",
             detail: "",
             imageName: "pro-features-demo"
