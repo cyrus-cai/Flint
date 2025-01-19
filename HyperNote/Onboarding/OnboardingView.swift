@@ -26,17 +26,18 @@ struct OnboardingView: View {
             detail: "",
             imageName: "quick-wake-demo"
         ),
-        // OnboardingStep(
-        //     icon: "paperplane",
-        //     title: "Quick Publish",
-        //     description: "Press ⌘ + Enter or ⌘ + K to publish your note",
-        //     detail: "",
-        //     imageName: "quick-publish-demo"
-        // ),
+        OnboardingStep(
+            icon: "lock",
+            title: "Local and private",
+            description: "All your notes are stored locally",
+            detail: "",
+            hasAction: true,
+            imageName: "local-private-demo"
+        ),
         OnboardingStep(
             icon: "folder.badge.gearshape",
-            title: "Configure Storage",
-            description: "Set up your Obsidian vault location",
+            title: "Select folder",
+            description: "Reccomend to select a folder under your Obsidian vault",
             detail: "",
             hasAction: true,
             imageName: "storage-config-demo"
@@ -94,13 +95,13 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
 
                     // Action button (Configure Vault)
-                    if steps[currentStep].hasAction {
-                        Button("Configure Vault") {
-                            WindowManager.shared.createSettingsWindow()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.purple)
-                    }
+                    // if steps[currentStep].hasAction {
+                    //     Button("Configure Vault") {
+                    //         WindowManager.shared.createSettingsWindow()
+                    //     }
+                    //     .buttonStyle(.borderedProminent)
+                    //     .tint(.purple)
+                    // }
 
                     Spacer()
                 }
@@ -121,7 +122,7 @@ struct OnboardingView: View {
                 .padding(40)
             }
 
-            // Navigation buttons - 现在在底部，跨越整个宽度
+            // Navigation buttons
             HStack {
                 if currentStep > 0 {
                     Button("Previous") {
@@ -135,25 +136,61 @@ struct OnboardingView: View {
 
                 Spacer()
 
-                Button(currentStep == steps.count - 1 ? "Start HyperNote" : "Next Step") {
-                    if currentStep == steps.count - 1 {
-                        isFirstLaunch = false
-                        if let window = NSApplication.shared.windows.first(where: {
-                            $0.title == "Welcome to HyperNote"
-                        }) {
-                            window.close()
-                        }
-                        WindowManager.shared.createNewWindow()
-                    } else {
+                // Show Skip and Configure Vault buttons only for the Select folder step
+                if currentStep == 2 {  // Index of "Select folder" step
+                    Button("Skip") {
                         slideDirection = .right
                         withAnimation {
                             currentStep += 1
                         }
                     }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 8)
+
+                    Button("Configure Vault") {
+                        let openPanel = NSOpenPanel()
+                        openPanel.canChooseDirectories = true
+                        openPanel.canChooseFiles = false
+                        openPanel.allowsMultipleSelection = false
+                        openPanel.title = "Select Notes Directory"
+
+                        if openPanel.runModal() == .OK {
+                            if let selectedPath = openPanel.url {
+                                // Set new directory
+                                FileManager.shared.setCustomDirectory(selectedPath)
+                                // After configuring, move to next step
+                                slideDirection = .right
+                                withAnimation {
+                                    currentStep += 1
+                                }
+                            }
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.purple)
+                    .controlSize(.large)
+                } else {
+                    // For other steps, show the regular Next/Start button
+                    Button(currentStep == steps.count - 1 ? "Start HyperNote" : "Next Step") {
+                        if currentStep == steps.count - 1 {
+                            isFirstLaunch = false
+                            if let window = NSApplication.shared.windows.first(where: {
+                                $0.title == "Welcome to HyperNote"
+                            }) {
+                                window.close()
+                            }
+                            WindowManager.shared.createNewWindow()
+                        } else {
+                            slideDirection = .right
+                            withAnimation {
+                                currentStep += 1
+                            }
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.purple)
+                    .controlSize(.large)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.purple)
-                .controlSize(.large)
             }
             .padding(.horizontal, 40)
             .padding(.bottom, 40)
