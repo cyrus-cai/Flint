@@ -137,7 +137,7 @@ struct OnboardingView: View {
                 Spacer()
 
                 // Show Skip and Configure Vault buttons only for the Select folder step
-                if currentStep == 2 {  // Index of "Select folder" step
+                if currentStep == 2 {  // Select folder step
                     Button("Skip") {
                         slideDirection = .right
                         withAnimation {
@@ -156,14 +156,30 @@ struct OnboardingView: View {
 
                         if openPanel.runModal() == .OK {
                             if let selectedPath = openPanel.url {
-                                // Set new directory
                                 FileManager.shared.setCustomDirectory(selectedPath)
-                                // After configuring, move to next step
                                 slideDirection = .right
                                 withAnimation {
                                     currentStep += 1
                                 }
                             }
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.purple)
+                    .controlSize(.large)
+                } else if currentStep == 3 {  // Get Pro step
+                    Button("Skip") {
+                        slideDirection = .right
+                        withAnimation {
+                            currentStep += 1
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 8)
+
+                    Button("Get Pro") {
+                        if let url = URL(string: "https://google.com") {
+                            NSWorkspace.shared.open(url)
                         }
                     }
                     .buttonStyle(.borderedProminent)
