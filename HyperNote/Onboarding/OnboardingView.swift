@@ -37,8 +37,8 @@ struct OnboardingView: View {
         OnboardingStep(
             icon: "folder.badge.gearshape",
             title: "Select folder",
-            description: "Reccomend to select a folder under your Obsidian vault",
-            detail: "",
+            description: "Reccomend to select your Obsidian vault",
+            detail: "So HyperNote can work with your Obsidian",
             hasAction: true,
             imageName: "storage-config-demo"
         ),
