@@ -388,27 +388,30 @@ struct IntegrationSettingsView: View {
                             showPathAlert = true
                         }
                 }
-                VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
                     Button("Configure Obsidian folder") {
                         selectCustomDirectory()
                     }
 
-                    // Image("obsidian-root-example")
-                    //     .resizable()
-                    //     .scaledToFit()
-                    //     .frame(maxHeight: 200)
-                    //     .cornerRadius(8)
-
-                    Button(role: .destructive) {
-                        if let defaultURL = Foundation.FileManager.default.urls(
-                            for: .documentDirectory, in: .userDomainMask
-                        ).first {
-                            FileManager.shared.setCustomDirectory(defaultURL)
-                            customPath = defaultURL.path
-                        }
-                    } label: {
-                        Label("Reset", systemImage: "arrow.counterclockwise")
+                    // Add current path display
+                    if FileManager.shared.isPathConfigured {
+                        Text(customPath)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
                     }
+
+                    // Button(role: .destructive) {
+                    //     if let defaultURL = Foundation.FileManager.default.urls(
+                    //         for: .documentDirectory, in: .userDomainMask
+                    //     ).first {
+                    //         FileManager.shared.setCustomDirectory(defaultURL)
+                    //         customPath = defaultURL.path
+                    //     }
+                    // } label: {
+                    //     Label("Reset", systemImage: "arrow.counterclockwise")
+                    // }
                 }
                 .padding(.leading, 20)
             }
