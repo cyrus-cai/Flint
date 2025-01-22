@@ -399,16 +399,16 @@ struct IntegrationSettingsView: View {
                     //     .frame(maxHeight: 200)
                     //     .cornerRadius(8)
 
-                    Button(role: .destructive) {
-                        if let defaultURL = Foundation.FileManager.default.urls(
-                            for: .documentDirectory, in: .userDomainMask
-                        ).first {
-                            FileManager.shared.setCustomDirectory(defaultURL)
-                            customPath = defaultURL.path
-                        }
-                    } label: {
-                        Label("Reset", systemImage: "arrow.counterclockwise")
-                    }
+                    // Button(role: .destructive) {
+                    //     if let defaultURL = Foundation.FileManager.default.urls(
+                    //         for: .documentDirectory, in: .userDomainMask
+                    //     ).first {
+                    //         FileManager.shared.setCustomDirectory(defaultURL)
+                    //         customPath = defaultURL.path
+                    //     }
+                    // } label: {
+                    //     Label("Reset", systemImage: "arrow.counterclockwise")
+                    // }
                 }
                 .padding(.leading, 20)
             }
