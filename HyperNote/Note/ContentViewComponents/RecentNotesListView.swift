@@ -120,6 +120,37 @@ class RecentNotesViewModel: ObservableObject {
         }
     }
 
+    func archiveNote(_ note: RecentNote) {
+        do {
+            let fileToArchive = note.fileURL
+            print("Attempting to archive file at: \(fileToArchive.path)")
+
+            // Verify file exists
+            let fileManager = FileManager.shared
+            guard fileManager.fm.fileExists(atPath: fileToArchive.path) else {
+                print("File does not exist at path: \(fileToArchive.path)")
+                return
+            }
+
+            // Archive the file
+            try fileManager.archiveNote(at: fileToArchive)
+
+            // Remove from memory
+            notes.removeAll { $0.fileURL == note.fileURL }
+
+            // Update selection state
+            updateSelectionAfterDeletion()
+
+            // Refresh notes list
+            notes = FileManager.getRecentNotes()
+
+        } catch {
+            print("Error archiving note: \(error)")
+            print("File path: \(note.fileURL.path)")
+            print("Error details: \(error.localizedDescription)")
+        }
+    }
+
     private func updateSelectionAfterDeletion() {
         // 如果过滤后的列表为空，重置选择
         if filteredNotes.isEmpty {
@@ -279,7 +310,7 @@ struct RecentNotesListView: View {
                     if let currentIndex = viewModel.currentNoteIndex {
                         let currentNote = viewModel.filteredNotes[currentIndex]
                         withAnimation {  // 添加动画
-                            viewModel.deleteNote(currentNote)
+                            viewModel.archiveNote(currentNote)
                         }
 
                     }
@@ -382,7 +413,7 @@ struct RecentNotesListView: View {
                                             },
                                             onDelete: {
                                                 withAnimation {
-                                                    viewModel.deleteNote(note)
+                                                    viewModel.archiveNote(note)
                                                 }
                                             },
                                             onHover: { isHovered in
