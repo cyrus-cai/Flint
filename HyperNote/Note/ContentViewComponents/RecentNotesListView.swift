@@ -600,7 +600,7 @@ struct NoteRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 2) {
             Button(action: onTap) {
                 VStack(alignment: .leading, spacing: 2) {
                     let content = getMatchingContent()
@@ -645,10 +645,18 @@ struct NoteRow: View {
                 Button(action: {}) {
                     Image(systemName: "info.circle")
                         .font(.system(size: 16))
-                        .foregroundColor(isInfoHovered ? .purple : .primary)
-                        .frame(width: 16, height: 16)  // 固定尺寸框架
+                        .foregroundColor(.primary)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            isInfoHovered
+                                ? (colorScheme == .dark
+                                    ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                : Color.clear)
+                )
                 .onHover { hovering in
                     isInfoHovered = hovering
                     if hovering {
@@ -669,33 +677,47 @@ struct NoteRow: View {
                 .popover(isPresented: $showPreview, arrowEdge: .leading) {
                     NotePreviewView(content: note.content)
                 }
-                .padding(.horizontal, 6)
 
                 // Copy button
                 Button(action: copyContent) {
                     Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
                         .font(.system(size: 13))
-                        .foregroundColor(isHoveringCopy ? .purple : .primary)
+                        .foregroundColor(.primary)
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(PlainButtonStyle())
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            isHoveringCopy
+                                ? (colorScheme == .dark
+                                    ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                : Color.clear)
+                )
                 .onHover { hovering in
                     isHoveringCopy = hovering
                 }
-                .transition(.opacity)
 
                 // Delete button
                 Button(action: onDelete) {
-                    Image(systemName: "trash")
+                    Image(systemName: "archivebox")
                         .font(.system(size: 13))
-                        .foregroundColor(isDeleteHovered ? .red : .primary)
-                        .padding(.horizontal, 2)
+                        .foregroundColor(.primary)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            isDeleteHovered
+                                ? (colorScheme == .dark
+                                    ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                : Color.clear)
+                )
                 .onHover { hovering in
                     isDeleteHovered = hovering
                 }
-                .transition(.opacity)
             }
         }
         .padding(.horizontal, 12)
