@@ -419,6 +419,8 @@ struct NoteRow: View {
     let onDelete: () -> Void
     let onHover: (Bool) -> Void
     let searchText: String
+    @State private var isCopied = false
+    @State private var isHoveringCopy = false
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDeleteHovered = false
@@ -509,8 +511,25 @@ struct NoteRow: View {
         return (title, matchingContexts.isEmpty ? nil : matchingContexts)
     }
 
+    private func copyContent() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(note.content, forType: .string)
+
+        // Trigger animation
+        withAnimation {
+            isCopied = true
+        }
+
+        // Reset after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                isCopied = false
+            }
+        }
+    }
+
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             Button(action: onTap) {
                 VStack(alignment: .leading, spacing: 2) {
                     let content = getMatchingContent()
@@ -551,6 +570,20 @@ struct NoteRow: View {
             .buttonStyle(PlainButtonStyle())
 
             if isHighLight {
+                // Copy button
+                Button(action: copyContent) {
+                    Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 13))
+                        .foregroundColor(isHoveringCopy ? .purple : .primary)
+                        .contentTransition(.symbolEffect(.replace))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    isHoveringCopy = hovering
+                }
+                .transition(.opacity)
+
+                // Delete button
                 Button(action: onDelete) {
                     Image(systemName: "trash")
                         .font(.system(size: 13))
