@@ -186,7 +186,7 @@ class RecentNotesViewModel: ObservableObject {
         isHoverEnabled = false
 
         // 延迟重新启用悬停效果
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0) { [weak self] in
             self?.isHoverEnabled = true
         }
     }
@@ -371,7 +371,8 @@ struct RecentNotesListView: View {
                                             viewModel.filteredNotes.firstIndex(where: {
                                                 $0.id == note.id
                                             }) ?? 0
-                                        NoteRow(
+
+                                        let noteRow = NoteRow(
                                             note: note,
                                             isHighLight: viewModel.currentNoteIndex == globalIndex
                                                 ? true : false,
@@ -390,6 +391,10 @@ struct RecentNotesListView: View {
                                             },
                                             searchText: viewModel.searchText
                                         )
+
+                                        LazyVStack {
+                                            noteRow
+                                        }
                                         .id(note.id)
                                     }
                                 }
