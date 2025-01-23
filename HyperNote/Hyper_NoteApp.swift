@@ -299,3 +299,21 @@ class HotKey {
         }
     }
 }
+
+struct NotePreviewView: View {
+    let content: String
+
+    var body: some View {
+        ScrollView {
+            Text(content)
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+        }
+        .frame(width: 280)
+        .background(Color(NSColor.windowBackgroundColor))
+        .cornerRadius(8)
+        .shadow(color: .black.opacity(0.2), radius: 10, x: -4, y: 4)
+    }
+}

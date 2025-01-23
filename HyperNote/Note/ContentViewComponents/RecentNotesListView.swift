@@ -489,6 +489,9 @@ struct NoteRow: View {
     let searchText: String
     @State private var isCopied = false
     @State private var isHoveringCopy = false
+    @State private var showPreview = false
+    @State private var hoverWorkItem: DispatchWorkItem?
+    @State private var isInfoHovered = false
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDeleteHovered = false
@@ -499,7 +502,7 @@ struct NoteRow: View {
 
         // Check if the date is from an earlier day
         if !calendar.isDate(date, inSameDayAs: now) {
-            // For dates before today, show actual timestamp
+            // For dates before today, show actual timestamp ‘
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
             return dateFormatter.string(from: date)
@@ -638,6 +641,36 @@ struct NoteRow: View {
             .buttonStyle(PlainButtonStyle())
 
             if isHighLight {
+                // Info button
+                Button(action: {}) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 16))
+                        .foregroundColor(isInfoHovered ? .purple : .primary)
+                        .frame(width: 16, height: 16)  // 固定尺寸框架
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    isInfoHovered = hovering
+                    if hovering {
+                        let workItem = DispatchWorkItem {
+                            withAnimation {
+                                showPreview = true
+                            }
+                        }
+                        hoverWorkItem = workItem
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
+                    } else {
+                        hoverWorkItem?.cancel()
+                        withAnimation {
+                            showPreview = false
+                        }
+                    }
+                }
+                .popover(isPresented: $showPreview, arrowEdge: .leading) {
+                    NotePreviewView(content: note.content)
+                }
+                .padding(.horizontal, 6)
+
                 // Copy button
                 Button(action: copyContent) {
                     Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
@@ -677,11 +710,7 @@ struct NoteRow: View {
                 .opacity(0.5)
                 .padding(.horizontal, 6)
         )
-        .onHover { hovering in
-            withAnimation {
-                onHover(hovering)
-            }
-        }
+        .onHover(perform: onHover)
     }
 }
 
