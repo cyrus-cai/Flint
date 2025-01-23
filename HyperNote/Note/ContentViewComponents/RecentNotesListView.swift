@@ -54,6 +54,18 @@ struct RecentNote: Identifiable {
     let fileURL: URL
 }
 
+enum TimeGroup: String {
+    case today = "Today"
+    case yesterday = "Yesterday"
+    case thisWeek = "This Week"
+    case older = "Older"
+}
+
+struct GroupedNotes {
+    let group: TimeGroup
+    let notes: [RecentNote]
+}
+
 class RecentNotesViewModel: ObservableObject {
     @Published var notes: [RecentNote] = []
     @Published var searchText: String = ""
@@ -193,6 +205,38 @@ class RecentNotesViewModel: ObservableObject {
         isHoverEnabled
     }
 
+    var groupedFilteredNotes: [GroupedNotes] {
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.startOfDay(for: now)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let weekStart = calendar.date(byAdding: .day, value: -7, to: today)!
+
+        var groups: [TimeGroup: [RecentNote]] = [:]
+
+        for note in filteredNotes {
+            let noteDate = note.lastModified
+
+            if calendar.isDate(noteDate, inSameDayAs: now) {
+                groups[.today, default: []].append(note)
+            } else if calendar.isDate(noteDate, inSameDayAs: yesterday) {
+                groups[.yesterday, default: []].append(note)
+            } else if noteDate >= weekStart {
+                groups[.thisWeek, default: []].append(note)
+            } else {
+                groups[.older, default: []].append(note)
+            }
+        }
+
+        // Convert to array and sort by group order
+        let groupOrder: [TimeGroup] = [.today, .yesterday, .thisWeek, .older]
+        return groupOrder.compactMap { group in
+            if let notes = groups[group], !notes.isEmpty {
+                return GroupedNotes(group: group, notes: notes)
+            }
+            return nil
+        }
+    }
 }
 
 //MARK: - Main List View
@@ -309,29 +353,46 @@ struct RecentNotesListView: View {
             if !viewModel.filteredNotes.isEmpty {
                 ScrollViewReader { proxy in
                     ScrollView {
-                        // 历史记录列表的高度间隔
                         LazyVStack(spacing: 6) {
-                            ForEach(Array(viewModel.filteredNotes.enumerated()), id: \.element.id) {
-                                index, note in
-                                NoteRow(
-                                    note: note,
-                                    isHighLight: viewModel.currentNoteIndex == index ? true : false,
-                                    onTap: {
-                                        onSelectNote(note.content)
-                                        dismiss()
-                                    },
-                                    onDelete: {
-                                        withAnimation {  // 添加动画
-                                            viewModel.deleteNote(note)
-                                        }
-                                        //                                        viewModel.deleteNote(note)
-                                    },
-                                    onHover: { isHovered in
-                                        viewModel.setHoveredNote(isHovered ? index : nil)
-                                    },
-                                    searchText: viewModel.searchText
-                                )
-                                .id(note.id)
+                            ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) { group in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    // Group header
+                                    Text(group.group.rawValue)
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 12)
+                                        .padding(.top, 8)
+                                        .padding(.bottom, 4)
+
+                                    // Notes in this group
+                                    ForEach(Array(group.notes.enumerated()), id: \.element.id) {
+                                        index, note in
+                                        let globalIndex =
+                                            viewModel.filteredNotes.firstIndex(where: {
+                                                $0.id == note.id
+                                            }) ?? 0
+                                        NoteRow(
+                                            note: note,
+                                            isHighLight: viewModel.currentNoteIndex == globalIndex
+                                                ? true : false,
+                                            onTap: {
+                                                onSelectNote(note.content)
+                                                dismiss()
+                                            },
+                                            onDelete: {
+                                                withAnimation {
+                                                    viewModel.deleteNote(note)
+                                                }
+                                            },
+                                            onHover: { isHovered in
+                                                viewModel.setHoveredNote(
+                                                    isHovered ? globalIndex : nil)
+                                            },
+                                            searchText: viewModel.searchText
+                                        )
+                                        .id(note.id)
+                                    }
+                                }
                             }
                         }
                         .padding(.vertical, 4)
@@ -340,7 +401,9 @@ struct RecentNotesListView: View {
                     .onChange(of: viewModel.currentNoteIndex) {
                         if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
                             withAnimation {
-                                proxy.scrollTo(index)
+                                if let note = viewModel.filteredNotes[safe: index] {
+                                    proxy.scrollTo(note.id)
+                                }
                             }
                         }
                     }
@@ -614,5 +677,11 @@ struct NoteRow: View {
                 onHover(hovering)
             }
         }
+    }
+}
+
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
