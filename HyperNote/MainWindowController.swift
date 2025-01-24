@@ -5,21 +5,23 @@ import SwiftUI
 class WindowManager {
     static let shared = WindowManager()
     private var windows: [MainWindowController] = []
+    private var activeWindow: MainWindowController?
 
     func createNewWindow() {
-        let windowController = MainWindowController()
-        windows.append(windowController)
-        windowController.showWindow(nil)
+        // For backwards compatibility, redirect to new method
+        createOrShowMainWindow()
+    }
 
-        // 设置新窗口位置（稍微错开）
-        if let lastWindow = windows.dropLast().last,
-            let frame = lastWindow.window?.frame
-        {
-            windowController.window?.setFrameOrigin(
-                NSPoint(
-                    x: frame.origin.x + 20,
-                    y: frame.origin.y - 20
-                ))
+    func createOrShowMainWindow() {
+        if let window = activeWindow {
+            window.showWindow(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        } else {
+            let windowController = MainWindowController()
+            windows.append(windowController)
+            activeWindow = windowController
+            windowController.showWindow(nil)
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 
@@ -31,13 +33,16 @@ class WindowManager {
         if let index = windows.firstIndex(where: { $0 === windowController }) {
             windows.remove(at: index)
         }
+        if activeWindow === windowController {
+            activeWindow = windows.last
+        }
     }
 
     func showOnboardingIfNeeded() {
-        
+
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        print(hasCompletedOnboarding) // 打印出布尔值
-        
+        print(hasCompletedOnboarding)  // 打印出布尔值
+
         if !hasCompletedOnboarding {
             let onboardingController = OnboardingWindowController()
             onboardingController.showWindow(nil)

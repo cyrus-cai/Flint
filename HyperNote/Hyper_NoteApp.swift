@@ -83,6 +83,11 @@ class HotkeyCounter: ObservableObject {
     deinit {
         midnightTimer?.invalidate()
     }
+
+    var canActivate: Bool {
+        // return todayCount < AppConfig.QuickWakeup.dailyLimit
+        return true
+    }
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -122,6 +127,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 UserDefaults.standard.set(true, forKey: "hasRequestedPermission")
             }
         }
+
+        setupStatusBarItem()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool)
@@ -181,6 +188,74 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func toggleWindow() {
         windowController?.toggleWindow()
+    }
+
+    private func setupStatusBarItem() {
+        // Create status bar item
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+
+        if let button = statusItem?.button {
+            button.image = NSImage(systemSymbolName: "note", accessibilityDescription: "HyperNote")
+            button.target = self
+            button.action = #selector(statusBarButtonClicked(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
+    }
+
+    @objc private func statusBarButtonClicked(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent!
+
+        if event.type == .rightMouseUp {
+            // Show context menu
+            let menu = NSMenu()
+
+            let openAppItem = NSMenuItem(
+                title: "Open HyperNote", action: #selector(openApp), keyEquivalent: "")
+            openAppItem.target = self
+            menu.addItem(openAppItem)
+
+            let settingsItem = NSMenuItem(
+                title: "Settings", action: #selector(openSettings), keyEquivalent: ",")
+            settingsItem.target = self
+            menu.addItem(settingsItem)
+
+            menu.addItem(NSMenuItem.separator())
+
+            let quitItem = NSMenuItem(
+                title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+            menu.addItem(quitItem)
+
+            statusItem?.menu = menu
+            statusItem?.button?.performClick(nil)
+            statusItem?.menu = nil
+        } else {
+            // Left click - Quick wake up
+            if HotkeyCounter.shared.canActivate {
+                WindowManager.shared.createOrShowMainWindow()
+                HotkeyCounter.shared.increment()
+            } else {
+                // Show upgrade prompt
+                let alert = NSAlert()
+                alert.messageText = "Daily Limit Reached"
+                alert.informativeText =
+                    "You've reached the daily limit for quick wake-ups. Upgrade to Hyper+ for unlimited usage."
+                alert.addButton(withTitle: "Upgrade")
+                alert.addButton(withTitle: "OK")
+
+                if alert.runModal() == .alertFirstButtonReturn {
+                    // Handle upgrade action
+                    openSettings()
+                }
+            }
+        }
+    }
+
+    @objc private func openApp() {
+        WindowManager.shared.createOrShowMainWindow()
+    }
+
+    @objc private func openSettings() {
+        WindowManager.shared.createSettingsWindow()
     }
 
     //    func application(_ application: NSApplication, open urls: [URL]) {
