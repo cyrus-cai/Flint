@@ -73,6 +73,7 @@ class RecentNotesViewModel: ObservableObject {
     @Published var hoveredNoteIndex: Int? = nil
     @Published var currentNoteIndex: Int? = nil
     @Published private var isHoverEnabled = true
+    @Published var showArchiveToast = false
 
     init() {
         notes = FileManager.getRecentNotes()
@@ -143,6 +144,18 @@ class RecentNotesViewModel: ObservableObject {
 
             // Refresh notes list
             notes = FileManager.getRecentNotes()
+
+            // Show archive toast
+            withAnimation {
+                showArchiveToast = true
+            }
+
+            // Hide toast after delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                withAnimation {
+                    self.showArchiveToast = false
+                }
+            }
 
         } catch {
             print("Error archiving note: \(error)")
@@ -347,151 +360,165 @@ struct RecentNotesListView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Search Bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Search notes...", text: $viewModel.searchText)
-                    .textFieldStyle(PlainTextFieldStyle())
-                    .font(.system(size: 14))
-                    .tint(.purple)
-                    .focused($searchFocused)
-                    .onHover { isHovered in
-                        if isHovered {
-                            searchFocused = true
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                // Search Bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("Search notes...", text: $viewModel.searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .font(.system(size: 14))
+                        .tint(.purple)
+                        .focused($searchFocused)
+                        .onHover { isHovered in
+                            if isHovered {
+                                searchFocused = true
+                            }
                         }
+                    if !viewModel.searchText.isEmpty {
+                        Button(action: {
+                            viewModel.searchText = ""
+                            viewModel.resetSelection()
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                                .font(.system(size: 12))
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                if !viewModel.searchText.isEmpty {
-                    Button(action: {
-                        viewModel.searchText = ""
-                        viewModel.resetSelection()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                            .font(.system(size: 12))
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-            .onChange(of: viewModel.searchText) {
-                viewModel.resetSelection()
-            }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
+                .onChange(of: viewModel.searchText) {
+                    viewModel.resetSelection()
+                }
 
-            // Notes List
-            if !viewModel.filteredNotes.isEmpty {
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 6) {
-                            ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) { group in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    // Group header
-                                    Text(group.group.rawValue)
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                        .padding(.horizontal, 12)
-                                        .padding(.top, 8)
-                                        .padding(.bottom, 4)
+                // Notes List
+                if !viewModel.filteredNotes.isEmpty {
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 6) {
+                                ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) {
+                                    group in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        // Group header
+                                        Text(group.group.rawValue)
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                            .padding(.horizontal, 12)
+                                            .padding(.top, 8)
+                                            .padding(.bottom, 4)
 
-                                    // Notes in this group
-                                    ForEach(Array(group.notes.enumerated()), id: \.element.id) {
-                                        index, note in
-                                        let globalIndex =
-                                            viewModel.filteredNotes.firstIndex(where: {
-                                                $0.id == note.id
-                                            }) ?? 0
+                                        // Notes in this group
+                                        ForEach(Array(group.notes.enumerated()), id: \.element.id) {
+                                            index, note in
+                                            let globalIndex =
+                                                viewModel.filteredNotes.firstIndex(where: {
+                                                    $0.id == note.id
+                                                }) ?? 0
 
-                                        let noteRow = NoteRow(
-                                            note: note,
-                                            isHighLight: viewModel.currentNoteIndex == globalIndex
-                                                ? true : false,
-                                            onTap: {
-                                                onSelectNote(note.content)
-                                                dismiss()
-                                            },
-                                            onDelete: {
-                                                withAnimation {
-                                                    viewModel.archiveNote(note)
-                                                }
-                                            },
-                                            onHover: { isHovered in
-                                                viewModel.setHoveredNote(
-                                                    isHovered ? globalIndex : nil)
-                                            },
-                                            searchText: viewModel.searchText
-                                        )
+                                            let noteRow = NoteRow(
+                                                note: note,
+                                                isHighLight: viewModel.currentNoteIndex
+                                                    == globalIndex
+                                                    ? true : false,
+                                                onTap: {
+                                                    onSelectNote(note.content)
+                                                    dismiss()
+                                                },
+                                                onDelete: {
+                                                    withAnimation {
+                                                        viewModel.archiveNote(note)
+                                                    }
+                                                },
+                                                onHover: { isHovered in
+                                                    viewModel.setHoveredNote(
+                                                        isHovered ? globalIndex : nil)
+                                                },
+                                                searchText: viewModel.searchText
+                                            )
 
-                                        LazyVStack {
-                                            noteRow
+                                            LazyVStack {
+                                                noteRow
+                                            }
+                                            .id(note.id)
                                         }
-                                        .id(note.id)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .frame(maxHeight: 360)
+                        .onChange(of: viewModel.currentNoteIndex) {
+                            if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
+                                withAnimation {
+                                    if let note = viewModel.filteredNotes[safe: index] {
+                                        proxy.scrollTo(note.id)
                                     }
                                 }
                             }
                         }
-                        .padding(.vertical, 4)
                     }
-                    .frame(maxHeight: 360)
-                    .onChange(of: viewModel.currentNoteIndex) {
-                        if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
-                            withAnimation {
-                                if let note = viewModel.filteredNotes[safe: index] {
-                                    proxy.scrollTo(note.id)
-                                }
-                            }
+                    .onHover { _ in
+                        if searchFocused {
+                            searchFocused = false
                         }
                     }
                 }
-                .onHover { _ in
-                    if searchFocused {
-                        searchFocused = false
-                    }
+
+                // Empty State
+                if viewModel.filteredNotes.isEmpty {
+                    Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
+                        .foregroundColor(.secondary)
+                        .padding(24)
                 }
+
+                // Footer
+                // if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
+                // {
+                // Divider()
+                // HStack {
+                //     Button(action: openInFinder) {
+                //         HStack {
+                //             Text("Show All")
+                //                 .font(.system(size: 12))
+                //                 .foregroundColor(.secondary)
+                //         }
+                //         .frame(maxWidth: .infinity)
+                //         .padding(.vertical, 8)
+                //         .background(
+                //             RoundedRectangle(cornerRadius: 0)
+                //                 .fill(
+                //                     isShowAllHovered
+                //                         ? (colorScheme == .dark
+                //                             ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                //                         : Color.clear)
+                //         )
+                //     }
+                //     .buttonStyle(PlainButtonStyle())
+                //     .onHover { hovering in
+                //         isShowAllHovered = hovering
+                //     }
+                // }
+                // }
+
             }
+            .frame(width: 320)
+            .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+            .cornerRadius(8)
+            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
 
-            // Empty State
-            if viewModel.filteredNotes.isEmpty {
-                Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
-                    .foregroundColor(.secondary)
-                    .padding(24)
+            // Toast View
+            if viewModel.showArchiveToast {
+                VStack {
+                    Spacer()
+                    ToastView(message: "Note Archived", isShowing: $viewModel.showArchiveToast)
+                        .padding(.bottom, 12)
+                }
+                .transition(.opacity)
             }
-
-            // Footer
-            // if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
-            // {
-            // Divider()
-            // HStack {
-            //     Button(action: openInFinder) {
-            //         HStack {
-            //             Text("Show All")
-            //                 .font(.system(size: 12))
-            //                 .foregroundColor(.secondary)
-            //         }
-            //         .frame(maxWidth: .infinity)
-            //         .padding(.vertical, 8)
-            //         .background(
-            //             RoundedRectangle(cornerRadius: 0)
-            //                 .fill(
-            //                     isShowAllHovered
-            //                         ? (colorScheme == .dark
-            //                             ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-            //                         : Color.clear)
-            //         )
-            //     }
-            //     .buttonStyle(PlainButtonStyle())
-            //     .onHover { hovering in
-            //         isShowAllHovered = hovering
-            //     }
-            // }
-            // }
-
         }
-        .frame(width: 320)
-        .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
         .onAppear {
             setupKeyboardMonitor()
         }
@@ -499,7 +526,6 @@ struct RecentNotesListView: View {
             searchFocused = false
             print("searchFocused rmvd")
             removeKeyboardMonitor()
-
         }
     }
 }
@@ -533,7 +559,7 @@ struct NoteRow: View {
 
         // Check if the date is from an earlier day
         if !calendar.isDate(date, inSameDayAs: now) {
-            // For dates before today, show actual timestamp ‘
+            // For dates before today, show actual timestamp '
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
             return dateFormatter.string(from: date)
