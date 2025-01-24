@@ -271,9 +271,9 @@ struct SettingsView: View {
                 )
             }
         }
+        .frame(width: 800, height: 500)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
-
     }
 }
 

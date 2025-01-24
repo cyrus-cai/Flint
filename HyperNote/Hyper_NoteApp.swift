@@ -9,8 +9,10 @@ struct Hyper_NoteApp: App {
 
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
         }
+        .windowStyle(.titleBar)
+        .windowResizability(.contentSize)
     }
 }
 
