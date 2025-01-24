@@ -58,7 +58,7 @@ enum TimeGroup: String {
     case today = "Today"
     case yesterday = "Yesterday"
     case thisWeek = "This Week"
-    case older = "Older"
+    case older = "Earlier"
 }
 
 struct GroupedNotes {
