@@ -136,23 +136,25 @@ class RecentNotesViewModel: ObservableObject {
             // Archive the file
             try fileManager.archiveNote(at: fileToArchive)
 
-            // Remove from memory
-            notes.removeAll { $0.fileURL == note.fileURL }
+            withAnimation(.easeOut(duration: 0.2)) {
+                // Remove from memory
+                notes.removeAll { $0.fileURL == note.fileURL }
 
-            // Update selection state
-            updateSelectionAfterDeletion()
+                // Update selection state
+                updateSelectionAfterDeletion()
 
-            // Refresh notes list
-            notes = FileManager.getRecentNotes()
+                // Refresh notes list
+                notes = FileManager.getRecentNotes()
+            }
 
             // Show archive toast
-            withAnimation {
+            withAnimation(.easeIn(duration: 0.2)) {
                 showArchiveToast = true
             }
 
             // Hide toast after delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
+                withAnimation(.easeOut(duration: 0.2)) {
                     self.showArchiveToast = false
                 }
             }
@@ -441,6 +443,12 @@ struct RecentNotesListView: View {
 
                                             LazyVStack {
                                                 noteRow
+                                                    .transition(
+                                                        .asymmetric(
+                                                            insertion: .opacity,
+                                                            removal: .opacity.combined(
+                                                                with: .move(edge: .leading))
+                                                        ))
                                             }
                                             .id(note.id)
                                         }
