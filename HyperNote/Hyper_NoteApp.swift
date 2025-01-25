@@ -212,7 +212,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let menu = NSMenu()
 
             let openAppItem = NSMenuItem(
-                title: "Open HyperNote", action: #selector(openApp), keyEquivalent: "")
+                title: "Open HyperNote", action: #selector(toggleWindow), keyEquivalent: "")
             openAppItem.target = self
             menu.addItem(openAppItem)
 
@@ -233,27 +233,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             // Left click - Quick wake up
             if HotkeyCounter.shared.canActivate {
-                WindowManager.shared.createOrShowMainWindow()
+                toggleWindow()
                 HotkeyCounter.shared.increment()
             } else {
-                // Show upgrade prompt
-                let alert = NSAlert()
-                alert.messageText = "Daily Limit Reached"
-                alert.informativeText =
-                    "You've reached the daily limit for quick wake-ups. Upgrade to Hyper+ for unlimited usage."
-                alert.addButton(withTitle: "Upgrade")
-                alert.addButton(withTitle: "OK")
-
-                if alert.runModal() == .alertFirstButtonReturn {
-                    // Handle upgrade action
-                    openSettings()
-                }
+                WindowManager.shared.createLimitExceededWindow()
             }
         }
     }
 
     @objc private func openApp() {
-        WindowManager.shared.createOrShowMainWindow()
+        if let activeWindow = WindowManager.shared.activeWindow {
+            activeWindow.toggleWindow()
+        } else {
+            WindowManager.shared.createOrShowMainWindow()
+        }
     }
 
     @objc private func openSettings() {
