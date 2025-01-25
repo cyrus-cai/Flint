@@ -405,12 +405,8 @@ struct RecentNotesListView: View {
                                     group in
                                     VStack(alignment: .leading, spacing: 4) {
                                         // Group header
-                                        Text(group.group.rawValue)
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                            .padding(.horizontal, 12)
-                                            .padding(.top, 8)
-                                            .padding(.bottom, 4)
+                                        TimeGroupHeader(
+                                            title: group.group.rawValue, notes: group.notes)
 
                                         // Notes in this group
                                         ForEach(Array(group.notes.enumerated()), id: \.element.id) {
@@ -557,6 +553,8 @@ struct NoteRow: View {
     @State private var showPreview = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var isInfoHovered = false
+    @State private var isSummarizing = false
+    @State private var summary: String?
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDeleteHovered = false
@@ -664,19 +662,63 @@ struct NoteRow: View {
         }
     }
 
+    private func summarizeContent() {
+        isSummarizing = true
+        Task {
+            do {
+                let summary = try await DeepseekAPI.shared.summarize(text: "Hello, world!")
+                // let summary = try await DeepseekAPI.shared.summarize(text: note.content)
+                DispatchQueue.main.async {
+                    self.summary = summary
+                    self.isSummarizing = false
+                }
+            } catch {
+                print("Error getting summary:", error)
+                DispatchQueue.main.async {
+                    self.isSummarizing = false
+                }
+            }
+        }
+    }
+
     var body: some View {
         HStack(spacing: 2) {
             Button(action: onTap) {
                 VStack(alignment: .leading, spacing: 2) {
                     let content = getMatchingContent()
 
-                    // 始终显示标题
-                    Text(content.title)
-                        .font(.system(size: 13, weight: .medium))
-                        .lineLimit(1)
-                        .multilineTextAlignment(.leading)
+                    HStack {
+                        Text(content.title)
+                            .font(.system(size: 13, weight: .medium))
+                            .lineLimit(1)
+                            .multilineTextAlignment(.leading)
 
-                    // 如果有匹配的内容，显示所有匹配行
+                        Spacer()
+
+                        // Add Summarize button
+                        // Button(action: summarizeContent) {
+                        //     if isSummarizing {
+                        //         ProgressView()
+                        //             .scaleEffect(0.5)
+                        //             .frame(width: 16, height: 16)
+                        //     } else {
+                        //         Text("Summarize")
+                        //             .font(.system(size: 11))
+                        //             .foregroundColor(.purple)
+                        //     }
+                        // }
+                        // .buttonStyle(.plain)
+                        // .disabled(isSummarizing)
+                    }
+
+                    if let summary = summary {
+                        Text(summary)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .lineLimit(3)
+                            .padding(.top, 2)
+                    }
+
                     if let contexts = content.contexts {
                         ForEach(Array(contexts.enumerated()), id: \.offset) { _, context in
                             Text(context)
@@ -816,5 +858,74 @@ struct NoteRow: View {
 extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+struct TimeGroupHeader: View {
+    let title: String
+    let notes: [RecentNote]
+    @State private var isSummarizing = false
+    @State private var summary: String?
+    @State private var showSummary = false
+
+    private func summarizeGroupNotes() {
+        isSummarizing = true
+        Task {
+            do {
+                // Combine all notes content with separators
+                let combinedContent = notes.map { note in
+                    "Note: \(note.title)\n\(note.content)"
+                }.joined(separator: "\n---\n")
+
+                let summary = try await DeepseekAPI.shared.summarize(text: combinedContent)
+                DispatchQueue.main.async {
+                    self.summary = summary
+                    self.showSummary = true
+                    self.isSummarizing = false
+                }
+            } catch {
+                print("Error getting summary:", error)
+                DispatchQueue.main.async {
+                    self.isSummarizing = false
+                }
+            }
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                Button(action: summarizeGroupNotes) {
+                    if isSummarizing {
+                        ProgressView()
+                            .scaleEffect(0.5)
+                            .frame(width: 16, height: 16)
+                    } else {
+                        Text("Summarize")
+                            .font(.system(size: 11))
+                            .foregroundColor(.purple)
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isSummarizing)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            if showSummary, let summary = summary {
+                Text(summary)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
+            }
+        }
+        .background(Color.clear)
     }
 }
