@@ -136,7 +136,7 @@ class RecentNotesViewModel: ObservableObject {
             // Archive the file
             try fileManager.archiveNote(at: fileToArchive)
 
-            withAnimation(.easeOut(duration: 0.2)) {
+            withAnimation(.easeOut(duration: 0.0)) {
                 // Remove from memory
                 notes.removeAll { $0.fileURL == note.fileURL }
 
@@ -446,9 +446,9 @@ struct RecentNotesListView: View {
                                                     .transition(
                                                         .asymmetric(
                                                             insertion: .opacity,
-                                                            removal: .opacity.combined(
-                                                                with: .move(edge: .leading))
-                                                        ))
+                                                            removal: .move(edge: .leading)
+                                                        )
+                                                    )
                                             }
                                             .id(note.id)
                                         }
