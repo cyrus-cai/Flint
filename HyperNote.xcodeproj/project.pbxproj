@@ -33,6 +33,7 @@
 		A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */; };
 		A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */; };
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
+		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +84,7 @@
 		A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandler.swift; sourceTree = "<group>"; };
 		A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureManager.swift; sourceTree = "<group>"; };
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,6 +148,7 @@
 			children = (
 				A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */,
 				A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */,
+				A3CB263C2D4543F50000D8E0 /* Summarize.swift */,
 			);
 			path = APIs;
 			sourceTree = "<group>";
@@ -391,6 +394,7 @@
 				A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */,
 				A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */,
 				A35B0BB12D201A1C00E277FA /* FeishuTokenGenerate.swift in Sources */,
+				A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */,
 				A3A50DA62D3AB2FD00382A2A /* OnboardingWindowController.swift in Sources */,
 				A3A50DA42D3AB27D00382A2A /* OnboardingView.swift in Sources */,
 				A398BF7D2D39434600187871 /* LimitExceededView.swift in Sources */,
