@@ -868,11 +868,14 @@ struct TimeGroupHeader: View {
     @State private var summary: String?
     @State private var showSummary = false
 
+    private var shouldShowSummarize: Bool {
+        title != "Earlier"
+    }
+
     private func summarizeGroupNotes() {
         isSummarizing = true
         Task {
             do {
-                // Combine all notes content with separators
                 let combinedContent = notes.map { note in
                     "Note: \(note.title)\n\(note.content)"
                 }.joined(separator: "\n---\n")
@@ -901,19 +904,21 @@ struct TimeGroupHeader: View {
 
                 Spacer()
 
-                Button(action: summarizeGroupNotes) {
-                    if isSummarizing {
-                        ProgressView()
-                            .scaleEffect(0.5)
-                            .frame(width: 16, height: 16)
-                    } else {
-                        Text("Summarize")
-                            .font(.system(size: 11))
-                            .foregroundColor(.purple)
+                if shouldShowSummarize {
+                    Button(action: summarizeGroupNotes) {
+                        if isSummarizing {
+                            ProgressView()
+                                .scaleEffect(0.5)
+                                .frame(width: 16, height: 16)
+                        } else {
+                            Text("Summarize")
+                                .font(.system(size: 11))
+                                .foregroundColor(.purple)
+                        }
                     }
+                    .buttonStyle(.plain)
+                    .disabled(isSummarizing)
                 }
-                .buttonStyle(.plain)
-                .disabled(isSummarizing)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
