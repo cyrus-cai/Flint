@@ -74,6 +74,8 @@ class RecentNotesViewModel: ObservableObject {
     @Published var currentNoteIndex: Int? = nil
     @Published private var isHoverEnabled = true
     @Published var showArchiveToast = false
+    @Published var groupSummaries: [TimeGroup: String] = [:]
+    @Published var showingSummaries: [TimeGroup: Bool] = [:]
 
     init() {
         notes = FileManager.getRecentNotes()
@@ -406,7 +408,9 @@ struct RecentNotesListView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         // Group header
                                         TimeGroupHeader(
-                                            title: group.group.rawValue, notes: group.notes)
+                                            title: group.group.rawValue,
+                                            notes: group.notes,
+                                            viewModel: viewModel)
 
                                         // Notes in this group
                                         ForEach(Array(group.notes.enumerated()), id: \.element.id) {
@@ -864,18 +868,19 @@ extension Array {
 struct TimeGroupHeader: View {
     let title: String
     let notes: [RecentNote]
+    @StateObject var viewModel: RecentNotesViewModel
     @State private var isSummarizing = false
-    @State private var summary: String?
-    @State private var showSummary = false
     @State private var isCopied = false
     @State private var isHoveringCopy = false
     @Environment(\.colorScheme) private var colorScheme
 
     private var shouldShowSummarize: Bool {
-        title != "Earlier" && !showSummary
+        guard let group = TimeGroup(rawValue: title) else { return false }
+        return group != .older && !(viewModel.showingSummaries[group] ?? false)
     }
 
     private func summarizeGroupNotes() {
+        guard let group = TimeGroup(rawValue: title) else { return }
         isSummarizing = true
         Task {
             do {
@@ -885,8 +890,8 @@ struct TimeGroupHeader: View {
 
                 let summary = try await DeepseekAPI.shared.summarize(text: combinedContent)
                 DispatchQueue.main.async {
-                    self.summary = summary
-                    self.showSummary = true
+                    viewModel.groupSummaries[group] = summary
+                    viewModel.showingSummaries[group] = true
                     self.isSummarizing = false
                 }
             } catch {
@@ -899,7 +904,7 @@ struct TimeGroupHeader: View {
     }
 
     private func copyContent() {
-        guard let summary = summary else { return }
+        guard let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(summary, forType: .string)
 
@@ -942,7 +947,10 @@ struct TimeGroupHeader: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
 
-            if showSummary, let summary = summary {
+            if let group = TimeGroup(rawValue: title),
+                viewModel.showingSummaries[group] == true,
+                let summary = viewModel.groupSummaries[group]
+            {
                 ZStack(alignment: .topTrailing) {
                     Text(summary)
                         .font(.system(size: 12))
