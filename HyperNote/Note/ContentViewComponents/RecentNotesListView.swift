@@ -971,11 +971,17 @@ struct TimeGroupHeader: View {
                     }
                     .padding(4)
                 }
-                .background(
+                .background(Color.clear)
+                .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            colorScheme == .dark
-                                ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                        .strokeBorder(
+                            LinearGradient(
+                                gradient: Gradient(colors: [.purple, .pink]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
                 .padding(.horizontal, 12)
                 .padding(.bottom, 8)
