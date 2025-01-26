@@ -952,11 +952,23 @@ struct TimeGroupHeader: View {
                 let summary = viewModel.groupSummaries[group]
             {
                 ZStack(alignment: .topTrailing) {
-                    Text(summary)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(summary)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+
+                        // 添加底部的 AI Summarized 标记
+                        HStack {
+                            Spacer()
+                            Text("AI summarized, carefully use it.")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.purple.opacity(0.6))
+                            Spacer()
+                        }
+                        .padding(.bottom, 8)
+                    }
 
                     Button(action: copyContent) {
                         Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
@@ -989,6 +1001,13 @@ struct TimeGroupHeader: View {
                                 endPoint: .bottomTrailing
                             ),
                             lineWidth: 1
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9)
+                        .strokeBorder(
+                            Color.purple.opacity(0.1),
+                            lineWidth: 0.5
                         )
                 )
                 .padding(.horizontal, 12)
