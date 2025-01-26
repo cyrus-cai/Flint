@@ -867,6 +867,8 @@ struct TimeGroupHeader: View {
     @State private var isSummarizing = false
     @State private var summary: String?
     @State private var showSummary = false
+    @State private var isCopied = false
+    @State private var isHoveringCopy = false
     @Environment(\.colorScheme) private var colorScheme
 
     private var shouldShowSummarize: Bool {
@@ -892,6 +894,22 @@ struct TimeGroupHeader: View {
                 DispatchQueue.main.async {
                     self.isSummarizing = false
                 }
+            }
+        }
+    }
+
+    private func copyContent() {
+        guard let summary = summary else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(summary, forType: .string)
+
+        withAnimation {
+            isCopied = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                isCopied = false
             }
         }
     }
@@ -925,19 +943,41 @@ struct TimeGroupHeader: View {
             .padding(.vertical, 8)
 
             if showSummary, let summary = summary {
-                Text(summary)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(
-                                colorScheme == .dark
-                                    ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
-                    )
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 8)
+                HStack(alignment: .top) {
+                    Text(summary)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button(action: copyContent) {
+                        Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 13))
+                            .foregroundColor(.primary)
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 28, height: 28)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(
+                                        isHoveringCopy
+                                            ? (colorScheme == .dark
+                                                ? Color.white.opacity(0.1)
+                                                : Color.black.opacity(0.05)) : Color.clear)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { hovering in
+                        isHoveringCopy = hovering
+                    }
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            colorScheme == .dark
+                                ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                )
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
             }
         }
         .background(Color.clear)
