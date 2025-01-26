@@ -898,28 +898,28 @@ struct TimeGroupHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
+            HStack(spacing: 8) {
                 Text(title)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
-
-                Spacer()
 
                 if shouldShowSummarize {
                     Button(action: summarizeGroupNotes) {
                         if isSummarizing {
                             ProgressView()
-                                .scaleEffect(0.5)
-                                .frame(width: 16, height: 16)
+                                .scaleEffect(0.4)
+                                .frame(width: 12, height: 12)
                         } else {
                             Text("Summarize")
-                                .font(.system(size: 11))
-                                .foregroundColor(.purple)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary.opacity(0.8))
                         }
                     }
                     .buttonStyle(.plain)
                     .disabled(isSummarizing)
                 }
+
+                Spacer()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
