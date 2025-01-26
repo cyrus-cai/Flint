@@ -867,6 +867,7 @@ struct TimeGroupHeader: View {
     @State private var isSummarizing = false
     @State private var summary: String?
     @State private var showSummary = false
+    @Environment(\.colorScheme) private var colorScheme
 
     private var shouldShowSummarize: Bool {
         title != "Earlier"
@@ -927,6 +928,14 @@ struct TimeGroupHeader: View {
                 Text(summary)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(
+                                colorScheme == .dark
+                                    ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                    )
                     .padding(.horizontal, 12)
                     .padding(.bottom, 8)
             }
