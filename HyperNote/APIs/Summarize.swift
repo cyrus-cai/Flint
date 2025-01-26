@@ -46,7 +46,7 @@ class DeepseekAPI {
 
     func summarize(text: String) async throws -> String {
         let systemPrompt =
-            "请整理以下文本，按【Record】、【Todo】分类。其中【Record】建议使用分点文本，Todo 建议采用 - [ ]  格式。请严守职责，遵循原文，避免自由发挥。"
+            "请整理以下文本，按【Saved】、【Todo】分类。1.其中 Saved 有内容时，格式建议使用文本，Todo 有内容时，格式建议采用 - [ ] ，如果原文中没有对应内容，【Saved】、【Todo】下面应该完全为空（没有 - 或 - [ ] 等符号）。2.【Saved】、【Todo】中间空行 3.按照用户文本中最常用的语言，决定回复的语言 4.请严格遵循原文，避免强行补充，杜绝自由发挥。"
 
         let messages = [
             ChatMessage(role: "system", content: systemPrompt),

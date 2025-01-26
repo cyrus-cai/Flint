@@ -943,20 +943,21 @@ struct TimeGroupHeader: View {
             .padding(.vertical, 8)
 
             if showSummary, let summary = summary {
-                HStack(alignment: .top) {
+                ZStack(alignment: .topTrailing) {
                     Text(summary)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
 
                     Button(action: copyContent) {
                         Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 13))
+                            .font(.system(size: 11))
                             .foregroundColor(.primary)
                             .contentTransition(.symbolEffect(.replace))
-                            .frame(width: 28, height: 28)
+                            .frame(width: 24, height: 24)
                             .background(
-                                RoundedRectangle(cornerRadius: 6)
+                                RoundedRectangle(cornerRadius: 4)
                                     .fill(
                                         isHoveringCopy
                                             ? (colorScheme == .dark
@@ -968,8 +969,8 @@ struct TimeGroupHeader: View {
                     .onHover { hovering in
                         isHoveringCopy = hovering
                     }
+                    .padding(4)
                 }
-                .padding(12)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(
