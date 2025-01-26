@@ -870,7 +870,7 @@ struct TimeGroupHeader: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var shouldShowSummarize: Bool {
-        title != "Earlier"
+        title != "Earlier" && !showSummary
     }
 
     private func summarizeGroupNotes() {
