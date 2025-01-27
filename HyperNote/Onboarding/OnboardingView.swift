@@ -21,26 +21,34 @@ struct OnboardingView: View {
     private let steps = [
         OnboardingStep(
             icon: "bolt",
-            title: "Quick Wake-up",
-            description: "Press ⌥ + C to quickly capture your thoughts",
+            title: "Designed for quick write-down",
+            description: "Anywhere, press ⌥ + C.",
             detail: "",
             imageName: "quick-wake-demo"
         ),
+//        OnboardingStep(
+//            icon: "lock",
+//            title: "Local and private",
+//            description: "All your notes are stored locally",
+//            detail: "",
+//            hasAction: true,
+//            imageName: "local-private-demo"
+//        ),
+        OnboardingStep(
+            icon: "folder.badge.gearshape",
+            title: "Where to save?",
+            description: "Choose your folder",
+            detail: "All your notes are stored locally",
+            hasAction: true,
+            imageName: "storage-config-demo"
+        ),
         OnboardingStep(
             icon: "lock",
-            title: "Local and private",
-            description: "All your notes are stored locally",
+            title: "AI, which truly useful",
+            description: "Help summarize & make plans.",
             detail: "",
             hasAction: true,
             imageName: "local-private-demo"
-        ),
-        OnboardingStep(
-            icon: "folder.badge.gearshape",
-            title: "Select folder",
-            description: "Reccomend to select your Obsidian vault",
-            detail: "So HyperNote can work with your Obsidian",
-            hasAction: true,
-            imageName: "storage-config-demo"
         ),
         OnboardingStep(
             icon: "star",
