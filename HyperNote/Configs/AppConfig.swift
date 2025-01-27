@@ -9,9 +9,9 @@ import Foundation
 
 enum AppConfig {
     enum QuickWakeup {
-        static let dailyLimit = 100
+        static let dailyLimit = 30
     }
-    
+
     // 未来可以在这里添加其他配置类别
     // enum OtherFeature { ... }
 }
