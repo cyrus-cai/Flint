@@ -1052,7 +1052,7 @@ struct TimeGroupHeader: View {
                             Spacer()
                             Text("AI summarized, carefully use it.")
                                 .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.purple.opacity(0.6))
+                                .foregroundColor(.primary.opacity(0.4))
                             Spacer()
                         }
                         .padding(.bottom, 8)
@@ -1101,24 +1101,41 @@ struct TimeGroupHeader: View {
                     }
                     .padding(4)
                 }
-                .background(Color.clear)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(
-                            LinearGradient(
-                                gradient: Gradient(colors: [.purple, .pink]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(
+                                colorScheme == .dark
+                                    ? Color(white: 0.15).opacity(0.95)
+                                    : Color(white: 0.95).opacity(0.95))
+
+                        // 添加渐变叠加层
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.purple.opacity(0.1), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+
+                        // 添加边框
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [.purple, .pink]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    }
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 9)
-                        .strokeBorder(
-                            Color.purple.opacity(0.1),
-                            lineWidth: 0.5
-                        )
+                .shadow(
+                    color: .black.opacity(0.2),
+                    radius: 12,
+                    x: 0,
+                    y: 4
                 )
                 .padding(.horizontal, 12)
                 .padding(.bottom, 8)
