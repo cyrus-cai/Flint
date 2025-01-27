@@ -26,14 +26,14 @@ struct OnboardingView: View {
             detail: "",
             imageName: "quick-wake-demo"
         ),
-//        OnboardingStep(
-//            icon: "lock",
-//            title: "Local and private",
-//            description: "All your notes are stored locally",
-//            detail: "",
-//            hasAction: true,
-//            imageName: "local-private-demo"
-//        ),
+        //        OnboardingStep(
+        //            icon: "lock",
+        //            title: "Local and private",
+        //            description: "All your notes are stored locally",
+        //            detail: "",
+        //            hasAction: true,
+        //            imageName: "local-private-demo"
+        //        ),
         OnboardingStep(
             icon: "folder.badge.gearshape",
             title: "Where to save?",
@@ -113,8 +113,8 @@ struct OnboardingView: View {
 
                     Spacer()
                 }
-                .padding(40)
-                .frame(width: 480)
+                .padding(24)
+                .frame(width: 360)
 
                 // Right side - Image/Video
                 VStack {
@@ -127,7 +127,7 @@ struct OnboardingView: View {
                             .transition(.opacity)
                     }
                 }
-                .padding(40)
+                .padding(24)
             }
 
             // Navigation buttons
