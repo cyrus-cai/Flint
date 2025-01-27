@@ -76,6 +76,9 @@ class RecentNotesViewModel: ObservableObject {
     @Published var showArchiveToast = false
     @Published var groupSummaries: [TimeGroup: String] = [:]
     @Published var showingSummaries: [TimeGroup: Bool] = [:]
+    @Published var archivedNotes: [RecentNote] = []
+    @Published var showUndoArchiveToast = false
+    @Published var archivedNotesCount = 0
 
     init() {
         notes = FileManager.getRecentNotes()
@@ -283,6 +286,64 @@ class RecentNotesViewModel: ObservableObject {
                 return GroupedNotes(group: group, notes: notes)
             }
             return nil
+        }
+    }
+
+    func archiveGroupNotes(_ notes: [RecentNote], groupTitle: String) {
+        archivedNotes = notes
+        archivedNotesCount = notes.count
+
+        for note in notes {
+            do {
+                let fileToArchive = note.fileURL
+                guard FileManager.shared.fm.fileExists(atPath: fileToArchive.path) else {
+                    continue
+                }
+
+                try FileManager.shared.archiveNote(at: fileToArchive)
+
+                withAnimation(.easeOut(duration: 0.0)) {
+                    self.notes.removeAll { $0.fileURL == note.fileURL }
+                }
+            } catch {
+                print("Error archiving note: \(error)")
+            }
+        }
+
+        withAnimation(.easeIn(duration: 0.2)) {
+            showUndoArchiveToast = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            withAnimation(.easeOut(duration: 0.2)) {
+                if self.showUndoArchiveToast {
+                    self.showUndoArchiveToast = false
+                    self.archivedNotes = []
+                }
+            }
+        }
+    }
+
+    func undoGroupArchive() {
+        for note in archivedNotes {
+            do {
+                if let monthFolder = FileManager.shared.getMonthlyArchiveFolder() {
+                    let archivedPath = monthFolder.appendingPathComponent(
+                        note.fileURL.lastPathComponent)
+                    try FileManager.shared.fm.moveItem(at: archivedPath, to: note.fileURL)
+
+                    withAnimation {
+                        self.notes.append(note)
+                    }
+                }
+            } catch {
+                print("Error restoring note: \(error)")
+            }
+        }
+
+        withAnimation {
+            showUndoArchiveToast = false
+            archivedNotes = []
         }
     }
 }
@@ -523,6 +584,32 @@ struct RecentNotesListView: View {
                     Spacer()
                     ToastView(message: "Note Archived", isShowing: $viewModel.showArchiveToast)
                         .padding(.bottom, 12)
+                }
+                .transition(.opacity)
+            }
+
+            // Add Undo Toast
+            if viewModel.showUndoArchiveToast {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Image(systemName: "archivebox.fill")
+                            .foregroundColor(.secondary)
+                        Text("\(viewModel.archivedNotesCount) Notes Archived")
+                            .foregroundColor(.secondary)
+                        Button("Undo") {
+                            viewModel.undoGroupArchive()
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.blue)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+                    )
+                    .padding(.bottom, 12)
                 }
                 .transition(.opacity)
             }
@@ -920,6 +1007,17 @@ struct TimeGroupHeader: View {
         }
     }
 
+    private func copyAndArchive() {
+        // First copy the summary
+        if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(summary, forType: .string)
+
+            // Then archive all notes in this group
+            viewModel.archiveGroupNotes(notes, groupTitle: title)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
@@ -992,8 +1090,8 @@ struct TimeGroupHeader: View {
                             isHoveringCopy = hovering
                         }
 
-                        Button(action: {}) {  // Empty action for now
-                            Image("copy.archive")  // 使用自定义图标
+                        Button(action: copyAndArchive) {
+                            Image("copy.archive")
                                 .font(.system(size: 15))
                                 .foregroundColor(.red)
                                 .frame(width: 24, height: 24)
