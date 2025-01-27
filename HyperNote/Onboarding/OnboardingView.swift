@@ -146,6 +146,8 @@ struct OnboardingView: View {
             HStack {
                 if currentStep > 0 {
                     Button("Previous") {
+                        // 添加保护条件防止快速点击
+                        guard currentStep > 0 else { return }
                         slideDirection = .left
                         withAnimation {
                             currentStep -= 1
@@ -242,7 +244,7 @@ struct StepContent: View {
         VStack(alignment: .leading, spacing: 16) {
             Image(systemName: step.icon)
                 .font(.system(size: 40))
-                .symbolEffect(.bounce.up, options: .speed(0.5))
+                .symbolEffect(.bounce.up, options: .speed(0.5).nonRepeating)
                 .foregroundStyle(
                     LinearGradient(
                         colors: [.purple, .pink],
