@@ -74,6 +74,11 @@ class RecentNotesViewModel: ObservableObject {
     @Published var currentNoteIndex: Int? = nil
     @Published private var isHoverEnabled = true
     @Published var showArchiveToast = false
+    @Published var groupSummaries: [TimeGroup: String] = [:]
+    @Published var showingSummaries: [TimeGroup: Bool] = [:]
+    @Published var archivedNotes: [RecentNote] = []
+    @Published var showUndoArchiveToast = false
+    @Published var archivedNotesCount = 0
 
     init() {
         notes = FileManager.getRecentNotes()
@@ -283,6 +288,64 @@ class RecentNotesViewModel: ObservableObject {
             return nil
         }
     }
+
+    func archiveGroupNotes(_ notes: [RecentNote], groupTitle: String) {
+        archivedNotes = notes
+        archivedNotesCount = notes.count
+
+        for note in notes {
+            do {
+                let fileToArchive = note.fileURL
+                guard FileManager.shared.fm.fileExists(atPath: fileToArchive.path) else {
+                    continue
+                }
+
+                try FileManager.shared.archiveNote(at: fileToArchive)
+
+                withAnimation(.easeOut(duration: 0.0)) {
+                    self.notes.removeAll { $0.fileURL == note.fileURL }
+                }
+            } catch {
+                print("Error archiving note: \(error)")
+            }
+        }
+
+        withAnimation(.easeIn(duration: 0.2)) {
+            showUndoArchiveToast = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            withAnimation(.easeOut(duration: 0.2)) {
+                if self.showUndoArchiveToast {
+                    self.showUndoArchiveToast = false
+                    self.archivedNotes = []
+                }
+            }
+        }
+    }
+
+    func undoGroupArchive() {
+        for note in archivedNotes {
+            do {
+                if let monthFolder = FileManager.shared.getMonthlyArchiveFolder() {
+                    let archivedPath = monthFolder.appendingPathComponent(
+                        note.fileURL.lastPathComponent)
+                    try FileManager.shared.fm.moveItem(at: archivedPath, to: note.fileURL)
+
+                    withAnimation {
+                        self.notes.append(note)
+                    }
+                }
+            } catch {
+                print("Error restoring note: \(error)")
+            }
+        }
+
+        withAnimation {
+            showUndoArchiveToast = false
+            archivedNotes = []
+        }
+    }
 }
 
 //MARK: - Main List View
@@ -405,12 +468,10 @@ struct RecentNotesListView: View {
                                     group in
                                     VStack(alignment: .leading, spacing: 4) {
                                         // Group header
-                                        Text(group.group.rawValue)
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                            .padding(.horizontal, 12)
-                                            .padding(.top, 8)
-                                            .padding(.bottom, 4)
+                                        TimeGroupHeader(
+                                            title: group.group.rawValue,
+                                            notes: group.notes,
+                                            viewModel: viewModel)
 
                                         // Notes in this group
                                         ForEach(Array(group.notes.enumerated()), id: \.element.id) {
@@ -521,8 +582,24 @@ struct RecentNotesListView: View {
             if viewModel.showArchiveToast {
                 VStack {
                     Spacer()
-                    ToastView(message: "Note Archived", isShowing: $viewModel.showArchiveToast)
-                        .padding(.bottom, 12)
+                    StandardToastView(
+                        icon: "archivebox.fill",
+                        message: "Note Archived"
+                    )
+                }
+                .transition(.opacity)
+            }
+
+            // Add Undo Toast
+            if viewModel.showUndoArchiveToast {
+                VStack {
+                    Spacer()
+                    StandardToastView(
+                        icon: "archivebox.fill",
+                        message:
+                            "Copied summary & archived \(viewModel.archivedNotesCount) \(viewModel.archivedNotesCount == 1 ? "note" : "notes")",
+                        actionButton: ("Undo", { viewModel.undoGroupArchive() })
+                    )
                 }
                 .transition(.opacity)
             }
@@ -557,6 +634,8 @@ struct NoteRow: View {
     @State private var showPreview = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var isInfoHovered = false
+    @State private var isSummarizing = false
+    @State private var summary: String?
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDeleteHovered = false
@@ -664,19 +743,63 @@ struct NoteRow: View {
         }
     }
 
+    private func summarizeContent() {
+        isSummarizing = true
+        Task {
+            do {
+                let summary = try await DeepseekAPI.shared.summarize(text: "Hello, world!")
+                // let summary = try await DeepseekAPI.shared.summarize(text: note.content)
+                DispatchQueue.main.async {
+                    self.summary = summary
+                    self.isSummarizing = false
+                }
+            } catch {
+                print("Error getting summary:", error)
+                DispatchQueue.main.async {
+                    self.isSummarizing = false
+                }
+            }
+        }
+    }
+
     var body: some View {
         HStack(spacing: 2) {
             Button(action: onTap) {
                 VStack(alignment: .leading, spacing: 2) {
                     let content = getMatchingContent()
 
-                    // 始终显示标题
-                    Text(content.title)
-                        .font(.system(size: 13, weight: .medium))
-                        .lineLimit(1)
-                        .multilineTextAlignment(.leading)
+                    HStack {
+                        Text(content.title)
+                            .font(.system(size: 13, weight: .medium))
+                            .lineLimit(1)
+                            .multilineTextAlignment(.leading)
 
-                    // 如果有匹配的内容，显示所有匹配行
+                        Spacer()
+
+                        // Add Summarize button
+                        // Button(action: summarizeContent) {
+                        //     if isSummarizing {
+                        //         ProgressView()
+                        //             .scaleEffect(0.5)
+                        //             .frame(width: 16, height: 16)
+                        //     } else {
+                        //         Text("Summarize")
+                        //             .font(.system(size: 11))
+                        //             .foregroundColor(.purple)
+                        //     }
+                        // }
+                        // .buttonStyle(.plain)
+                        // .disabled(isSummarizing)
+                    }
+
+                    if let summary = summary {
+                        Text(summary)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .lineLimit(3)
+                            .padding(.top, 2)
+                    }
+
                     if let contexts = content.contexts {
                         ForEach(Array(contexts.enumerated()), id: \.offset) { _, context in
                             Text(context)
@@ -816,5 +939,259 @@ struct NoteRow: View {
 extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+struct TimeGroupHeader: View {
+    let title: String
+    let notes: [RecentNote]
+    @StateObject var viewModel: RecentNotesViewModel
+    @State private var isSummarizing = false
+    @State private var isCopied = false
+    @State private var isHoveringCopy = false
+    @State private var isHoveringArchive = false
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var shouldShowSummarize: Bool {
+        guard let group = TimeGroup(rawValue: title) else { return false }
+        return group != .older && !(viewModel.showingSummaries[group] ?? false)
+    }
+
+    private func summarizeGroupNotes() {
+        guard let group = TimeGroup(rawValue: title) else { return }
+        isSummarizing = true
+        Task {
+            do {
+                let combinedContent = notes.map { note in
+                    "Note: \(note.title)\n\(note.content)"
+                }.joined(separator: "\n---\n")
+
+                let summary = try await DeepseekAPI.shared.summarize(text: combinedContent)
+                DispatchQueue.main.async {
+                    viewModel.groupSummaries[group] = summary
+                    viewModel.showingSummaries[group] = true
+                    self.isSummarizing = false
+                }
+            } catch {
+                print("Error getting summary:", error)
+                DispatchQueue.main.async {
+                    self.isSummarizing = false
+                }
+            }
+        }
+    }
+
+    private func copyContent() {
+        guard let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(summary, forType: .string)
+
+        withAnimation {
+            isCopied = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                isCopied = false
+            }
+        }
+    }
+
+    private func copyAndArchive() {
+        // First copy the summary
+        if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(summary, forType: .string)
+
+            // Then archive all notes in this group
+            viewModel.archiveGroupNotes(notes, groupTitle: title)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Text(title)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+
+                if shouldShowSummarize {
+                    Button(action: summarizeGroupNotes) {
+                        if isSummarizing {
+                            ProgressView()
+                                .scaleEffect(0.4)
+                                .frame(width: 12, height: 12)
+                        } else {
+                            Text("Summarize")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary.opacity(0.8))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isSummarizing)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            if let group = TimeGroup(rawValue: title),
+                viewModel.showingSummaries[group] == true,
+                let summary = viewModel.groupSummaries[group]
+            {
+                ZStack(alignment: .topTrailing) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(summary)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+
+                        HStack {
+                            Spacer()
+                            Text("AI summarized, carefully use it.")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.purple.opacity(0.6))
+                            Spacer()
+                        }
+                        .padding(.bottom, 8)
+                    }
+
+                    // Action buttons in HStack
+                    HStack(spacing: 4) {
+                        Button(action: copyContent) {
+                            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                                .font(.system(size: 11))
+                                .foregroundColor(.primary)
+                                .contentTransition(.symbolEffect(.replace))
+                                .frame(width: 24, height: 24)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(
+                                            isHoveringCopy
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in
+                            isHoveringCopy = hovering
+                        }
+
+                        Button(action: copyAndArchive) {
+                            Image("copy.archive")
+                                .font(.system(size: 15))
+                                .foregroundColor(.red)
+                                .frame(width: 24, height: 24)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(
+                                            isHoveringArchive
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in
+                            isHoveringArchive = hovering
+                        }
+                    }
+                    .padding(4)
+                }
+                .background(Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(
+                            LinearGradient(
+                                gradient: Gradient(colors: [.purple, .pink]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9)
+                        .strokeBorder(
+                            Color.purple.opacity(0.1),
+                            lineWidth: 0.5
+                        )
+                )
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
+            }
+        }
+        .background(Color.clear)
+    }
+}
+
+struct ToastStyle {
+    static let backgroundColor = Color(white: 0.15).opacity(0.95)
+    static let lightBackgroundColor = Color(white: 0.95).opacity(0.95)
+    static let shadowColor = Color.black.opacity(0.2)
+    static let cornerRadius: CGFloat = 8
+    static let padding = EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+}
+
+struct StandardToastView: View {
+    let icon: String
+    let message: String
+    var actionButton: (title: String, action: () -> Void)? = nil
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Enhanced icon with animation
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.green)
+                .symbolEffect(.bounce.up, options: .repeating)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(message)
+                    .foregroundColor(.primary)
+                    .font(.system(size: 13, weight: .medium))
+            }
+
+            if let button = actionButton {
+                Button(button.title, action: button.action)
+                    .buttonStyle(.plain)
+                    .foregroundColor(.blue)
+                    .font(.system(size: 13, weight: .medium))
+            }
+        }
+        .padding(ToastStyle.padding)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                    .fill(
+                        colorScheme == .dark
+                            ? ToastStyle.backgroundColor : ToastStyle.lightBackgroundColor)
+
+                // Add subtle gradient overlay
+                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                    .fill(
+                        LinearGradient(
+                            colors: [.green.opacity(0.1), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                // Add subtle border
+                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                    .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
+            }
+        )
+        .shadow(
+            color: ToastStyle.shadowColor,
+            radius: 12,
+            x: 0,
+            y: 4
+        )
+        .padding(.bottom, 12)
     }
 }
