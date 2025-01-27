@@ -1148,7 +1148,7 @@ struct StandardToastView: View {
             Image(systemName: icon)
                 .font(.system(size: 14))
                 .foregroundColor(.green)
-                .symbolEffect(.bounce.up, options: .repeating)
+                .symbolEffect(.bounce.up, options: .repeat(1))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(message)
