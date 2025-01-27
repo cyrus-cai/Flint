@@ -582,8 +582,10 @@ struct RecentNotesListView: View {
             if viewModel.showArchiveToast {
                 VStack {
                     Spacer()
-                    ToastView(message: "Note Archived", isShowing: $viewModel.showArchiveToast)
-                        .padding(.bottom, 12)
+                    StandardToastView(
+                        icon: "archivebox.fill",
+                        message: "Note Archived"
+                    )
                 }
                 .transition(.opacity)
             }
@@ -592,24 +594,11 @@ struct RecentNotesListView: View {
             if viewModel.showUndoArchiveToast {
                 VStack {
                     Spacer()
-                    HStack {
-                        Image(systemName: "archivebox.fill")
-                            .foregroundColor(.secondary)
-                        Text("\(viewModel.archivedNotesCount) Notes Archived")
-                            .foregroundColor(.secondary)
-                        Button("Undo") {
-                            viewModel.undoGroupArchive()
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(.blue)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+                    StandardToastView(
+                        icon: "archivebox.fill",
+                        message: "\(viewModel.archivedNotesCount) Notes Archived",
+                        actionButton: ("Undo", { viewModel.undoGroupArchive() })
                     )
-                    .padding(.bottom, 12)
                 }
                 .transition(.opacity)
             }
@@ -1135,5 +1124,73 @@ struct TimeGroupHeader: View {
             }
         }
         .background(Color.clear)
+    }
+}
+
+struct ToastStyle {
+    static let backgroundColor = Color(white: 0.15).opacity(0.95)
+    static let lightBackgroundColor = Color(white: 0.95).opacity(0.95)
+    static let shadowColor = Color.black.opacity(0.2)
+    static let cornerRadius: CGFloat = 8
+    static let padding = EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+}
+
+struct StandardToastView: View {
+    let icon: String
+    let message: String
+    var actionButton: (title: String, action: () -> Void)? = nil
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Enhanced icon with animation
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.green)
+                .symbolEffect(.bounce.up, options: .repeating)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(message)
+                    .foregroundColor(.primary)
+                    .font(.system(size: 13, weight: .medium))
+            }
+
+            if let button = actionButton {
+                Button(button.title, action: button.action)
+                    .buttonStyle(.plain)
+                    .foregroundColor(.blue)
+                    .font(.system(size: 13, weight: .medium))
+            }
+        }
+        .padding(ToastStyle.padding)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                    .fill(
+                        colorScheme == .dark
+                            ? ToastStyle.backgroundColor : ToastStyle.lightBackgroundColor)
+
+                // Add subtle gradient overlay
+                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                    .fill(
+                        LinearGradient(
+                            colors: [.green.opacity(0.1), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                // Add subtle border
+                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                    .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
+            }
+        )
+        .shadow(
+            color: ToastStyle.shadowColor,
+            radius: 12,
+            x: 0,
+            y: 4
+        )
+        .padding(.bottom, 12)
     }
 }
