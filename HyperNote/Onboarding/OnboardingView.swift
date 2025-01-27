@@ -69,14 +69,21 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Progress indicator - 现在在顶部居中
-            HStack(spacing: 6) {
-                ForEach(0..<steps.count, id: \.self) { index in
-                    Circle()
-                        .fill(index <= currentStep ? Color.purple : Color.gray.opacity(0.3))
-                        .frame(width: 6, height: 6)
-                }
+            HStack(spacing: 4) {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [.purple, .pink]),
+                            startPoint: .leading,
+                            endPoint: .trailing)
+                    )
+                    .frame(
+                        width: CGFloat(currentStep + 1) * 36,
+                        height: 4
+                    )
+                    .animation(.spring(duration: 0.5), value: currentStep)
             }
-            .padding(.top, 8)
+            .padding(.top, 12)
 
             // Main content area
             HStack(spacing: 0) {
@@ -89,13 +96,18 @@ struct OnboardingView: View {
                                 StepContent(step: steps[index])
                                     .transition(
                                         .asymmetric(
-                                            insertion: .move(
-                                                edge: slideDirection == .right
-                                                    ? .trailing : .leading),
-                                            removal: .move(
-                                                edge: slideDirection == .right
-                                                    ? .leading : .trailing)
-                                        ))
+                                            insertion: .offset(
+                                                x: slideDirection == .right ? 100 : -100
+                                            )
+                                            .combined(with: .opacity)
+                                            .combined(with: .scale(scale: 0.9)),
+                                            removal: .offset(
+                                                x: slideDirection == .right ? -100 : 100
+                                            )
+                                            .combined(with: .opacity)
+                                            .combined(with: .scale(scale: 0.9))
+                                        )
+                                    )
                             }
                         }
                     }
@@ -229,27 +241,42 @@ struct StepContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Image(systemName: step.icon)
-                .font(.system(size: 60))
-                .foregroundColor(.purple)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.system(size: 40))
+                .symbolEffect(.bounce.up, options: .speed(0.5))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.purple, .pink],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
 
             Text(step.title)
-                .font(.title)
-                .bold()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.primary, .primary.opacity(0.7)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
 
             Text(step.description)
-                .font(.title3)
+                .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(step.detail)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if !step.detail.isEmpty {
+                Text(step.detail)
+                    .font(.system(size: 14))
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(12)
+            }
         }
-        .padding(.horizontal)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.ultraThinMaterial)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
     }
 }
 
