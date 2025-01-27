@@ -82,11 +82,11 @@ struct TitleBarView: View {
             }
 
             // 在视图消失时移除监听器
-            onDisappear {
-                if let monitor = monitor {
-                    NSEvent.removeMonitor(monitor)
-                }
-            }
+//            onDisappear {
+//                if let monitor = monitor {
+//                    NSEvent.removeMonitor(monitor)
+//                }
+//            }
         }
     }
 

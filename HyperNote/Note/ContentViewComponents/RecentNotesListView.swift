@@ -596,7 +596,8 @@ struct RecentNotesListView: View {
                     Spacer()
                     StandardToastView(
                         icon: "archivebox.fill",
-                        message: "\(viewModel.archivedNotesCount) Notes Archived",
+                        message:
+                            "Copied summary & archived \(viewModel.archivedNotesCount) \(viewModel.archivedNotesCount == 1 ? "note" : "notes")",
                         actionButton: ("Undo", { viewModel.undoGroupArchive() })
                     )
                 }

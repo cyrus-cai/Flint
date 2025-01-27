@@ -114,10 +114,11 @@ class FileManager {
                 }
             }
             return notes
-        } catch {
-            print("Error getting notes: \(error)")
-            return []
-        }
+        } 
+//        catch {
+//            print("Error getting notes: \(error)")
+//            return []
+//        }
     }
 
     // Check if path is configured
