@@ -872,6 +872,7 @@ struct TimeGroupHeader: View {
     @State private var isSummarizing = false
     @State private var isCopied = false
     @State private var isHoveringCopy = false
+    @State private var isHoveringArchive = false
     @Environment(\.colorScheme) private var colorScheme
 
     private var shouldShowSummarize: Bool {
@@ -959,7 +960,6 @@ struct TimeGroupHeader: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(12)
 
-                        // 添加底部的 AI Summarized 标记
                         HStack {
                             Spacer()
                             Text("AI summarized, carefully use it.")
@@ -970,24 +970,46 @@ struct TimeGroupHeader: View {
                         .padding(.bottom, 8)
                     }
 
-                    Button(action: copyContent) {
-                        Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 11))
-                            .foregroundColor(.primary)
-                            .contentTransition(.symbolEffect(.replace))
-                            .frame(width: 24, height: 24)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(
-                                        isHoveringCopy
-                                            ? (colorScheme == .dark
-                                                ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05)) : Color.clear)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .onHover { hovering in
-                        isHoveringCopy = hovering
+                    // Action buttons in HStack
+                    HStack(spacing: 4) {
+                        Button(action: copyContent) {
+                            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                                .font(.system(size: 11))
+                                .foregroundColor(.primary)
+                                .contentTransition(.symbolEffect(.replace))
+                                .frame(width: 24, height: 24)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(
+                                            isHoveringCopy
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in
+                            isHoveringCopy = hovering
+                        }
+
+                        Button(action: {}) {  // Empty action for now
+                            Image("copy.archive")  // 使用自定义图标
+                                .font(.system(size: 15))
+                                .foregroundColor(.red)
+                                .frame(width: 24, height: 24)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(
+                                            isHoveringArchive
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in
+                            isHoveringArchive = hovering
+                        }
                     }
                     .padding(4)
                 }
