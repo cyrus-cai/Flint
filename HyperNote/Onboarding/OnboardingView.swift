@@ -365,7 +365,7 @@ struct StepContent: View {
                                 Label("Storage Location", systemImage: "folder")
                                     .font(.system(size: 14, weight: .medium))
                                 Spacer()
-                                Button("Choose Folder") {
+                                Button("Change Location") {
                                     let openPanel = NSOpenPanel()
                                     openPanel.canChooseDirectories = true
                                     openPanel.canChooseFiles = false
@@ -377,7 +377,16 @@ struct StepContent: View {
                                         }
                                     }
                                 }
-                                .buttonStyle(BorderedGradientButtonStyle())
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                                // .padding(.horizontal, 12)
+                                // .padding(.vertical, 6)
+                                // .background(Color.primary.opacity(0.05))
+                                // .cornerRadius(6)
+                                // .overlay(
+                                //     RoundedRectangle(cornerRadius: 6)
+                                //         .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                // )
                             }
 
                             if FileManager.shared.isPathConfigured {
