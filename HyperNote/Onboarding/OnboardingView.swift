@@ -192,8 +192,7 @@ struct OnboardingView: View {
                             }
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.purple)
+                    .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
                 } else if currentStep == 2 {  // Get Pro step
                     Button("Skip") {
@@ -210,8 +209,7 @@ struct OnboardingView: View {
                             NSWorkspace.shared.open(url)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.purple)
+                    .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
                 } else {
                     // For other steps, show the regular Next/Start button
@@ -231,8 +229,7 @@ struct OnboardingView: View {
                             }
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.purple)
+                    .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
                 }
             }
@@ -346,4 +343,31 @@ struct OnboardingStep {
     var hasAction: Bool = false
     var imageName: String?
     var showLoginOption: Bool = false
+}
+
+private struct GradientButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) var colorScheme
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .medium, design: .rounded))
+            .foregroundColor(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+            .background(
+                LinearGradient(
+                    colors: [Color(.systemPurple), Color(.systemPink)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .cornerRadius(8)
+                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    }
 }
