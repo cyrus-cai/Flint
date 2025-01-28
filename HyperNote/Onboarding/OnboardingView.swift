@@ -231,6 +231,9 @@ struct OnboardingView: View {
                     // For other steps, show the regular Next/Start button
                     Button(currentStep == steps.count - 1 ? "Start HyperNote" : "Next Step") {
                         if currentStep == steps.count - 1 {
+                            // Set hasCompletedOnboarding to true
+                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+
                             isFirstLaunch = false
                             if let window = NSApplication.shared.windows.first(where: {
                                 $0.title == "Welcome to HyperNote"
