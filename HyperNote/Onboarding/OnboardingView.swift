@@ -24,7 +24,7 @@ struct OnboardingView: View {
             icon: "bolt",
             title: "Designed for quick write-down",
             description: "Anywhere, press ⌥ + C.",
-            detail: "Choose where to save your notes",
+            detail: "",
             hasAction: true,
             imageName: "quick-wake-demo",
             showLoginOption: true,
@@ -205,6 +205,11 @@ struct OnboardingView: View {
                             if openPanel.runModal() == .OK {
                                 if let selectedPath = openPanel.url {
                                     FileManager.shared.setCustomDirectory(selectedPath)
+                                    // Auto advance to next step
+                                    slideDirection = .right
+                                    withAnimation {
+                                        currentStep += 1
+                                    }
                                 }
                             }
                         }
@@ -315,28 +320,39 @@ struct StepContent: View {
 
             if step.showLoginOption {
                 VStack(alignment: .leading, spacing: 8) {
-                    Toggle("Start at login", isOn: $launchAtLogin)
-                        .onChange(of: launchAtLogin) { newValue in
-                            if newValue {
-                                loginManager.requestLaunchPermission { granted in
-                                    if granted {
-                                        loginManager.enableLaunchAtLogin()
-                                    } else {
-                                        DispatchQueue.main.async {
-                                            launchAtLogin = false
+                    VStack(alignment: .leading, spacing: 12) {
+                        Toggle("Start at login", isOn: $launchAtLogin)
+                            .onChange(of: launchAtLogin) { newValue in
+                                if newValue {
+                                    loginManager.requestLaunchPermission { granted in
+                                        if granted {
+                                            loginManager.enableLaunchAtLogin()
+                                        } else {
+                                            DispatchQueue.main.async {
+                                                launchAtLogin = false
+                                            }
                                         }
                                     }
+                                } else {
+                                    loginManager.disableLaunchAtLogin()
                                 }
-                            } else {
-                                loginManager.disableLaunchAtLogin()
                             }
-                        }
-                        .toggleStyle(.switch)
-                        .padding(.top, 8)
+                            .toggleStyle(.switch)
+                            .padding(.top, 8)
 
-                    Text("Quickly access HyperNote when you need it")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        Text("Quickly access HyperNote when you need it")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.primary.opacity(0.05))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                            )
+                    )
 
                     // Add storage configuration
                     if step.showStorageConfig {
@@ -377,7 +393,7 @@ struct StepContent: View {
                         )
                     }
                 }
-                .padding()
+                // .padding()
             }
 
             Spacer()
