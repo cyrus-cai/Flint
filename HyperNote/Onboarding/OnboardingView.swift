@@ -94,7 +94,7 @@ struct OnboardingView: View {
                 .frame(width: 48, height: 8)  // 缩小宽度和高度
                 Spacer()
             }
-            .padding(64)
+            .padding(48)
 
             // Main content area
             HStack(spacing: 0) {
@@ -145,7 +145,7 @@ struct OnboardingView: View {
                 }
 
             }
-            .padding(64)
+            .padding(48)
 
             // Navigation buttons
             HStack {
@@ -235,7 +235,7 @@ struct OnboardingView: View {
                     .controlSize(.large)
                 }
             }
-            .padding(64)
+            .padding(48)
         }
     }
 }
