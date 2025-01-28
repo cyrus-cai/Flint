@@ -190,6 +190,7 @@ struct OnboardingView: View {
                             currentStep += 1
                         }
                     }
+                    .padding(.vertical, 8)
                     .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
                 } else if currentStep == 2 {  // Get Pro step
