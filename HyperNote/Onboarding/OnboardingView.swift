@@ -94,13 +94,12 @@ struct OnboardingView: View {
                 .frame(width: 48, height: 8)  // 缩小宽度和高度
                 Spacer()
             }
-            .padding(.top, 8)
-            .padding(.leading, 24)
+            .padding(64)
 
             // Main content area
             HStack(spacing: 0) {
                 // Left side - Content
-                VStack(spacing: 30) {
+                VStack {
                     // Content with slide animation
                     HStack(spacing: 0) {
                         ForEach(0..<steps.count, id: \.self) { index in
@@ -126,18 +125,8 @@ struct OnboardingView: View {
                     .animation(.easeInOut(duration: 0.3), value: currentStep)
                     .frame(maxWidth: .infinity)
 
-                    // Action button (Configure Vault)
-                    // if steps[currentStep].hasAction {
-                    //     Button("Configure Vault") {
-                    //         WindowManager.shared.createSettingsWindow()
-                    //     }
-                    //     .buttonStyle(.borderedProminent)
-                    //     .tint(.purple)
-                    // }
-
                     Spacer()
                 }
-                .padding(24)
                 .frame(width: 360)
 
                 // Right side - Image/Video
@@ -149,13 +138,14 @@ struct OnboardingView: View {
                             .frame(width: 500, height: 320)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-                            .offset(x: slideDirection == .right ? 30 : -30)
+                            .offset(x: slideDirection == .right ? 30 : 30)
                             .animation(
                                 .spring(response: 0.4, dampingFraction: 0.6), value: currentStep)
                     }
                 }
-                .padding(24)
+
             }
+            .padding(64)
 
             // Navigation buttons
             HStack {
@@ -245,8 +235,7 @@ struct OnboardingView: View {
                     .controlSize(.large)
                 }
             }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 40)
+            .padding(64)
         }
     }
 }
@@ -268,29 +257,37 @@ struct StepContent: View {
                     )
                 )
 
-            Text(step.title)
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.primary, .primary.opacity(0.7)],
-                        startPoint: .top,
-                        endPoint: .bottom
+            VStack(alignment: .leading, spacing: 8) {
+                Text(step.title)
+                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.primary, .primary.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                )
 
-            Text(step.description)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.secondary)
+                Text(step.description)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.secondary)
 
-            if !step.detail.isEmpty {
-                Text(step.detail)
-                    .font(.system(size: 14))
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(12)
+                if !step.detail.isEmpty {
+                    Text(step.detail)
+                        .font(.system(size: 14))
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(12)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
         }
-        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // .padding(.horizontal, 40)
+        .padding(.vertical, 20)
     }
 }
 
