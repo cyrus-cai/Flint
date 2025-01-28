@@ -743,24 +743,24 @@ struct NoteRow: View {
         }
     }
 
-    private func summarizeContent() {
-        isSummarizing = true
-        Task {
-            do {
-                let summary = try await DeepseekAPI.shared.summarize(text: "Hello, world!")
-                // let summary = try await DeepseekAPI.shared.summarize(text: note.content)
-                DispatchQueue.main.async {
-                    self.summary = summary
-                    self.isSummarizing = false
-                }
-            } catch {
-                print("Error getting summary:", error)
-                DispatchQueue.main.async {
-                    self.isSummarizing = false
-                }
-            }
-        }
-    }
+    // private func summarizeContent() {
+    //     isSummarizing = true
+    //     Task {
+    //         do {
+    //             let summary = try await DeepseekAPI.shared.summarize(text: "Hello, world!")
+    //             // let summary = try await DeepseekAPI.shared.summarize(text: note.content)
+    //             DispatchQueue.main.async {
+    //                 self.summary = summary
+    //                 self.isSummarizing = false
+    //             }
+    //         } catch {
+    //             print("Error getting summary:", error)
+    //             DispatchQueue.main.async {
+    //                 self.isSummarizing = false
+    //             }
+    //         }
+    //     }
+    // }
 
     var body: some View {
         HStack(spacing: 2) {
@@ -966,7 +966,8 @@ struct TimeGroupHeader: View {
                     "Note: \(note.title)\n\(note.content)"
                 }.joined(separator: "\n---\n")
 
-                let summary = try await DeepseekAPI.shared.summarize(text: combinedContent)
+                // let summary = try await DeepseekAPI.shared.summarize(text: combinedContent)
+                let summary = try await DoubaoAPI.shared.summarize(text: combinedContent)
                 DispatchQueue.main.async {
                     viewModel.groupSummaries[group] = summary
                     viewModel.showingSummaries[group] = true
