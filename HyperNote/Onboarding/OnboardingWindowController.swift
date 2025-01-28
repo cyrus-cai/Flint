@@ -57,8 +57,8 @@ class OnboardingWindowController: NSWindowController {
             let centerX = screenFrame.midX
             let centerY = screenFrame.midY
 
-            let windowX = centerX - (windowFrame.width / 2) - 510
-            let windowY = centerY - (windowFrame.height / 2) - 200
+            let windowX = centerX - (windowFrame.width / 2)
+            let windowY = centerY - (windowFrame.height / 2)
 
             window.setFrameOrigin(NSPoint(x: windowX, y: windowY))
         }
