@@ -484,40 +484,70 @@ struct HotkeySettingsView: View {
     @ObservedObject var counter: HotkeyCounter
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack {
-                HStack {
-                    Label("Quick wake-up", systemImage: "bolt.square")
-                    Spacer()
-                    Text("⌥ + C")
-                        .foregroundColor(.gray)
-                }
-                HStack {
-                    Spacer()
-                    Text("Today used:\(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)")
-                        .opacity(0.5)
-                    Button("Unlimited in Hyper +") {
-                        // Handle upgrade action
+        ScrollView {
+            VStack(spacing: 16) {
+                GroupBox("Quick Actions") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Quick wake-up", systemImage: "bolt.square")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌥ + C")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            Text(
+                                "Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)"
+                            )
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            Spacer()
+                            Button("Unlimited in Hyper +") {
+                                // Handle upgrade action
+                            }
+                            .font(.system(size: 12, weight: .medium))
+                            .buttonStyle(.borderedProminent)
+                            .tint(.purple)
+                            .controlSize(.small)
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.purple)
-                    .controlSize(.small)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
-            }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-            HStack {
-                Label("History", systemImage: "clock")
-                Spacer()
-                Text("⌘ + H / ⌘ + F")
-                    .foregroundColor(.gray)
-            }
+                GroupBox("Navigation") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("History", systemImage: "clock")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + H / ⌘ + F")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
 
-            HStack {
-                Label("New Note", systemImage: "plus")
-                Spacer()
-                Text(" ⌘ + ⏎ / ⌘ + N / ⌘ + K")
-                    .foregroundColor(.gray)
+                        Divider()
+
+                        HStack {
+                            Label("New Note", systemImage: "plus")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + ⏎ / ⌘ + N / ⌘ + K")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
             }
+            .padding(16)
         }
     }
 }
