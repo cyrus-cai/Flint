@@ -287,62 +287,92 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 GroupBox("Account Settings") {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 12) {
                         HStack {
                             Label("Account Status", systemImage: "person.crop.circle")
+                                .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Text("Not Logged In")
+                                .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
 
+                        Divider()
+
                         HStack {
                             Label("Launch at Login", systemImage: "power")
+                                .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Toggle("", isOn: $launchAtLogin)
                                 .toggleStyle(.switch)
+                                .labelsHidden()
                         }
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
                 GroupBox("Subscription") {
                     HStack {
                         Label("Current Plan", systemImage: "star.circle")
+                            .font(.system(size: 13, weight: .medium))
                         Spacer()
                         Text("Free Tier")
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.purple)
-                            .padding(4)
-                            .background(Capsule().fill(Color.purple.opacity(0.1)))
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
+                            .background(
+                                Capsule()
+                                    .fill(Color.purple.opacity(0.1))
+                                    .overlay(
+                                        Capsule()
+                                            .strokeBorder(Color.purple.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
                     }
                     .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
                 }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
                 GroupBox("Preferences") {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 12) {
                         HStack {
                             Label("Language", systemImage: "globe")
+                                .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Text("English")
+                                .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
 
+                        Divider()
+
                         HStack {
                             Label("Auto-save", systemImage: "timer")
+                                .font(.system(size: 13, weight: .medium))
                             Spacer()
                             AutoSaveIntervalSection()
+                                .frame(width: 90)
                         }
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
                 GroupBox("Activity Overview") {
                     ContributionGraph(contributions: viewModel.noteCountByDay)
-                        .padding(.vertical)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 8)
                 }
+                .groupBoxStyle(ModernGroupBoxStyle())
             }
-            .padding()
+            .padding(16)
         }
     }
 
@@ -361,6 +391,25 @@ struct GeneralSettingsView: View {
         } else {
             loginManager.disableLaunchAtLogin()
         }
+    }
+}
+
+struct ModernGroupBoxStyle: GroupBoxStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment: .leading) {
+            configuration.label
+                .font(.system(size: 14, weight: .semibold))
+                .textCase(.uppercase)
+                .foregroundColor(.secondary)
+                .padding(.bottom, 8)
+
+            configuration.content
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(nsColor: .controlBackgroundColor))
+                )
+        }
+        .padding(.vertical, 8)
     }
 }
 
