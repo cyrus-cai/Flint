@@ -211,22 +211,26 @@ struct OnboardingView: View {
                     .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
                 } else if currentStep == 2 {  // Get Pro step
-                    Button("Skip") {
-                        slideDirection = .right
-                        withAnimation {
-                            currentStep += 1
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 8)
 
                     Button("Get Pro") {
                         if let url = URL(string: "https://google.com") {
                             NSWorkspace.shared.open(url)
                         }
                     }
+                    .buttonStyle(BorderedGradientButtonStyle())
+                    .controlSize(.large)
+                    .padding(.trailing, 8)
+
+                    Button("Next Step") {
+                        slideDirection = .right
+                        withAnimation {
+                            currentStep += 1
+                        }
+                    }
                     .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
+                    .padding(.trailing, 8)
+
                 } else {
                     // For other steps, show the regular Next/Start button
                     Button(currentStep == steps.count - 1 ? "Start HyperNote" : "Next Step") {
@@ -397,5 +401,34 @@ private struct GradientButtonStyle: ButtonStyle {
             .onHover { hovering in
                 isHovered = hovering
             }
+    }
+}
+
+private struct BorderedGradientButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) var colorScheme
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .medium, design: .rounded))
+            .foregroundColor(Color(.systemPurple))
+            .padding(.horizontal, 24)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color(.systemPurple), Color(.systemPink)],
+                            startPoint: isHovered ? .topLeading : .leading,
+                            endPoint: isHovered ? .bottomTrailing : .trailing
+                        ),
+                        lineWidth: 1.5
+                    )
+                    .background(Color.clear)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .scaleEffect(isHovered ? 1.02 : 1)
+            .animation(.easeOut(duration: 0.1), value: isHovered)
+            .onHover { isHovered = $0 }
     }
 }
