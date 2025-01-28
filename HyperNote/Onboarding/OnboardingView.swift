@@ -24,7 +24,8 @@ struct OnboardingView: View {
             title: "Designed for quick write-down",
             description: "Anywhere, press ⌥ + C.",
             detail: "",
-            imageName: "quick-wake-demo"
+            imageName: "quick-wake-demo",
+            showLoginOption: true
         ),
         //        OnboardingStep(
         //            icon: "lock",
@@ -243,6 +244,8 @@ struct OnboardingView: View {
 // Helper view to encapsulate step content
 struct StepContent: View {
     let step: OnboardingStep
+    @AppStorage("launchAtLogin") private var launchAtLogin = false
+    private let loginManager = LoginManager.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -283,6 +286,36 @@ struct StepContent: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
+            if step.showLoginOption {
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle("Start at login", isOn: $launchAtLogin)
+                        .onChange(of: launchAtLogin) { newValue in
+                            if newValue {
+                                loginManager.requestLaunchPermission { granted in
+                                    if granted {
+                                        loginManager.enableLaunchAtLogin()
+                                    } else {
+                                        DispatchQueue.main.async {
+                                            launchAtLogin = false
+                                        }
+                                    }
+                                }
+                            } else {
+                                loginManager.disableLaunchAtLogin()
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        .padding(.top, 8)
+
+                    Text("Quickly access HyperNote when you need it")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(.ultraThinMaterial)
+                .cornerRadius(12)
+            }
+
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -298,4 +331,5 @@ struct OnboardingStep {
     let detail: String
     var hasAction: Bool = false
     var imageName: String?
+    var showLoginOption: Bool = false
 }
