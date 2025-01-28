@@ -426,92 +426,48 @@ struct IntegrationSettingsView: View {
                     VStack(spacing: 16) {
                         // Header section
                         HStack(spacing: 12) {
-                            Image("obsidian-icon")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Obsidian Integration")
-                                    .font(.system(size: 14, weight: .semibold))
-                                Text("Sync notes with your Obsidian vault")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.secondary)
-                            }
+                            Label("Storage Location", systemImage: "folder")
+                                .font(.system(size: 14, weight: .medium))
 
                             Spacer()
 
-                            Toggle("", isOn: $integrateWithObsidian)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
+                            Button("Change Location") {
+                                selectCustomDirectory()
+                            }
+                            .font(.system(size: 13))
+                            .controlSize(.small)
                         }
 
-                        if integrateWithObsidian {
-                            Divider()
-
-                            // Storage location section
-                            VStack(alignment: .leading, spacing: 12) {
-                                if !FileManager.shared.isPathConfigured {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "exclamationmark.triangle.fill")
-                                            .foregroundColor(.red)
-                                        Text("Storage location required")
-                                            .font(.system(size: 13))
-                                            .foregroundColor(.red)
-                                    }
-                                    .onAppear {
-                                        showPathAlert = true
-                                    }
-                                }
-
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Button(action: selectCustomDirectory) {
-                                        HStack {
-                                            Image(systemName: "folder.badge.plus")
-                                            Text("Configure Obsidian folder")
-                                        }
-                                        .font(.system(size: 13, weight: .medium))
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .controlSize(.regular)
-
-                                    if FileManager.shared.isPathConfigured {
-                                        HStack {
-                                            Text(customPath)
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                                .lineLimit(1)
-                                                .truncationMode(.middle)
-                                                .padding(.vertical, 4)
-                                                .padding(.horizontal, 8)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 4)
-                                                        .fill(Color.secondary.opacity(0.1))
-                                                )
-
-                                            Button(role: .destructive) {
-                                                if let defaultURL = Foundation.FileManager.default
-                                                    .urls(
-                                                        for: .documentDirectory, in: .userDomainMask
-                                                    ).first
-                                                {
-                                                    FileManager.shared.setCustomDirectory(
-                                                        defaultURL)
-                                                    customPath = defaultURL.path
-                                                }
-                                            } label: {
-                                                Label(
-                                                    "Reset Location",
-                                                    systemImage: "arrow.counterclockwise"
-                                                )
-                                                .font(.system(size: 12))
-                                            }
-                                            .buttonStyle(.borderless)
-                                            .controlSize(.small)
-                                        }
-                                    }
-                                }
+                        if !FileManager.shared.isPathConfigured {
+                            HStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                Text("Storage location required")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.red)
                             }
+                            .onAppear {
+                                showPathAlert = true
+                            }
+                        }
+
+                        if FileManager.shared.isPathConfigured {
+                            Text(customPath)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(.primary.opacity(0.05))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                        )
+                                )
                         }
                     }
                     .padding(.vertical, 12)
