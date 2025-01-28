@@ -69,21 +69,31 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Progress indicator - 现在在顶部居中
-            HStack(spacing: 4) {
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [.purple, .pink]),
-                            startPoint: .leading,
-                            endPoint: .trailing)
-                    )
-                    .frame(
-                        width: CGFloat(currentStep + 1) * 36,
-                        height: 4
-                    )
-                    .animation(.spring(duration: 0.5), value: currentStep)
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(height: 6)
+
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(.systemPurple), Color(.systemPink)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(
+                            width: (CGFloat(currentStep + 1) / CGFloat(steps.count))
+                                * geometry.size.width,
+                            height: 6
+                        )
+                        .shadow(color: .purple.opacity(0.2), radius: 8, x: 0, y: 2)
+                }
             }
-            .padding(.top, 12)
+            .padding(.top, 20)
+            .frame(height: 6)
+            .padding(.horizontal, 40)
 
             // Main content area
             HStack(spacing: 0) {
@@ -133,10 +143,13 @@ struct OnboardingView: View {
                     if let imageName = steps[currentStep].imageName {
                         Image(imageName)
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 460, height: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .transition(.opacity)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 500, height: 320)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+                            .offset(x: slideDirection == .right ? 30 : -30)
+                            .animation(
+                                .spring(response: 0.4, dampingFraction: 0.6), value: currentStep)
                     }
                 }
                 .padding(24)
