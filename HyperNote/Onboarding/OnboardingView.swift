@@ -21,26 +21,34 @@ struct OnboardingView: View {
     private let steps = [
         OnboardingStep(
             icon: "bolt",
-            title: "Quick Wake-up",
-            description: "Press ⌥ + C to quickly capture your thoughts",
+            title: "Designed for quick write-down",
+            description: "Anywhere, press ⌥ + C.",
             detail: "",
             imageName: "quick-wake-demo"
         ),
+        //        OnboardingStep(
+        //            icon: "lock",
+        //            title: "Local and private",
+        //            description: "All your notes are stored locally",
+        //            detail: "",
+        //            hasAction: true,
+        //            imageName: "local-private-demo"
+        //        ),
+        OnboardingStep(
+            icon: "folder.badge.gearshape",
+            title: "Where to save?",
+            description: "Choose your folder",
+            detail: "All your notes are stored locally",
+            hasAction: true,
+            imageName: "storage-config-demo"
+        ),
         OnboardingStep(
             icon: "lock",
-            title: "Local and private",
-            description: "All your notes are stored locally",
+            title: "AI, which truly useful",
+            description: "Help summarize & make plans.",
             detail: "",
             hasAction: true,
             imageName: "local-private-demo"
-        ),
-        OnboardingStep(
-            icon: "folder.badge.gearshape",
-            title: "Select folder",
-            description: "Reccomend to select your Obsidian vault",
-            detail: "So HyperNote can work with your Obsidian",
-            hasAction: true,
-            imageName: "storage-config-demo"
         ),
         OnboardingStep(
             icon: "star",
@@ -61,19 +69,37 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Progress indicator - 现在在顶部居中
-            HStack(spacing: 6) {
-                ForEach(0..<steps.count, id: \.self) { index in
-                    Circle()
-                        .fill(index <= currentStep ? Color.purple : Color.gray.opacity(0.3))
-                        .frame(width: 6, height: 6)
+            HStack {
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(height: 8)
+
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(.systemPurple), Color(.systemPink)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(
+                                width: (CGFloat(currentStep + 1) / CGFloat(steps.count))
+                                    * geometry.size.width,
+                                height: 8
+                            )
+                    }
                 }
+                .frame(width: 48, height: 8)  // 缩小宽度和高度
+                Spacer()
             }
-            .padding(.top, 8)
+            .padding(48)
 
             // Main content area
             HStack(spacing: 0) {
                 // Left side - Content
-                VStack(spacing: 30) {
+                VStack {
                     // Content with slide animation
                     HStack(spacing: 0) {
                         ForEach(0..<steps.count, id: \.self) { index in
@@ -81,51 +107,52 @@ struct OnboardingView: View {
                                 StepContent(step: steps[index])
                                     .transition(
                                         .asymmetric(
-                                            insertion: .move(
-                                                edge: slideDirection == .right
-                                                    ? .trailing : .leading),
-                                            removal: .move(
-                                                edge: slideDirection == .right
-                                                    ? .leading : .trailing)
-                                        ))
+                                            insertion: .offset(
+                                                x: slideDirection == .right ? 100 : -100
+                                            )
+                                            .combined(with: .opacity)
+                                            .combined(with: .scale(scale: 0.9)),
+                                            removal: .offset(
+                                                x: slideDirection == .right ? -100 : 100
+                                            )
+                                            .combined(with: .opacity)
+                                            .combined(with: .scale(scale: 0.9))
+                                        )
+                                    )
                             }
                         }
                     }
                     .animation(.easeInOut(duration: 0.3), value: currentStep)
                     .frame(maxWidth: .infinity)
 
-                    // Action button (Configure Vault)
-                    // if steps[currentStep].hasAction {
-                    //     Button("Configure Vault") {
-                    //         WindowManager.shared.createSettingsWindow()
-                    //     }
-                    //     .buttonStyle(.borderedProminent)
-                    //     .tint(.purple)
-                    // }
-
                     Spacer()
                 }
-                .padding(40)
-                .frame(width: 480)
+                .frame(width: 360)
 
                 // Right side - Image/Video
                 VStack {
                     if let imageName = steps[currentStep].imageName {
                         Image(imageName)
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 460, height: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .transition(.opacity)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 500, height: 320)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+                            .offset(x: slideDirection == .right ? 30 : 30)
+                            .animation(
+                                .spring(response: 0.4, dampingFraction: 0.6), value: currentStep)
                     }
                 }
-                .padding(40)
+
             }
+            .padding(48)
 
             // Navigation buttons
             HStack {
                 if currentStep > 0 {
                     Button("Previous") {
+                        // 添加保护条件防止快速点击
+                        guard currentStep > 0 else { return }
                         slideDirection = .left
                         withAnimation {
                             currentStep -= 1
@@ -137,7 +164,7 @@ struct OnboardingView: View {
                 Spacer()
 
                 // Show Skip and Configure Vault buttons only for the Select folder step
-                if currentStep == 2 {  // Select folder step
+                if currentStep == 1 {  // Select folder step
                     Button("Skip") {
                         slideDirection = .right
                         withAnimation {
@@ -167,7 +194,7 @@ struct OnboardingView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.purple)
                     .controlSize(.large)
-                } else if currentStep == 3 {  // Get Pro step
+                } else if currentStep == 2 {  // Get Pro step
                     Button("Skip") {
                         slideDirection = .right
                         withAnimation {
@@ -208,8 +235,7 @@ struct OnboardingView: View {
                     .controlSize(.large)
                 }
             }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 40)
+            .padding(48)
         }
     }
 }
@@ -221,27 +247,47 @@ struct StepContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Image(systemName: step.icon)
-                .font(.system(size: 60))
-                .foregroundColor(.purple)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.system(size: 40))
+                .symbolEffect(.bounce.up, options: .speed(0.5).nonRepeating)
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.purple, .pink],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
 
-            Text(step.title)
-                .font(.title)
-                .bold()
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(step.title)
+                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.primary, .primary.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
 
-            Text(step.description)
-                .font(.title3)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(step.description)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.secondary)
 
-            Text(step.detail)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                if !step.detail.isEmpty {
+                    Text(step.detail)
+                        .font(.system(size: 14))
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(12)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
         }
-        .padding(.horizontal)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // .padding(.horizontal, 40)
+        .padding(.vertical, 20)
     }
 }
 
