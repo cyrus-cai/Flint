@@ -138,7 +138,7 @@ struct OnboardingView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 500, height: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                             .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
                             .offset(x: slideDirection == .right ? 30 : 30)
                             .animation(
