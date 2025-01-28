@@ -12,6 +12,7 @@ struct OnboardingView: View {
     @Binding var isFirstLaunch: Bool
     @State private var currentStep = 0
     @State private var slideDirection: SlideDirection = .right
+    @State private var isHoveredPrev = false
 
     enum SlideDirection {
         case left
@@ -151,15 +152,30 @@ struct OnboardingView: View {
             // Navigation buttons
             HStack {
                 if currentStep > 0 {
-                    Button("Previous") {
-                        // 添加保护条件防止快速点击
+                    Button {
                         guard currentStep > 0 else { return }
                         slideDirection = .left
                         withAnimation {
                             currentStep -= 1
                         }
+                    } label: {
+                        Label("Previous", systemImage: "chevron.left")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundColor(.secondary)
+                            .padding(8)
+                            .background(
+                                LinearGradient(
+                                    colors: [.clear, .gray.opacity(0.08)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                .cornerRadius(8)
+                            )
                     }
                     .buttonStyle(.plain)
+                    .scaleEffect(isHoveredPrev ? 1.05 : 1)
+                    .animation(.easeOut, value: isHoveredPrev)
+                    .onHover { isHoveredPrev = $0 }
                 }
 
                 Spacer()
@@ -347,27 +363,36 @@ struct OnboardingStep {
 
 private struct GradientButtonStyle: ButtonStyle {
     @Environment(\.colorScheme) var colorScheme
+    @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium, design: .rounded))
             .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 10)
             .background(
                 LinearGradient(
                     colors: [Color(.systemPurple), Color(.systemPink)],
-                    startPoint: .leading,
-                    endPoint: .trailing
+                    startPoint: isHovered ? .topLeading : .leading,
+                    endPoint: isHovered ? .bottomTrailing : .trailing
                 )
-                .cornerRadius(8)
-                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                .cornerRadius(10)
+                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.4), .clear],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ), lineWidth: 1.5)
+                )
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-            )
-            .scaleEffect(configuration.isPressed ? 0.95 : 1)
-            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.96 : isHovered ? 1.04 : 1)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHovered)
+            .onHover { hovering in
+                isHovered = hovering
+            }
     }
 }
