@@ -420,95 +420,74 @@ struct IntegrationSettingsView: View {
     let selectCustomDirectory: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image("obsidian-icon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-                Text("Obsidian")
-                Spacer()
-            }
-
-            if integrateWithObsidian {
-                if !FileManager.shared.isPathConfigured {
-                    Text("Please select a storage location")
-                        .foregroundColor(.red)
-                        .padding(.leading, 20)
-                        .onAppear {
-                            showPathAlert = true
+        ScrollView {
+            VStack(spacing: 16) {
+                GroupBox {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image("obsidian-icon")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                            Text("Obsidian")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
                         }
-                }
-                HStack(spacing: 8) {
-                    Button("Configure Obsidian folder") {
-                        selectCustomDirectory()
-                    }
 
-                    // Add current path display
-                    if FileManager.shared.isPathConfigured {
-                        Text(customPath)
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    }
+                        if integrateWithObsidian {
+                            if !FileManager.shared.isPathConfigured {
+                                HStack {
+                                    Text("Please select a storage location")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.red)
+                                }
+                                .onAppear {
+                                    showPathAlert = true
+                                }
+                            }
 
-                    Button(role: .destructive) {
-                        if let defaultURL = Foundation.FileManager.default.urls(
-                            for: .documentDirectory, in: .userDomainMask
-                        ).first {
-                            FileManager.shared.setCustomDirectory(defaultURL)
-                            customPath = defaultURL.path
+                            VStack(spacing: 8) {
+                                HStack {
+                                    Button("Configure Obsidian folder") {
+                                        selectCustomDirectory()
+                                    }
+                                    .controlSize(.regular)
+
+                                    Spacer()
+                                }
+
+                                if FileManager.shared.isPathConfigured {
+                                    HStack {
+                                        Text(customPath)
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+
+                                        Button(role: .destructive) {
+                                            if let defaultURL = Foundation.FileManager.default.urls(
+                                                for: .documentDirectory, in: .userDomainMask
+                                            ).first {
+                                                FileManager.shared.setCustomDirectory(defaultURL)
+                                                customPath = defaultURL.path
+                                            }
+                                        } label: {
+                                            Label("Reset", systemImage: "arrow.counterclockwise")
+                                                .font(.system(size: 12))
+                                        }
+                                        .buttonStyle(.borderless)
+                                        .controlSize(.small)
+                                    }
+                                }
+                            }
                         }
-                    } label: {
-                        Label("Reset", systemImage: "arrow.counterclockwise")
                     }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
-                .padding(.leading, 20)
+                .groupBoxStyle(ModernGroupBoxStyle())
             }
-
-            //            HStack {
-            //                Image("feishu-icon")
-            //                    .resizable()
-            //                    .aspectRatio(contentMode: .fit)
-            //                    .frame(width: 16, height: 16)
-            //                Text("Feishu(One-way synchronization)")
-            //                Spacer()
-            //                HStack(spacing: 8) {
-            //                    if UserDefaults.standard.string(forKey: "FeishuAccessToken") != nil,
-            //                        let expirationDate = UserDefaults.standard.object(
-            //                            forKey: "FeishuTokenExpiration") as? Date,
-            //                        expirationDate > Date()
-            //                    {
-            //                        // Green dot indicator
-            //                        Circle()
-            //                            .fill(Color.green)
-            //                            .frame(width: 6, height: 6)
-            //
-            //                        Text("Authorized")
-            //                            .foregroundColor(.secondary)
-            //                    }
-            //
-            //                    Button("Re-authorize Feishu") {
-            //                        if let authURL = FeishuAuthManager.generateAuthorizationURL() {
-            //                            NSWorkspace.shared.open(authURL)
-            //                        }
-            //                    }
-            //                    .buttonStyle(.borderedProminent)
-            //                }
-            //            }
-
-            //            HStack {
-            //                Image("notion-icon")
-            //                    .resizable()
-            //                    .aspectRatio(contentMode: .fit)
-            //                    .frame(width: 16, height: 16)
-            //                Text("Notion")
-            //                Spacer()
-            //                Text("Coming soon")
-            //                    .foregroundColor(.gray)
-            //            }
-            //            .opacity(0.5)
+            .padding(16)
         }
     }
 }
