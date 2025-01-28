@@ -25,8 +25,10 @@ struct OnboardingView: View {
             title: "Designed for quick write-down",
             description: "Anywhere, press ⌥ + C.",
             detail: "",
+            hasAction: true,
             imageName: "quick-wake-demo",
-            showLoginOption: true
+            showLoginOption: true,
+            showStorageConfig: true
         ),
         //        OnboardingStep(
         //            icon: "lock",
@@ -36,17 +38,17 @@ struct OnboardingView: View {
         //            hasAction: true,
         //            imageName: "local-private-demo"
         //        ),
+        // OnboardingStep(
+        //     icon: "folder.badge.gearshape",
+        //     title: "Where to save?",
+        //     description: "Choose your folder",
+        //     detail: "All your notes are stored locally",
+        //     hasAction: true,
+        //     imageName: "storage-config-demo"
+        // ),
         OnboardingStep(
-            icon: "folder.badge.gearshape",
-            title: "Where to save?",
-            description: "Choose your folder",
-            detail: "All your notes are stored locally",
-            hasAction: true,
-            imageName: "storage-config-demo"
-        ),
-        OnboardingStep(
-            icon: "lock",
-            title: "AI, which truly useful",
+            icon: "brain.head.profile",
+            title: "AI, truly helpful",
             description: "Help summarize & make plans.",
             detail: "",
             hasAction: true,
@@ -147,7 +149,7 @@ struct OnboardingView: View {
                 }
 
             }
-            .padding(48)
+            .padding(.horizontal, 48)
 
             // Navigation buttons
             HStack {
@@ -181,52 +183,36 @@ struct OnboardingView: View {
                 Spacer()
 
                 // Show Skip and Configure Vault buttons only for the Select folder step
-                if currentStep == 1 {  // Select folder step
-                    Button("Skip") {
+                if currentStep == 0 {  // First step
+                    Button("Next Step") {
                         slideDirection = .right
                         withAnimation {
                             currentStep += 1
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 8)
-
-                    Button("Configure Vault") {
-                        let openPanel = NSOpenPanel()
-                        openPanel.canChooseDirectories = true
-                        openPanel.canChooseFiles = false
-                        openPanel.allowsMultipleSelection = false
-                        openPanel.title = "Select Notes Directory"
-
-                        if openPanel.runModal() == .OK {
-                            if let selectedPath = openPanel.url {
-                                FileManager.shared.setCustomDirectory(selectedPath)
-                                slideDirection = .right
-                                withAnimation {
-                                    currentStep += 1
-                                }
-                            }
                         }
                     }
                     .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
                 } else if currentStep == 2 {  // Get Pro step
-                    Button("Skip") {
-                        slideDirection = .right
-                        withAnimation {
-                            currentStep += 1
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 8)
 
                     Button("Get Pro") {
                         if let url = URL(string: "https://google.com") {
                             NSWorkspace.shared.open(url)
                         }
                     }
+                    .buttonStyle(BorderedGradientButtonStyle())
+                    .controlSize(.large)
+                    .padding(.trailing, 8)
+
+                    Button("Next Step") {
+                        slideDirection = .right
+                        withAnimation {
+                            currentStep += 1
+                        }
+                    }
                     .buttonStyle(GradientButtonStyle())
                     .controlSize(.large)
+                    .padding(.trailing, 8)
+
                 } else {
                     // For other steps, show the regular Next/Start button
                     Button(currentStep == steps.count - 1 ? "Start HyperNote" : "Next Step") {
@@ -311,39 +297,94 @@ struct StepContent: View {
 
             if step.showLoginOption {
                 VStack(alignment: .leading, spacing: 8) {
-                    Toggle("Start at login", isOn: $launchAtLogin)
-                        .onChange(of: launchAtLogin) { newValue in
-                            if newValue {
-                                loginManager.requestLaunchPermission { granted in
-                                    if granted {
-                                        loginManager.enableLaunchAtLogin()
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Label("Start at login", systemImage: "power")
+                                .font(.system(size: 14, weight: .medium))
+                            Spacer()
+                            Toggle("", isOn: $launchAtLogin)
+                                .onChange(of: launchAtLogin) { newValue in
+                                    if newValue {
+                                        loginManager.requestLaunchPermission { granted in
+                                            if granted {
+                                                loginManager.enableLaunchAtLogin()
+                                            } else {
+                                                DispatchQueue.main.async {
+                                                    launchAtLogin = false
+                                                }
+                                            }
+                                        }
                                     } else {
-                                        DispatchQueue.main.async {
-                                            launchAtLogin = false
+                                        loginManager.disableLaunchAtLogin()
+                                    }
+                                }
+                                .toggleStyle(.switch)
+                        }
+
+                        Text("Quickly access HyperNote when you need it")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.primary.opacity(0.05))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                            )
+                    )
+
+                    // Add storage configuration
+                    if step.showStorageConfig {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Label("Storage Location", systemImage: "folder")
+                                    .font(.system(size: 14, weight: .medium))
+                                Spacer()
+                                Button("Change Location") {
+                                    let openPanel = NSOpenPanel()
+                                    openPanel.canChooseDirectories = true
+                                    openPanel.canChooseFiles = false
+                                    openPanel.title = "Select Notes Directory"
+
+                                    if openPanel.runModal() == .OK {
+                                        if let selectedPath = openPanel.url {
+                                            FileManager.shared.setCustomDirectory(selectedPath)
                                         }
                                     }
                                 }
-                            } else {
-                                loginManager.disableLaunchAtLogin()
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                                // .padding(.horizontal, 12)
+                                // .padding(.vertical, 6)
+                                // .background(Color.primary.opacity(0.05))
+                                // .cornerRadius(6)
+                                // .overlay(
+                                //     RoundedRectangle(cornerRadius: 6)
+                                //         .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                // )
+                            }
+
+                            if FileManager.shared.isPathConfigured {
+                                Text(FileManager.shared.currentNotesPath)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
                             }
                         }
-                        .toggleStyle(.switch)
-                        .padding(.top, 8)
-
-                    Text("Quickly access HyperNote when you need it")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.primary.opacity(0.05))
-                        .overlay(
+                        .padding()
+                        .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                .fill(.primary.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                )
                         )
-                )
-                .cornerRadius(12)
+                    }
+                }
             }
 
             Spacer()
@@ -362,6 +403,7 @@ struct OnboardingStep {
     var hasAction: Bool = false
     var imageName: String?
     var showLoginOption: Bool = false
+    var showStorageConfig: Bool = false
 }
 
 private struct GradientButtonStyle: ButtonStyle {
@@ -397,5 +439,34 @@ private struct GradientButtonStyle: ButtonStyle {
             .onHover { hovering in
                 isHovered = hovering
             }
+    }
+}
+
+private struct BorderedGradientButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) var colorScheme
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .medium, design: .rounded))
+            .foregroundColor(Color(.systemPurple))
+            .padding(.horizontal, 24)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color(.systemPurple), Color(.systemPink)],
+                            startPoint: isHovered ? .topLeading : .leading,
+                            endPoint: isHovered ? .bottomTrailing : .trailing
+                        ),
+                        lineWidth: 1.5
+                    )
+                    .background(Color.clear)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .scaleEffect(isHovered ? 1.02 : 1)
+            .animation(.easeOut(duration: 0.1), value: isHovered)
+            .onHover { isHovered = $0 }
     }
 }
