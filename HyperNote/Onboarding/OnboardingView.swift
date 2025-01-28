@@ -278,10 +278,17 @@ struct StepContent: View {
                 if !step.detail.isEmpty {
                     Text(step.detail)
                         .font(.system(size: 14))
+                        .foregroundColor(.primary.opacity(0.8))
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.primary.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                )
+                        )
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -312,7 +319,14 @@ struct StepContent: View {
                         .foregroundColor(.secondary)
                 }
                 .padding()
-                .background(.ultraThinMaterial)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.primary.opacity(0.05))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                        )
+                )
                 .cornerRadius(12)
             }
 
