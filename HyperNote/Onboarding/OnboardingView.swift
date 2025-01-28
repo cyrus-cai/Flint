@@ -288,10 +288,7 @@ struct StepContent: View {
                     .cornerRadius(12)
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+        .padding(.vertical, 40)
     }
 }
 
