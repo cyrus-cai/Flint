@@ -69,31 +69,33 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Progress indicator - 现在在顶部居中
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.gray.opacity(0.15))
-                        .frame(height: 6)
+            HStack {
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(height: 8)
 
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color(.systemPurple), Color(.systemPink)],
-                                startPoint: .leading,
-                                endPoint: .trailing
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(.systemPurple), Color(.systemPink)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
                             )
-                        )
-                        .frame(
-                            width: (CGFloat(currentStep + 1) / CGFloat(steps.count))
-                                * geometry.size.width,
-                            height: 6
-                        )
-                        .shadow(color: .purple.opacity(0.2), radius: 8, x: 0, y: 2)
+                            .frame(
+                                width: (CGFloat(currentStep + 1) / CGFloat(steps.count))
+                                    * geometry.size.width,
+                                height: 8
+                            )
+                    }
                 }
+                .frame(width: 48, height: 8)  // 缩小宽度和高度
+                Spacer()
             }
-            .padding(.top, 20)
-            .frame(height: 6)
-            .padding(.horizontal, 40)
+            .padding(.top, 8)
+            .padding(.leading, 24)
 
             // Main content area
             HStack(spacing: 0) {
