@@ -24,9 +24,11 @@ struct OnboardingView: View {
             icon: "bolt",
             title: "Designed for quick write-down",
             description: "Anywhere, press ⌥ + C.",
-            detail: "",
+            detail: "Choose where to save your notes",
+            hasAction: true,
             imageName: "quick-wake-demo",
-            showLoginOption: true
+            showLoginOption: true,
+            showStorageConfig: true
         ),
         //        OnboardingStep(
         //            icon: "lock",
@@ -147,7 +149,7 @@ struct OnboardingView: View {
                 }
 
             }
-            .padding(48)
+            .padding(.horizontal, 48)
 
             // Navigation buttons
             HStack {
@@ -181,35 +183,33 @@ struct OnboardingView: View {
                 Spacer()
 
                 // Show Skip and Configure Vault buttons only for the Select folder step
-                if currentStep == 1 {  // Select folder step
-                    Button("Skip") {
-                        slideDirection = .right
-                        withAnimation {
-                            currentStep += 1
+                if currentStep == 0 {  // Modified to first step
+                    HStack {
+                        Button("Skip") {
+                            slideDirection = .right
+                            withAnimation {
+                                currentStep += 1
+                            }
                         }
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 8)
+                        .buttonStyle(.plain)
 
-                    Button("Configure Vault") {
-                        let openPanel = NSOpenPanel()
-                        openPanel.canChooseDirectories = true
-                        openPanel.canChooseFiles = false
-                        openPanel.allowsMultipleSelection = false
-                        openPanel.title = "Select Notes Directory"
+                        Spacer()
 
-                        if openPanel.runModal() == .OK {
-                            if let selectedPath = openPanel.url {
-                                FileManager.shared.setCustomDirectory(selectedPath)
-                                slideDirection = .right
-                                withAnimation {
-                                    currentStep += 1
+                        Button("Configure Vault") {
+                            let openPanel = NSOpenPanel()
+                            openPanel.canChooseDirectories = true
+                            openPanel.canChooseFiles = false
+                            openPanel.allowsMultipleSelection = false
+                            openPanel.title = "Select Notes Directory"
+
+                            if openPanel.runModal() == .OK {
+                                if let selectedPath = openPanel.url {
+                                    FileManager.shared.setCustomDirectory(selectedPath)
                                 }
                             }
                         }
+                        .buttonStyle(GradientButtonStyle())
                     }
-                    .buttonStyle(GradientButtonStyle())
-                    .controlSize(.large)
                 } else if currentStep == 2 {  // Get Pro step
 
                     Button("Get Pro") {
@@ -337,17 +337,47 @@ struct StepContent: View {
                     Text("Quickly access HyperNote when you need it")
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
+
+                    // Add storage configuration
+                    if step.showStorageConfig {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Storage Location")
+                                .font(.system(size: 14, weight: .medium))
+
+                            Button("Choose Folder") {
+                                let openPanel = NSOpenPanel()
+                                openPanel.canChooseDirectories = true
+                                openPanel.canChooseFiles = false
+                                openPanel.title = "Select Notes Directory"
+
+                                if openPanel.runModal() == .OK {
+                                    if let selectedPath = openPanel.url {
+                                        FileManager.shared.setCustomDirectory(selectedPath)
+                                    }
+                                }
+                            }
+                            .buttonStyle(BorderedGradientButtonStyle())
+
+                            if FileManager.shared.isPathConfigured {
+                                Text(FileManager.shared.currentNotesPath)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                            }
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.primary.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                )
+                        )
+                    }
                 }
                 .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.primary.opacity(0.05))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
-                        )
-                )
-                .cornerRadius(12)
             }
 
             Spacer()
@@ -366,6 +396,7 @@ struct OnboardingStep {
     var hasAction: Bool = false
     var imageName: String?
     var showLoginOption: Bool = false
+    var showStorageConfig: Bool = false
 }
 
 private struct GradientButtonStyle: ButtonStyle {
