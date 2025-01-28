@@ -164,7 +164,7 @@ struct OnboardingView: View {
                 Spacer()
 
                 // Show Skip and Configure Vault buttons only for the Select folder step
-                if currentStep == 2 {  // Select folder step
+                if currentStep == 1 {  // Select folder step
                     Button("Skip") {
                         slideDirection = .right
                         withAnimation {
@@ -194,7 +194,7 @@ struct OnboardingView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.purple)
                     .controlSize(.large)
-                } else if currentStep == 3 {  // Get Pro step
+                } else if currentStep == 2 {  // Get Pro step
                     Button("Skip") {
                         slideDirection = .right
                         withAnimation {
