@@ -38,14 +38,14 @@ struct OnboardingView: View {
         //            hasAction: true,
         //            imageName: "local-private-demo"
         //        ),
-        OnboardingStep(
-            icon: "folder.badge.gearshape",
-            title: "Where to save?",
-            description: "Choose your folder",
-            detail: "All your notes are stored locally",
-            hasAction: true,
-            imageName: "storage-config-demo"
-        ),
+        // OnboardingStep(
+        //     icon: "folder.badge.gearshape",
+        //     title: "Where to save?",
+        //     description: "Choose your folder",
+        //     detail: "All your notes are stored locally",
+        //     hasAction: true,
+        //     imageName: "storage-config-demo"
+        // ),
         OnboardingStep(
             icon: "brain.head.profile",
             title: "AI, truly helpful",
@@ -183,38 +183,15 @@ struct OnboardingView: View {
                 Spacer()
 
                 // Show Skip and Configure Vault buttons only for the Select folder step
-                if currentStep == 0 {  // Modified to first step
-                    HStack {
-                        Button("Skip") {
-                            slideDirection = .right
-                            withAnimation {
-                                currentStep += 1
-                            }
+                if currentStep == 0 {  // First step
+                    Button("Next Step") {
+                        slideDirection = .right
+                        withAnimation {
+                            currentStep += 1
                         }
-                        .buttonStyle(.plain)
-
-                        Spacer()
-
-                        Button("Configure Vault") {
-                            let openPanel = NSOpenPanel()
-                            openPanel.canChooseDirectories = true
-                            openPanel.canChooseFiles = false
-                            openPanel.allowsMultipleSelection = false
-                            openPanel.title = "Select Notes Directory"
-
-                            if openPanel.runModal() == .OK {
-                                if let selectedPath = openPanel.url {
-                                    FileManager.shared.setCustomDirectory(selectedPath)
-                                    // Auto advance to next step
-                                    slideDirection = .right
-                                    withAnimation {
-                                        currentStep += 1
-                                    }
-                                }
-                            }
-                        }
-                        .buttonStyle(GradientButtonStyle())
                     }
+                    .buttonStyle(GradientButtonStyle())
+                    .controlSize(.large)
                 } else if currentStep == 2 {  // Get Pro step
 
                     Button("Get Pro") {
