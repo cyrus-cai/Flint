@@ -283,82 +283,84 @@ struct GeneralSettingsView: View {
     @StateObject private var viewModel = GeneralSettingsViewModel()
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
-
     private let loginManager = LoginManager.shared
 
     var body: some View {
-        Form {
-            VStack(alignment: .leading, spacing: 16) {
+        ScrollView {
+            VStack(spacing: 20) {
+                GroupBox("Account Settings") {
+                    VStack(spacing: 16) {
+                        HStack {
+                            Label("Account Status", systemImage: "person.crop.circle")
+                            Spacer()
+                            Text("Not Logged In")
+                                .foregroundColor(.secondary)
+                        }
 
-                Section("Account") {
-                    HStack {
-                        Label("Account", systemImage: "envelope")
-                        Spacer()
-                        Text("Not Logging in")
-                            .foregroundColor(.gray)
+                        HStack {
+                            Label("Launch at Login", systemImage: "power")
+                            Spacer()
+                            Toggle("", isOn: $launchAtLogin)
+                                .toggleStyle(.switch)
+                        }
                     }
-
-                    HStack {
-                        Label("Launch at login", systemImage: "power")
-                        Spacer()
-                        Toggle("", isOn: $launchAtLogin)
-                            .onChange(of: launchAtLogin) { newValue in
-                                if newValue {
-                                    // First set the toggle to true
-                                    launchAtLogin = true
-
-                                    // Then request permission
-                                    loginManager.requestLaunchPermission { granted in
-                                        if granted {
-                                            // If granted, enable launch at login
-                                            loginManager.enableLaunchAtLogin()
-                                        } else {
-                                            // If not granted, set toggle back to false
-                                            DispatchQueue.main.async {
-                                                launchAtLogin = false
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    loginManager.disableLaunchAtLogin()
-                                }
-                            }
-                    }
+                    .padding(.vertical, 8)
                 }
 
-                Section("Plan") {
+                GroupBox("Subscription") {
                     HStack {
-                        Label("Plan", systemImage: "plus.square")
+                        Label("Current Plan", systemImage: "star.circle")
                         Spacer()
-                        Text("Free")
-                            .foregroundColor(.gray)
-                            .buttonStyle(.borderedProminent)
-                            .tint(.purple)
-                            .controlSize(.small)
+                        Text("Free Tier")
+                            .foregroundColor(.purple)
+                            .padding(4)
+                            .background(Capsule().fill(Color.purple.opacity(0.1)))
                     }
+                    .padding(.vertical, 8)
                 }
 
-                Section("Settings") {
-                    HStack {
-                        Label("Language", systemImage: "globe")
-                        Spacer()
-                        Text("English")
-                            .foregroundColor(.gray)
-                    }
+                GroupBox("Preferences") {
+                    VStack(spacing: 16) {
+                        HStack {
+                            Label("Language", systemImage: "globe")
+                            Spacer()
+                            Text("English")
+                                .foregroundColor(.secondary)
+                        }
 
-                    HStack {
-                        Label("Auto-save Interval", systemImage: "timer")
-                        Spacer()
-                        AutoSaveIntervalSection()
+                        HStack {
+                            Label("Auto-save", systemImage: "timer")
+                            Spacer()
+                            AutoSaveIntervalSection()
+                        }
                     }
+                    .padding(.vertical, 8)
                 }
 
-                Section("Activity") {
+                GroupBox("Activity Overview") {
                     ContributionGraph(contributions: viewModel.noteCountByDay)
                         .padding(.vertical)
                 }
             }
-        }.formStyle(.grouped)
+            .padding()
+        }
+    }
+
+    private func handleLaunchAtLoginChange(_ newValue: Bool) {
+        if newValue {
+            launchAtLogin = true
+            loginManager.requestLaunchPermission { granted in
+                if granted {
+                    loginManager.enableLaunchAtLogin()
+                } else {
+                    DispatchQueue.main.async {
+                        launchAtLogin = false
+                    }
+                }
+            }
+        } else {
+            loginManager.disableLaunchAtLogin()
+        }
     }
 }
 
