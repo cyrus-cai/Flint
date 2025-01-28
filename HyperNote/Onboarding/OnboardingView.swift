@@ -45,8 +45,8 @@ struct OnboardingView: View {
             imageName: "storage-config-demo"
         ),
         OnboardingStep(
-            icon: "lock",
-            title: "AI, which truly useful",
+            icon: "brain.head.profile",
+            title: "AI, truly helpful",
             description: "Help summarize & make plans.",
             detail: "",
             hasAction: true,
