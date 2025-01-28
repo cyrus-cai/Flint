@@ -321,24 +321,28 @@ struct StepContent: View {
             if step.showLoginOption {
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Toggle("Start at login", isOn: $launchAtLogin)
-                            .onChange(of: launchAtLogin) { newValue in
-                                if newValue {
-                                    loginManager.requestLaunchPermission { granted in
-                                        if granted {
-                                            loginManager.enableLaunchAtLogin()
-                                        } else {
-                                            DispatchQueue.main.async {
-                                                launchAtLogin = false
+                        HStack {
+                            Label("Start at login", systemImage: "power")
+                                .font(.system(size: 14, weight: .medium))
+                            Spacer()
+                            Toggle("", isOn: $launchAtLogin)
+                                .onChange(of: launchAtLogin) { newValue in
+                                    if newValue {
+                                        loginManager.requestLaunchPermission { granted in
+                                            if granted {
+                                                loginManager.enableLaunchAtLogin()
+                                            } else {
+                                                DispatchQueue.main.async {
+                                                    launchAtLogin = false
+                                                }
                                             }
                                         }
+                                    } else {
+                                        loginManager.disableLaunchAtLogin()
                                     }
-                                } else {
-                                    loginManager.disableLaunchAtLogin()
                                 }
-                            }
-                            .toggleStyle(.switch)
-                            .padding(.top, 8)
+                                .toggleStyle(.switch)
+                        }
 
                         Text("Quickly access HyperNote when you need it")
                             .font(.system(size: 12))
@@ -357,22 +361,24 @@ struct StepContent: View {
                     // Add storage configuration
                     if step.showStorageConfig {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Storage Location")
-                                .font(.system(size: 14, weight: .medium))
+                            HStack {
+                                Label("Storage Location", systemImage: "folder")
+                                    .font(.system(size: 14, weight: .medium))
+                                Spacer()
+                                Button("Choose Folder") {
+                                    let openPanel = NSOpenPanel()
+                                    openPanel.canChooseDirectories = true
+                                    openPanel.canChooseFiles = false
+                                    openPanel.title = "Select Notes Directory"
 
-                            Button("Choose Folder") {
-                                let openPanel = NSOpenPanel()
-                                openPanel.canChooseDirectories = true
-                                openPanel.canChooseFiles = false
-                                openPanel.title = "Select Notes Directory"
-
-                                if openPanel.runModal() == .OK {
-                                    if let selectedPath = openPanel.url {
-                                        FileManager.shared.setCustomDirectory(selectedPath)
+                                    if openPanel.runModal() == .OK {
+                                        if let selectedPath = openPanel.url {
+                                            FileManager.shared.setCustomDirectory(selectedPath)
+                                        }
                                     }
                                 }
+                                .buttonStyle(BorderedGradientButtonStyle())
                             }
-                            .buttonStyle(BorderedGradientButtonStyle())
 
                             if FileManager.shared.isPathConfigured {
                                 Text(FileManager.shared.currentNotesPath)
@@ -393,7 +399,6 @@ struct StepContent: View {
                         )
                     }
                 }
-                // .padding()
             }
 
             Spacer()
