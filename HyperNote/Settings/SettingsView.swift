@@ -423,67 +423,99 @@ struct IntegrationSettingsView: View {
         ScrollView {
             VStack(spacing: 16) {
                 GroupBox {
-                    VStack(spacing: 12) {
-                        HStack {
+                    VStack(spacing: 16) {
+                        // Header section
+                        HStack(spacing: 12) {
                             Image("obsidian-icon")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 16, height: 16)
-                            Text("Obsidian")
-                                .font(.system(size: 13, weight: .medium))
+                                .frame(width: 24, height: 24)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Obsidian Integration")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Sync notes with your Obsidian vault")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+
                             Spacer()
+
+                            Toggle("", isOn: $integrateWithObsidian)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
                         }
 
                         if integrateWithObsidian {
-                            if !FileManager.shared.isPathConfigured {
-                                HStack {
-                                    Text("Please select a storage location")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.red)
-                                }
-                                .onAppear {
-                                    showPathAlert = true
-                                }
-                            }
+                            Divider()
 
-                            VStack(spacing: 8) {
-                                HStack {
-                                    Button("Configure Obsidian folder") {
-                                        selectCustomDirectory()
+                            // Storage location section
+                            VStack(alignment: .leading, spacing: 12) {
+                                if !FileManager.shared.isPathConfigured {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .foregroundColor(.red)
+                                        Text("Storage location required")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.red)
                                     }
+                                    .onAppear {
+                                        showPathAlert = true
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Button(action: selectCustomDirectory) {
+                                        HStack {
+                                            Image(systemName: "folder.badge.plus")
+                                            Text("Configure Obsidian folder")
+                                        }
+                                        .font(.system(size: 13, weight: .medium))
+                                    }
+                                    .buttonStyle(.borderedProminent)
                                     .controlSize(.regular)
 
-                                    Spacer()
-                                }
-
-                                if FileManager.shared.isPathConfigured {
-                                    HStack {
-                                        Text(customPath)
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                            .lineLimit(1)
-                                            .truncationMode(.middle)
-
-                                        Button(role: .destructive) {
-                                            if let defaultURL = Foundation.FileManager.default.urls(
-                                                for: .documentDirectory, in: .userDomainMask
-                                            ).first {
-                                                FileManager.shared.setCustomDirectory(defaultURL)
-                                                customPath = defaultURL.path
-                                            }
-                                        } label: {
-                                            Label("Reset", systemImage: "arrow.counterclockwise")
+                                    if FileManager.shared.isPathConfigured {
+                                        HStack {
+                                            Text(customPath)
                                                 .font(.system(size: 12))
+                                                .foregroundColor(.secondary)
+                                                .lineLimit(1)
+                                                .truncationMode(.middle)
+                                                .padding(.vertical, 4)
+                                                .padding(.horizontal, 8)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 4)
+                                                        .fill(Color.secondary.opacity(0.1))
+                                                )
+
+                                            Button(role: .destructive) {
+                                                if let defaultURL = Foundation.FileManager.default
+                                                    .urls(
+                                                        for: .documentDirectory, in: .userDomainMask
+                                                    ).first
+                                                {
+                                                    FileManager.shared.setCustomDirectory(
+                                                        defaultURL)
+                                                    customPath = defaultURL.path
+                                                }
+                                            } label: {
+                                                Label(
+                                                    "Reset Location",
+                                                    systemImage: "arrow.counterclockwise"
+                                                )
+                                                .font(.system(size: 12))
+                                            }
+                                            .buttonStyle(.borderless)
+                                            .controlSize(.small)
                                         }
-                                        .buttonStyle(.borderless)
-                                        .controlSize(.small)
                                     }
                                 }
                             }
                         }
                     }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
