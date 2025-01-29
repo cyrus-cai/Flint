@@ -332,26 +332,52 @@ struct GeneralSettingsView: View {
                 .groupBoxStyle(ModernGroupBoxStyle())
 
                 GroupBox("Subscription") {
-                    HStack {
-                        Label("Current Plan", systemImage: "star.circle")
-                            .font(.system(size: 13, weight: .medium))
-                        Spacer()
-                        Text("Free Tier")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.purple)
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 8)
-                            .background(
-                                Capsule()
-                                    .fill(Color.purple.opacity(0.1))
-                                    .overlay(
-                                        Capsule()
-                                            .strokeBorder(Color.purple.opacity(0.2), lineWidth: 1)
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Current Plan", systemImage: "star.circle")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("Free Tier")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.purple)
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.purple.opacity(0.1))
+                                        .overlay(
+                                            Capsule()
+                                                .strokeBorder(
+                                                    Color.purple.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                        }
+
+                        Button(action: {
+                            if let url = URL(string: "https://google.com") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }) {
+                            Text("Update to Pro")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .frame(height: 28)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color(.systemPurple), Color(.systemPink)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
                                     )
-                            )
+                                )
+                                .cornerRadius(6)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 10)
                     .padding(.horizontal, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
