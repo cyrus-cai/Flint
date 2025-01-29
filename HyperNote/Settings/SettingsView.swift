@@ -354,8 +354,31 @@ struct GeneralSettingsView: View {
                         }
 
                         Button(action: {
-                            if let url = URL(string: "https://google.com") {
-                                NSWorkspace.shared.open(url)
+                            Task {
+                                do {
+                                    let request = StripeCheckout.CheckoutRequest(
+                                        planId: "pro",
+                                        // 如果用户已登录，可以获取邮箱
+                                        email: UserDefaults.standard.string(forKey: "userEmail")
+                                    )
+
+                                    // 获取当前应用 origin（示例使用 bundle identifier）
+                                    let origin = Bundle.main.bundleIdentifier ?? "hypernote"
+
+                                    let response = await StripeCheckout.createCheckoutSession(
+                                        request: request,
+                                        origin: origin
+                                    )
+
+                                    if let urlString = response.url,
+                                        let url = URL(string: urlString)
+                                    {
+                                        NSWorkspace.shared.open(url)
+                                    } else if let error = response.error {
+                                        print("Payment Error: \(error.message)")
+                                        // 显示错误提示（参考 Feishu 的错误处理）
+                                    }
+                                }
                             }
                         }) {
                             Text("Update to Pro")
