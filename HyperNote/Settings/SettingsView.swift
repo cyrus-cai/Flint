@@ -367,7 +367,7 @@ struct GeneralSettingsView: View {
 
                                     let response = await StripeCheckout.createCheckoutSession(
                                         request: request,
-                                        origin: origin
+                                        origin: "http://localhost:3000"
                                     )
 
                                     if let urlString = response.url,
