@@ -485,7 +485,7 @@ struct IntegrationSettingsView: View {
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Picker("", selection: $aiModel) {
-                                Text("Doubao").tag("Doubao")
+                                Text("Doubao-1.5-pro").tag("Doubao-1.5-pro")
                             }
                             .frame(width: 120)
                             .pickerStyle(.menu)
