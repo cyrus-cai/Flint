@@ -433,38 +433,24 @@ struct IntegrationSettingsView: View {
     @Binding var integrateWithObsidian: Bool
     @Binding var customPath: String
     @Binding var showPathAlert: Bool
+    @AppStorage("aiModel") private var aiModel = "Doubao-1.5-pro"
     let selectCustomDirectory: () -> Void
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                GroupBox {
-                    VStack(spacing: 16) {
-                        // Header section
-                        HStack(spacing: 12) {
+                // Storage Location
+                GroupBox("Storage Location") {
+                    VStack(spacing: 12) {
+                        HStack {
                             Label("Storage Location", systemImage: "folder")
-                                .font(.system(size: 14, weight: .medium))
-
+                                .font(.system(size: 13, weight: .medium))
                             Spacer()
-
                             Button("Change Location") {
                                 selectCustomDirectory()
                             }
                             .font(.system(size: 13))
                             .controlSize(.small)
-                        }
-
-                        if !FileManager.shared.isPathConfigured {
-                            HStack(spacing: 6) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.red)
-                                Text("Storage location required")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.red)
-                            }
-                            .onAppear {
-                                showPathAlert = true
-                            }
                         }
 
                         if FileManager.shared.isPathConfigured {
@@ -486,8 +472,27 @@ struct IntegrationSettingsView: View {
                                 )
                         }
                     }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
+
+                // AI Settings
+                GroupBox("AI Settings") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Model", systemImage: "brain")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Picker("", selection: $aiModel) {
+                                Text("Doubao").tag("Doubao")
+                            }
+                            .frame(width: 120)
+                            .pickerStyle(.menu)
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
