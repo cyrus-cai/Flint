@@ -8,8 +8,9 @@
 import Foundation
 
 struct StripeCheckout {
-    static let secretKey = ProcessInfo.processInfo.environment["STRIPE_SECRET_KEY"]!
-    static let proPriceID = ProcessInfo.processInfo.environment["STRIPE_PRICE_ID"]!
+    static let secretKey =
+        "pk_test_51O4PcgHnr11wuS0JqGILTjXsJhMZnxR4SvC4a0CLQXtB8fOsSAW6dYq5C6DspamrMA31zAvdsKMiDgxrSrCTRRM200T14UfWU1"
+    static let proPriceID = "price_1QmbpsHnr11wuS0JZpfiRgwD"
 
     struct CheckoutRequest: Codable {
         let planId: String
