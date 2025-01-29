@@ -7,14 +7,30 @@ extension Notification.Name {
 
 struct ContributionCell: View {
     let count: Int
+    @Environment(\.colorScheme) var colorScheme
 
     var color: Color {
         switch count {
-        case 0: return Color(.systemGray)
-        case 1...2: return Color.green.opacity(0.3)
-        case 3...4: return Color.green.opacity(0.5)
-        case 5...6: return Color.green.opacity(0.7)
-        default: return Color.green
+        case 0:
+            return colorScheme == .dark
+                ? Color(.systemGray)
+                : Color(.systemGray).opacity(0.2)
+        case 1...2:
+            return colorScheme == .dark
+                ? Color.green.opacity(0.3)
+                : Color.green.opacity(0.2)
+        case 3...4:
+            return colorScheme == .dark
+                ? Color.green.opacity(0.5)
+                : Color.green.opacity(0.4)
+        case 5...6:
+            return colorScheme == .dark
+                ? Color.green.opacity(0.7)
+                : Color.green.opacity(0.6)
+        default:
+            return colorScheme == .dark
+                ? Color.green
+                : Color.green.opacity(0.8)
         }
     }
 
@@ -151,14 +167,14 @@ class GeneralSettingsViewModel: ObservableObject {
 struct SettingsView: View {
     enum SettingsTab: String, CaseIterable {
         case general = "General"
-        case integration = "Integration"
+        case integration = "Note Settings"
         case hotkeys = "Hotkeys"
         case about = "About"
 
         var icon: String {
             switch self {
             case .general: return "gear"
-            case .integration: return "link"
+            case .integration: return "note.text"
             case .hotkeys: return "keyboard"
             case .about: return "info.circle"
             }
@@ -283,82 +299,159 @@ struct GeneralSettingsView: View {
     @StateObject private var viewModel = GeneralSettingsViewModel()
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
-
     private let loginManager = LoginManager.shared
 
     var body: some View {
-        Form {
-            VStack(alignment: .leading, spacing: 16) {
+        ScrollView {
+            VStack(spacing: 16) {
+                GroupBox("Account Settings") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Account Status", systemImage: "person.crop.circle")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("Not Logged In")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
 
-                Section("Account") {
-                    HStack {
-                        Label("Account", systemImage: "envelope")
-                        Spacer()
-                        Text("Not Logging in")
-                            .foregroundColor(.gray)
+                        Divider()
+
+                        HStack {
+                            Label("Launch at Login", systemImage: "power")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Toggle("", isOn: $launchAtLogin)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                        }
                     }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-                    HStack {
-                        Label("Launch at login", systemImage: "power")
-                        Spacer()
-                        Toggle("", isOn: $launchAtLogin)
-                            .onChange(of: launchAtLogin) { newValue in
-                                if newValue {
-                                    // First set the toggle to true
-                                    launchAtLogin = true
+                GroupBox("Subscription") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Current Plan", systemImage: "star.circle")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("Free Tier")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.purple)
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.purple.opacity(0.1))
+                                        .overlay(
+                                            Capsule()
+                                                .strokeBorder(
+                                                    Color.purple.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                        }
 
-                                    // Then request permission
-                                    loginManager.requestLaunchPermission { granted in
-                                        if granted {
-                                            // If granted, enable launch at login
-                                            loginManager.enableLaunchAtLogin()
-                                        } else {
-                                            // If not granted, set toggle back to false
-                                            DispatchQueue.main.async {
-                                                launchAtLogin = false
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    loginManager.disableLaunchAtLogin()
-                                }
+                        Button(action: {
+                            if let url = URL(string: "https://google.com") {
+                                NSWorkspace.shared.open(url)
                             }
+                        }) {
+                            Text("Update to Pro")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .frame(height: 28)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color(.systemPurple), Color(.systemPink)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(6)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-                Section("Plan") {
-                    HStack {
-                        Label("Plan", systemImage: "plus.square")
-                        Spacer()
-                        Text("Free")
-                            .foregroundColor(.gray)
-                            .buttonStyle(.borderedProminent)
-                            .tint(.purple)
-                            .controlSize(.small)
+                GroupBox("Preferences") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Language", systemImage: "globe")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("English")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            Label("Auto-save", systemImage: "timer")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            AutoSaveIntervalSection()
+                                .frame(width: 90)
+                        }
                     }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-                Section("Settings") {
-                    HStack {
-                        Label("Language", systemImage: "globe")
-                        Spacer()
-                        Text("English")
-                            .foregroundColor(.gray)
-                    }
-
-                    HStack {
-                        Label("Auto-save Interval", systemImage: "timer")
-                        Spacer()
-                        AutoSaveIntervalSection()
-                    }
-                }
-
-                Section("Activity") {
+                GroupBox("Activity Overview") {
                     ContributionGraph(contributions: viewModel.noteCountByDay)
-                        .padding(.vertical)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 8)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
+            }
+            .padding(16)
+        }
+    }
+
+    private func handleLaunchAtLoginChange(_ newValue: Bool) {
+        if newValue {
+            launchAtLogin = true
+            loginManager.requestLaunchPermission { granted in
+                if granted {
+                    loginManager.enableLaunchAtLogin()
+                } else {
+                    DispatchQueue.main.async {
+                        launchAtLogin = false
+                    }
                 }
             }
-        }.formStyle(.grouped)
+        } else {
+            loginManager.disableLaunchAtLogin()
+        }
+    }
+}
+
+struct ModernGroupBoxStyle: GroupBoxStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment: .leading) {
+            configuration.label
+                .font(.system(size: 14, weight: .semibold))
+                .textCase(.uppercase)
+                .foregroundColor(.secondary)
+                .padding(.bottom, 8)
+
+            configuration.content
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(nsColor: .controlBackgroundColor))
+                )
+        }
+        .padding(.vertical, 8)
     }
 }
 
@@ -366,98 +459,70 @@ struct IntegrationSettingsView: View {
     @Binding var integrateWithObsidian: Bool
     @Binding var customPath: String
     @Binding var showPathAlert: Bool
+    @AppStorage("aiModel") private var aiModel = "Doubao-1.5-pro"
     let selectCustomDirectory: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image("obsidian-icon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-                Text("Obsidian")
-                Spacer()
-            }
-
-            if integrateWithObsidian {
-                if !FileManager.shared.isPathConfigured {
-                    Text("Please select a storage location")
-                        .foregroundColor(.red)
-                        .padding(.leading, 20)
-                        .onAppear {
-                            showPathAlert = true
+        ScrollView {
+            VStack(spacing: 16) {
+                // Storage Location
+                GroupBox("Storage Location") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Storage Location", systemImage: "folder")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Button("Change Location") {
+                                selectCustomDirectory()
+                            }
+                            .font(.system(size: 13))
+                            .controlSize(.small)
                         }
-                }
-                HStack(spacing: 8) {
-                    Button("Configure Obsidian folder") {
-                        selectCustomDirectory()
-                    }
 
-                    // Add current path display
-                    if FileManager.shared.isPathConfigured {
-                        Text(customPath)
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
+                        if FileManager.shared.isPathConfigured {
+                            Text(customPath)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(.primary.opacity(0.05))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                        )
+                                )
+                        }
                     }
-
-                     Button(role: .destructive) {
-                         if let defaultURL = Foundation.FileManager.default.urls(
-                             for: .documentDirectory, in: .userDomainMask
-                         ).first {
-                             FileManager.shared.setCustomDirectory(defaultURL)
-                             customPath = defaultURL.path
-                         }
-                     } label: {
-                         Label("Reset", systemImage: "arrow.counterclockwise")
-                     }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
-                .padding(.leading, 20)
+                .groupBoxStyle(ModernGroupBoxStyle())
+
+                // AI Settings
+                GroupBox("AI Settings") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Model", systemImage: "brain")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Picker("", selection: $aiModel) {
+                                Text("Doubao-1.5-pro").tag("Doubao-1.5-pro")
+                            }
+                            .frame(width: 120)
+                            .pickerStyle(.menu)
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
             }
-
-            //            HStack {
-            //                Image("feishu-icon")
-            //                    .resizable()
-            //                    .aspectRatio(contentMode: .fit)
-            //                    .frame(width: 16, height: 16)
-            //                Text("Feishu(One-way synchronization)")
-            //                Spacer()
-            //                HStack(spacing: 8) {
-            //                    if UserDefaults.standard.string(forKey: "FeishuAccessToken") != nil,
-            //                        let expirationDate = UserDefaults.standard.object(
-            //                            forKey: "FeishuTokenExpiration") as? Date,
-            //                        expirationDate > Date()
-            //                    {
-            //                        // Green dot indicator
-            //                        Circle()
-            //                            .fill(Color.green)
-            //                            .frame(width: 6, height: 6)
-            //
-            //                        Text("Authorized")
-            //                            .foregroundColor(.secondary)
-            //                    }
-            //
-            //                    Button("Re-authorize Feishu") {
-            //                        if let authURL = FeishuAuthManager.generateAuthorizationURL() {
-            //                            NSWorkspace.shared.open(authURL)
-            //                        }
-            //                    }
-            //                    .buttonStyle(.borderedProminent)
-            //                }
-            //            }
-
-            //            HStack {
-            //                Image("notion-icon")
-            //                    .resizable()
-            //                    .aspectRatio(contentMode: .fit)
-            //                    .frame(width: 16, height: 16)
-            //                Text("Notion")
-            //                Spacer()
-            //                Text("Coming soon")
-            //                    .foregroundColor(.gray)
-            //            }
-            //            .opacity(0.5)
+            .padding(16)
         }
     }
 }
@@ -466,40 +531,70 @@ struct HotkeySettingsView: View {
     @ObservedObject var counter: HotkeyCounter
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack {
-                HStack {
-                    Label("Quick wake-up", systemImage: "bolt.square")
-                    Spacer()
-                    Text("⌥ + C")
-                        .foregroundColor(.gray)
-                }
-                HStack {
-                    Spacer()
-                    Text("Today used:\(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)")
-                        .opacity(0.5)
-                    Button("Unlimited in Hyper +") {
-                        // Handle upgrade action
+        ScrollView {
+            VStack(spacing: 16) {
+                GroupBox("Quick Actions") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Quick wake-up", systemImage: "bolt.square")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌥ + C")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            Text(
+                                "Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)"
+                            )
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            Spacer()
+                            Button("Unlimited in Hyper +") {
+                                // Handle upgrade action
+                            }
+                            .font(.system(size: 12, weight: .medium))
+                            .buttonStyle(.borderedProminent)
+                            .tint(.purple)
+                            .controlSize(.small)
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.purple)
-                    .controlSize(.small)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
-            }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-            HStack {
-                Label("History", systemImage: "clock")
-                Spacer()
-                Text("⌘ + H / ⌘ + F")
-                    .foregroundColor(.gray)
-            }
+                GroupBox("Navigation") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("History", systemImage: "clock")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + H / ⌘ + F")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
 
-            HStack {
-                Label("New Note", systemImage: "plus")
-                Spacer()
-                Text(" ⌘ + ⏎ / ⌘ + N / ⌘ + K")
-                    .foregroundColor(.gray)
+                        Divider()
+
+                        HStack {
+                            Label("New Note", systemImage: "plus")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + ⏎ / ⌘ + N / ⌘ + K")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
             }
+            .padding(16)
         }
     }
 }
