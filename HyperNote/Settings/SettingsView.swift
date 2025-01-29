@@ -7,14 +7,30 @@ extension Notification.Name {
 
 struct ContributionCell: View {
     let count: Int
+    @Environment(\.colorScheme) var colorScheme
 
     var color: Color {
         switch count {
-        case 0: return Color(.systemGray)
-        case 1...2: return Color.green.opacity(0.3)
-        case 3...4: return Color.green.opacity(0.5)
-        case 5...6: return Color.green.opacity(0.7)
-        default: return Color.green
+        case 0:
+            return colorScheme == .dark
+                ? Color(.systemGray)
+                : Color(.systemGray).opacity(0.2)
+        case 1...2:
+            return colorScheme == .dark
+                ? Color.green.opacity(0.3)
+                : Color.green.opacity(0.2)
+        case 3...4:
+            return colorScheme == .dark
+                ? Color.green.opacity(0.5)
+                : Color.green.opacity(0.4)
+        case 5...6:
+            return colorScheme == .dark
+                ? Color.green.opacity(0.7)
+                : Color.green.opacity(0.6)
+        default:
+            return colorScheme == .dark
+                ? Color.green
+                : Color.green.opacity(0.8)
         }
     }
 
@@ -151,14 +167,14 @@ class GeneralSettingsViewModel: ObservableObject {
 struct SettingsView: View {
     enum SettingsTab: String, CaseIterable {
         case general = "General"
-        case integration = "Integration"
+        case integration = "Note Settings"
         case hotkeys = "Hotkeys"
         case about = "About"
 
         var icon: String {
             switch self {
             case .general: return "gear"
-            case .integration: return "link"
+            case .integration: return "note.text"
             case .hotkeys: return "keyboard"
             case .about: return "info.circle"
             }
