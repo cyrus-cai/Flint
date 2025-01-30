@@ -34,6 +34,7 @@
 		A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */; };
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
+		A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +86,7 @@
 		A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureManager.swift; sourceTree = "<group>"; };
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
+		A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeCheckout.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,6 +148,7 @@
 		A35B0BAF2D2019BE00E277FA /* APIs */ = {
 			isa = PBXGroup;
 			children = (
+				A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */,
 				A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */,
 				A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */,
 				A3CB263C2D4543F50000D8E0 /* Summarize.swift */,
@@ -411,6 +414,7 @@
 				A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */,
 				A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */,
 				A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */,
+				A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
