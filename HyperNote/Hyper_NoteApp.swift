@@ -291,7 +291,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     defaults.set(avatar, forKey: "userAvatar")
                     defaults.synchronize()
                 }
-                if let name = name?.removingPercentEncoding {
+                if let name = name?.removingPercentEncoding?.replacingOccurrences(
+                    of: "+", with: " ")
+                {
                     defaults.set(name, forKey: "userName")
                     defaults.synchronize()
                 }
