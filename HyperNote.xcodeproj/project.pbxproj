@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
-		A30FF3942CE102F30034F9DC /* SwiftDown in Frameworks */ = {isa = PBXBuildFile; productRef = A30FF3932CE102F30034F9DC /* SwiftDown */; };
 		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
 		A31138172D22D9A400E72E99 /* LoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31138162D22D9A400E72E99 /* LoginManager.swift */; };
 		A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32671EB2CF8D15100162AF4 /* checkUpdates.swift */; };
@@ -94,7 +93,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A30FF3942CE102F30034F9DC /* SwiftDown in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,7 +272,6 @@
 			);
 			name = HyperNote;
 			packageProductDependencies = (
-				A30FF3932CE102F30034F9DC /* SwiftDown */,
 			);
 			productName = "Hyper Note";
 			productReference = A37D47312CDE6ECE00B2E727 /* HyperNote.app */;
@@ -350,6 +347,7 @@
 			mainGroup = A37D47282CDE6ECE00B2E727;
 			packageReferences = (
 				A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */,
+				A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */,
 			);
 			productRefGroup = A37D47322CDE6ECE00B2E727 /* Products */;
 			projectDirPath = "";
@@ -757,15 +755,15 @@
 				kind = branch;
 			};
 		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		A30FF3932CE102F30034F9DC /* SwiftDown */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */;
-			productName = SwiftDown;
+		A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/clerk/clerk-ios";
+			requirement = {
+				kind = exactVersion;
+				version = 0.1.0;
+			};
 		};
-/* End XCSwiftPackageProductDependency section */
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = A37D47292CDE6ECE00B2E727 /* Project object */;
 }

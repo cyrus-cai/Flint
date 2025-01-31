@@ -298,25 +298,90 @@ struct SettingsView: View {
 struct GeneralSettingsView: View {
     @StateObject private var viewModel = GeneralSettingsViewModel()
     @AppStorage("launchAtLogin") private var launchAtLogin = false
+    @AppStorage("userName") private var userName: String = ""
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @AppStorage("userAvatar") private var userAvatar: String = ""
     @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
     private let loginManager = LoginManager.shared
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                GroupBox("Account Settings") {
+                GroupBox("Account Status") {
                     VStack(spacing: 12) {
                         HStack {
-                            Label("Account Status", systemImage: "person.crop.circle")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            Text("Not Logged In")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
+                            if !userEmail.isEmpty {
+                                AsyncImage(url: URL(string: userAvatar)) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 24, height: 24)
+                                        .clipShape(Circle())
+                                } placeholder: {
+                                    Image(systemName: "person.crop.circle")
+                                        .resizable()
+                                        .frame(width: 24, height: 24)
+                                }
+
+                                VStack(alignment: .leading) {
+                                    Text(userName)
+                                        .font(.system(size: 13, weight: .medium))
+                                    Text(userEmail)
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+
+                                // 添加退出登录按钮
+                                Button(action: {
+                                    // 清空用户信息
+                                    let defaults = UserDefaults.standard
+                                    defaults.removeObject(forKey: "userName")
+                                    defaults.removeObject(forKey: "userEmail")
+                                    defaults.removeObject(forKey: "userAvatar")
+                                    defaults.synchronize()
+
+                                    // 更新状态
+                                    userName = ""
+                                    userEmail = ""
+                                    userAvatar = ""
+
+                                    // 发送通知
+                                    NotificationCenter.default.post(
+                                        name: NSNotification.Name("UserDidLogout"),
+                                        object: nil
+                                    )
+                                }) {
+                                    Text("Sign Out")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.red)
+                                }
+                                .buttonStyle(.plain)
+                            } else {
+                                HStack {
+                                    Button(action: {
+                                        if let url = URL(string: "http://localhost:3000/login") {
+                                            NSWorkspace.shared.open(url)
+                                        }
+                                    }) {
+                                        Label("Log in", systemImage: "person.crop.circle")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundColor(.blue)
+                                    }
+                                    .buttonStyle(.plain)
+                                    Spacer()
+                                }
+                            }
                         }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-                        Divider()
-
+                GroupBox("Account Settings") {
+                    VStack(spacing: 12) {
                         HStack {
                             Label("Launch at Login", systemImage: "power")
                                 .font(.system(size: 13, weight: .medium))
@@ -438,6 +503,20 @@ struct GeneralSettingsView: View {
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
             .padding(16)
+        }
+        .onAppear {
+            // 主动刷新用户状态
+            userName = UserDefaults.standard.string(forKey: "userName") ?? ""
+            userEmail = UserDefaults.standard.string(forKey: "userEmail") ?? ""
+            userAvatar = UserDefaults.standard.string(forKey: "userAvatar") ?? ""
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
+            _ in
+            print("🔄 Settings view received login notification")
+            // 强制刷新用户状态
+            userName = UserDefaults.standard.string(forKey: "userName") ?? ""
+            userEmail = UserDefaults.standard.string(forKey: "userEmail") ?? ""
+            userAvatar = UserDefaults.standard.string(forKey: "userAvatar") ?? ""
         }
     }
 

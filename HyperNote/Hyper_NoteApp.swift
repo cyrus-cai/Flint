@@ -1,5 +1,6 @@
 import AppKit
 import Carbon
+//import ClerkSDK
 import ServiceManagement
 import SwiftUI
 
@@ -251,6 +252,78 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         WindowManager.shared.createSettingsWindow()
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first else {
+            print("❌ No URL received")
+            return
+        }
+
+        print("📥 Received URL: \(url)")
+
+        // Check if this is a login callback
+        if url.scheme == "hypernote" && url.host == "oauth" && url.path == "/callback" {
+            print("✅ Valid login callback URL")
+
+            if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
+                let queryItems = components.queryItems
+            {
+                print("📋 Query items: \(queryItems)")
+
+                // Extract user information from query parameters
+                let email = queryItems.first(where: { $0.name == "email" })?.value
+                let avatar = queryItems.first(where: { $0.name == "avatar" })?.value
+                let name = queryItems.first(where: { $0.name == "name" })?.value
+
+                print("👤 Extracted user info:")
+                print("   Email: \(email ?? "nil")")
+                print("   Name: \(name ?? "nil")")
+                print("   Avatar: \(avatar ?? "nil")")
+
+                // Store user information in UserDefaults
+                let defaults = UserDefaults.standard
+                if let email = email?.removingPercentEncoding {
+                    defaults.set(email, forKey: "userEmail")
+                    defaults.synchronize()
+                }
+                if let avatar = avatar?.removingPercentEncoding {
+                    defaults.set(avatar, forKey: "userAvatar")
+                    defaults.synchronize()
+                }
+                if let name = name?.removingPercentEncoding?.replacingOccurrences(
+                    of: "+", with: " ")
+                {
+                    defaults.set(name, forKey: "userName")
+                    defaults.synchronize()
+                }
+
+                print("💾 User info saved to UserDefaults")
+
+                // 主动打开设置窗口并更新状态
+                DispatchQueue.main.async {
+                    WindowManager.shared.createSettingsWindow()
+
+                    // Post notification to update UI
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("UserDidLogin"),
+                        object: nil
+                    )
+                    print("📢 Posted UserDidLogin notification")
+
+                    // Show success notification
+                    let notification = NSUserNotification()
+                    notification.title = "Login Successful"
+                    notification.informativeText = "Welcome back!"
+                    NSUserNotificationCenter.default.deliver(notification)
+                    print("🔔 Showed success notification")
+                }
+            } else {
+                print("❌ Failed to parse URL components")
+            }
+        } else {
+            print("❌ Invalid URL format - Expected hypernote://oauth/callback")
+        }
     }
 
     //    func application(_ application: NSApplication, open urls: [URL]) {
