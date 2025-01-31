@@ -321,8 +321,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             } else {
                 print("❌ Failed to parse URL components")
             }
+        } else if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
+            components.queryItems?.contains(where: { $0.name == "session_id" }) == true
+        {
+            // New payment callback handling
+            handleStripeCallback(url: url)
         } else {
             print("❌ Invalid URL format - Expected hypernote://oauth/callback")
+        }
+    }
+
+    func handleStripeCallback(url: URL) {
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
+            let sessionId = components.queryItems?.first(where: { $0.name == "session_id" })?.value
+        {
+            print("💳 Received Stripe session ID:", sessionId)
+
+            // Verify the payment status with your backend
+            Task {
+                do {
+                    let verifyURL = URL(
+                        string: "http://localhost:3000/verify-payment?session_id=\(sessionId)")!
+                    let (data, response) = try await URLSession.shared.data(from: verifyURL)
+
+                    if let httpResponse = response as? HTTPURLResponse,
+                        httpResponse.statusCode == 200,
+                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                        let status = json["status"] as? String,
+                        status == "success"
+                    {
+                        // Update subscription status in UserDefaults
+                        DispatchQueue.main.async {
+                            let defaults = UserDefaults.standard
+                            defaults.set(true, forKey: "isPro")
+                            defaults.synchronize()
+
+                            // Post notification to update UI
+                            NotificationCenter.default.post(
+                                name: NSNotification.Name("SubscriptionDidUpdate"),
+                                object: nil
+                            )
+
+                            // Show success notification
+                            let notification = NSUserNotification()
+                            notification.title = "Payment Successful"
+                            notification.informativeText = "Welcome to Float Pro!"
+                            NSUserNotificationCenter.default.deliver(notification)
+                        }
+                    }
+                } catch {
+                    print("❌ Payment verification failed:", error)
+                }
+            }
         }
     }
 

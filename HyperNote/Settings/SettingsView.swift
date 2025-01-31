@@ -290,6 +290,13 @@ struct SettingsView: View {
         .frame(width: 800, height: 500)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
+        .onReceive(
+            NotificationCenter.default.publisher(for: NSNotification.Name("SubscriptionDidUpdate"))
+        ) { _ in
+            // Refresh subscription status
+            let isPro = UserDefaults.standard.bool(forKey: "isPro")
+            // Update UI accordingly
+        }
     }
 }
 // MARK: - Subviews
