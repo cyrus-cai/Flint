@@ -359,9 +359,19 @@ struct GeneralSettingsView: View {
                                 }
                                 .buttonStyle(.plain)
                             } else {
-                                Label("Not Logged In", systemImage: "person.crop.circle")
-                                    .font(.system(size: 13, weight: .medium))
-                                Spacer()
+                                HStack {
+                                    Button(action: {
+                                        if let url = URL(string: "http://localhost:3000/login") {
+                                            NSWorkspace.shared.open(url)
+                                        }
+                                    }) {
+                                        Label("Log in", systemImage: "person.crop.circle")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundColor(.blue)
+                                    }
+                                    .buttonStyle(.plain)
+                                    Spacer()
+                                }
                             }
                         }
                     }
