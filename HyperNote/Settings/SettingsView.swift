@@ -330,11 +330,39 @@ struct GeneralSettingsView: View {
                                         .font(.system(size: 12))
                                         .foregroundColor(.secondary)
                                 }
+
+                                Spacer()
+
+                                // 添加退出登录按钮
+                                Button(action: {
+                                    // 清空用户信息
+                                    let defaults = UserDefaults.standard
+                                    defaults.removeObject(forKey: "userName")
+                                    defaults.removeObject(forKey: "userEmail")
+                                    defaults.removeObject(forKey: "userAvatar")
+                                    defaults.synchronize()
+
+                                    // 更新状态
+                                    userName = ""
+                                    userEmail = ""
+                                    userAvatar = ""
+
+                                    // 发送通知
+                                    NotificationCenter.default.post(
+                                        name: NSNotification.Name("UserDidLogout"),
+                                        object: nil
+                                    )
+                                }) {
+                                    Text("Sign Out")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.red)
+                                }
+                                .buttonStyle(.plain)
                             } else {
                                 Label("Not Logged In", systemImage: "person.crop.circle")
                                     .font(.system(size: 13, weight: .medium))
+                                Spacer()
                             }
-                            Spacer()
                         }
                     }
                     .padding(.vertical, 10)
