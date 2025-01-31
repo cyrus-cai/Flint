@@ -292,7 +292,6 @@ struct SettingsView: View {
         .toolbar(.automatic)
     }
 }
-
 // MARK: - Subviews
 
 struct GeneralSettingsView: View {
