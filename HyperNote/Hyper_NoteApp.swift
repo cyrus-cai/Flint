@@ -378,7 +378,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task {
                 do {
                     let verifyURL = URL(
-                        string: "http://localhost:3000/verify-payment?session_id=\(sessionId)")!
+                        string: "https://hp-subscription-callback.vercel.app/verify-payment?session_id=\(sessionId)")!
                     let (data, response) = try await URLSession.shared.data(from: verifyURL)
 
                     if let httpResponse = response as? HTTPURLResponse,

@@ -382,7 +382,7 @@ struct GeneralSettingsView: View {
                             } else {
                                 HStack {
                                     Button(action: {
-                                        if let url = URL(string: "http://localhost:3000/login") {
+                                        if let url = URL(string: "https://hp-subscription-callback.vercel.app/login") {
                                             NSWorkspace.shared.open(url)
                                         }
                                     }) {
@@ -422,7 +422,7 @@ struct GeneralSettingsView: View {
 
                                         let response = await StripeCheckout.createCheckoutSession(
                                             request: request,
-                                            origin: "http://localhost:3000"
+                                            origin: "https://hp-subscription-callback.vercel.app"
                                         )
 
                                         if let urlString = response.url,
