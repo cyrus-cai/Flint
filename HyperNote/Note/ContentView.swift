@@ -249,7 +249,6 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             if isStorageConfigured {
-                // 原有的编辑器视图
                 VStack(spacing: 0) {
                     TitleBarView(
                         title: title,
@@ -261,17 +260,13 @@ struct ContentView: View {
                     DownFunctionView(count: text.count, links: links)
                 }
 
-                // Toast 视图
                 if showToast {
-                    VStack {
-                        Spacer()
-                        ToastView(message: "Auto Saved", isShowing: $showToast)
-                            .padding(.bottom, 12)
-                    }
-                    .transition(.opacity)
+                    ToastView(message: "Auto Saved", isShowing: $showToast)
+                        .padding(.bottom, 12)
+                        .frame(maxHeight: .infinity, alignment: .bottom)
                 }
             } else {
-                // 未配置存储径时显示的视图
+                // 未配置存储路径的视图
                 VStack(spacing: 8) {
                     Text("Welcome to HyperNote!")
                         .font(.title)

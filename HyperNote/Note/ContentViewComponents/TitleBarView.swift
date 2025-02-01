@@ -55,14 +55,12 @@ struct TitleBarView: View {
             }
 
             if toolbarState.showToast {
-                VStack {
-                    Spacer()
-                    NavigationToastView(
-                        message: toolbarState.toastMessage,
-                        isShowing: $toolbarState.showToast
-                    )
-                }
-                .transition(.opacity)
+                NavigationToastView(
+                    message: toolbarState.toastMessage,
+                    isShowing: $toolbarState.showToast
+                )
+                .frame(maxWidth: .infinity, alignment: .bottom)
+                .padding(.bottom, -4)
             }
         }.onAppear {
             // 在这里设置事件监听器
@@ -468,23 +466,25 @@ class TitleBarToolbarState: ObservableObject {
     func navigateToPreviousNote() {
         guard !recentNotes.isEmpty else { return }
 
-        if currentNoteIndex > 0 {
-            currentNoteIndex -= 1
-            onNoteSelected?(recentNotes[currentNoteIndex].content)
-        } else {
-            showNavigationToast(message: "No previous note")
+        let newIndex = max(currentNoteIndex - 1, 0)
+        guard newIndex != currentNoteIndex else {
+            showNavigationToast(message: "No more notes")
+            return
         }
+        currentNoteIndex = newIndex
+        onNoteSelected?(recentNotes[currentNoteIndex].content)
     }
 
     func navigateToNextNote() {
         guard !recentNotes.isEmpty else { return }
 
-        if currentNoteIndex < recentNotes.count - 1 {
-            currentNoteIndex += 1
-            onNoteSelected?(recentNotes[currentNoteIndex].content)
-        } else {
-            showNavigationToast(message: "No next note")
+        let newIndex = min(currentNoteIndex + 1, recentNotes.count - 1)
+        guard newIndex != currentNoteIndex else {
+            showNavigationToast(message: "No more notes")
+            return
         }
+        currentNoteIndex = newIndex
+        onNoteSelected?(recentNotes[currentNoteIndex].content)
     }
 
     private func showNavigationToast(message: String) {
@@ -516,15 +516,20 @@ struct NavigationToastView: View {
 
     var body: some View {
         if isShowing {
-            Text(message)
-                .font(.system(size: 13))
-                .foregroundColor(.primary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(.thinMaterial)
-                .cornerRadius(8)
-                .transition(.opacity)
-                .padding(.bottom, 8)
+            HStack {
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 8, height: 8)
+                    .shadow(color: .green.opacity(0.5), radius: 4)
+
+                Text(message)
+                    .font(.system(size: 12))
+            }
+            .padding(10)
+            .background(.thinMaterial)
+            .cornerRadius(8)
+            .transition(.opacity)
+            .frame(maxWidth: .infinity, alignment: .bottom)
         }
     }
 }
