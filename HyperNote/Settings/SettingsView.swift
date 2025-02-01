@@ -197,6 +197,8 @@ struct SettingsView: View {
     @State private var customPath: String = FileManager.shared.currentNotesPath
     @State private var showPathPicker = false
     @State private var showPathAlert = false
+    @State private var isPro: Bool = false
+    @State private var subscriptionStatus: String = "Free Tier"
 
     // Feishu related settings
     //    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
@@ -250,7 +252,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedTab {
                     case .general:
-                        GeneralSettingsView()
+                        GeneralSettingsView(isPro: $isPro, subscriptionStatus: $subscriptionStatus)
                     case .integration:
                         IntegrationSettingsView(
                             integrateWithObsidian: $integrateWithObsidian,
@@ -297,6 +299,25 @@ struct SettingsView: View {
             let isPro = UserDefaults.standard.bool(forKey: "isPro")
             // Update UI accordingly
         }
+        .onAppear {
+            if let email = UserDefaults.standard.string(forKey: "userEmail") {
+                Task {
+                    do {
+                        let status = try await ProStatusChecker.shared.checkProStatus(email: email)
+                        DispatchQueue.main.async {
+                            isPro = status
+                            subscriptionStatus = status ? "Pro" : "Free Tier"
+                        }
+                    } catch {
+                        print("Failed to check pro status: \(error)")
+                        DispatchQueue.main.async {
+                            isPro = false
+                            subscriptionStatus = "Free Tier"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 // MARK: - Subviews
@@ -309,6 +330,8 @@ struct GeneralSettingsView: View {
     @AppStorage("userAvatar") private var userAvatar: String = ""
     @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
     private let loginManager = LoginManager.shared
+    @Binding var isPro: Bool
+    @Binding var subscriptionStatus: String
 
     var body: some View {
         ScrollView {
@@ -408,20 +431,9 @@ struct GeneralSettingsView: View {
                             Label("Current Plan", systemImage: "star.circle")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text("Free Tier")
+                            Text(subscriptionStatus)
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.purple)
-                                .padding(.vertical, 4)
-                                .padding(.horizontal, 8)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.purple.opacity(0.1))
-                                        .overlay(
-                                            Capsule()
-                                                .strokeBorder(
-                                                    Color.purple.opacity(0.2), lineWidth: 1)
-                                        )
-                                )
+                                .foregroundColor(isPro ? .purple : .secondary)
                         }
 
                         Button(action: {
