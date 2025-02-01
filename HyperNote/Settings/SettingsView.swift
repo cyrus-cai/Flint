@@ -708,6 +708,28 @@ struct HotkeySettingsView: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
+
+                        Divider()
+
+                        HStack {
+                            Label("Previous Note", systemImage: "chevron.left")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + [")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            Label("Next Note", systemImage: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + ]")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)

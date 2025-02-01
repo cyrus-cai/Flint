@@ -53,6 +53,17 @@ struct TitleBarView: View {
                     title: title
                 )
             }
+
+            if toolbarState.showToast {
+                VStack {
+                    Spacer()
+                    NavigationToastView(
+                        message: toolbarState.toastMessage,
+                        isShowing: $toolbarState.showToast
+                    )
+                }
+                .transition(.opacity)
+            }
         }.onAppear {
             // 在这里设置事件监听器
             let monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
@@ -74,6 +85,12 @@ struct TitleBarView: View {
                             NSWorkspace.shared.open(url)
                             return nil
                         }
+                    case "]", "】":
+                        toolbarState.navigateToPreviousNote()
+                        return nil
+                    case "[", "【":
+                        toolbarState.navigateToNextNote()
+                        return nil
                     default:
                         break
                     }
@@ -406,14 +423,17 @@ class TitleBarToolbarState: ObservableObject {
     @Published var isSplitActive = false
     @Published var isListVisible = false
     @Published var showRecentNotes = false
+    @Published var showToast = false
+    @Published var toastMessage = ""
     @Published var recentNotes: [RecentNote] = []
     @Published var isEmpty: Bool = true  // Add isEmpty state
+    private var currentNoteIndex: Int = 0
 
     var onRename: (() -> Void)?
     var onDelete: (() -> Void)?
     var onSave: (() -> Void)?
     var onAddNew: (() -> Void)?
-    var onSelectNote: ((String) -> Void)?
+    var onNoteSelected: ((String) -> Void)?
 
     init() {
         refreshRecentNotes()
@@ -444,6 +464,39 @@ class TitleBarToolbarState: ObservableObject {
         onSave?()  // 保存当前文档
         onAddNew?()
     }
+
+    func navigateToPreviousNote() {
+        guard !recentNotes.isEmpty else { return }
+
+        if currentNoteIndex > 0 {
+            currentNoteIndex -= 1
+            onNoteSelected?(recentNotes[currentNoteIndex].content)
+        } else {
+            showNavigationToast(message: "No previous note")
+        }
+    }
+
+    func navigateToNextNote() {
+        guard !recentNotes.isEmpty else { return }
+
+        if currentNoteIndex < recentNotes.count - 1 {
+            currentNoteIndex += 1
+            onNoteSelected?(recentNotes[currentNoteIndex].content)
+        } else {
+            showNavigationToast(message: "No next note")
+        }
+    }
+
+    private func showNavigationToast(message: String) {
+        toastMessage = message
+        showToast = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                self.showToast = false
+            }
+        }
+    }
 }
 
 // MARK: - Draggable View
@@ -455,4 +508,23 @@ struct DraggableView: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+struct NavigationToastView: View {
+    let message: String
+    @Binding var isShowing: Bool
+
+    var body: some View {
+        if isShowing {
+            Text(message)
+                .font(.system(size: 13))
+                .foregroundColor(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(.thinMaterial)
+                .cornerRadius(8)
+                .transition(.opacity)
+                .padding(.bottom, 8)
+        }
+    }
 }
