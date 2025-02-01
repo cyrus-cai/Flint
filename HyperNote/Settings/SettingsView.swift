@@ -331,7 +331,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                GroupBox("Account Status") {
+                GroupBox("Account") {
                     VStack(spacing: 12) {
                         HStack {
                             if !userEmail.isEmpty {
@@ -357,9 +357,7 @@ struct GeneralSettingsView: View {
 
                                 Spacer()
 
-                                // 添加退出登录按钮
                                 Button(action: {
-                                    // 清空用户信息
                                     let defaults = UserDefaults.standard
                                     defaults.removeObject(forKey: "userName")
                                     defaults.removeObject(forKey: "userEmail")
@@ -367,12 +365,10 @@ struct GeneralSettingsView: View {
                                     defaults.removeObject(forKey: "isPro")
                                     defaults.synchronize()
 
-                                    // 更新状态
                                     userName = ""
                                     userEmail = ""
                                     userAvatar = ""
 
-                                    // 发送通知
                                     NotificationCenter.default.post(
                                         name: NSNotification.Name("UserDidLogout"),
                                         object: nil
@@ -399,30 +395,9 @@ struct GeneralSettingsView: View {
                                 }
                             }
                         }
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                }
-                .groupBoxStyle(ModernGroupBoxStyle())
 
-                GroupBox("Account Settings") {
-                    VStack(spacing: 12) {
-                        HStack {
-                            Label("Launch at Login", systemImage: "power")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            Toggle("", isOn: $launchAtLogin)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                        }
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                }
-                .groupBoxStyle(ModernGroupBoxStyle())
+                        Divider()
 
-                GroupBox("Subscription") {
-                    VStack(spacing: 12) {
                         HStack {
                             Label("Current Plan", systemImage: "star.circle")
                                 .font(.system(size: 13, weight: .medium))
@@ -440,11 +415,9 @@ struct GeneralSettingsView: View {
                                     do {
                                         let request = StripeCheckout.CheckoutRequest(
                                             planId: "pro",
-                                            // 如果用户已登录，可以获取邮箱
                                             email: UserDefaults.standard.string(forKey: "userEmail")
                                         )
 
-                                        // 获取当前应用 origin（示例使用 bundle identifier）
                                         let origin = Bundle.main.bundleIdentifier ?? "hypernote"
 
                                         let response = await StripeCheckout.createCheckoutSession(
@@ -458,7 +431,6 @@ struct GeneralSettingsView: View {
                                             NSWorkspace.shared.open(url)
                                         } else if let error = response.error {
                                             print("Payment Error: \(error.message)")
-                                            // 显示错误提示（参考 Feishu 的错误处理）
                                         }
                                     }
                                 }
@@ -483,12 +455,22 @@ struct GeneralSettingsView: View {
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
                 GroupBox("Preferences") {
                     VStack(spacing: 12) {
+                        HStack {
+                            Label("Launch at Login", systemImage: "power")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Toggle("", isOn: $launchAtLogin)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                        }
+
+                        Divider()
+
                         HStack {
                             Label("Language", systemImage: "globe")
                                 .font(.system(size: 13, weight: .medium))
@@ -560,8 +542,7 @@ struct ModernGroupBoxStyle: GroupBoxStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .leading) {
             configuration.label
-                .font(.system(size: 14, weight: .semibold))
-                .textCase(.uppercase)
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.secondary)
                 .padding(.bottom, 8)
 
