@@ -299,25 +299,25 @@ struct SettingsView: View {
             let isPro = UserDefaults.standard.bool(forKey: "isPro")
             // Update UI accordingly
         }
-        .onAppear {
-            if let email = UserDefaults.standard.string(forKey: "userEmail") {
-                Task {
-                    do {
-                        let status = try await ProStatusChecker.shared.checkProStatus(email: email)
-                        DispatchQueue.main.async {
-                            isPro = status
-                            subscriptionStatus = status ? "Pro" : "Free Tier"
-                        }
-                    } catch {
-                        print("Failed to check pro status: \(error)")
-                        DispatchQueue.main.async {
-                            isPro = false
-                            subscriptionStatus = "Free Tier"
-                        }
-                    }
-                }
-            }
-        }
+        // .onAppear {
+        //     if let email = UserDefaults.standard.string(forKey: "userEmail") {
+        //         Task {
+        //             do {
+        //                 let status = try await ProStatusChecker.shared.checkProStatus(email: email)
+        //                 DispatchQueue.main.async {
+        //                     isPro = status
+        //                     subscriptionStatus = status ? "Pro" : "Free Tier"
+        //                 }
+        //             } catch {
+        //                 print("Failed to check pro status: \(error)")
+        //                 DispatchQueue.main.async {
+        //                     isPro = false
+        //                     subscriptionStatus = "Free Tier"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
 // MARK: - Subviews
@@ -431,9 +431,11 @@ struct GeneralSettingsView: View {
                             Label("Current Plan", systemImage: "star.circle")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text(subscriptionStatus)
+                            Text(UserDefaults.standard.bool(forKey: "isPro") ? "Pro" : "Free Tier")
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(isPro ? .purple : .secondary)
+                                .foregroundColor(
+                                    UserDefaults.standard.bool(forKey: "isPro")
+                                        ? .purple : .secondary)
                         }
 
                         Button(action: {

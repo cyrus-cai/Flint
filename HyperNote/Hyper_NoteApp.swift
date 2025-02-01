@@ -8,6 +8,36 @@ import SwiftUI
 struct Hyper_NoteApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    init() {
+        // Check pro status on app launch if user is logged in
+        if UserDefaults.standard.string(forKey: "userEmail") != nil {
+            Task {
+                do {
+                    let isPro = try await ProStatusChecker.shared.checkProStatus(
+                        email: UserDefaults.standard.string(forKey: "userEmail") ?? "")
+                    UserDefaults.standard.set(isPro, forKey: "isPro")
+                } catch {
+                    print("Pro status check failed: \(error)")
+                }
+            }
+        }
+
+        // Observe login success notification
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("UserDidLogin"), object: nil, queue: .main
+        ) { _ in
+            Task {
+                do {
+                    let isPro = try await ProStatusChecker.shared.checkProStatus(
+                        email: UserDefaults.standard.string(forKey: "userEmail") ?? "")
+                    UserDefaults.standard.set(isPro, forKey: "isPro")
+                } catch {
+                    print("Pro status check failed: \(error)")
+                }
+            }
+        }
+    }
+
     var body: some Scene {
         Settings {
             SettingsView()
