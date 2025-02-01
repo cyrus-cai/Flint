@@ -292,13 +292,13 @@ struct SettingsView: View {
         .frame(width: 800, height: 500)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
-        .onReceive(
-            NotificationCenter.default.publisher(for: NSNotification.Name("SubscriptionDidUpdate"))
-        ) { _ in
-            // Refresh subscription status
-            let isPro = UserDefaults.standard.bool(forKey: "isPro")
-            // Update UI accordingly
-        }
+//        .onReceive(
+//            NotificationCenter.default.publisher(for: NSNotification.Name("SubscriptionDidUpdate"))
+//        ) { _ in
+//            // Refresh subscription status
+//            let isPro = UserDefaults.standard.bool(forKey: "isPro")
+//            // Update UI accordingly
+//        }
         // .onAppear {
         //     if let email = UserDefaults.standard.string(forKey: "userEmail") {
         //         Task {
@@ -369,6 +369,7 @@ struct GeneralSettingsView: View {
                                     defaults.removeObject(forKey: "userName")
                                     defaults.removeObject(forKey: "userEmail")
                                     defaults.removeObject(forKey: "userAvatar")
+                                    defaults.removeObject(forKey: "isPro")
                                     defaults.synchronize()
 
                                     // 更新状态
@@ -438,50 +439,52 @@ struct GeneralSettingsView: View {
                                         ? .purple : .secondary)
                         }
 
-                        Button(action: {
-                            Task {
-                                do {
-                                    let request = StripeCheckout.CheckoutRequest(
-                                        planId: "pro",
-                                        // 如果用户已登录，可以获取邮箱
-                                        email: UserDefaults.standard.string(forKey: "userEmail")
-                                    )
+                        if !UserDefaults.standard.bool(forKey: "isPro") {
+                            Button(action: {
+                                Task {
+                                    do {
+                                        let request = StripeCheckout.CheckoutRequest(
+                                            planId: "pro",
+                                            // 如果用户已登录，可以获取邮箱
+                                            email: UserDefaults.standard.string(forKey: "userEmail")
+                                        )
 
-                                    // 获取当前应用 origin（示例使用 bundle identifier）
-                                    let origin = Bundle.main.bundleIdentifier ?? "hypernote"
+                                        // 获取当前应用 origin（示例使用 bundle identifier）
+                                        let origin = Bundle.main.bundleIdentifier ?? "hypernote"
 
-                                    let response = await StripeCheckout.createCheckoutSession(
-                                        request: request,
-                                        origin: "http://localhost:3000"
-                                    )
+                                        let response = await StripeCheckout.createCheckoutSession(
+                                            request: request,
+                                            origin: "http://localhost:3000"
+                                        )
 
-                                    if let urlString = response.url,
-                                        let url = URL(string: urlString)
-                                    {
-                                        NSWorkspace.shared.open(url)
-                                    } else if let error = response.error {
-                                        print("Payment Error: \(error.message)")
-                                        // 显示错误提示（参考 Feishu 的错误处理）
+                                        if let urlString = response.url,
+                                            let url = URL(string: urlString)
+                                        {
+                                            NSWorkspace.shared.open(url)
+                                        } else if let error = response.error {
+                                            print("Payment Error: \(error.message)")
+                                            // 显示错误提示（参考 Feishu 的错误处理）
+                                        }
                                     }
                                 }
-                            }
-                        }) {
-                            Text("Update to Pro")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12)
-                                .frame(height: 28)
-                                .background(
-                                    LinearGradient(
-                                        colors: [Color(.systemPurple), Color(.systemPink)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
+                            }) {
+                                Text("Update to Pro")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 12)
+                                    .frame(height: 28)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color(.systemPurple), Color(.systemPink)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
                                     )
-                                )
-                                .cornerRadius(6)
+                                    .cornerRadius(6)
+                            }
+                            .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                         }
-                        .buttonStyle(.plain)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)

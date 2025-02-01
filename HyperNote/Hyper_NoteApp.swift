@@ -18,8 +18,13 @@ struct Hyper_NoteApp: App {
                     UserDefaults.standard.set(isPro, forKey: "isPro")
                 } catch {
                     print("Pro status check failed: \(error)")
+                    // Set to false when pro status check fails
+                    UserDefaults.standard.set(false, forKey: "isPro")
                 }
             }
+        } else {
+            // Set to false when not logged in
+            UserDefaults.standard.set(false, forKey: "isPro")
         }
 
         // Observe login success notification
@@ -33,6 +38,8 @@ struct Hyper_NoteApp: App {
                     UserDefaults.standard.set(isPro, forKey: "isPro")
                 } catch {
                     print("Pro status check failed: \(error)")
+                    // Set to false when pro status check fails
+                    UserDefaults.standard.set(false, forKey: "isPro")
                 }
             }
         }
