@@ -56,9 +56,9 @@ struct StripeCheckout {
         let session = URLSession(configuration: config)
 
         do {
-            // 构建 Stripe 请求参数
+            // Build Stripe request parameters
             var bodyComponents = URLComponents()
-            bodyComponents.queryItems = [
+            var queryItems = [
                 URLQueryItem(name: "line_items[0][price]", value: proPriceID),
                 URLQueryItem(name: "line_items[0][quantity]", value: "1"),
                 URLQueryItem(name: "mode", value: "payment"),
@@ -67,10 +67,12 @@ struct StripeCheckout {
                 URLQueryItem(name: "cancel_url", value: origin),
             ]
 
-            if let email = request.email {
-                bodyComponents.queryItems?.append(
-                    URLQueryItem(name: "customer_email", value: email))
+            // Only add email if provided
+            if let email = request.email, !email.isEmpty {
+                queryItems.append(URLQueryItem(name: "customer_email", value: email))
             }
+
+            bodyComponents.queryItems = queryItems
 
             var request = URLRequest(
                 url: URL(string: "https://api.stripe.com/v1/checkout/sessions")!)
@@ -100,9 +102,9 @@ struct StripeCheckout {
                 error: ErrorResponse(message: error.localizedDescription)
             )
         }
-//        return CheckoutResponse(
-//            url: nil,
-//            error: ErrorResponse(message: "Unexpected error")
-//        )
+        //        return CheckoutResponse(
+        //            url: nil,
+        //            error: ErrorResponse(message: "Unexpected error")
+        //        )
     }
 }
