@@ -252,16 +252,20 @@ struct StepContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Image(systemName: step.icon)
-                .font(.system(size: 40))
-                .symbolEffect(.bounce.up, options: .speed(0.5).nonRepeating)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.purple, .pink],
-                        startPoint: .top,
-                        endPoint: .bottom
+            if #available(macOS 15.0, *) {
+                Image(systemName: step.icon)
+                    .font(.system(size: 40))
+                    .symbolEffect(.bounce.up, options: .speed(0.5).nonRepeating)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.purple, .pink],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                )
+            } else {
+                // Fallback on earlier versions
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(step.title)

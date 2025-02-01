@@ -100,9 +100,9 @@ struct StripeCheckout {
                 error: ErrorResponse(message: error.localizedDescription)
             )
         }
-        return CheckoutResponse(
-            url: nil,
-            error: ErrorResponse(message: "Unexpected error")
-        )
+//        return CheckoutResponse(
+//            url: nil,
+//            error: ErrorResponse(message: "Unexpected error")
+//        )
     }
 }

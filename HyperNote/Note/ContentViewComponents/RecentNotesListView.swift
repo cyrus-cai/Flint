@@ -1163,10 +1163,14 @@ struct StandardToastView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Enhanced icon with animation
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(.green)
-                .symbolEffect(.bounce.up, options: .repeat(1))
+            if #available(macOS 15.0, *) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(.green)
+                    .symbolEffect(.bounce.up, options: .repeat(1))
+            } else {
+                // Fallback on earlier versions
+            }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(message)
