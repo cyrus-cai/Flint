@@ -520,7 +520,7 @@ struct GeneralSettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
-            .padding(16)
+            .padding(.horizontal, 16)
         }
         .onAppear {
             // 主动刷新用户状态
@@ -642,7 +642,7 @@ struct IntegrationSettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
-            .padding(16)
+            .padding(.horizontal, 16)
         }
     }
 }
@@ -736,7 +736,7 @@ struct HotkeySettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
-            .padding(16)
+            .padding(.horizontal, 16)
         }
     }
 }
