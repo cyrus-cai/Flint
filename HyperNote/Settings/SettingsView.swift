@@ -327,6 +327,7 @@ struct GeneralSettingsView: View {
     @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
     private let loginManager = LoginManager.shared
     @Binding var isPro: Bool
+    @State private var isCheckingStatus = false
 
     var body: some View {
         ScrollView {
@@ -382,7 +383,10 @@ struct GeneralSettingsView: View {
                             } else {
                                 HStack {
                                     Button(action: {
-                                        if let url = URL(string: "https://hp-subscription-callback.vercel.app/login") {
+                                        if let url = URL(
+                                            string:
+                                                "https://hp-subscription-callback.vercel.app/login")
+                                        {
                                             NSWorkspace.shared.open(url)
                                         }
                                     }) {
@@ -402,56 +406,75 @@ struct GeneralSettingsView: View {
                             Label("Current Plan", systemImage: "star.circle")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text(UserDefaults.standard.bool(forKey: "isPro") ? "Pro" : "Free Tier")
+                            Text(isPro ? "Pro" : "Free Tier")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(
-                                    UserDefaults.standard.bool(forKey: "isPro")
+                                    isPro
                                         ? .purple : .secondary)
-                        }
 
-                        if !UserDefaults.standard.bool(forKey: "isPro") {
-                            Button(action: {
-                                Task {
-                                    do {
-                                        let request = StripeCheckout.CheckoutRequest(
-                                            planId: "pro",
-                                            email: UserDefaults.standard.string(forKey: "userEmail")
-                                        )
+                            if !isPro {
+                                Button(action: {
+                                    Task {
+                                        do {
+                                            let request = StripeCheckout.CheckoutRequest(
+                                                planId: "pro",
+                                                email: UserDefaults.standard.string(
+                                                    forKey: "userEmail")
+                                            )
 
-                                        let origin = Bundle.main.bundleIdentifier ?? "hypernote"
+                                            let origin = Bundle.main.bundleIdentifier ?? "hypernote"
 
-                                        let response = await StripeCheckout.createCheckoutSession(
-                                            request: request,
-                                            origin: "https://hp-subscription-callback.vercel.app"
-                                        )
+                                            let response =
+                                                await StripeCheckout.createCheckoutSession(
+                                                    request: request,
+                                                    origin:
+                                                        "https://hp-subscription-callback.vercel.app"
+                                                )
 
-                                        if let urlString = response.url,
-                                            let url = URL(string: urlString)
-                                        {
-                                            NSWorkspace.shared.open(url)
-                                        } else if let error = response.error {
-                                            print("Payment Error: \(error.message)")
+                                            if let urlString = response.url,
+                                                let url = URL(string: urlString)
+                                            {
+                                                NSWorkspace.shared.open(url)
+                                            } else if let error = response.error {
+                                                print("Payment Error: \(error.message)")
+                                            }
                                         }
                                     }
-                                }
-                            }) {
-                                Text("Update to Pro")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 12)
-                                    .frame(height: 28)
-                                    .background(
-                                        LinearGradient(
-                                            colors: [Color(.systemPurple), Color(.systemPink)],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
+                                }) {
+                                    Text("Update to Pro")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [Color(.systemPurple), Color(.systemPink)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
                                         )
-                                    )
-                                    .cornerRadius(6)
+                                        .cornerRadius(6)
+                                }
+                                .buttonStyle(.plain)
+                                .frame(alignment: .trailing)
                             }
-                            .buttonStyle(.plain)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            // Add refresh button
+                            Button(action: {
+                                checkProStatus()
+                            }) {
+                                if isCheckingStatus {
+                                    ProgressView()
+                                        .scaleEffect(0.4)
+                                        .frame(width: 14, height: 14)
+                                } else {
+                                    Image(systemName: "arrow.clockwise")
+                                        .imageScale(.small)
+                                }
+                            }
+                            .disabled(isCheckingStatus)
+                            .help("Check subscription status")
                         }
+
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
@@ -487,7 +510,6 @@ struct GeneralSettingsView: View {
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
                             AutoSaveIntervalSection()
-                                .frame(width: 90)
                         }
                     }
                     .padding(.vertical, 10)
@@ -534,6 +556,30 @@ struct GeneralSettingsView: View {
             }
         } else {
             loginManager.disableLaunchAtLogin()
+        }
+    }
+
+    private func checkProStatus() {
+        guard let email = UserDefaults.standard.string(forKey: "userEmail") else {
+            return
+        }
+
+        isCheckingStatus = true
+
+        Task {
+            do {
+                let isPro = try await ProStatusChecker.shared.checkProStatus(email: email)
+                await MainActor.run {
+                    UserDefaults.standard.set(isPro, forKey: "isPro")
+                    self.isPro = isPro
+                    isCheckingStatus = false
+                }
+            } catch {
+                print("Failed to check pro status: \(error)")
+                await MainActor.run {
+                    isCheckingStatus = false
+                }
+            }
         }
     }
 }
