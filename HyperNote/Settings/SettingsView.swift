@@ -457,22 +457,22 @@ struct GeneralSettingsView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .frame(alignment: .trailing)
-                            }
-                            // Add refresh button
-                            Button(action: {
-                                checkProStatus()
-                            }) {
-                                if isCheckingStatus {
-                                    ProgressView()
-                                        .scaleEffect(0.4)
-                                        .frame(width: 14, height: 14)
-                                } else {
-                                    Image(systemName: "arrow.clockwise")
-                                        .imageScale(.small)
+                                // Add refresh button
+                                Button(action: {
+                                    checkProStatus()
+                                }) {
+                                    if isCheckingStatus {
+                                        ProgressView()
+                                            .scaleEffect(0.4)
+                                            .frame(width: 14, height: 14)
+                                    } else {
+                                        Image(systemName: "arrow.clockwise")
+                                            .imageScale(.small)
+                                    }
                                 }
+                                .disabled(isCheckingStatus)
+                                .help("Check subscription status")
                             }
-                            .disabled(isCheckingStatus)
-                            .help("Check subscription status")
                         }
 
                     }
