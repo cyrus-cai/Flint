@@ -181,7 +181,7 @@ struct SettingsView: View {
         }
     }
 
-    @State private var selectedTab: SettingsTab = .general
+    @State private var selectedTab: SettingsTab? = .general
     @State private var progressSubscription: AnyCancellable?
     @State private var autoCorrect = false
     @State private var launchAtLogin = false
@@ -241,12 +241,26 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all)) {
-            List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
-                Label(tab.rawValue, systemImage: tab.icon)
+        HStack(spacing: 0) {
+            // Sidebar with custom top padding to account for hidden title bar
+            VStack(spacing: 0) {
+                List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
+                    HStack {
+                        Image(systemName: tab.icon)
+                            .foregroundColor(.secondary)
+                            .frame(width: 16)
+                        Text(tab.rawValue)
+                            .font(.system(size: 13))
+                    }
+                    .tag(tab)
+                    .frame(height: 28)
+                }
+                .listStyle(.sidebar)
+                .frame(width: 180)
+                .background(Color(NSColor.controlBackgroundColor))
             }
-            .listStyle(.sidebar)
-        } detail: {
+
+            // Content area
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedTab {
@@ -272,11 +286,17 @@ struct SettingsView: View {
                             updater: updater,
                             progressSubscription: $progressSubscription
                         )
+                    case .none:
+                        EmptyView()
                     }
                 }
+                .padding(.top, 20)  // Add top padding to content area
                 .padding()
             }
+            .frame(maxWidth: .infinity)
         }
+        .frame(width: 800, height: 500)
+        .background(Color(NSColor.windowBackgroundColor))
         .alert("Configure Obsidian Folder", isPresented: $showPathAlert) {
             Button("Select") {
                 selectCustomDirectory()
@@ -288,16 +308,8 @@ struct SettingsView: View {
                 )
             }
         }
-        .frame(width: 800, height: 500)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
-        //        .onReceive(
-        //            NotificationCenter.default.publisher(for: NSNotification.Name("SubscriptionDidUpdate"))
-        //        ) { _ in
-        //            // Refresh subscription status
-        //            let isPro = UserDefaults.standard.bool(forKey: "isPro")
-        //            // Update UI accordingly
-        //        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
             _ in
             isPro = UserDefaults.standard.bool(forKey: "isPro")
@@ -892,4 +904,23 @@ struct AutoSaveIntervalSection: View {
 
 #Preview {
     SettingsView()
+}
+
+func createSettingsWindow() {
+    let settingsWindow = NSWindow(
+        contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
+        styleMask: [.titled, .closable, .fullSizeContentView],  // Add fullSizeContentView
+        backing: .buffered,
+        defer: false
+    )
+
+    settingsWindow.titlebarAppearsTransparent = true
+    settingsWindow.titleVisibility = .hidden
+    settingsWindow.center()
+
+    let contentView = SettingsView()
+    let hostingView = NSHostingView(rootView: contentView)
+    settingsWindow.contentView = hostingView
+
+    settingsWindow.makeKeyAndOrderFront(nil)
 }
