@@ -514,13 +514,18 @@ struct NavigationToastView: View {
     let message: String
     @Binding var isShowing: Bool
 
+    private var isWarning: Bool {
+        message == "No more notes"
+    }
+
     var body: some View {
         if isShowing {
             HStack {
                 Circle()
-                    .fill(Color.green)
+                    .fill(isWarning ? Color.yellow : Color.green)
                     .frame(width: 8, height: 8)
-                    .shadow(color: .green.opacity(0.5), radius: 4)
+                    .shadow(
+                        color: isWarning ? .yellow.opacity(0.5) : .green.opacity(0.5), radius: 4)
 
                 Text(message)
                     .font(.system(size: 12))
