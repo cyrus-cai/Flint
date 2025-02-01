@@ -197,8 +197,7 @@ struct SettingsView: View {
     @State private var customPath: String = FileManager.shared.currentNotesPath
     @State private var showPathPicker = false
     @State private var showPathAlert = false
-    @State private var isPro: Bool = false
-    @State private var subscriptionStatus: String = "Free Tier"
+    @AppStorage("isPro") private var isPro: Bool = false
 
     // Feishu related settings
     //    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
@@ -252,7 +251,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedTab {
                     case .general:
-                        GeneralSettingsView(isPro: $isPro, subscriptionStatus: $subscriptionStatus)
+                        GeneralSettingsView(isPro: $isPro)
                     case .integration:
                         IntegrationSettingsView(
                             integrateWithObsidian: $integrateWithObsidian,
@@ -292,32 +291,17 @@ struct SettingsView: View {
         .frame(width: 800, height: 500)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
-//        .onReceive(
-//            NotificationCenter.default.publisher(for: NSNotification.Name("SubscriptionDidUpdate"))
-//        ) { _ in
-//            // Refresh subscription status
-//            let isPro = UserDefaults.standard.bool(forKey: "isPro")
-//            // Update UI accordingly
-//        }
-        // .onAppear {
-        //     if let email = UserDefaults.standard.string(forKey: "userEmail") {
-        //         Task {
-        //             do {
-        //                 let status = try await ProStatusChecker.shared.checkProStatus(email: email)
-        //                 DispatchQueue.main.async {
-        //                     isPro = status
-        //                     subscriptionStatus = status ? "Pro" : "Free Tier"
-        //                 }
-        //             } catch {
-        //                 print("Failed to check pro status: \(error)")
-        //                 DispatchQueue.main.async {
-        //                     isPro = false
-        //                     subscriptionStatus = "Free Tier"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        //        .onReceive(
+        //            NotificationCenter.default.publisher(for: NSNotification.Name("SubscriptionDidUpdate"))
+        //        ) { _ in
+        //            // Refresh subscription status
+        //            let isPro = UserDefaults.standard.bool(forKey: "isPro")
+        //            // Update UI accordingly
+        //        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
+            _ in
+            isPro = UserDefaults.standard.bool(forKey: "isPro")
+        }
     }
 }
 // MARK: - Subviews
@@ -331,7 +315,6 @@ struct GeneralSettingsView: View {
     @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
     private let loginManager = LoginManager.shared
     @Binding var isPro: Bool
-    @Binding var subscriptionStatus: String
 
     var body: some View {
         ScrollView {
