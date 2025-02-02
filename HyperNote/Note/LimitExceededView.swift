@@ -9,32 +9,80 @@ import Foundation
 import SwiftUI
 
 struct LimitExceededView: View {
+    @AppStorage("userEmail") private var userEmail: String = ""
+
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 40))
                 .foregroundColor(.yellow)
 
-            Text("Limit Reached")
+            Text("Daily Limit Reached")
                 .font(.headline)
 
             Text(
-                "Reached daily limit of \(AppConfig.QuickWakeup.dailyLimit) shortcut wake-ups."
+                "You've reached the daily limit of \(AppConfig.QuickWakeup.dailyLimit) quick wake-ups."
             )
             .multilineTextAlignment(.center)
             .foregroundColor(.secondary)
 
-            Text(
-                "You can still launch normally from dock."
-            )
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
+            Text("You can still launch HyperNote from the dock.")
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
 
-            Button("Unlimited on Hyper+") {
-                // Handle upgrade action
+            // Main upgrade button
+            Button(action: {
+                Task {
+                    do {
+                        let request = StripeCheckout.CheckoutRequest(
+                            planId: "pro",
+                            email: UserDefaults.standard.string(forKey: "userEmail")
+                        )
+
+                        let response = await StripeCheckout.createCheckoutSession(
+                            request: request,
+                            origin: "https://www.writedown.space/stripePayment"
+                        )
+
+                        if let urlString = response.url,
+                            let url = URL(string: urlString)
+                        {
+                            NSWorkspace.shared.open(url)
+                        } else if let error = response.error {
+                            print("Payment Error: \(error.message)")
+                        }
+                    }
+                }
+            }) {
+                Text("Upgrade to Pro")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(.systemPurple), Color(.systemPink)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(6)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.purple)
+            .buttonStyle(.plain)
+
+            // Login button for existing subscribers
+            if userEmail.isEmpty {
+                Button(action: {
+                    if let url = URL(string: "https://www.writedown.space/login") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    Text("Subscribed? Log in")
+                        .font(.system(size: 12))
+                        .foregroundColor(.blue)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding()
         .frame(width: 360)
