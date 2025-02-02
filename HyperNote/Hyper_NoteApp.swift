@@ -129,12 +129,7 @@ class HotkeyCounter: ObservableObject {
     }
 
     var underLimit: Bool {
-        if UserDefaults.standard.bool(forKey: "isPro") {
-            print("Pro user, unlimited access")
-            return true  // Pro users have unlimited access
-        }
-        print("Today count: \(todayCount), daily limit: \(AppConfig.QuickWakeup.dailyLimit)")
-        return todayCount < AppConfig.QuickWakeup.dailyLimit
+        return true  // Pro users have unlimited access
     }
 }
 
@@ -197,7 +192,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hotKey = HotKey(
             keyCode: UInt32(kVK_ANSI_C), modifiers: UInt32(optionKey),
             handler: { [weak self] in
-                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit &&  !UserDefaults.standard.bool(forKey: "isPro")  {
+                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
+                    && !UserDefaults.standard.bool(forKey: "isPro")
+                {
                     // 检查是否已经显示了限制窗口
                     if self?.limitExceededWindow == nil {
                         // 创建并显示限制窗口
@@ -278,7 +275,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             statusItem?.menu = nil
         } else {
             // Left click - Quick wake up
-            if HotkeyCounter.shared.underLimit || UserDefaults.standard.bool(forKey: "isPro")  {
+            if HotkeyCounter.shared.underLimit || UserDefaults.standard.bool(forKey: "isPro") {
                 toggleWindow()
                 HotkeyCounter.shared.increment()
             } else {
@@ -487,4 +484,3 @@ class HotKey {
         }
     }
 }
-
