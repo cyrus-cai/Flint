@@ -408,9 +408,17 @@ struct GeneralSettingsView: View {
                             Spacer()
                             Text(isPro ? "Pro" : "Free Tier")
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(
+                                .foregroundColor(isPro ? .white : .secondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
                                     isPro
-                                        ? .purple : .secondary)
+                                        ? LinearGradient(
+                                            colors: [Color(.systemPurple), Color(.systemPink)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        ).cornerRadius(6) : nil
+                                )
 
                             if !isPro {
                                 Button(action: {
