@@ -623,7 +623,7 @@ struct IntegrationSettingsView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // Storage Location
-                GroupBox("Storage Location") {
+                GroupBox("Save") {
                     VStack(spacing: 12) {
                         HStack {
                             Label("Storage Location", systemImage: "folder")
