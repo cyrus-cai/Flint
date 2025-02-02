@@ -610,42 +610,71 @@ struct IntegrationSettingsView: View {
     @AppStorage("aiModel") private var aiModel = "Doubao-1.5-pro"
     let selectCustomDirectory: () -> Void
 
+    private func openInFinder() {
+        guard let notesDirectory = FileManager.shared.notesDirectory else {
+            print("Could not access notes directory")
+            return
+        }
+
+        NSWorkspace.shared.selectFile(
+            nil,
+            inFileViewerRootedAtPath: notesDirectory.path
+        )
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 // Storage Location
                 GroupBox("Save") {
                     VStack(spacing: 12) {
-                        HStack {
+                        HStack(spacing: 0) {
                             Label("Storage Location", systemImage: "folder")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Button("Change Location") {
-                                selectCustomDirectory()
+
+                            // Open button
+                            if FileManager.shared.isPathConfigured {
+                                Button("Open") {
+                                    openInFinder()
+                                }
+                                .font(.system(size: 13))
+                                .controlSize(.small)
+                                .padding(.trailing, 8)
                             }
-                            .font(.system(size: 13))
-                            .controlSize(.small)
                         }
 
                         if FileManager.shared.isPathConfigured {
-                            Text(customPath)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(.primary.opacity(0.05))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
-                                        )
-                                )
+                            HStack(spacing: 0) {
+                                Text(customPath)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                Button("Change") {
+                                    selectCustomDirectory()
+                                }
+                                .font(.system(size: 13))
+                                .controlSize(.small)
+                            }
+                            .padding(.trailing, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.primary.opacity(0.05))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                    )
+                            )
+
                         }
+
                         Divider()
+
                         HStack {
                             Label("Auto-save", systemImage: "timer")
                                 .font(.system(size: 13, weight: .medium))
@@ -653,7 +682,6 @@ struct IntegrationSettingsView: View {
                             AutoSaveIntervalSection()
                         }
                     }
-
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
                 }
