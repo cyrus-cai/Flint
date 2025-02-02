@@ -512,15 +512,6 @@ struct GeneralSettingsView: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
-
-                        Divider()
-
-                        HStack {
-                            Label("Auto-save", systemImage: "timer")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            AutoSaveIntervalSection()
-                        }
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
@@ -654,7 +645,15 @@ struct IntegrationSettingsView: View {
                                         )
                                 )
                         }
+                        Divider()
+                        HStack {
+                            Label("Auto-save", systemImage: "timer")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            AutoSaveIntervalSection()
+                        }
                     }
+
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
                 }
@@ -943,21 +942,21 @@ struct AutoSaveIntervalSection: View {
     SettingsView()
 }
 
-func createSettingsWindow() {
-    let settingsWindow = NSWindow(
-        contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
-        styleMask: [.titled, .closable, .fullSizeContentView],  // Add fullSizeContentView
-        backing: .buffered,
-        defer: false
-    )
+// func createSettingsWindow() {
+//     let settingsWindow = NSWindow(
+//         contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
+//         styleMask: [.titled, .closable, .fullSizeContentView],  // Add fullSizeContentView
+//         backing: .buffered,
+//         defer: false
+//     )
 
-    settingsWindow.titlebarAppearsTransparent = true
-    settingsWindow.titleVisibility = .hidden
-    settingsWindow.center()
+//     settingsWindow.titlebarAppearsTransparent = true
+//     settingsWindow.titleVisibility = .hidden
+//     settingsWindow.center()
 
-    let contentView = SettingsView()
-    let hostingView = NSHostingView(rootView: contentView)
-    settingsWindow.contentView = hostingView
+//     let contentView = SettingsView()
+//     let hostingView = NSHostingView(rootView: contentView)
+//     settingsWindow.contentView = hostingView
 
-    settingsWindow.makeKeyAndOrderFront(nil)
-}
+//     settingsWindow.makeKeyAndOrderFront(nil)
+// }
