@@ -438,7 +438,7 @@ struct GeneralSettingsView: View {
                                                 await StripeCheckout.createCheckoutSession(
                                                     request: request,
                                                     origin:
-                                                        "https://hp-subscription-callback.vercel.app"
+                                                        "https://hp-subscription-callback.vercel.app/stripePayment"
                                                 )
 
                                             if let urlString = response.url,
