@@ -1,5 +1,5 @@
 //
-//  Hyper_NoteUITestsLaunchTests.swift
+//  WritedownUITestsLaunchTests.swift
 //  Hyper NoteUITests
 //
 //  Created by LC John on 2024/11/9.
@@ -7,7 +7,7 @@
 
 import XCTest
 
-final class Hyper_NoteUITestsLaunchTests: XCTestCase {
+final class WritedownUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

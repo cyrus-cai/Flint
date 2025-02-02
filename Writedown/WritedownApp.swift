@@ -5,7 +5,7 @@ import ServiceManagement
 import SwiftUI
 
 @main
-struct Hyper_NoteApp: App {
+struct WritedownApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     init() {

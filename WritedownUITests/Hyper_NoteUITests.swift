@@ -1,5 +1,5 @@
 //
-//  Hyper_NoteUITests.swift
+//  WritedownUITests.swift
 //  Hyper NoteUITests
 //
 //  Created by LC John on 2024/11/9.
@@ -7,7 +7,7 @@
 
 import XCTest
 
-final class Hyper_NoteUITests: XCTestCase {
+final class WritedownUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
