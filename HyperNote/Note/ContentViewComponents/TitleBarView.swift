@@ -469,6 +469,7 @@ class TitleBarToolbarState: ObservableObject {
         let newIndex = max(currentNoteIndex - 1, 0)
         guard newIndex != currentNoteIndex else {
             showNavigationToast(message: "No more notes")
+            currentNoteIndex += 1
             return
         }
         currentNoteIndex = newIndex
@@ -481,6 +482,7 @@ class TitleBarToolbarState: ObservableObject {
         let newIndex = min(currentNoteIndex + 1, recentNotes.count - 1)
         guard newIndex != currentNoteIndex else {
             showNavigationToast(message: "No more notes")
+            currentNoteIndex -= 1
             return
         }
         currentNoteIndex = newIndex
@@ -531,8 +533,8 @@ struct NavigationToastView: View {
                     .font(.system(size: 12))
             }
             .padding(10)
-            .background(.thinMaterial)
-            .cornerRadius(8)
+            .background(Color(NSColor.windowBackgroundColor))
+            .cornerRadius(12)
             .transition(.opacity)
             .frame(maxWidth: .infinity, alignment: .bottom)
         }
