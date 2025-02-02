@@ -743,13 +743,43 @@ struct HotkeySettingsView: View {
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                                 Spacer()
-                                Button("Unlimited in Hyper +") {
-                                    // Handle upgrade action
-                                }
-                                .font(.system(size: 12, weight: .medium))
-                                .buttonStyle(.borderedProminent)
-                                .tint(.purple)
-                                .controlSize(.small)
+                                Button(action: {
+                                                   Task {
+                                                       do {
+                                                           let request = StripeCheckout.CheckoutRequest(
+                                                               planId: "pro",
+                                                               email: UserDefaults.standard.string(forKey: "userEmail")
+                                                           )
+
+                                                           let response = await StripeCheckout.createCheckoutSession(
+                                                               request: request,
+                                                               origin: "https://www.writedown.space/stripePayment"
+                                                           )
+
+                                                           if let urlString = response.url,
+                                                               let url = URL(string: urlString)
+                                                           {
+                                                               NSWorkspace.shared.open(url)
+                                                           }
+                                                       }
+                                                   }
+                                               }) {
+                                                   Text("Upgrade to Pro")
+                                                       .font(.system(size: 12, weight: .medium))
+                                                       .foregroundColor(.white)
+                                                       .padding(.vertical,4)
+                                                       .padding(.horizontal,8)
+                                                       .background(
+                                                           LinearGradient(
+                                                               colors: [Color(.systemPurple), Color(.systemPink)],
+                                                               startPoint: .leading,
+                                                               endPoint: .trailing
+                                                           )
+                                                       )
+                                                       .cornerRadius(8)
+                                                       .shadow(color: Color(.systemPurple).opacity(0.3), radius: 8)
+                                               }
+                                               .buttonStyle(.plain)
                             }
                         }
                     }

@@ -304,7 +304,7 @@ struct SettingsView: View {
         } message: {
             VStack(alignment: .leading, spacing: 8) {
                 Text(
-                    "Writedown defaultly integrates with Obsidian. Pick a folder in your Obsidian vault."
+                    "Float defaultly integrates with Obsidian. Pick a folder in your Obsidian vault."
                 )
             }
         }
