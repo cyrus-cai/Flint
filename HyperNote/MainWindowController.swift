@@ -84,7 +84,7 @@ class SettingsWindowController: NSWindowController {
     init() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
-            styleMask: [.titled, .closable, .miniaturizable],
+            styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -93,6 +93,8 @@ class SettingsWindowController: NSWindowController {
 
         window.center()
         window.title = "Settings"
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
         window.contentView = NSHostingView(rootView: SettingsView())
     }
 
