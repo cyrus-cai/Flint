@@ -13,8 +13,12 @@ struct Hyper_NoteApp: App {
         if UserDefaults.standard.string(forKey: "userEmail") != nil {
             Task {
                 do {
+                    print(
+                        "Checking pro status for \(UserDefaults.standard.string(forKey: "userEmail") ?? "nil")"
+                    )
                     let isPro = try await ProStatusChecker.shared.checkProStatus(
                         email: UserDefaults.standard.string(forKey: "userEmail") ?? "")
+                    print("Setting isPro to \(isPro)")
                     UserDefaults.standard.set(isPro, forKey: "isPro")
                 } catch {
                     print("Pro status check failed: \(error)")
@@ -124,9 +128,13 @@ class HotkeyCounter: ObservableObject {
         midnightTimer?.invalidate()
     }
 
-    var canActivate: Bool {
-        // return todayCount < AppConfig.QuickWakeup.dailyLimit
-        return true
+    var underLimit: Bool {
+        if UserDefaults.standard.bool(forKey: "isPro") {
+            print("Pro user, unlimited access")
+            return true  // Pro users have unlimited access
+        }
+        print("Today count: \(todayCount), daily limit: \(AppConfig.QuickWakeup.dailyLimit)")
+        return todayCount < AppConfig.QuickWakeup.dailyLimit
     }
 }
 
@@ -189,7 +197,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hotKey = HotKey(
             keyCode: UInt32(kVK_ANSI_C), modifiers: UInt32(optionKey),
             handler: { [weak self] in
-                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit {
+                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit &&  !UserDefaults.standard.bool(forKey: "isPro")  {
                     // 检查是否已经显示了限制窗口
                     if self?.limitExceededWindow == nil {
                         // 创建并显示限制窗口
@@ -270,7 +278,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             statusItem?.menu = nil
         } else {
             // Left click - Quick wake up
-            if HotkeyCounter.shared.canActivate {
+            if HotkeyCounter.shared.underLimit || UserDefaults.standard.bool(forKey: "isPro")  {
                 toggleWindow()
                 HotkeyCounter.shared.increment()
             } else {
@@ -413,57 +421,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
-
-    //    func application(_ application: NSApplication, open urls: [URL]) {
-    //        guard let url = urls.first else { return }
-    //
-    //        // Check if this is an OAuth callback
-    //        if url.scheme == "hypernote" && url.host == "oauth" && url.path == "/callback" {
-    //            if let code = FeishuAuthManager.handleAuthCallback(url: url) {
-    //                // Successfully got the authorization code
-    //                print("✅ Received auth code:", code)
-    //
-    //                // Exchange the code for access token
-    //                Task {
-    //                    do {
-    //                        let tokenResponse = try await FeishuAuthManager.getAccessToken(code: code)
-    //
-    //                        // Configure FeishuAPI with the new access token and expiration
-    //                        FeishuAPI.shared.configure(
-    //                            accessToken: tokenResponse.accessToken,
-    //                            expiresIn: tokenResponse.expiresIn
-    //                        )
-    //                        FeishuAPI.shared.isEnabled = true
-    //
-    //                        // Show success notification
-    //                        DispatchQueue.main.async {
-    //                            let notification = NSUserNotification()
-    //                            notification.title = "Authorization Successful"
-    //                            notification.informativeText = "Successfully connected to Feishu"
-    //                            NSUserNotificationCenter.default.deliver(notification)
-    //                        }
-    //                    } catch {
-    //                        print("❌ Failed to get access token:", error)
-    //
-    //                        // Show error notification
-    //                        DispatchQueue.main.async {
-    //                            let notification = NSUserNotification()
-    //                            notification.title = "Authorization Failed"
-    //                            notification.informativeText =
-    //                                "Failed to connect to Feishu: \(error.localizedDescription)"
-    //                            NSUserNotificationCenter.default.deliver(notification)
-    //                        }
-    //                    }
-    //                }
-    //            } else {
-    //                // Handle error
-    //                let notification = NSUserNotification()
-    //                notification.title = "Authorization Failed"
-    //                notification.informativeText = "Failed to connect to Feishu"
-    //                NSUserNotificationCenter.default.deliver(notification)
-    //            }
-    //        }
-    //    }
 }
 
 // MARK: - HotKey Implementation
@@ -531,20 +488,3 @@ class HotKey {
     }
 }
 
-struct NotePreviewView: View {
-    let content: String
-
-    var body: some View {
-        ScrollView {
-            Text(content)
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-        }
-        .frame(width: 280)
-        .background(Color(NSColor.windowBackgroundColor))
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.2), radius: 10, x: -4, y: 4)
-    }
-}
