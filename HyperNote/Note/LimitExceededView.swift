@@ -12,80 +12,98 @@ struct LimitExceededView: View {
     @AppStorage("userEmail") private var userEmail: String = ""
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 40))
-                .foregroundColor(.yellow)
+        VStack(spacing: 24) {
+            // Header with icon and gradient background
+            VStack(spacing: 16) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.yellow, .orange],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                // .shadow(color: .yellow.opacity(0.3), radius: 8)
 
-            Text("Daily Limit Reached")
-                .font(.headline)
+                Text("Daily Limit Reached")
+                    .font(.system(size: 20, weight: .semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
 
-            Text(
-                "You've reached the daily limit of \(AppConfig.QuickWakeup.dailyLimit) quick wake-ups."
-            )
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
-
-            Text("You can still launch HyperNote from the dock.")
+            // Message content
+            VStack(spacing: 12) {
+                Text(
+                    "You've reached the daily limit of \(AppConfig.QuickWakeup.dailyLimit) quick wake-ups."
+                )
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
 
-            // Main upgrade button
-            Button(action: {
-                Task {
-                    do {
-                        let request = StripeCheckout.CheckoutRequest(
-                            planId: "pro",
-                            email: UserDefaults.standard.string(forKey: "userEmail")
-                        )
+                Text("You can still launch HyperNote from the dock.")
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal)
 
-                        let response = await StripeCheckout.createCheckoutSession(
-                            request: request,
-                            origin: "https://www.writedown.space/stripePayment"
-                        )
+            // Action buttons
+            VStack(spacing: 12) {
+                Button(action: {
+                    Task {
+                        do {
+                            let request = StripeCheckout.CheckoutRequest(
+                                planId: "pro",
+                                email: UserDefaults.standard.string(forKey: "userEmail")
+                            )
 
-                        if let urlString = response.url,
-                            let url = URL(string: urlString)
-                        {
-                            NSWorkspace.shared.open(url)
-                        } else if let error = response.error {
-                            print("Payment Error: \(error.message)")
+                            let response = await StripeCheckout.createCheckoutSession(
+                                request: request,
+                                origin: "https://www.writedown.space/stripePayment"
+                            )
+
+                            if let urlString = response.url,
+                                let url = URL(string: urlString)
+                            {
+                                NSWorkspace.shared.open(url)
+                            }
                         }
                     }
-                }
-            }) {
-                Text("Upgrade to Pro")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(
-                        LinearGradient(
-                            colors: [Color(.systemPurple), Color(.systemPink)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(6)
-            }
-            .buttonStyle(.plain)
-
-            // Login button for existing subscribers
-            if userEmail.isEmpty {
-                Button(action: {
-                    if let url = URL(string: "https://www.writedown.space/login") {
-                        NSWorkspace.shared.open(url)
-                    }
                 }) {
-                    Text("Subscribed? Log in")
-                        .font(.system(size: 12))
-                        .foregroundColor(.blue)
+                    Text("Upgrade to Pro")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(.systemPurple), Color(.systemPink)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(8)
+                        .shadow(color: Color(.systemPurple).opacity(0.3), radius: 8)
                 }
                 .buttonStyle(.plain)
+
+                if userEmail.isEmpty {
+                    Button(action: {
+                        if let url = URL(string: "https://www.writedown.space/login") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        Text("Already subscribed? Log in")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
+            .padding(.horizontal)
         }
-        .padding()
+        .padding(20)
         .frame(width: 360)
+        .background(Color.clear)
     }
 }
 
