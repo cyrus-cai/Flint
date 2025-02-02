@@ -685,6 +685,7 @@ struct IntegrationSettingsView: View {
 
 struct HotkeySettingsView: View {
     @ObservedObject var counter: HotkeyCounter
+    @AppStorage("isPro") private var isPro: Bool = false
 
     var body: some View {
         ScrollView {
@@ -702,20 +703,26 @@ struct HotkeySettingsView: View {
 
                         Divider()
 
-                        HStack {
-                            Text(
-                                "Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)"
-                            )
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                            Spacer()
-                            Button("Unlimited in Hyper +") {
-                                // Handle upgrade action
+                        if isPro {
+                            Text("Unlimited quick wake-ups (Pro)")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                        } else {
+                            HStack {
+                                Text(
+                                    "Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)"
+                                )
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                Spacer()
+                                Button("Unlimited in Hyper +") {
+                                    // Handle upgrade action
+                                }
+                                .font(.system(size: 12, weight: .medium))
+                                .buttonStyle(.borderedProminent)
+                                .tint(.purple)
+                                .controlSize(.small)
                             }
-                            .font(.system(size: 12, weight: .medium))
-                            .buttonStyle(.borderedProminent)
-                            .tint(.purple)
-                            .controlSize(.small)
                         }
                     }
                     .padding(.vertical, 10)
