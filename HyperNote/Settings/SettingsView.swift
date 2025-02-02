@@ -181,7 +181,7 @@ struct SettingsView: View {
         }
     }
 
-    @State private var selectedTab: SettingsTab = .general
+    @State private var selectedTab: SettingsTab? = .general
     @State private var progressSubscription: AnyCancellable?
     @State private var autoCorrect = false
     @State private var launchAtLogin = false
@@ -241,12 +241,26 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all)) {
-            List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
-                Label(tab.rawValue, systemImage: tab.icon)
+        HStack(spacing: 0) {
+            // Sidebar with custom top padding to account for hidden title bar
+            VStack(spacing: 0) {
+                List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
+                    HStack {
+                        Image(systemName: tab.icon)
+                            .foregroundColor(.secondary)
+                            .frame(width: 16)
+                        Text(tab.rawValue)
+                            .font(.system(size: 13))
+                    }
+                    .tag(tab)
+                    .frame(height: 28)
+                }
+                .listStyle(.sidebar)
+                .frame(width: 180)
+                .background(Color(NSColor.controlBackgroundColor))
             }
-            .listStyle(.sidebar)
-        } detail: {
+
+            // Content area
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedTab {
@@ -272,11 +286,17 @@ struct SettingsView: View {
                             updater: updater,
                             progressSubscription: $progressSubscription
                         )
+                    case .none:
+                        EmptyView()
                     }
                 }
+                .padding(.top, 20)  // Add top padding to content area
                 .padding()
             }
+            .frame(maxWidth: .infinity)
         }
+        .frame(width: 800, height: 500)
+        .background(Color(NSColor.windowBackgroundColor))
         .alert("Configure Obsidian Folder", isPresented: $showPathAlert) {
             Button("Select") {
                 selectCustomDirectory()
@@ -288,16 +308,8 @@ struct SettingsView: View {
                 )
             }
         }
-        .frame(width: 800, height: 500)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
-        //        .onReceive(
-        //            NotificationCenter.default.publisher(for: NSNotification.Name("SubscriptionDidUpdate"))
-        //        ) { _ in
-        //            // Refresh subscription status
-        //            let isPro = UserDefaults.standard.bool(forKey: "isPro")
-        //            // Update UI accordingly
-        //        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
             _ in
             isPro = UserDefaults.standard.bool(forKey: "isPro")
@@ -315,11 +327,12 @@ struct GeneralSettingsView: View {
     @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
     private let loginManager = LoginManager.shared
     @Binding var isPro: Bool
+    @State private var isCheckingStatus = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                GroupBox("Account Status") {
+                GroupBox("Account") {
                     VStack(spacing: 12) {
                         HStack {
                             if !userEmail.isEmpty {
@@ -336,8 +349,10 @@ struct GeneralSettingsView: View {
                                 }
 
                                 VStack(alignment: .leading) {
-                                    Text(userName)
-                                        .font(.system(size: 13, weight: .medium))
+                                    if !userName.isEmpty {
+                                        Text(userName)
+                                            .font(.system(size: 13, weight: .medium))
+                                    }
                                     Text(userEmail)
                                         .font(.system(size: 12))
                                         .foregroundColor(.secondary)
@@ -345,9 +360,7 @@ struct GeneralSettingsView: View {
 
                                 Spacer()
 
-                                // 添加退出登录按钮
                                 Button(action: {
-                                    // 清空用户信息
                                     let defaults = UserDefaults.standard
                                     defaults.removeObject(forKey: "userName")
                                     defaults.removeObject(forKey: "userEmail")
@@ -355,12 +368,10 @@ struct GeneralSettingsView: View {
                                     defaults.removeObject(forKey: "isPro")
                                     defaults.synchronize()
 
-                                    // 更新状态
                                     userName = ""
                                     userEmail = ""
                                     userAvatar = ""
 
-                                    // 发送通知
                                     NotificationCenter.default.post(
                                         name: NSNotification.Name("UserDidLogout"),
                                         object: nil
@@ -374,7 +385,10 @@ struct GeneralSettingsView: View {
                             } else {
                                 HStack {
                                     Button(action: {
-                                        if let url = URL(string: "http://localhost:3000/login") {
+                                        if let url = URL(
+                                            string:
+                                                "https://hp-subscription-callback.vercel.app/login")
+                                        {
                                             NSWorkspace.shared.open(url)
                                         }
                                     }) {
@@ -387,13 +401,97 @@ struct GeneralSettingsView: View {
                                 }
                             }
                         }
+
+                        Divider()
+
+                        HStack {
+                            Label("Current Plan", systemImage: "star.circle")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text(isPro ? "Pro" : "Free Tier")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(isPro ? .white : .secondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    isPro
+                                        ? LinearGradient(
+                                            colors: [Color(.systemPurple), Color(.systemPink)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        ).cornerRadius(6) : nil
+                                )
+
+                            if !isPro {
+                                Button(action: {
+                                    Task {
+                                        do {
+                                            let request = StripeCheckout.CheckoutRequest(
+                                                planId: "pro",
+                                                email: UserDefaults.standard.string(
+                                                    forKey: "userEmail")
+                                            )
+
+                                            let origin = Bundle.main.bundleIdentifier ?? "hypernote"
+
+                                            let response =
+                                                await StripeCheckout.createCheckoutSession(
+                                                    request: request,
+                                                    origin:
+                                                        "https://hp-subscription-callback.vercel.app"
+                                                )
+
+                                            if let urlString = response.url,
+                                                let url = URL(string: urlString)
+                                            {
+                                                NSWorkspace.shared.open(url)
+                                            } else if let error = response.error {
+                                                print("Payment Error: \(error.message)")
+                                            }
+                                        }
+                                    }
+                                }) {
+                                    Text("Update to Pro")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [Color(.systemPurple), Color(.systemPink)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .cornerRadius(6)
+                                }
+                                .buttonStyle(.plain)
+                                .frame(alignment: .trailing)
+                                // Add refresh button
+                                Button(action: {
+                                    checkProStatus()
+                                }) {
+                                    if isCheckingStatus {
+                                        ProgressView()
+                                            .scaleEffect(0.4)
+                                            .frame(width: 14, height: 14)
+                                    } else {
+                                        Image(systemName: "arrow.clockwise")
+                                            .imageScale(.small)
+                                    }
+                                }
+                                .disabled(isCheckingStatus)
+                                .help("Check subscription status")
+                            }
+                        }
+
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
-                GroupBox("Account Settings") {
+                GroupBox("Preferences") {
                     VStack(spacing: 12) {
                         HStack {
                             Label("Launch at Login", systemImage: "power")
@@ -403,80 +501,9 @@ struct GeneralSettingsView: View {
                                 .toggleStyle(.switch)
                                 .labelsHidden()
                         }
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                }
-                .groupBoxStyle(ModernGroupBoxStyle())
 
-                GroupBox("Subscription") {
-                    VStack(spacing: 12) {
-                        HStack {
-                            Label("Current Plan", systemImage: "star.circle")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            Text(UserDefaults.standard.bool(forKey: "isPro") ? "Pro" : "Free Tier")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(
-                                    UserDefaults.standard.bool(forKey: "isPro")
-                                        ? .purple : .secondary)
-                        }
+                        Divider()
 
-                        if !UserDefaults.standard.bool(forKey: "isPro") {
-                            Button(action: {
-                                Task {
-                                    do {
-                                        let request = StripeCheckout.CheckoutRequest(
-                                            planId: "pro",
-                                            // 如果用户已登录，可以获取邮箱
-                                            email: UserDefaults.standard.string(forKey: "userEmail")
-                                        )
-
-                                        // 获取当前应用 origin（示例使用 bundle identifier）
-                                        let origin = Bundle.main.bundleIdentifier ?? "hypernote"
-
-                                        let response = await StripeCheckout.createCheckoutSession(
-                                            request: request,
-                                            origin: "http://localhost:3000"
-                                        )
-
-                                        if let urlString = response.url,
-                                            let url = URL(string: urlString)
-                                        {
-                                            NSWorkspace.shared.open(url)
-                                        } else if let error = response.error {
-                                            print("Payment Error: \(error.message)")
-                                            // 显示错误提示（参考 Feishu 的错误处理）
-                                        }
-                                    }
-                                }
-                            }) {
-                                Text("Update to Pro")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 12)
-                                    .frame(height: 28)
-                                    .background(
-                                        LinearGradient(
-                                            colors: [Color(.systemPurple), Color(.systemPink)],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .cornerRadius(6)
-                            }
-                            .buttonStyle(.plain)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        }
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .groupBoxStyle(ModernGroupBoxStyle())
-
-                GroupBox("Preferences") {
-                    VStack(spacing: 12) {
                         HStack {
                             Label("Language", systemImage: "globe")
                                 .font(.system(size: 13, weight: .medium))
@@ -484,16 +511,6 @@ struct GeneralSettingsView: View {
                             Text("English")
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
-                        }
-
-                        Divider()
-
-                        HStack {
-                            Label("Auto-save", systemImage: "timer")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            AutoSaveIntervalSection()
-                                .frame(width: 90)
                         }
                     }
                     .padding(.vertical, 10)
@@ -508,7 +525,7 @@ struct GeneralSettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
-            .padding(16)
+            .padding(.horizontal, 16)
         }
         .onAppear {
             // 主动刷新用户状态
@@ -542,14 +559,37 @@ struct GeneralSettingsView: View {
             loginManager.disableLaunchAtLogin()
         }
     }
+
+    private func checkProStatus() {
+        guard let email = UserDefaults.standard.string(forKey: "userEmail") else {
+            return
+        }
+
+        isCheckingStatus = true
+
+        Task {
+            do {
+                let isPro = try await ProStatusChecker.shared.checkProStatus(email: email)
+                await MainActor.run {
+                    UserDefaults.standard.set(isPro, forKey: "isPro")
+                    self.isPro = isPro
+                    isCheckingStatus = false
+                }
+            } catch {
+                print("Failed to check pro status: \(error)")
+                await MainActor.run {
+                    isCheckingStatus = false
+                }
+            }
+        }
+    }
 }
 
 struct ModernGroupBoxStyle: GroupBoxStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .leading) {
             configuration.label
-                .font(.system(size: 14, weight: .semibold))
-                .textCase(.uppercase)
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.secondary)
                 .padding(.bottom, 8)
 
@@ -574,7 +614,7 @@ struct IntegrationSettingsView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // Storage Location
-                GroupBox("Storage Location") {
+                GroupBox("Save") {
                     VStack(spacing: 12) {
                         HStack {
                             Label("Storage Location", systemImage: "folder")
@@ -605,7 +645,15 @@ struct IntegrationSettingsView: View {
                                         )
                                 )
                         }
+                        Divider()
+                        HStack {
+                            Label("Auto-save", systemImage: "timer")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            AutoSaveIntervalSection()
+                        }
                     }
+
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
                 }
@@ -630,7 +678,7 @@ struct IntegrationSettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
-            .padding(16)
+            .padding(.horizontal, 16)
         }
     }
 }
@@ -724,7 +772,7 @@ struct HotkeySettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
             }
-            .padding(16)
+            .padding(.horizontal, 16)
         }
     }
 }
@@ -893,3 +941,22 @@ struct AutoSaveIntervalSection: View {
 #Preview {
     SettingsView()
 }
+
+// func createSettingsWindow() {
+//     let settingsWindow = NSWindow(
+//         contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
+//         styleMask: [.titled, .closable, .fullSizeContentView],  // Add fullSizeContentView
+//         backing: .buffered,
+//         defer: false
+//     )
+
+//     settingsWindow.titlebarAppearsTransparent = true
+//     settingsWindow.titleVisibility = .hidden
+//     settingsWindow.center()
+
+//     let contentView = SettingsView()
+//     let hostingView = NSHostingView(rootView: contentView)
+//     settingsWindow.contentView = hostingView
+
+//     settingsWindow.makeKeyAndOrderFront(nil)
+// }
