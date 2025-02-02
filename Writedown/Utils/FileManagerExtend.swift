@@ -24,21 +24,38 @@ class FileManager {
 
     // Get base notes directory (Obsidian vault)
     var baseDirectory: URL? {
-        guard let customPath = UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath)
+        // First check if user has set a custom path
+        if let customPath = UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath) {
+            return URL(fileURLWithPath: customPath)
+        }
+
+        // If no custom path, use default path in Documents folder
+        let fileManager = Foundation.FileManager.default
+        guard
+            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
         else {
             return nil
         }
-        return URL(fileURLWithPath: customPath)
+
+        // Create default Writedown folder in Documents
+        let defaultPath = documentsURL.appendingPathComponent("Writedown")
+
+        // Create directory if it doesn't exist
+        if !fileManager.fileExists(atPath: defaultPath.path) {
+            try? fileManager.createDirectory(at: defaultPath, withIntermediateDirectories: true)
+        }
+
+        return defaultPath
     }
 
     // Get Float directory
     var floatDirectory: URL? {
         guard let base = baseDirectory else { return nil }
-        let floatURL = base.appendingPathComponent("Float")
-        if !fm.fileExists(atPath: floatURL.path) {
-            try? fm.createDirectory(at: floatURL, withIntermediateDirectories: true)
+        // let floatURL = base.appendingPathComponent("Float")
+        if !fm.fileExists(atPath: base.path) {
+            try? fm.createDirectory(at: base, withIntermediateDirectories: true)
         }
-        return floatURL
+        return base
     }
 
     // Get Archive directory
@@ -114,17 +131,17 @@ class FileManager {
                 }
             }
             return notes
-        } 
-//        catch {
-//            print("Error getting notes: \(error)")
-//            return []
-//        }
+        }
+        //        catch {
+        //            print("Error getting notes: \(error)")
+        //            return []
+        //        }
     }
 
     // Check if path is configured
-    var isPathConfigured: Bool {
-        return baseDirectory != nil
-    }
+    // var isPathConfigured: Bool {
+    //     return baseDirectory != nil
+    // }
 
     // Get current notes path for display
     var currentNotesPath: String {
@@ -180,8 +197,8 @@ class FileManager {
                 let weekFolder = "\(year)W\(String(format: "%02d", week))"
 
                 // 创建目标目录
-                let floatURL = baseDir.appendingPathComponent("Float")
-                let weekURL = floatURL.appendingPathComponent(weekFolder)
+                // let floatURL = baseDir.appendingPathComponent("Float")
+                let weekURL = baseDir.appendingPathComponent(weekFolder)
                 try? fileManager.createDirectory(at: weekURL, withIntermediateDirectories: true)
 
                 // 构建新的文件路径

@@ -1,6 +1,6 @@
 //
 //  OnboardingView.swift
-//  Writedown
+//  HyperNote
 //
 //  Created by LC John on 1/17/25.
 //
@@ -57,7 +57,7 @@ struct OnboardingView: View {
         OnboardingStep(
             icon: "star",
             title: "Get Pro",
-            description: "Get more with Writedown Pro",
+            description: "Get more with HyperNote Pro",
             detail: "",
             imageName: "pro-features-demo"
         ),
@@ -216,14 +216,14 @@ struct OnboardingView: View {
 
                 } else {
                     // For other steps, show the regular Next/Start button
-                    Button(currentStep == steps.count - 1 ? "Start Writedown" : "Next Step") {
+                    Button(currentStep == steps.count - 1 ? "Start HyperNote" : "Next Step") {
                         if currentStep == steps.count - 1 {
                             // Set hasCompletedOnboarding to true
                             UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
 
                             isFirstLaunch = false
                             if let window = NSApplication.shared.windows.first(where: {
-                                $0.title == "Welcome to Writedown"
+                                $0.title == "Welcome to HyperNote"
                             }) {
                                 window.close()
                             }
@@ -326,7 +326,7 @@ struct StepContent: View {
                                 .toggleStyle(.switch)
                         }
 
-                        Text("Quickly access Writedown when you need it")
+                        Text("Quickly access HyperNote when you need it")
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                     }

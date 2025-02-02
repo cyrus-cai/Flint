@@ -432,7 +432,7 @@ struct GeneralSettingsView: View {
                                                     forKey: "userEmail")
                                             )
 
-                                            let origin = Bundle.main.bundleIdentifier ?? "writedown"
+                                            let origin = Bundle.main.bundleIdentifier ?? "hypernote"
 
                                             let response =
                                                 await StripeCheckout.createCheckoutSession(
@@ -670,7 +670,6 @@ struct IntegrationSettingsView: View {
                                         .stroke(Color.purple.opacity(0.1), lineWidth: 1)
                                 )
                         )
-
                         // }
 
                         Divider()

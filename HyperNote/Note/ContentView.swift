@@ -268,19 +268,19 @@ struct ContentView: View {
             // } else {
             //     // 未配置存储路径的视图
             //     VStack(spacing: 8) {
-            //         Text("Welcome to Writedown!")
-            //             .font(.title)
-            //             .padding(.top, 20)
+            //         Text("Welcome to HyperNote!")
+            //         .font(.title)
+            //         .padding(.top, 20)
 
-            //         Text("Please configure your storage location")
-            //             .foregroundColor(.secondary)
+            //     Text("Please configure your storage location")
+            //         .foregroundColor(.secondary)
 
-            //         Button("Open Settings") {
-            //             WindowManager.shared.createSettingsWindow()
-            //         }
-            //         .buttonStyle(.borderedProminent)
+            //     Button("Open Settings") {
+            //         WindowManager.shared.createSettingsWindow()
             //     }
-            //     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            //     .buttonStyle(.borderedProminent)
+            // }
+            // .frame(maxWidth: .infinity, maxHeight: .infinity)
             // }
         }
         .onChange(of: text) {
