@@ -387,7 +387,7 @@ struct GeneralSettingsView: View {
                                     Button(action: {
                                         if let url = URL(
                                             string:
-                                                "https://hp-subscription-callback.vercel.app/login")
+                                                "https://www.writedown.space/login")
                                         {
                                             NSWorkspace.shared.open(url)
                                         }
@@ -438,7 +438,7 @@ struct GeneralSettingsView: View {
                                                 await StripeCheckout.createCheckoutSession(
                                                     request: request,
                                                     origin:
-                                                        "https://hp-subscription-callback.vercel.app/stripePayment"
+                                                        "https://www.writedown.space/stripePayment"
                                                 )
 
                                             if let urlString = response.url,

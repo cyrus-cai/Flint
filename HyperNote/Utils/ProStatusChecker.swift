@@ -9,7 +9,7 @@ import Foundation
 
 class ProStatusChecker {
     static let shared = ProStatusChecker()
-    private let baseURL = "https://hp-subscription-callback.vercel.app/api/proStatus"
+    private let baseURL = "https://www.writedown.space/api/proStatus"
 
     struct ProStatusResponse: Codable {
         let isPro: Bool
