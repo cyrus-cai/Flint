@@ -349,8 +349,10 @@ struct GeneralSettingsView: View {
                                 }
 
                                 VStack(alignment: .leading) {
-                                    Text(userName)
-                                        .font(.system(size: 13, weight: .medium))
+                                    if !userName.isEmpty {
+                                        Text(userName)
+                                            .font(.system(size: 13, weight: .medium))
+                                    }
                                     Text(userEmail)
                                         .font(.system(size: 12))
                                         .foregroundColor(.secondary)
