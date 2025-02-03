@@ -989,6 +989,10 @@ struct TimeGroupHeader: View {
                 DispatchQueue.main.async {
                     viewModel.groupSummaries[group] = summary
                     viewModel.showingSummaries[group] = true
+                    if #available(macOS 10.11, *) {
+                        NSHapticFeedbackManager.defaultPerformer.perform(
+                            .generic, performanceTime: .now)
+                    }
                     self.isSummarizing = false
                 }
             } catch {
@@ -1078,7 +1082,7 @@ struct TimeGroupHeader: View {
                                 Text(isCopied ? "Copied" : "Copy")
                                     .font(.system(size: 11))
                             }
-//                            .frame(maxWidth: .infinity)
+                            //                            .frame(maxWidth: .infinity)
                             .padding(6)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
@@ -1101,7 +1105,7 @@ struct TimeGroupHeader: View {
                                 Text("Copy & Archive")
                                     .font(.system(size: 11))
                             }
-//                            .frame(maxWidth: .infinity)
+                            //                            .frame(maxWidth: .infinity)
                             .padding(6)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
