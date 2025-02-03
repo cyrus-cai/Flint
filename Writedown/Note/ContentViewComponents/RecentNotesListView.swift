@@ -1070,7 +1070,7 @@ struct TimeGroupHeader: View {
                         .lineSpacing(4)
 
                     // Action buttons with consistent spacing
-                    HStack(spacing: 8) {
+                    HStack(spacing: 4) {
                         Button(action: copyContent) {
                             HStack(spacing: 4) {
                                 Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
@@ -1078,8 +1078,8 @@ struct TimeGroupHeader: View {
                                 Text(isCopied ? "Copied" : "Copy")
                                     .font(.system(size: 11))
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
+//                            .frame(maxWidth: .infinity)
+                            .padding(6)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(
@@ -1101,8 +1101,8 @@ struct TimeGroupHeader: View {
                                 Text("Copy & Archive")
                                     .font(.system(size: 11))
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
+//                            .frame(maxWidth: .infinity)
+                            .padding(6)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(
@@ -1133,8 +1133,8 @@ struct TimeGroupHeader: View {
                             .fill(
                                 LinearGradient(
                                     colors: [.purple.opacity(0.1), .clear],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+                                    startPoint: .bottomTrailing,
+                                    endPoint: .topLeading
                                 )
                             )
 
@@ -1151,7 +1151,7 @@ struct TimeGroupHeader: View {
                     }
                 )
                 .shadow(
-                    color: .black.opacity(0.2),
+                    color: .purple.opacity(0.2),
                     radius: 12,
                     x: 0,
                     y: 4
