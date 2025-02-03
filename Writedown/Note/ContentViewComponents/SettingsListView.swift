@@ -56,13 +56,13 @@ struct SettingsListView: View {
                 .padding(.horizontal, 4)
 
                 // Add rectangle separator after Show All
-//                if item == .showAll {
-//                    Rectangle()
-//                        .fill(Color(NSColor.separatorColor))
-//                        .frame(height: 1)
-//                        .padding(.vertical, 4)
-//                        .padding(.horizontal, 12)
-//                }
+                //                if item == .showAll {
+                //                    Rectangle()
+                //                        .fill(Color(NSColor.separatorColor))
+                //                        .frame(height: 1)
+                //                        .padding(.vertical, 4)
+                //                        .padding(.horizontal, 12)
+                //                }
             }
         }
         .padding(.vertical, 6)

@@ -10,7 +10,9 @@ import Foundation
 struct StripeCheckout {
     static let secretKey =
         "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"
-    static let proPriceID = "price_1QoNnRHnr11wuS0JQKbpAJj5"
+    //     static let proPriceID = "price_1QoPMGHnr11wuS0JpXUv9kBX"
+    static let proPriceID = "price_1QoPDkHnr11wuS0JwGaH8Koq"
+    //    static let proPriceID = "price_1QoNnRHnr11wuS0JQKbpAJj5"
 
     struct CheckoutRequest: Codable {
         let planId: String

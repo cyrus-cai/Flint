@@ -11,6 +11,11 @@
                 <array>
                     <string>writedown</string>
                 </array>
+                <key>NSAppTransportSecurity</key>
+                <dict>
+                    <key>NSAllowsArbitraryLoads</key>
+                    <true/>
+                </dict>
             </dict>
         </array>
     </dict>
