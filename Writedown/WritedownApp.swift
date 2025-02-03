@@ -333,10 +333,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     defaults.set(avatar, forKey: "userAvatar")
                     defaults.synchronize()
                 }
-                if let name = name?.removingPercentEncoding?.replacingOccurrences(
-                    of: "+", with: " ")
-                {
-                    defaults.set(name, forKey: "userName")
+
+                // Process name first
+                let processedName =
+                    name?.removingPercentEncoding?.replacingOccurrences(
+                        of: "+", with: " ") ?? ""
+
+                if !processedName.isEmpty {
+                    defaults.set(processedName, forKey: "userName")
                     defaults.synchronize()
                 }
 
@@ -353,10 +357,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     )
                     print("📢 Posted UserDidLogin notification")
 
-                    // Show success notification
+                    // Show success notification with processed name
                     let notification = NSUserNotification()
                     notification.title = "Login Successful"
-                    notification.informativeText = "Welcome back!"
+                    notification.informativeText = "Welcome back \(processedName)!"
                     NSUserNotificationCenter.default.deliver(notification)
                     print("🔔 Showed success notification")
                 }
