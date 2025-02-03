@@ -61,7 +61,6 @@
 		A30FF3952CE1057D0034F9DC /* markdownconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = markdownconfig.json; sourceTree = "<group>"; };
 		A31138162D22D9A400E72E99 /* LoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginManager.swift; sourceTree = "<group>"; };
 		A32671EB2CF8D15100162AF4 /* checkUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = checkUpdates.swift; sourceTree = "<group>"; };
-		A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Hyper-Note-Info.plist"; sourceTree = SOURCE_ROOT; };
 		A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentNotesListView.swift; sourceTree = "<group>"; };
 		A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeishuAPI.swift; sourceTree = "<group>"; };
 		A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeishuTokenGenerate.swift; sourceTree = "<group>"; };
@@ -186,7 +185,6 @@
 				A398BF822D3966CB00187871 /* Configs */,
 				A398BF812D3966A400187871 /* Settings */,
 				A398BF802D39666F00187871 /* Note */,
-				A32671ED2CF8D2BA00162AF4 /* Hyper-Note-Info.plist */,
 				A3243A372CF0E6EC009D39FF /* Utils */,
 				A37D47342CDE6ECE00B2E727 /* WritedownApp.swift */,
 				A30FF38F2CE084E10034F9DC /* MainWindowController.swift */,
