@@ -360,7 +360,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // Show success notification with processed name
                     let notification = NSUserNotification()
                     notification.title = "Login Successful"
-                    notification.informativeText = "Welcome back \(processedName)!"
+                    notification.informativeText =
+                        processedName.isEmpty ? "Welcome back!" : "Welcome back \(processedName)!"
                     NSUserNotificationCenter.default.deliver(notification)
                     print("🔔 Showed success notification")
                 }
