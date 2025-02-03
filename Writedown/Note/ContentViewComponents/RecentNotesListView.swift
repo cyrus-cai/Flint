@@ -1067,10 +1067,9 @@ struct TimeGroupHeader: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 12)
                         .padding(.top, 8)
-                        .lineSpacing(4)  // Add line spacing for better readability
+                        .lineSpacing(4)
 
-                    Divider()
-                        .padding(4)
+                    Spacer()
 
                     // Action buttons with consistent spacing
                     HStack(spacing: 8) {
@@ -1084,7 +1083,7 @@ struct TimeGroupHeader: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
                             .background(
-                                RoundedRectangle(cornerRadius: 4)
+                                RoundedRectangle(cornerRadius: 6)
                                     .fill(
                                         isHoveringCopy
                                             ? (colorScheme == .dark
@@ -1107,7 +1106,7 @@ struct TimeGroupHeader: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
                             .background(
-                                RoundedRectangle(cornerRadius: 4)
+                                RoundedRectangle(cornerRadius: 6)
                                     .fill(
                                         isHoveringArchive
                                             ? (colorScheme == .dark
@@ -1121,7 +1120,7 @@ struct TimeGroupHeader: View {
                         }
                     }
                     .padding(.horizontal, 12)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 6)
                 }
                 .background(
                     ZStack {
