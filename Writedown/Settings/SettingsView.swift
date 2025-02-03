@@ -744,42 +744,45 @@ struct HotkeySettingsView: View {
                                 .foregroundColor(.secondary)
                                 Spacer()
                                 Button(action: {
-                                                   Task {
-                                                       do {
-                                                           let request = StripeCheckout.CheckoutRequest(
-                                                               planId: "pro",
-                                                               email: UserDefaults.standard.string(forKey: "userEmail")
-                                                           )
+                                    Task {
+                                        do {
+                                            let request = StripeCheckout.CheckoutRequest(
+                                                planId: "pro",
+                                                email: UserDefaults.standard.string(
+                                                    forKey: "userEmail")
+                                            )
 
-                                                           let response = await StripeCheckout.createCheckoutSession(
-                                                               request: request,
-                                                               origin: "https://www.writedown.space/stripePayment"
-                                                           )
+                                            let response =
+                                                await StripeCheckout.createCheckoutSession(
+                                                    request: request,
+                                                    origin:
+                                                        "https://www.writedown.space/stripePayment"
+                                                )
 
-                                                           if let urlString = response.url,
-                                                               let url = URL(string: urlString)
-                                                           {
-                                                               NSWorkspace.shared.open(url)
-                                                           }
-                                                       }
-                                                   }
-                                               }) {
-                                                   Text("Upgrade to Pro")
-                                                       .font(.system(size: 12, weight: .medium))
-                                                       .foregroundColor(.white)
-                                                       .padding(.vertical,4)
-                                                       .padding(.horizontal,8)
-                                                       .background(
-                                                           LinearGradient(
-                                                               colors: [Color(.systemPurple), Color(.systemPink)],
-                                                               startPoint: .leading,
-                                                               endPoint: .trailing
-                                                           )
-                                                       )
-                                                       .cornerRadius(8)
-                                                       .shadow(color: Color(.systemPurple).opacity(0.3), radius: 8)
-                                               }
-                                               .buttonStyle(.plain)
+                                            if let urlString = response.url,
+                                                let url = URL(string: urlString)
+                                            {
+                                                NSWorkspace.shared.open(url)
+                                            }
+                                        }
+                                    }
+                                }) {
+                                    Text("Upgrade to Pro")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [Color(.systemPurple), Color(.systemPink)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .cornerRadius(8)
+                                        .shadow(color: Color(.systemPurple).opacity(0.3), radius: 8)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -878,6 +881,17 @@ struct AboutSettingsView: View {
                         checkForUpdates()
                     }
                     .disabled(isCheckingUpdate)
+
+                    // Add Release Notes button
+                    Button("Release Notes") {
+                        if let url = URL(
+                            string:
+                                "https://xiikii.notion.site/Release-Note-18e84c8dbdaa807ba02ee18cd3895149?pvs=4"
+                        ) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .padding(.top, 4)
                 }
 
                 if let latest = latestVersion {
