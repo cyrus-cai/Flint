@@ -408,7 +408,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             // Show success notification
                             let notification = NSUserNotification()
                             notification.title = "Payment Successful"
-                            notification.informativeText = "Welcome to Float Pro!"
+                            notification.informativeText = "Welcome to Writedown Pro!"
                             NSUserNotificationCenter.default.deliver(notification)
                         }
                     }
