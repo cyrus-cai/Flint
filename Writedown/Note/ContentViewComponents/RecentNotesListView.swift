@@ -954,7 +954,6 @@ struct NotePreviewView: View {
     }
 }
 
-
 extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
@@ -1029,7 +1028,7 @@ struct TimeGroupHeader: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Text(title)
                     .font(.system(size: 12))
@@ -1060,40 +1059,38 @@ struct TimeGroupHeader: View {
                 viewModel.showingSummaries[group] == true,
                 let summary = viewModel.groupSummaries[group]
             {
-                ZStack(alignment: .topTrailing) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(summary)
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
+                VStack(alignment: .leading, spacing: 8) {
+                    // Summary text with better spacing
+                    Text(summary)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 8)
+                        .lineSpacing(4)  // Add line spacing for better readability
 
-                        HStack {
-                            Spacer()
-                            Text("AI summarized, carefully use it.")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.primary.opacity(0.4))
-                            Spacer()
-                        }
-                        .padding(.bottom, 8)
-                    }
+                    Divider()
+                        .padding(4)
 
-                    // Action buttons in HStack
-                    HStack(spacing: 4) {
+                    // Action buttons with consistent spacing
+                    HStack(spacing: 8) {
                         Button(action: copyContent) {
-                            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                                .font(.system(size: 11))
-                                .foregroundColor(.primary)
-                                .contentTransition(.symbolEffect(.replace))
-                                .frame(width: 24, height: 24)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(
-                                            isHoveringCopy
-                                                ? (colorScheme == .dark
-                                                    ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05)) : Color.clear)
-                                )
+                            HStack(spacing: 4) {
+                                Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                                    .font(.system(size: 11))
+                                Text(isCopied ? "Copied" : "Copy")
+                                    .font(.system(size: 11))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(
+                                        isHoveringCopy
+                                            ? (colorScheme == .dark
+                                                ? Color.white.opacity(0.1)
+                                                : Color.black.opacity(0.05)) : Color.clear)
+                            )
                         }
                         .buttonStyle(.plain)
                         .onHover { hovering in
@@ -1101,25 +1098,30 @@ struct TimeGroupHeader: View {
                         }
 
                         Button(action: copyAndArchive) {
-                            Image("copy.archive")
-                                .font(.system(size: 15))
-                                .foregroundColor(.red)
-                                .frame(width: 24, height: 24)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(
-                                            isHoveringArchive
-                                                ? (colorScheme == .dark
-                                                    ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05)) : Color.clear)
-                                )
+                            HStack(spacing: 4) {
+                                Image(systemName: "archivebox")
+                                    .font(.system(size: 11))
+                                Text("Copy & Archive")
+                                    .font(.system(size: 11))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(
+                                        isHoveringArchive
+                                            ? (colorScheme == .dark
+                                                ? Color.white.opacity(0.1)
+                                                : Color.black.opacity(0.05)) : Color.clear)
+                            )
                         }
                         .buttonStyle(.plain)
                         .onHover { hovering in
                             isHoveringArchive = hovering
                         }
                     }
-                    .padding(4)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
                 }
                 .background(
                     ZStack {
@@ -1158,7 +1160,7 @@ struct TimeGroupHeader: View {
                     y: 4
                 )
                 .padding(.horizontal, 12)
-                .padding(.bottom, 8)
+                .padding(.bottom, 4)
             }
         }
         .background(Color.clear)
