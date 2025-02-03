@@ -1069,8 +1069,6 @@ struct TimeGroupHeader: View {
                         .padding(.top, 8)
                         .lineSpacing(4)
 
-                    Spacer()
-
                     // Action buttons with consistent spacing
                     HStack(spacing: 8) {
                         Button(action: copyContent) {
