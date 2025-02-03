@@ -743,25 +743,6 @@ struct NoteRow: View {
         }
     }
 
-    // private func summarizeContent() {
-    //     isSummarizing = true
-    //     Task {
-    //         do {
-    //             let summary = try await DeepseekAPI.shared.summarize(text: "Hello, world!")
-    //             // let summary = try await DeepseekAPI.shared.summarize(text: note.content)
-    //             DispatchQueue.main.async {
-    //                 self.summary = summary
-    //                 self.isSummarizing = false
-    //             }
-    //         } catch {
-    //             print("Error getting summary:", error)
-    //             DispatchQueue.main.async {
-    //                 self.isSummarizing = false
-    //             }
-    //         }
-    //     }
-    // }
-
     var body: some View {
         HStack(spacing: 2) {
             Button(action: onTap) {
@@ -775,21 +756,6 @@ struct NoteRow: View {
                             .multilineTextAlignment(.leading)
 
                         Spacer()
-
-                        // Add Summarize button
-                        // Button(action: summarizeContent) {
-                        //     if isSummarizing {
-                        //         ProgressView()
-                        //             .scaleEffect(0.5)
-                        //             .frame(width: 16, height: 16)
-                        //     } else {
-                        //         Text("Summarize")
-                        //             .font(.system(size: 11))
-                        //             .foregroundColor(.purple)
-                        //     }
-                        // }
-                        // .buttonStyle(.plain)
-                        // .disabled(isSummarizing)
                     }
 
                     if let summary = summary {
@@ -797,7 +763,7 @@ struct NoteRow: View {
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                             .lineLimit(3)
-                            .padding(.top, 2)
+                            .padding(.top, 4)
                     }
 
                     if let contexts = content.contexts {
@@ -1121,8 +1087,8 @@ struct TimeGroupHeader: View {
                             isHoveringArchive = hovering
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 6)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
                 }
                 .background(
                     ZStack {
@@ -1160,7 +1126,7 @@ struct TimeGroupHeader: View {
                     x: 0,
                     y: 4
                 )
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 8)
                 .padding(.bottom, 4)
             }
         }
