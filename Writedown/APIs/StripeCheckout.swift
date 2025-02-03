@@ -9,8 +9,8 @@ import Foundation
 
 struct StripeCheckout {
     static let secretKey =
-        "sk_test_51O4PcgHnr11wuS0JOVgLCOU5xi5OhqrfpXDSnSeVFSChKnkv1PYCgaybY8eFJG1AvRMqH57BsRcJtmzBz7bbF59q00nWZ2XoGt"
-    static let proPriceID = "price_1QmbpsHnr11wuS0JZpfiRgwD"
+        "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"
+    static let proPriceID = "price_1QoNnRHnr11wuS0JQKbpAJj5"
 
     struct CheckoutRequest: Codable {
         let planId: String

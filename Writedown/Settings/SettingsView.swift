@@ -408,7 +408,7 @@ struct GeneralSettingsView: View {
                             Label("Current Plan", systemImage: "star.circle")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text(isPro ? "Pro" : "Free Tier")
+                            Text(isPro ? "Pro" : "")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(isPro ? .white : .secondary)
                                 .padding(.horizontal, 8)
