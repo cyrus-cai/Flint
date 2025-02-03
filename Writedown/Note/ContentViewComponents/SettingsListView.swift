@@ -56,13 +56,13 @@ struct SettingsListView: View {
                 .padding(.horizontal, 4)
 
                 // Add rectangle separator after Show All
-                //                if item == .showAll {
-                //                    Rectangle()
-                //                        .fill(Color(NSColor.separatorColor))
-                //                        .frame(height: 1)
-                //                        .padding(.vertical, 4)
-                //                        .padding(.horizontal, 12)
-                //                }
+                if item == .showAll {
+                    Rectangle()
+                        .fill(Color(NSColor.separatorColor))
+                        .frame(height: 1)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 12)
+                }
             }
         }
         .padding(.vertical, 6)
@@ -78,15 +78,15 @@ struct SettingsListView: View {
         //     }
         case .showAll:
             openInFinder()
-        //        case .settings:
-        //            onSettings()
-        //        case .openInFeishu:
-        //            if let title = title, let url = generateFeishuURL(from: title) {
-        //                if let feishuURL = URL(string: url) {
-        //                    NSWorkspace.shared.open(feishuURL)
-        //                }
+        case .settings:
+            onSettings()
+        //    case .openInFeishu:
+        //        if let title = title, let url = generateFeishuURL(from: title) {
+        //            if let feishuURL = URL(string: url) {
+        //                NSWorkspace.shared.open(feishuURL)
         //            }
         //        }
+        //    }
         }
     }
 
@@ -131,7 +131,7 @@ struct SettingsListView: View {
         // case openInObsidian
         //    case openInFeishu
         case showAll
-        // case settings
+        case settings
 
         var id: Int { rawValue }
 
@@ -143,15 +143,15 @@ struct SettingsListView: View {
             //            return "Open in Feishu"
             case .showAll:
                 return "Show in Finder"
-            // case .settings:
-            //     return "Settings"
+            case .settings:
+                return "Settings"
             }
         }
 
         var icon: String {
             switch self {
-            // case .settings:
-            //     return "gear"
+            case .settings:
+                return "gear"
             // case .openInObsidian:
             //     return "link.circle.fill"
             //        case .openInFeishu:
