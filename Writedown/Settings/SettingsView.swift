@@ -704,7 +704,7 @@ struct IntegrationSettingsView: View {
                 .groupBoxStyle(ModernGroupBoxStyle())
 
                 // AI Settings
-                GroupBox("AI Settings") {
+                GroupBox("AI Settings (Time-limited free)") {
                     VStack(spacing: 12) {
                         HStack {
                             Label("Model", systemImage: "brain")
