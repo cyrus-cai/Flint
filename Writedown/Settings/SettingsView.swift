@@ -468,7 +468,7 @@ struct GeneralSettingsView: View {
                                 .buttonStyle(.plain)
                                 .frame(alignment: .trailing)
                                 // Add refresh button
-                                if !userEmail.isEmpty{
+                                if !userEmail.isEmpty {
                                     Button(action: {
                                         checkProStatus()
                                     }) {
@@ -496,12 +496,26 @@ struct GeneralSettingsView: View {
                 GroupBox("Preferences") {
                     VStack(spacing: 12) {
                         HStack {
-                            Label("Launch at Login", systemImage: "power")
-                                .font(.system(size: 13, weight: .medium))
+                            Label("Start at login", systemImage: "power")
+                                .font(.system(size: 14, weight: .medium))
                             Spacer()
                             Toggle("", isOn: $launchAtLogin)
+                                .onChange(of: launchAtLogin) { newValue in
+                                    if newValue {
+                                        loginManager.requestLaunchPermission { granted in
+                                            if granted {
+                                                loginManager.enableLaunchAtLogin()
+                                            } else {
+                                                DispatchQueue.main.async {
+                                                    launchAtLogin = false
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        loginManager.disableLaunchAtLogin()
+                                    }
+                                }
                                 .toggleStyle(.switch)
-                                .labelsHidden()
                         }
 
                         Divider()
