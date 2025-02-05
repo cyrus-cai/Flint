@@ -518,7 +518,8 @@ struct RecentNotesListView: View {
                             }
                             .padding(.vertical, 4)
                         }
-                        .frame(maxHeight: 360)
+                        .frame(height: 360)
+
                         .onChange(of: viewModel.currentNoteIndex) {
                             if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
                                 withAnimation {
