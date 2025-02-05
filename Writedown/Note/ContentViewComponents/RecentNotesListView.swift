@@ -74,7 +74,13 @@ class RecentNotesViewModel: ObservableObject {
     @Published var currentNoteIndex: Int? = nil
     @Published private var isHoverEnabled = true
     @Published var showArchiveToast = false
-    @Published var groupSummaries: [TimeGroup: String] = [:]
+    @Published var groupSummaries: [TimeGroup: String] = [:] {
+        didSet {
+            print("📊 GroupSummaries updated: \(groupSummaries)")
+            // 强制触发 UI 更新
+            objectWillChange.send()
+        }
+    }
     @Published var showingSummaries: [TimeGroup: Bool] = [:]
     @Published var archivedNotes: [RecentNote] = []
     @Published var showUndoArchiveToast = false
@@ -946,30 +952,68 @@ struct TimeGroupHeader: View {
     private func summarizeGroupNotes() {
         guard let group = TimeGroup(rawValue: title) else { return }
         isSummarizing = true
-        Task {
-            do {
-                let combinedContent = notes.map { note in
-                    "Note: \(note.title)\n\(note.content)"
-                }.joined(separator: "\n---\n")
 
-                // let summary = try await DeepseekAPI.shared.summarize(text: combinedContent)
-                let summary = try await DoubaoAPI.shared.summarize(text: combinedContent)
+        let combinedContent = notes.map { note in
+            "Note: \(note.title)\n\(note.content)"
+        }.joined(separator: "\n---\n")
+
+        var summary = ""
+        class StreamHandler: SummarizeStreamDelegate {
+            var summary: String = ""
+            weak var viewModel: RecentNotesViewModel?
+            let group: TimeGroup
+            var isSummarizing: Bool = true
+
+            init(viewModel: RecentNotesViewModel?, group: TimeGroup) {
+                print("🎯 StreamHandler initialized for group: \(group)")
+                self.viewModel = viewModel
+                self.group = group
+                // 初始化时清空之前的内容
                 DispatchQueue.main.async {
-                    viewModel.groupSummaries[group] = summary
-                    viewModel.showingSummaries[group] = true
+                    var newSummaries = viewModel?.groupSummaries ?? [:]
+                    newSummaries[group] = ""
+                    viewModel?.groupSummaries = newSummaries
+                }
+            }
+
+            func receivedPartialContent(_ content: String) {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self, let viewModel = self.viewModel else { return }
+                    self.summary += content
+                    print("🔄 Updating summary: \(self.summary)")
+                    // 重新构造字典后更新，以便触发 @Published 变化
+                    var newSummaries = viewModel.groupSummaries
+                    newSummaries[self.group] = self.summary
+                    viewModel.groupSummaries = newSummaries
+                    print("📊 GroupSummaries now: \(viewModel.groupSummaries)")
+                }
+            }
+
+            func completed() {
+                print("✅ Summary completed for group: \(group)")
+                print("📄 Final summary: \(summary)")
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self, let viewModel = self.viewModel else { return }
+                    var newSummaries = viewModel.groupSummaries
+                    newSummaries[self.group] = self.summary
+                    viewModel.groupSummaries = newSummaries
                     if #available(macOS 10.11, *) {
                         NSHapticFeedbackManager.defaultPerformer.perform(
                             .generic, performanceTime: .now)
                     }
                     self.isSummarizing = false
                 }
-            } catch {
-                print("Error getting summary:", error)
-                DispatchQueue.main.async {
-                    self.isSummarizing = false
+            }
+
+            func failed(with error: Error) {
+                print("❌ Summary failed for group: \(group) - Error: \(error)")
+                DispatchQueue.main.async { [weak self] in
+                    self?.isSummarizing = false
                 }
             }
         }
+        let streamHandler = StreamHandler(viewModel: viewModel, group: group)
+        DoubaoAPI.shared.summarizeWithStream(text: combinedContent, delegate: streamHandler)
     }
 
     private func copyContent() {
@@ -1028,12 +1072,10 @@ struct TimeGroupHeader: View {
             .padding(.vertical, 8)
 
             if let group = TimeGroup(rawValue: title),
-                viewModel.showingSummaries[group] == true,
-                let summary = viewModel.groupSummaries[group]
+                viewModel.groupSummaries[group] != nil  // 只要有内容就显示，不需要等待完成
             {
                 VStack(alignment: .leading, spacing: 8) {
-                    // Summary text with better spacing
-                    Text(summary)
+                    Text(viewModel.groupSummaries[group]!)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
