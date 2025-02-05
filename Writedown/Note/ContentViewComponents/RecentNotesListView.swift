@@ -1052,18 +1052,12 @@ struct TimeGroupHeader: View {
 
                 if shouldShowSummarize {
                     Button(action: summarizeGroupNotes) {
-                        if isSummarizing {
-                            ProgressView()
-                                .scaleEffect(0.4)
-                                .frame(width: 12, height: 12)
-                        } else {
-                            Text("Summarize")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary.opacity(0.8))
-                        }
+                        Text("Summarize")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary.opacity(0.8))
                     }
                     .buttonStyle(.plain)
-                    .disabled(isSummarizing)
+                    // .disabled(isSummarizing)
                 }
 
                 Spacer()
