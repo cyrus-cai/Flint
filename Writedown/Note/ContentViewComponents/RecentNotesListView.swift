@@ -542,6 +542,7 @@ struct RecentNotesListView: View {
                     Text(viewModel.searchText.isEmpty ? "No notes" : "No matching notes")
                         .foregroundColor(.secondary)
                         .padding(24)
+                        .frame(height: 360)
                 }
 
                 // Footer
