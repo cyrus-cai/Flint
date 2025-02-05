@@ -466,27 +466,23 @@ class TitleBarToolbarState: ObservableObject {
     func navigateToPreviousNote() {
         guard !recentNotes.isEmpty else { return }
 
-        let newIndex = max(currentNoteIndex - 1, 0)
-        guard newIndex != currentNoteIndex else {
+        if currentNoteIndex > 0 {
+            currentNoteIndex -= 1
+            onNoteSelected?(recentNotes[currentNoteIndex].content)
+        } else {
             showNavigationToast(message: "No more notes")
-            currentNoteIndex += 1
-            return
         }
-        currentNoteIndex = newIndex
-        onNoteSelected?(recentNotes[currentNoteIndex].content)
     }
 
     func navigateToNextNote() {
         guard !recentNotes.isEmpty else { return }
 
-        let newIndex = min(currentNoteIndex + 1, recentNotes.count - 1)
-        guard newIndex != currentNoteIndex else {
+        if currentNoteIndex < recentNotes.count - 1 {
+            currentNoteIndex += 1
+            onNoteSelected?(recentNotes[currentNoteIndex].content)
+        } else {
             showNavigationToast(message: "No more notes")
-            currentNoteIndex -= 1
-            return
         }
-        currentNoteIndex = newIndex
-        onNoteSelected?(recentNotes[currentNoteIndex].content)
     }
 
     private func showNavigationToast(message: String) {
