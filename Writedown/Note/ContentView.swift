@@ -123,15 +123,14 @@ struct ContentView: View {
         guard !text.isEmpty else { return }
 
         print("Saving document with trigger: \(trigger)")
-        let documentTitle = title  // Compute title once and reuse
+        let documentTitle = title  // 计算标题，只处理一次
 
         do {
-            // Local save
+            // 如果已存在当前笔记，则直接覆盖写入，而不是删除原文件
             if let currentId = currentNoteId,
                 let fileURL = FileManager.shared.fileURL(for: currentId)
             {
-                stopMonitoringFile()
-                try? Foundation.FileManager.default.removeItem(at: fileURL)
+                print("Overwriting existing file at \(fileURL.path)")
             }
 
             guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
@@ -144,46 +143,6 @@ struct ContentView: View {
             currentNoteId = documentTitle
             lastSaveDate = Date()
             startMonitoringFile()
-
-            // Feishu sync
-            //            Task {
-            //                do {
-            //                    // Get existing document ID if exists
-            //                    if let documentId = UserDefaults.standard.string(
-            //                        forKey: "feishu_doc_\(documentTitle)")
-            //                    {
-            //                        // Check remote content before syncing
-            //                        let remoteContent = try await FeishuAPI.shared.getDocumentContent(
-            //                            documentId: documentId)
-            //
-            //                        // Check if local content is an increment of remote content
-            //                        if text.contains(
-            //                            remoteContent.trimmingCharacters(in: .whitespacesAndNewlines))
-            //                        {
-            //                            // Local content contains all remote content - safe to sync
-            //                            try await FeishuAPI.shared.addDocumentContent(
-            //                                documentId: documentId, content: text)
-            //                        } else {
-            //                            print("⚠️ Content conflict detected - skipping Feishu sync")
-            //                            print("Local content may have conflicting changes with remote content")
-            //                            return
-            //                        }
-            //                    }
-            //
-            //                    // Continue with normal sync process
-            //                    let rootToken = try await FeishuAPI.shared.ensureRootFolder()
-            //                    let weekFolder = FileManager.shared.currentWeekFolder
-            //                    let weekToken = try await FeishuAPI.shared.createWeekFolder(
-            //                        parentToken: rootToken, weekName: weekFolder)
-            //                    let documentId = try await FeishuAPI.shared.createDocument(
-            //                        folderToken: weekToken, title: documentTitle)
-            //                    UserDefaults.standard.set(documentId, forKey: "feishu_doc_\(documentTitle)")
-            //                    try await FeishuAPI.shared.addDocumentContent(
-            //                        documentId: documentId, content: text)
-            //                } catch {
-            //                    print("Feishu sync error:", error)
-            //                }
-            //            }
 
             if trigger == .addNew {
                 withAnimation {
