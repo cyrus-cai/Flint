@@ -958,17 +958,21 @@ struct TimeGroupHeader: View {
         }.joined(separator: "\n---\n")
 
         var summary = ""
+
         class StreamHandler: SummarizeStreamDelegate {
             var summary: String = ""
             weak var viewModel: RecentNotesViewModel?
             let group: TimeGroup
-            var isSummarizing: Bool = true
+            let completion: () -> Void  // closure to signal when summarization is done
 
-            init(viewModel: RecentNotesViewModel?, group: TimeGroup) {
+            init(
+                viewModel: RecentNotesViewModel?, group: TimeGroup, completion: @escaping () -> Void
+            ) {
                 print("🎯 StreamHandler initialized for group: \(group)")
                 self.viewModel = viewModel
                 self.group = group
-                // 初始化时清空之前的内容
+                self.completion = completion
+                // Clear any previous summary
                 DispatchQueue.main.async {
                     var newSummaries = viewModel?.groupSummaries ?? [:]
                     newSummaries[group] = ""
@@ -981,7 +985,7 @@ struct TimeGroupHeader: View {
                     guard let self = self, let viewModel = self.viewModel else { return }
                     self.summary += content
                     print("🔄 Updating summary: \(self.summary)")
-                    // 重新构造字典后更新，以便触发 @Published 变化
+                    // Update the summary in the view model
                     var newSummaries = viewModel.groupSummaries
                     newSummaries[self.group] = self.summary
                     viewModel.groupSummaries = newSummaries
@@ -1001,19 +1005,23 @@ struct TimeGroupHeader: View {
                         NSHapticFeedbackManager.defaultPerformer.perform(
                             .generic, performanceTime: .now)
                     }
-                    self.isSummarizing = false
+                    self.completion()  // Notify view to update isSummarizing
                 }
             }
 
             func failed(with error: Error) {
                 print("❌ Summary failed for group: \(group) - Error: \(error)")
-                DispatchQueue.main.async { [weak self] in
-                    self?.isSummarizing = false
+                DispatchQueue.main.async {
+                    self.completion()  // Also update on failure
                 }
             }
-
         }
-        let streamHandler = StreamHandler(viewModel: viewModel, group: group)
+
+        // Create the stream handler and specify that once it's done, update the view's state.
+        let streamHandler = StreamHandler(viewModel: viewModel, group: group) {
+            self.isSummarizing = false
+        }
+
         DoubaoAPI.shared.summarizeWithStream(text: combinedContent, delegate: streamHandler)
     }
 
