@@ -1067,6 +1067,7 @@ struct TimeGroupHeader: View {
 
             if let group = TimeGroup(rawValue: title),
                 viewModel.groupSummaries[group] != nil  // 只要有内容就显示，不需要等待完成
+                    && viewModel.groupSummaries[group] != ""
             {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(viewModel.groupSummaries[group]!)
