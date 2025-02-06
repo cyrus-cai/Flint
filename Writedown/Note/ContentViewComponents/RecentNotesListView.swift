@@ -1091,59 +1091,60 @@ struct TimeGroupHeader: View {
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 12)
-                        .padding(.top, 8)
+                        .padding(.vertical, 8)
                         .lineSpacing(4)
 
-                    // Action buttons with consistent spacing
-                    HStack(spacing: 4) {
-                        Button(action: copyContent) {
-                            HStack(spacing: 4) {
-                                Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                                    .font(.system(size: 11))
-                                Text(isCopied ? "Copied" : "Copy")
-                                    .font(.system(size: 11))
+                    // 只在不在总结过程中且有内容时显示操作按钮
+                    if !isSummarizing {
+                        // Action buttons with consistent spacing
+                        HStack(spacing: 4) {
+                            Button(action: copyContent) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                                        .font(.system(size: 11))
+                                    Text(isCopied ? "Copied" : "Copy")
+                                        .font(.system(size: 11))
+                                }
+                                .padding(6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(
+                                            isHoveringCopy
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                )
                             }
-                            //                            .frame(maxWidth: .infinity)
-                            .padding(6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(
-                                        isHoveringCopy
-                                            ? (colorScheme == .dark
-                                                ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05)) : Color.clear)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .onHover { hovering in
-                            isHoveringCopy = hovering
-                        }
+                            .buttonStyle(.plain)
+                            .onHover { hovering in
+                                isHoveringCopy = hovering
+                            }
 
-                        Button(action: copyAndArchive) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "archivebox")
-                                    .font(.system(size: 11))
-                                Text("Copy & Archive")
-                                    .font(.system(size: 11))
+                            Button(action: copyAndArchive) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "archivebox")
+                                        .font(.system(size: 11))
+                                    Text("Copy & Archive")
+                                        .font(.system(size: 11))
+                                }
+                                .padding(6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(
+                                            isHoveringArchive
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                )
                             }
-                            //                            .frame(maxWidth: .infinity)
-                            .padding(6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(
-                                        isHoveringArchive
-                                            ? (colorScheme == .dark
-                                                ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05)) : Color.clear)
-                            )
+                            .buttonStyle(.plain)
+                            .onHover { hovering in
+                                isHoveringArchive = hovering
+                            }
                         }
-                        .buttonStyle(.plain)
-                        .onHover { hovering in
-                            isHoveringArchive = hovering
-                        }
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, 8)
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 8)
                 }
                 .background(
                     ZStack {
