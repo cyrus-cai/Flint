@@ -908,6 +908,34 @@ struct AboutSettingsView: View {
                         }
                     }
                     .padding(.top, 4)
+
+                    // Add Send Feedback button
+                    Button("Send Feedback") {
+                        if let service = NSSharingService(named: .composeEmail) {
+                            service.recipients = ["team_productlab@outlook.com"]
+                            service.subject = "Writedown Feedback"
+
+                            // Get app version
+                            let appVersion =
+                                Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+                                ?? "Unknown"
+
+                            // Get macOS version
+                            let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
+
+                            // Compose email body with both versions
+                            let body = """
+                                App Version: \(appVersion)
+                                macOS Version: \(osVersion)
+
+                                Feedback:
+
+                                """
+
+                            service.perform(withItems: [body])
+                        }
+                    }
+                    .padding(.top, 4)
                 }
 
                 if let latest = latestVersion {
