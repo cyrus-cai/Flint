@@ -1011,6 +1011,7 @@ struct TimeGroupHeader: View {
                     self?.isSummarizing = false
                 }
             }
+
         }
         let streamHandler = StreamHandler(viewModel: viewModel, group: group)
         DoubaoAPI.shared.summarizeWithStream(text: combinedContent, delegate: streamHandler)
@@ -1052,9 +1053,16 @@ struct TimeGroupHeader: View {
 
                 if shouldShowSummarize {
                     Button(action: summarizeGroupNotes) {
-                        Text("Summarize")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.secondary.opacity(0.8))
+                        if !isSummarizing {
+                            Text("Summarize")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary.opacity(0.8))
+                        } else {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.4)
+                                .frame(width: 8, height: 8)
+                        }
                     }
                     .buttonStyle(.plain)
                     // .disabled(isSummarizing)
