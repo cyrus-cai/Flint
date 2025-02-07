@@ -1,6 +1,7 @@
 import AppKit
 import Carbon
 //import ClerkSDK
+import Cocoa
 import ServiceManagement
 import SwiftUI
 
@@ -139,11 +140,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var hotKey: HotKey?
     private var limitExceededWindow: LimitExceededWindowController?
+    var globalKeyMonitor: GlobalKeyMonitor?
     //    let hotkeyCounter = HotkeyCounter()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)
+        globalKeyMonitor = GlobalKeyMonitor()
 
         // 检查是否需要显示引导页
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
@@ -486,6 +489,116 @@ class HotKey {
     deinit {
         if let hotKeyRef = hotKeyRef {
             UnregisterEventHotKey(hotKeyRef)
+        }
+    }
+}
+
+class GlobalKeyMonitor {
+    private var monitor: Any?
+    private var lastCommandCPress: Date?
+    // 定义双击的最大时间间隔（秒）
+    private let doublePressThreshold: TimeInterval = 0.3
+
+    init() {
+        startMonitoring()
+    }
+
+    deinit {
+        stopMonitoring()
+    }
+
+    func startMonitoring() {
+        // 注意：全局监听需要辅助功能权限
+        monitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handle(event: event)
+        }
+    }
+
+    func stopMonitoring() {
+        if let monitor = monitor {
+            NSEvent.removeMonitor(monitor)
+            self.monitor = nil
+        }
+    }
+
+    private func handle(event: NSEvent) {
+        // 判断是否按下了 Command 键以及字符是否为 "c"
+        if event.modifierFlags.contains(.command),
+            let characters = event.charactersIgnoringModifiers,
+            characters.lowercased() == "c"
+        {
+            let now = Date()
+            if let lastPress = lastCommandCPress,
+                now.timeIntervalSince(lastPress) < doublePressThreshold
+            {
+                // 检测到双击 Command+C 事件
+                saveClipboardContent()
+            }
+            lastCommandCPress = now
+        }
+    }
+
+    private func saveClipboardContent() {
+        // 从剪贴板获取字符串内容，如果不存在则直接返回
+        guard let text = NSPasteboard.general.string(forType: .string) else {
+            print("No clipboard content found.")
+            return
+        }
+
+        print("剪贴板内容: \(text)")
+        
+        var title: String {
+            let firstLine = text.components(separatedBy: .newlines).first ?? ""
+            if firstLine.isEmpty {
+                return "Untitled"
+            }
+            return firstLine.count > 12 ? firstLine.prefix(12) + "..." : firstLine
+        }
+
+        do {
+            // 判断是否存在当前笔记，并尝试获取对应的文件 URL
+            let fileURL: URL?
+//            if let currentId = currentNoteId,
+//                let existingFileURL = FileManager.shared.fileURL(for: currentId)
+//            {
+//                print("Overwriting existing file at \(existingFileURL.path)")
+//                fileURL = existingFileURL
+//            } else {
+//                // 根据 documentTitle 获取新的文件 URL
+                fileURL = FileManager.shared.fileURL(for: title)
+//            }
+
+            // 确保 fileURL 有效，否则抛出异常
+            guard let fileURL = fileURL else {
+                throw NSError(
+                    domain: "FileError",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"]
+                )
+            }
+
+            // 使用剪贴板中的内容写入文件
+            try title.write(to: fileURL, atomically: true, encoding: .utf8)
+
+            // 更新当前笔记和保存时间
+//            currentNoteId = documentTitle
+//            lastSaveDate = Date()
+            // startMonitoringFile()
+
+            // 根据触发器状态，如果是添加新笔记，则显示提示动画
+            // if trigger == .addNew {
+            //     withAnimation {
+            //         showToast = true
+            //     }
+            //     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            //         withAnimation {
+            //             showToast = false
+            //         }
+            //     }
+            // }
+        } catch {
+            // saveError = error
+            print("Save failed: \(error.localizedDescription)")
         }
     }
 }
