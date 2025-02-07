@@ -578,7 +578,7 @@ class GlobalKeyMonitor {
             }
 
             // 使用剪贴板中的内容写入文件
-            try title.write(to: fileURL, atomically: true, encoding: .utf8)
+            try text.write(to: fileURL, atomically: true, encoding: .utf8)
 
             // 更新当前笔记和保存时间
 //            currentNoteId = documentTitle
