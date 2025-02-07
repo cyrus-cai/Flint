@@ -747,6 +747,17 @@ struct HotkeySettingsView: View {
 
                         Divider()
 
+                        HStack {
+                            Label("Quick save", systemImage: "bolt.square")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + C (double click)")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
+
                         if isPro {
                             Text("Unlimited quick wake-ups (Pro)")
                                 .font(.system(size: 12))
@@ -801,6 +812,7 @@ struct HotkeySettingsView: View {
                                 .buttonStyle(.plain)
                             }
                         }
+
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)

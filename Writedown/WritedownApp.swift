@@ -546,7 +546,7 @@ class GlobalKeyMonitor {
         }
 
         print("剪贴板内容: \(text)")
-        
+
         var title: String {
             let firstLine = text.components(separatedBy: .newlines).first ?? ""
             if firstLine.isEmpty {
@@ -558,15 +558,15 @@ class GlobalKeyMonitor {
         do {
             // 判断是否存在当前笔记，并尝试获取对应的文件 URL
             let fileURL: URL?
-//            if let currentId = currentNoteId,
-//                let existingFileURL = FileManager.shared.fileURL(for: currentId)
-//            {
-//                print("Overwriting existing file at \(existingFileURL.path)")
-//                fileURL = existingFileURL
-//            } else {
-//                // 根据 documentTitle 获取新的文件 URL
-                fileURL = FileManager.shared.fileURL(for: title)
-//            }
+            //            if let currentId = currentNoteId,
+            //                let existingFileURL = FileManager.shared.fileURL(for: currentId)
+            //            {
+            //                print("Overwriting existing file at \(existingFileURL.path)")
+            //                fileURL = existingFileURL
+            //            } else {
+            //                // 根据 documentTitle 获取新的文件 URL
+            fileURL = FileManager.shared.fileURL(for: title)
+            //            }
 
             // 确保 fileURL 有效，否则抛出异常
             guard let fileURL = fileURL else {
@@ -581,8 +581,8 @@ class GlobalKeyMonitor {
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
 
             // 更新当前笔记和保存时间
-//            currentNoteId = documentTitle
-//            lastSaveDate = Date()
+            //            currentNoteId = documentTitle
+            //            lastSaveDate = Date()
             // startMonitoringFile()
 
             // 根据触发器状态，如果是添加新笔记，则显示提示动画
