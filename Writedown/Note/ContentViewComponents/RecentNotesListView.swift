@@ -942,6 +942,7 @@ struct TimeGroupHeader: View {
     @State private var isCopied = false
     @State private var isHoveringCopy = false
     @State private var isHoveringArchive = false
+    @State private var isHoveringShare = false
     @Environment(\.colorScheme) private var colorScheme
 
     private var shouldShowSummarize: Bool {
@@ -1042,12 +1043,28 @@ struct TimeGroupHeader: View {
     }
 
     private func copyAndArchive() {
-        // First copy the summary
         if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(summary, forType: .string)
+            viewModel.archiveGroupNotes(notes, groupTitle: title)
+        }
+    }
 
-            // Then archive all notes in this group
+    private func copyAndShare() {
+        if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
+            copyContent()
+            // 调用独立的 AppleScript 工具创建新 note
+            AppleScriptManager.createNewNote(with: summary)
+            // 随后归档该分组的所有笔记
+            // viewModel.archiveGroupNotes(notes, groupTitle: title)
+        }
+    }
+
+    private func shareAndArchive() {
+        if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
+            // 调用独立的 AppleScript 工具创建新 note
+            AppleScriptManager.createNewNote(with: summary)
+            // 随后归档该分组的所有笔记
             viewModel.archiveGroupNotes(notes, groupTitle: title)
         }
     }
@@ -1082,11 +1099,10 @@ struct TimeGroupHeader: View {
             .padding(.vertical, 8)
 
             if let group = TimeGroup(rawValue: title),
-                viewModel.groupSummaries[group] != nil  // 只要有内容就显示，不需要等待完成
-                    && viewModel.groupSummaries[group] != ""
+                let groupSummary = viewModel.groupSummaries[group], !groupSummary.isEmpty
             {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(viewModel.groupSummaries[group]!)
+                    Text(groupSummary)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1094,25 +1110,28 @@ struct TimeGroupHeader: View {
                         .padding(.vertical, 8)
                         .lineSpacing(4)
 
-                    // 只在不在总结过程中且有内容时显示操作按钮
                     if !isSummarizing {
-                        // Action buttons with consistent spacing
                         HStack(spacing: 4) {
-                            Button(action: copyContent) {
+                            // Copy 按钮
+                            Button(action: {
+                                copyContent()
+                            }) {
                                 HStack(spacing: 4) {
                                     Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                                        .font(.system(size: 11))
-                                    Text(isCopied ? "Copied" : "Copy")
-                                        .font(.system(size: 11))
+                                        .font(.system(size: 12))
+                                    // Text(isCopied ? "Copied" : "Copy")
+                                    //     .font(.system(size: 11))
                                 }
-                                .padding(6)
+                                .frame(width: 28, height: 28)
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
                                         .fill(
                                             isHoveringCopy
                                                 ? (colorScheme == .dark
                                                     ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                                    : Color.black.opacity(0.05))
+                                                : Color.clear
+                                        )
                                 )
                             }
                             .buttonStyle(.plain)
@@ -1120,26 +1139,55 @@ struct TimeGroupHeader: View {
                                 isHoveringCopy = hovering
                             }
 
+                            // Copy & Archive 按钮
                             Button(action: copyAndArchive) {
                                 HStack(spacing: 4) {
                                     Image(systemName: "archivebox")
-                                        .font(.system(size: 11))
-                                    Text("Copy & Archive")
-                                        .font(.system(size: 11))
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.red)
+                                    // Text("Copy & Archive")
+                                    //     .font(.system(size: 11))
                                 }
-                                .padding(6)
+                                .frame(width: 28, height: 28)
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
                                         .fill(
                                             isHoveringArchive
                                                 ? (colorScheme == .dark
                                                     ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05)) : Color.clear)
+                                                    : Color.black.opacity(0.05))
+                                                : Color.clear
+                                        )
                                 )
                             }
                             .buttonStyle(.plain)
                             .onHover { hovering in
                                 isHoveringArchive = hovering
+                            }
+
+                            // 新增 Share & Archive 按钮
+                            Button(action: copyAndShare) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 12))
+                                    // Text("Share & Archive")
+                                    //     .font(.system(size: 11))
+                                }
+                                .frame(width: 28, height: 28)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(
+                                            isHoveringShare
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05))
+                                                : Color.clear
+                                        )
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .onHover { hovering in
+                                isHoveringShare = hovering
                             }
                         }
                         .padding(.horizontal, 8)
@@ -1153,8 +1201,6 @@ struct TimeGroupHeader: View {
                                 colorScheme == .dark
                                     ? Color(white: 0.15).opacity(0.95)
                                     : Color(white: 0.95).opacity(0.95))
-
-                        // 添加渐变叠加层
                         RoundedRectangle(cornerRadius: 8)
                             .fill(
                                 LinearGradient(
@@ -1163,8 +1209,6 @@ struct TimeGroupHeader: View {
                                     endPoint: .topLeading
                                 )
                             )
-
-                        // 添加边框
                         RoundedRectangle(cornerRadius: 8)
                             .strokeBorder(
                                 LinearGradient(
@@ -1176,12 +1220,7 @@ struct TimeGroupHeader: View {
                             )
                     }
                 )
-                .shadow(
-                    color: .purple.opacity(0.2),
-                    radius: 12,
-                    x: 0,
-                    y: 4
-                )
+                .shadow(color: .purple.opacity(0.2), radius: 12, x: 0, y: 4)
                 .padding(.horizontal, 8)
                 .padding(.bottom, 4)
             }

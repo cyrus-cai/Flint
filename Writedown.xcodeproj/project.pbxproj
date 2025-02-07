@@ -12,6 +12,7 @@
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
 		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
 		A31138172D22D9A400E72E99 /* LoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31138162D22D9A400E72E99 /* LoginManager.swift */; };
+		A32036C12D56440D00803BE8 /* AppleScriptManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32036C02D56440D00803BE8 /* AppleScriptManager.swift */; };
 		A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32671EB2CF8D15100162AF4 /* checkUpdates.swift */; };
 		A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */; };
 		A35B0BAE2D2019B700E277FA /* FeishuAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */; };
@@ -60,6 +61,7 @@
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		A30FF3952CE1057D0034F9DC /* markdownconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = markdownconfig.json; sourceTree = "<group>"; };
 		A31138162D22D9A400E72E99 /* LoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginManager.swift; sourceTree = "<group>"; };
+		A32036C02D56440D00803BE8 /* AppleScriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptManager.swift; sourceTree = "<group>"; };
 		A32671EB2CF8D15100162AF4 /* checkUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = checkUpdates.swift; sourceTree = "<group>"; };
 		A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentNotesListView.swift; sourceTree = "<group>"; };
 		A35B0BAD2D2019B700E277FA /* FeishuAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeishuAPI.swift; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 				A32671EB2CF8D15100162AF4 /* checkUpdates.swift */,
 				A35E117D2CF9F65400EF949D /* AutoUpdate.swift */,
 				A31138162D22D9A400E72E99 /* LoginManager.swift */,
+				A32036C02D56440D00803BE8 /* AppleScriptManager.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -400,6 +403,7 @@
 				A3A50DA62D3AB2FD00382A2A /* OnboardingWindowController.swift in Sources */,
 				A3A50DA42D3AB27D00382A2A /* OnboardingView.swift in Sources */,
 				A398BF7D2D39434600187871 /* LimitExceededView.swift in Sources */,
+				A32036C12D56440D00803BE8 /* AppleScriptManager.swift in Sources */,
 				A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */,
 				A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */,
 				A30F32A02D4DDAAA0028E47E /* ProStatusChecker.swift in Sources */,
@@ -596,7 +600,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.9;
+				MARKETING_VERSION = 0.5.13;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -629,7 +633,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.9;
+				MARKETING_VERSION = 0.5.13;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

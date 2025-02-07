@@ -16,6 +16,8 @@
                     <key>NSAllowsArbitraryLoads</key>
                     <true/>
                 </dict>
+                <key>NSAppleEventsUsageDescription</key>
+                <string>此应用需要使用 Apple 事件来自动创建 Notes 笔记。</string>
             </dict>
         </array>
     </dict>
