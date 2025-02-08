@@ -559,7 +559,6 @@ class GlobalKeyMonitor {
         do {
             // 获取用于保存的文件 URL
             let fileURL = FileManager.shared.fileURL(for: title)
-            // 确保 fileURL 有效
             guard let fileURL = fileURL else {
                 throw NSError(
                     domain: "FileError",
@@ -572,16 +571,35 @@ class GlobalKeyMonitor {
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
             print("Saved clipboard content to: \(fileURL.path)")
 
-            // 无论当前笔记窗口激活状态如何，都展示提示窗口
+            // 定义反馈窗口的默认尺寸（可根据具体需求调整）
+            let defaultWidth: CGFloat = 400
+            let defaultHeight: CGFloat = 100
+
+            // 展示"Contents saved"提示窗口的位置逻辑：
             if let noteWindowController = WindowManager.shared.activeWindow,
                 let noteWindow = noteWindowController.window
             {
-                let feedbackWindow = ContentSavedWindowController(position: noteWindow.frame)
+                // 如果存在活动窗口，则使用该窗口的位置，并垂直居中提示窗口
+                let noteFrame = noteWindow.frame
+                let feedbackFrame = NSRect(
+                    x: noteFrame.origin.x,
+                    y: noteFrame.origin.y + (noteFrame.height - defaultHeight) / 2,
+                    width: noteFrame.width,
+                    height: defaultHeight
+                )
+                let feedbackWindow = ContentSavedWindowController(position: feedbackFrame)
                 feedbackWindow.showWindow(nil)
             } else {
-                // 若没有活动的笔记窗口，则使用默认位置展示
-                let defaultFrame = NSRect(x: 100, y: 100, width: 400, height: 100)
-                let feedbackWindow = ContentSavedWindowController(position: defaultFrame)
+                // 没有活动窗口时，使用与 setDefaultPosition() 中一致的默认逻辑
+                guard let screen = NSScreen.main else { return }
+                let screenFrame = screen.visibleFrame
+                let rightTopX = screenFrame.maxX - defaultWidth - 20
+                let rightTopY = screenFrame.maxY - 20
+                // 注意：setFrameTopLeftPoint 使用的是窗口的顶点，所以需要将高度也计算进去
+                let feedbackFrame = NSRect(
+                    x: rightTopX, y: rightTopY - defaultHeight, width: defaultWidth,
+                    height: defaultHeight)
+                let feedbackWindow = ContentSavedWindowController(position: feedbackFrame)
                 feedbackWindow.showWindow(nil)
             }
 
@@ -596,7 +614,7 @@ class ContentSavedWindowController: NSWindowController {
     init(position: NSRect) {
         // 设定窗口大小为与笔记窗口相同宽度，固定高度（例如 100）
         let windowFrame = NSRect(
-            x: position.origin.x, y: position.origin.y, width: position.width, height: 100)
+            x: position.origin.x, y: position.origin.y, width: position.width, height: 64)
         let window = NSWindow(
             contentRect: windowFrame,
             styleMask: [.titled, .closable],
