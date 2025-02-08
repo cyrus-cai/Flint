@@ -612,24 +612,23 @@ class GlobalKeyMonitor {
 
 class ContentSavedWindowController: NSWindowController {
     init(position: NSRect) {
-        // 设定窗口大小为与笔记窗口相同宽度，固定高度（例如 100）
+        // 定义窗口大小，此处高度为 64，根据需要调整
         let windowFrame = NSRect(
             x: position.origin.x, y: position.origin.y, width: position.width, height: 64)
+        // 使用 borderless 样式创建窗口，这样标题栏会完全消失
         let window = NSWindow(
             contentRect: windowFrame,
-            styleMask: [.titled, .closable],
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false)
-        // 可根据需要调整窗口属性，例如层级、透明度等
-        window.title = ""
-        window.level = .floating
         window.backgroundColor = .clear
-        window.isOpaque = false
         window.hasShadow = true
+        // 如果需要允许窗口拖动，可开启以下设置
+        window.isMovableByWindowBackground = true
 
         super.init(window: window)
 
-        // 创建内容视图（带背景色，为了更好地提示）
+        // 创建内容视图，添加背景效果
         let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
         contentView.wantsLayer = true
         contentView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
