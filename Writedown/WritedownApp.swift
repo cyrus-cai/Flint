@@ -539,7 +539,7 @@ class GlobalKeyMonitor {
     }
 
     private func saveClipboardContent() {
-        // 从剪贴板获取字符串内容，如果不存在则直接返回
+        // 从剪贴板获取字符串内容
         guard let text = NSPasteboard.general.string(forType: .string) else {
             print("No clipboard content found.")
             return
@@ -547,6 +547,7 @@ class GlobalKeyMonitor {
 
         print("剪贴板内容: \(text)")
 
+        // 根据文本生成文件名
         var title: String {
             let firstLine = text.components(separatedBy: .newlines).first ?? ""
             if firstLine.isEmpty {
@@ -556,19 +557,9 @@ class GlobalKeyMonitor {
         }
 
         do {
-            // 判断是否存在当前笔记，并尝试获取对应的文件 URL
-            let fileURL: URL?
-            //            if let currentId = currentNoteId,
-            //                let existingFileURL = FileManager.shared.fileURL(for: currentId)
-            //            {
-            //                print("Overwriting existing file at \(existingFileURL.path)")
-            //                fileURL = existingFileURL
-            //            } else {
-            //                // 根据 documentTitle 获取新的文件 URL
-            fileURL = FileManager.shared.fileURL(for: title)
-            //            }
-
-            // 确保 fileURL 有效，否则抛出异常
+            // 获取用于保存的文件 URL
+            let fileURL = FileManager.shared.fileURL(for: title)
+            // 确保 fileURL 有效
             guard let fileURL = fileURL else {
                 throw NSError(
                     domain: "FileError",
@@ -577,28 +568,77 @@ class GlobalKeyMonitor {
                 )
             }
 
-            // 使用剪贴板中的内容写入文件
+            // 写入剪贴板内容至文件
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
+            print("Saved clipboard content to: \(fileURL.path)")
 
-            // 更新当前笔记和保存时间
-            //            currentNoteId = documentTitle
-            //            lastSaveDate = Date()
-            // startMonitoringFile()
+            // 无论当前笔记窗口激活状态如何，都展示提示窗口
+            if let noteWindowController = WindowManager.shared.activeWindow,
+                let noteWindow = noteWindowController.window
+            {
+                let feedbackWindow = ContentSavedWindowController(position: noteWindow.frame)
+                feedbackWindow.showWindow(nil)
+            } else {
+                // 若没有活动的笔记窗口，则使用默认位置展示
+                let defaultFrame = NSRect(x: 100, y: 100, width: 400, height: 100)
+                let feedbackWindow = ContentSavedWindowController(position: defaultFrame)
+                feedbackWindow.showWindow(nil)
+            }
 
-            // 根据触发器状态，如果是添加新笔记，则显示提示动画
-            // if trigger == .addNew {
-            //     withAnimation {
-            //         showToast = true
-            //     }
-            //     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            //         withAnimation {
-            //             showToast = false
-            //         }
-            //     }
-            // }
+            NSApp.activate(ignoringOtherApps: true)
         } catch {
-            // saveError = error
             print("Save failed: \(error.localizedDescription)")
+        }
+    }
+}
+
+class ContentSavedWindowController: NSWindowController {
+    init(position: NSRect) {
+        // 设定窗口大小为与笔记窗口相同宽度，固定高度（例如 100）
+        let windowFrame = NSRect(
+            x: position.origin.x, y: position.origin.y, width: position.width, height: 100)
+        let window = NSWindow(
+            contentRect: windowFrame,
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false)
+        // 可根据需要调整窗口属性，例如层级、透明度等
+        window.title = ""
+        window.level = .floating
+        window.backgroundColor = .clear
+        window.isOpaque = false
+        window.hasShadow = true
+
+        super.init(window: window)
+
+        // 创建内容视图（带背景色，为了更好地提示）
+        let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
+        contentView.wantsLayer = true
+        contentView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
+        window.contentView = contentView
+
+        // 添加居中显示提示文字的 label
+        let label = NSTextField(labelWithString: "Contents saved")
+        label.textColor = NSColor.white
+        label.font = NSFont.systemFont(ofSize: 16, weight: .medium)
+        label.alignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func showWindow(_ sender: Any?) {
+        super.showWindow(sender)
+        // 自动在 2 秒后关闭提示窗口
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.close()
         }
     }
 }
