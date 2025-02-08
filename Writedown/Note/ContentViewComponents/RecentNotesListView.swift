@@ -1166,29 +1166,29 @@ struct TimeGroupHeader: View {
                             }
 
                             // 新增 Share & Archive 按钮
-                            Button(action: copyAndShare) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.system(size: 12))
-                                    // Text("Share & Archive")
-                                    //     .font(.system(size: 11))
-                                }
-                                .frame(width: 28, height: 28)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(
-                                            isHoveringShare
-                                                ? (colorScheme == .dark
-                                                    ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05))
-                                                : Color.clear
-                                        )
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .onHover { hovering in
-                                isHoveringShare = hovering
-                            }
+                            // Button(action: copyAndShare) {
+                            //     HStack(spacing: 4) {
+                            //         Image(systemName: "square.and.arrow.up")
+                            //             .font(.system(size: 12))
+                            //         // Text("Share & Archive")
+                            //         //     .font(.system(size: 11))
+                            //     }
+                            //     .frame(width: 28, height: 28)
+                            //     .background(
+                            //         RoundedRectangle(cornerRadius: 6)
+                            //             .fill(
+                            //                 isHoveringShare
+                            //                     ? (colorScheme == .dark
+                            //                         ? Color.white.opacity(0.1)
+                            //                         : Color.black.opacity(0.05))
+                            //                     : Color.clear
+                            //             )
+                            //     )
+                            // }
+                            // .buttonStyle(.plain)
+                            // .onHover { hovering in
+                            //     isHoveringShare = hovering
+                            // }
                         }
                         .padding(.horizontal, 8)
                         .padding(.bottom, 8)
