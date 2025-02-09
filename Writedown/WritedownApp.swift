@@ -570,7 +570,7 @@ class GlobalKeyMonitor {
             print("Saved clipboard content to: \(fileURL.path)")
 
             // 定义反馈窗口的默认尺寸
-            let defaultWidth: CGFloat = 400
+            let defaultWidth: CGFloat = 320
             let defaultHeight: CGFloat = 100
 
             // 展示 "Contents saved" 提示窗口
@@ -612,13 +612,8 @@ class GlobalKeyMonitor {
 
 // 自定义一个不可激活的窗口，防止抢占焦点
 class NonActivatingWindow: NSWindow {
-    override var canBecomeKey: Bool {
-        return false
-    }
-
-    override var canBecomeMain: Bool {
-        return false
-    }
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
 }
 
 class ContentSavedWindowController: NSWindowController {
@@ -629,7 +624,7 @@ class ContentSavedWindowController: NSWindowController {
             width: position.width,
             height: 64
         )
-        // 使用 NonActivatingWindow 创建无边框窗口
+
         let window = NonActivatingWindow(
             contentRect: windowFrame,
             styleMask: [.borderless],
@@ -637,33 +632,70 @@ class ContentSavedWindowController: NSWindowController {
             defer: false
         )
 
-        // 设置窗口级别，高于其他应用，使通知始终可见
         window.level = .statusBar + 1
-
         window.backgroundColor = .clear
         window.hasShadow = true
         window.isMovableByWindowBackground = true
 
         super.init(window: window)
 
-        // 创建设置背景和圆角效果的内容视图
+        // 创建主容器视图
         let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
         contentView.wantsLayer = true
-        contentView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
-        contentView.layer?.cornerRadius = 12
+        // 使用系统深色模式下的背景色
+        contentView.layer?.backgroundColor = NSColor(white: 0.17, alpha: 0.95).cgColor
+        contentView.layer?.cornerRadius = 16
         contentView.layer?.masksToBounds = true
         window.contentView = contentView
 
-        // 添加居中的文本标签
-        let label = NSTextField(labelWithString: "Contents saved")
-        label.textColor = NSColor.white
-        label.font = NSFont.systemFont(ofSize: 16, weight: .medium)
-        label.alignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(label)
+        // 创建水平堆栈视图
+        let stackView = NSStackView()
+        stackView.orientation = .horizontal
+        stackView.spacing = 12
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(stackView)
+
+        // 添加应用图标
+        let iconImageView = NSImageView()
+        if let appIcon = NSImage(named: "AppIcon") {  // 确保你的应用图标资源名称正确
+            iconImageView.image = appIcon
+        }
+        iconImageView.imageScaling = .scaleProportionallyDown
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 32),
+            iconImageView.heightAnchor.constraint(equalToConstant: 32),
+        ])
+
+        // 创建文本堆栈视图
+        let textStackView = NSStackView()
+        textStackView.orientation = .vertical
+        textStackView.spacing = 2
+        textStackView.alignment = .leading
+
+        // 添加主标题
+        let titleLabel = NSTextField(labelWithString: "Content saved")
+        titleLabel.textColor = .white
+        titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+
+        // 添加副标题
+        let subtitleLabel = NSTextField(
+            labelWithString: "Double-click ⌘C to save clipboard content")
+        subtitleLabel.textColor = .white.withAlphaComponent(0.6)
+        subtitleLabel.font = .systemFont(ofSize: 11)
+
+        textStackView.addArrangedSubview(titleLabel)
+        textStackView.addArrangedSubview(subtitleLabel)
+
+        // 将图标和文本堆栈添加到主堆栈
+        stackView.addArrangedSubview(iconImageView)
+        stackView.addArrangedSubview(textStackView)
+
+        // 设置堆栈视图约束
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            stackView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
     }
 
@@ -671,7 +703,6 @@ class ContentSavedWindowController: NSWindowController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // 显示窗口后自动在2秒后关闭，而不会抢占当前应用焦点
     override func showWindow(_ sender: Any?) {
         super.showWindow(sender)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
