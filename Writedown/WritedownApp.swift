@@ -633,7 +633,7 @@ class ContentSavedWindowController: NSWindowController {
         let windowFrame = NSRect(
             x: position.origin.x,
             y: position.origin.y,
-            width: position.width,
+            width: 360,
             height: 64
         )
         let window = NonActivatingWindow(
@@ -742,18 +742,25 @@ class ContentSavedWindowController: NSWindowController {
     // When the "View" button is clicked, close this notification window,
     // show the main note window, and load the saved note content.
     @objc private func viewButtonClicked(_ sender: NSButton) {
-        self.close()  // Close the feedback window
+        // Close the notification window.
+        self.close()
 
-        // Bring up the main note window.
-        toggleWindow()
+        // If there is no active note window, create one using the window manager.
+        if WindowManager.shared.activeWindow == nil {
+            WindowManager.shared.createNewWindow()
+        }
 
-        // If the main window is active and its content is wrapped in a ContentView,
-        // trigger display of the note content.
-        if let noteWindowController = WindowManager.shared.activeWindow,
-            let hostingController = noteWindowController.contentViewController
+        // Bring the main note window to the front.
+        if let noteWindowController = WindowManager.shared.activeWindow as? MainWindowController {
+            noteWindowController.showWindow(nil)
+            NSApp.activate(ignoringOtherApps: true)
+
+            // Load the saved clipboard content into the main note window's content view.
+            if let hostingController = noteWindowController.contentViewController
                 as? NSHostingController<ContentView>
-        {
-            hostingController.rootView.loadNoteContent(clipboardContent)
+            {
+                hostingController.rootView.loadNoteContent(clipboardContent)
+            }
         }
     }
 
