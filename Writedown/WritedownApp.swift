@@ -592,7 +592,7 @@ class GlobalKeyMonitor {
                 // 没有活动窗口时，使用默认位置（屏幕右上角）
                 guard let screen = NSScreen.main else { return }
                 let screenFrame = screen.visibleFrame
-                let rightTopX = screenFrame.maxX - defaultWidth - 10
+                let rightTopX = screenFrame.maxX - defaultWidth - 20
                 let rightTopY = screenFrame.maxY - defaultHeight + 20
                 let feedbackFrame = NSRect(
                     x: rightTopX,
@@ -672,7 +672,18 @@ class ContentSavedWindowController: NSWindowController {
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
 
-        let displayText = String(clipboardContent.prefix(20))
+        // Trim leading spaces from the clipboard content.
+        let trimmedContent = clipboardContent.drop(while: { $0 == " " })
+        let trimmedString = String(trimmedContent)
+        let threshold = 18
+        let displayText: String = {
+            if trimmedString.count > threshold {
+                return String(trimmedString.prefix(threshold)) + "..."
+                    + " (\(trimmedString.count) chars)"
+            } else {
+                return trimmedString
+            }
+        }()
         let subtitleLabel = NSTextField(labelWithString: displayText)
         subtitleLabel.textColor = .white.withAlphaComponent(0.9)
         subtitleLabel.font = .systemFont(ofSize: 13)
