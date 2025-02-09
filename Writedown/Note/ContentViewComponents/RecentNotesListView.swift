@@ -18,7 +18,7 @@ extension FileManager {
 
             // Sort and limit
             notesWithDates.sort { $0.1 > $1.1 }
-            let recentURLs = notesWithDates.prefix(50)
+            let recentURLs = notesWithDates
 
             // Convert to RecentNote objects
             var recentNotes: [RecentNote] = []

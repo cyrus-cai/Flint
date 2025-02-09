@@ -687,8 +687,17 @@ class ContentSavedWindowController: NSWindowController {
 
         // Process the clipboard's text:
         let trimmedContent = clipboardContent.drop(while: { $0 == " " })
-        let trimmedString = String(trimmedContent)
-        let threshold = 18
+        let tempTrimmedString = String(trimmedContent)
+        let trimmedString = tempTrimmedString.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\n", with: "  ")
+
+        let tagger = NSLinguisticTagger(
+            tagSchemes: [.language], options: 0)
+        tagger.string = trimmedString
+        let dominantLanguage = tagger.dominantLanguage
+
+        let threshold = dominantLanguage == "zh-Hans" ? 10 : 20  // 根据语言设置 threshold
+
         let displayText: String = {
             if trimmedString.count > threshold {
                 return String(trimmedString.prefix(threshold)) + "..."
