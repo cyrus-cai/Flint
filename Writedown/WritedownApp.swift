@@ -585,21 +585,23 @@ class GlobalKeyMonitor {
                     width: noteFrame.width,
                     height: defaultHeight
                 )
-                let feedbackWindow = ContentSavedWindowController(position: feedbackFrame)
+                let feedbackWindow = ContentSavedWindowController(
+                    position: feedbackFrame, clipboardContent: text)
                 feedbackWindow.showWindow(nil)
             } else {
                 // 没有活动窗口时，使用默认位置（屏幕右上角）
                 guard let screen = NSScreen.main else { return }
                 let screenFrame = screen.visibleFrame
-                let rightTopX = screenFrame.maxX - defaultWidth - 20
-                let rightTopY = screenFrame.maxY - 20
+                let rightTopX = screenFrame.maxX - defaultWidth - 10
+                let rightTopY = screenFrame.maxY - defaultHeight + 20
                 let feedbackFrame = NSRect(
                     x: rightTopX,
-                    y: rightTopY - defaultHeight,
+                    y: rightTopY ,
                     width: defaultWidth,
                     height: defaultHeight
                 )
-                let feedbackWindow = ContentSavedWindowController(position: feedbackFrame)
+                let feedbackWindow = ContentSavedWindowController(
+                    position: feedbackFrame, clipboardContent: text)
                 feedbackWindow.showWindow(nil)
             }
 
@@ -617,21 +619,19 @@ class NonActivatingWindow: NSWindow {
 }
 
 class ContentSavedWindowController: NSWindowController {
-    init(position: NSRect) {
+    init(position: NSRect, clipboardContent: String) {
         let windowFrame = NSRect(
             x: position.origin.x,
             y: position.origin.y,
             width: position.width,
             height: 64
         )
-
         let window = NonActivatingWindow(
             contentRect: windowFrame,
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
-
         window.level = .statusBar + 1
         window.backgroundColor = .clear
         window.hasShadow = true
@@ -639,25 +639,21 @@ class ContentSavedWindowController: NSWindowController {
 
         super.init(window: window)
 
-        // 创建主容器视图
         let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
         contentView.wantsLayer = true
-        // 使用系统深色模式下的背景色
         contentView.layer?.backgroundColor = NSColor(white: 0.17, alpha: 0.95).cgColor
         contentView.layer?.cornerRadius = 16
         contentView.layer?.masksToBounds = true
         window.contentView = contentView
 
-        // 创建水平堆栈视图
         let stackView = NSStackView()
         stackView.orientation = .horizontal
         stackView.spacing = 12
         stackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stackView)
 
-        // 添加应用图标
         let iconImageView = NSImageView()
-        if let appIcon = NSImage(named: "AppIcon") {  // 确保你的应用图标资源名称正确
+        if let appIcon = NSImage(named: "AppIcon") {
             iconImageView.image = appIcon
         }
         iconImageView.imageScaling = .scaleProportionallyDown
@@ -667,31 +663,26 @@ class ContentSavedWindowController: NSWindowController {
             iconImageView.heightAnchor.constraint(equalToConstant: 32),
         ])
 
-        // 创建文本堆栈视图
         let textStackView = NSStackView()
         textStackView.orientation = .vertical
         textStackView.spacing = 2
         textStackView.alignment = .leading
 
-        // 添加主标题
         let titleLabel = NSTextField(labelWithString: "Content saved")
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
 
-        // 添加副标题
-        let subtitleLabel = NSTextField(
-            labelWithString: "Double-click ⌘C to save clipboard content")
-        subtitleLabel.textColor = .white.withAlphaComponent(0.6)
-        subtitleLabel.font = .systemFont(ofSize: 11)
+        let displayText = String(clipboardContent.prefix(18))
+        let subtitleLabel = NSTextField(labelWithString: displayText)
+        subtitleLabel.textColor = .white.withAlphaComponent(0.9)
+        subtitleLabel.font = .systemFont(ofSize: 12)
 
         textStackView.addArrangedSubview(titleLabel)
         textStackView.addArrangedSubview(subtitleLabel)
 
-        // 将图标和文本堆栈添加到主堆栈
         stackView.addArrangedSubview(iconImageView)
         stackView.addArrangedSubview(textStackView)
 
-        // 设置堆栈视图约束
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
