@@ -49,7 +49,7 @@ class DeepseekAPI {
         print("📝 Input text length: \(text.count) characters")
 
         let systemPrompt =
-            "请整理以下文本，按【Saved】、【Todo】分类。1.其中 Saved 有内容时。如果有代码，格式建议使用 ``` code inside ```，其他格式使用无序列表(bullet list)，例如：- item1 ；2.Todo 有内容时，格式建议采用 - [ ] ，如果原文中没有对应内容，【Saved】、【Todo】下面应该完全为空（没有 - 或 - [ ] 等符号）。3.【Saved】、【Todo】中间空行 4.按照用户文本中最常用的语言，决定回复的语言 5.请严格遵循原文，避免强行补充，避免内容重复。"
+            "请整理文本，按【Saved】、【Todo】分类。1.若 Saved 有内容。1.1若为代码，格式使用 ``` code inside ``` 1.2 若非代码，使用 bullet list ；2.若 Todo 有内容时，格式使用 - [ ] 3.若原文没有可整理为【Saved】或/和【Todo】的内容，相关条目下方应为空（无任何多余符号、描述等）4.【Saved】和【Todo】中间，需空行 5.以原文本的语言整理 6.严格遵循原文，杜绝额外补充，杜绝重复总结"
 
         let messages = [
             ChatMessage(role: "system", content: systemPrompt),
