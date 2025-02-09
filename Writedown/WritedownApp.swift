@@ -596,7 +596,7 @@ class GlobalKeyMonitor {
                 let rightTopY = screenFrame.maxY - defaultHeight + 20
                 let feedbackFrame = NSRect(
                     x: rightTopX,
-                    y: rightTopY ,
+                    y: rightTopY,
                     width: defaultWidth,
                     height: defaultHeight
                 )
@@ -670,12 +670,12 @@ class ContentSavedWindowController: NSWindowController {
 
         let titleLabel = NSTextField(labelWithString: "Content saved")
         titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
 
-        let displayText = String(clipboardContent.prefix(18))
+        let displayText = String(clipboardContent.prefix(20))
         let subtitleLabel = NSTextField(labelWithString: displayText)
         subtitleLabel.textColor = .white.withAlphaComponent(0.9)
-        subtitleLabel.font = .systemFont(ofSize: 12)
+        subtitleLabel.font = .systemFont(ofSize: 13)
 
         textStackView.addArrangedSubview(titleLabel)
         textStackView.addArrangedSubview(subtitleLabel)
@@ -694,10 +694,59 @@ class ContentSavedWindowController: NSWindowController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // This method shows the window with a slide-in from the right animation.
     override func showWindow(_ sender: Any?) {
-        super.showWindow(sender)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.close()
+        guard let window = self.window,
+            let screen = window.screen ?? NSScreen.main
+        else {
+            super.showWindow(sender)
+            return
         }
+        // The final frame is what we originally set in the initializer.
+        let finalFrame = window.frame
+
+        // Create an initial frame off-screen at the right.
+        var initialFrame = finalFrame
+        initialFrame.origin.x = screen.visibleFrame.maxX
+        window.setFrame(initialFrame, display: false)
+        window.alphaValue = 0.0
+
+        super.showWindow(sender)
+
+        // Animate the window sliding in from the right.
+        NSAnimationContext.runAnimationGroup(
+            { context in
+                context.duration = 0.3
+                window.animator().alphaValue = 1.0
+                window.animator().setFrame(finalFrame, display: true)
+            },
+            completionHandler: {
+                // After the window is visible, keep it on screen for a few seconds
+                // then animate it out.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.animateWindowOutAndClose(finalFrame: finalFrame)
+                }
+            })
+    }
+
+    // Animate the window moving offscreen to the right and closing.
+    private func animateWindowOutAndClose(finalFrame: NSRect) {
+        guard let window = self.window,
+            let screen = window.screen ?? NSScreen.main
+        else {
+            self.close()
+            return
+        }
+        var offScreenFrame = finalFrame
+        offScreenFrame.origin.x = screen.visibleFrame.maxX
+        NSAnimationContext.runAnimationGroup(
+            { context in
+                context.duration = 0.5
+                window.animator().alphaValue = 0.0
+                window.animator().setFrame(offScreenFrame, display: true)
+            },
+            completionHandler: {
+                self.close()
+            })
     }
 }
