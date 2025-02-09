@@ -550,10 +550,8 @@ class GlobalKeyMonitor {
         // 根据文本生成文件名
         var title: String {
             let firstLine = text.components(separatedBy: .newlines).first ?? ""
-            if firstLine.isEmpty {
-                return "Untitled"
-            }
-            return firstLine.count > 12 ? firstLine.prefix(12) + "..." : firstLine
+            return firstLine.isEmpty
+                ? "Untitled" : (firstLine.count > 12 ? firstLine.prefix(12) + "..." : firstLine)
         }
 
         do {
@@ -571,11 +569,11 @@ class GlobalKeyMonitor {
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
             print("Saved clipboard content to: \(fileURL.path)")
 
-            // 定义反馈窗口的默认尺寸（可根据具体需求调整）
+            // 定义反馈窗口的默认尺寸
             let defaultWidth: CGFloat = 400
             let defaultHeight: CGFloat = 100
 
-            // 展示"Contents saved"提示窗口的位置逻辑：
+            // 展示 "Contents saved" 提示窗口
             if let noteWindowController = WindowManager.shared.activeWindow,
                 let noteWindow = noteWindowController.window
             {
@@ -590,23 +588,36 @@ class GlobalKeyMonitor {
                 let feedbackWindow = ContentSavedWindowController(position: feedbackFrame)
                 feedbackWindow.showWindow(nil)
             } else {
-                // 没有活动窗口时，使用与 setDefaultPosition() 中一致的默认逻辑
+                // 没有活动窗口时，使用默认位置（屏幕右上角）
                 guard let screen = NSScreen.main else { return }
                 let screenFrame = screen.visibleFrame
                 let rightTopX = screenFrame.maxX - defaultWidth - 20
                 let rightTopY = screenFrame.maxY - 20
-                // 注意：setFrameTopLeftPoint 使用的是窗口的顶点，所以需要将高度也计算进去
                 let feedbackFrame = NSRect(
-                    x: rightTopX, y: rightTopY - defaultHeight, width: defaultWidth,
-                    height: defaultHeight)
+                    x: rightTopX,
+                    y: rightTopY - defaultHeight,
+                    width: defaultWidth,
+                    height: defaultHeight
+                )
                 let feedbackWindow = ContentSavedWindowController(position: feedbackFrame)
                 feedbackWindow.showWindow(nil)
             }
 
-            NSApp.activate(ignoringOtherApps: true)
+            // 不再调用 NSApp.activate(ignoringOtherApps:)，确保反馈窗口不会改变当前应用的焦点
         } catch {
             print("Save failed: \(error.localizedDescription)")
         }
+    }
+}
+
+// 自定义一个不可激活的窗口，防止抢占焦点
+class NonActivatingWindow: NSWindow {
+    override var canBecomeKey: Bool {
+        return false
+    }
+
+    override var canBecomeMain: Bool {
+        return false
     }
 }
 
@@ -618,20 +629,24 @@ class ContentSavedWindowController: NSWindowController {
             width: position.width,
             height: 64
         )
-        // 使用 borderless 样式创建窗口，这样标题栏会完全消失
-        let window = NSWindow(
+        // 使用 NonActivatingWindow 创建无边框窗口
+        let window = NonActivatingWindow(
             contentRect: windowFrame,
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
+
+        // 设置窗口级别，高于其他应用，使通知始终可见
+        window.level = .statusBar + 1
+
         window.backgroundColor = .clear
         window.hasShadow = true
         window.isMovableByWindowBackground = true
 
         super.init(window: window)
 
-        // 创建内容视图，并设置背景、圆角效果
+        // 创建设置背景和圆角效果的内容视图
         let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
         contentView.wantsLayer = true
         contentView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
@@ -639,7 +654,7 @@ class ContentSavedWindowController: NSWindowController {
         contentView.layer?.masksToBounds = true
         window.contentView = contentView
 
-        // 添加居中显示提示文字的 label
+        // 添加居中的文本标签
         let label = NSTextField(labelWithString: "Contents saved")
         label.textColor = NSColor.white
         label.font = NSFont.systemFont(ofSize: 16, weight: .medium)
@@ -656,9 +671,9 @@ class ContentSavedWindowController: NSWindowController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // 显示窗口后自动在2秒后关闭，而不会抢占当前应用焦点
     override func showWindow(_ sender: Any?) {
         super.showWindow(sender)
-        // 自动在 2 秒后关闭提示窗口
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.close()
         }
