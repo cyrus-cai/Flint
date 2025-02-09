@@ -726,7 +726,7 @@ class ContentSavedWindowController: NSWindowController {
         let viewButton = NSButton(
             title: "View", target: self, action: #selector(viewButtonClicked(_:)))
         viewButton.bezelStyle = .rounded
-        stackView.addArrangedSubview(viewButton)
+        // stackView.addArrangedSubview(viewButton)
 
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
