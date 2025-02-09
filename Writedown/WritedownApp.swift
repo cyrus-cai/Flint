@@ -191,6 +191,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         windowController?.showWindow(nil)
     }
 
+    @objc func toggleWindow() {
+        windowController?.toggleWindow()
+    }
+
     private func setupGlobalHotkey() {
         hotKey = HotKey(
             keyCode: UInt32(kVK_ANSI_C), modifiers: UInt32(optionKey),
@@ -232,10 +236,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWindow.willCloseNotification,
             object: notification.object
         )
-    }
-
-    @objc func toggleWindow() {
-        windowController?.toggleWindow()
     }
 
     private func setupStatusBarItem() {
@@ -570,7 +570,7 @@ class GlobalKeyMonitor {
             print("Saved clipboard content to: \(fileURL.path)")
 
             // 定义反馈窗口的默认尺寸
-            let defaultWidth: CGFloat = 320
+            let defaultWidth: CGFloat = 360
             let defaultHeight: CGFloat = 100
 
             // 展示 "Contents saved" 提示窗口
@@ -619,7 +619,17 @@ class NonActivatingWindow: NSWindow {
 }
 
 class ContentSavedWindowController: NSWindowController {
+    private var windowController: MainWindowController?
+    // Store the clipboard content for later use
+    private let clipboardContent: String
+
+    @objc func toggleWindow() {
+        windowController?.toggleWindow()
+    }
+
     init(position: NSRect, clipboardContent: String) {
+        self.clipboardContent = clipboardContent
+
         let windowFrame = NSRect(
             x: position.origin.x,
             y: position.origin.y,
@@ -646,12 +656,14 @@ class ContentSavedWindowController: NSWindowController {
         contentView.layer?.masksToBounds = true
         window.contentView = contentView
 
+        // Create the horizontal stack view for all elements.
         let stackView = NSStackView()
         stackView.orientation = .horizontal
         stackView.spacing = 12
         stackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stackView)
 
+        // Icon image view.
         let iconImageView = NSImageView()
         if let appIcon = NSImage(named: "AppIcon") {
             iconImageView.image = appIcon
@@ -663,6 +675,7 @@ class ContentSavedWindowController: NSWindowController {
             iconImageView.heightAnchor.constraint(equalToConstant: 32),
         ])
 
+        // Text stack view containing title and subtitle.
         let textStackView = NSStackView()
         textStackView.orientation = .vertical
         textStackView.spacing = 2
@@ -672,7 +685,7 @@ class ContentSavedWindowController: NSWindowController {
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
 
-        // Trim leading spaces from the clipboard content.
+        // Process the clipboard's text:
         let trimmedContent = clipboardContent.drop(while: { $0 == " " })
         let trimmedString = String(trimmedContent)
         let threshold = 18
@@ -691,8 +704,20 @@ class ContentSavedWindowController: NSWindowController {
         textStackView.addArrangedSubview(titleLabel)
         textStackView.addArrangedSubview(subtitleLabel)
 
+        // Add the icon and text views into the main stack.
         stackView.addArrangedSubview(iconImageView)
         stackView.addArrangedSubview(textStackView)
+
+        // Add a spacer view to push the next view to the right.
+        let spacerView = NSView()
+        spacerView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        stackView.addArrangedSubview(spacerView)
+
+        // Add the "View" button in the right-hand area.
+        let viewButton = NSButton(
+            title: "View", target: self, action: #selector(viewButtonClicked(_:)))
+        viewButton.bezelStyle = .rounded
+        stackView.addArrangedSubview(viewButton)
 
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -703,6 +728,24 @@ class ContentSavedWindowController: NSWindowController {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // When the "View" button is clicked, close this notification window,
+    // show the main note window, and load the saved note content.
+    @objc private func viewButtonClicked(_ sender: NSButton) {
+        self.close()  // Close the feedback window
+
+        // Bring up the main note window.
+        toggleWindow()
+
+        // If the main window is active and its content is wrapped in a ContentView,
+        // trigger display of the note content.
+        if let noteWindowController = WindowManager.shared.activeWindow,
+            let hostingController = noteWindowController.contentViewController
+                as? NSHostingController<ContentView>
+        {
+            hostingController.rootView.loadNoteContent(clipboardContent)
+        }
     }
 
     // This method shows the window with a slide-in from the right animation.

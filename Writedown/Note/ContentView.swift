@@ -160,7 +160,7 @@ struct ContentView: View {
         }
     }
 
-    private func loadNoteContent(_ content: String) {
+    func loadNoteContent(_ content: String) {
         text = content
         if let currentId = currentNoteId,
             let fileURL = FileManager.shared.fileURL(for: currentId)
