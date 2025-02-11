@@ -34,6 +34,7 @@
 		A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */; };
 		A3B009F02CF3194A0095F75C /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009EF2CF3194A0095F75C /* ScreenCaptureManager.swift */; };
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
+		A3C585AE2D5B8C35000EF7AC /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = A3C585AD2D5B8C35000EF7AC /* Mixpanel */; };
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 		A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */; };
 /* End PBXBuildFile section */
@@ -96,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3C585AE2D5B8C35000EF7AC /* Mixpanel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,6 +278,7 @@
 			);
 			name = Writedown;
 			packageProductDependencies = (
+				A3C585AD2D5B8C35000EF7AC /* Mixpanel */,
 			);
 			productName = "Hyper Note";
 			productReference = A37D47312CDE6ECE00B2E727 /* Writedown.app */;
@@ -352,6 +355,7 @@
 			packageReferences = (
 				A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */,
 				A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */,
+				A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			productRefGroup = A37D47322CDE6ECE00B2E727 /* Products */;
 			projectDirPath = "";
@@ -600,7 +604,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.15;
+				MARKETING_VERSION = 0.5.16;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -633,7 +637,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.15;
+				MARKETING_VERSION = 0.5.16;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -763,6 +767,14 @@
 				kind = branch;
 			};
 		};
+		A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 		A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/clerk/clerk-ios";
@@ -772,6 +784,14 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A3C585AD2D5B8C35000EF7AC /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A37D47292CDE6ECE00B2E727 /* Project object */;
 }

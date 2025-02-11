@@ -2,6 +2,7 @@ import AppKit
 import Carbon
 //import ClerkSDK
 import Cocoa
+import Mixpanel
 import ServiceManagement
 import SwiftUI
 
@@ -10,8 +11,26 @@ struct WritedownApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     init() {
+        // Initialize Mixpanel with proper configuration
+        Mixpanel.initialize(
+            token: "f7863b6d43e142d2a35285b4d7764792",
+//            trackAutomaticEvents: false,  // Disable automatic event tracking
+            flushInterval: 60  // Set flush interval to 60 seconds
+        )
+
+        // Enable debug logging in development
+        #if DEBUG
+            Mixpanel.mainInstance().loggingEnabled = true
+        #endif
+
+        // Set EU data residency if needed
+        // Mixpanel.mainInstance().serverURL = "https://api-eu.mixpanel.com"
+
+        // Disable IP-based geolocation if needed
+        Mixpanel.mainInstance().useIPAddressForGeoLocation = false
+
         // Check pro status on app launch if user is logged in
-        if UserDefaults.standard.string(forKey: "userEmail") != nil {
+        if let userEmail = UserDefaults.standard.string(forKey: "userEmail") {
             Task {
                 do {
                     print(
@@ -21,30 +40,47 @@ struct WritedownApp: App {
                         email: UserDefaults.standard.string(forKey: "userEmail") ?? "")
                     print("Setting isPro to \(isPro)")
                     UserDefaults.standard.set(isPro, forKey: "isPro")
+
+                    // Set user identity and properties
+                    Mixpanel.mainInstance().identify(distinctId: userEmail)
+                    Mixpanel.mainInstance().people.set(properties: [
+                        "$email": userEmail,
+                        "isPro": isPro,
+                    ])
                 } catch {
                     print("Pro status check failed: \(error)")
-                    // Set to false when pro status check fails
                     UserDefaults.standard.set(false, forKey: "isPro")
                 }
             }
         } else {
-            // Set to false when not logged in
+            // Reset Mixpanel when no user is logged in
+            Mixpanel.mainInstance().reset()
             UserDefaults.standard.set(false, forKey: "isPro")
         }
 
-        // Observe login success notification
+        // Set up login observer
         NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("UserDidLogin"), object: nil, queue: .main
+            forName: NSNotification.Name("UserDidLogin"),
+            object: nil,
+            queue: .main
         ) { _ in
             Task {
-                do {
-                    let isPro = try await ProStatusChecker.shared.checkProStatus(
-                        email: UserDefaults.standard.string(forKey: "userEmail") ?? "")
-                    UserDefaults.standard.set(isPro, forKey: "isPro")
-                } catch {
-                    print("Pro status check failed: \(error)")
-                    // Set to false when pro status check fails
-                    UserDefaults.standard.set(false, forKey: "isPro")
+                if let userEmail = UserDefaults.standard.string(forKey: "userEmail") {
+                    do {
+                        let isPro = try await ProStatusChecker.shared.checkProStatus(
+                            email: userEmail)
+                        UserDefaults.standard.set(isPro, forKey: "isPro")
+
+                        // Identify user and set properties after login
+                        Mixpanel.mainInstance().identify(distinctId: userEmail)
+                        Mixpanel.mainInstance().people.set(properties: [
+                            "$email": userEmail,
+                            "isPro": isPro,
+                        ])
+                    } catch {
+                        print("Pro status check failed: \(error)")
+                        UserDefaults.standard.set(false, forKey: "isPro")
+                    }
                 }
             }
         }
@@ -144,6 +180,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     //    let hotkeyCounter = HotkeyCounter()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Track app launch
+        Mixpanel.mainInstance().track(event: "App Launched")
+
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)
         globalKeyMonitor = GlobalKeyMonitor()
@@ -193,6 +232,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func toggleWindow() {
         windowController?.toggleWindow()
+        // Track window toggle
+        Mixpanel.mainInstance().track(event: "Window Toggled")
     }
 
     private func setupGlobalHotkey() {
@@ -305,10 +346,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        // Remove the Mixpanel initialization from here since it's now in WritedownApp.init()
+
         print("📥 Received URL: \(url)")
 
         // Check if this is a login callback
         if url.scheme == "writedown" && url.host == "oauth" && url.path == "/callback" {
+            Mixpanel.mainInstance().track(event: "User Logged In")
             print("✅ Valid login callback URL")
 
             if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
@@ -367,6 +411,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         processedName.isEmpty ? "Welcome back!" : "Welcome back \(processedName)!"
                     NSUserNotificationCenter.default.deliver(notification)
                     print("🔔 Showed success notification")
+
+                    // Add tracking for login success
+                    if let email = email?.removingPercentEncoding {
+                        Mixpanel.mainInstance().identify(distinctId: email)
+                        Mixpanel.mainInstance().people.set(property: "email", to: email)
+                        Mixpanel.mainInstance().people.set(property: "name", to: processedName)
+                    }
                 }
             } else {
                 print("❌ Failed to parse URL components")
@@ -401,6 +452,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         let status = json["status"] as? String,
                         status == "success"
                     {
+                        // Track successful payment
+                        Mixpanel.mainInstance().track(event: "Payment Successful")
+                        Mixpanel.mainInstance().people.set(property: "isPro", to: true)
+
                         // Update subscription status in UserDefaults
                         DispatchQueue.main.async {
                             let defaults = UserDefaults.standard
