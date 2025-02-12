@@ -238,7 +238,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupGlobalHotkey() {
         hotKey = HotKey(
-            keyCode: UInt32(kVK_ANSI_C), modifiers: UInt32(optionKey),
+            keyCode: UInt32(kVK_ANSI_X), modifiers: UInt32(optionKey),
             handler: { [weak self] in
                 if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
                     && !UserDefaults.standard.bool(forKey: "isPro")

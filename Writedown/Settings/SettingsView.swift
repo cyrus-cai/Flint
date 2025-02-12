@@ -739,7 +739,7 @@ struct HotkeySettingsView: View {
                             Label("Quick wake-up", systemImage: "bolt.square")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text("⌥ + C")
+                            Text("⌥ + X")
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
