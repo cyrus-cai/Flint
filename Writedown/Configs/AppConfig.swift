@@ -27,6 +27,9 @@ struct AIModel: Identifiable, Equatable {
 struct AIModelConfig {
     /// Maintain the mapping of model IDs to a friendly name and availability.
     static let availableModels: [AIModel] = [
+        AIModel(
+            modelId: "ep-20250212220411-mtfqd", displayName: "Doubao-lite-32k",
+            isProOnly: false),
         // Pro-only model – only selectable when the user is Pro.
         AIModel(
             modelId: "ep-20250128221733-ldppp", displayName: "Doubao-1.5-pro-32k",

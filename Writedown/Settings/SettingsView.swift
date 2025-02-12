@@ -198,8 +198,8 @@ struct SettingsView: View {
     @State private var showPathPicker = false
     @State private var showPathAlert = false
 
-    @AppStorage("aiModel") private var aiModel: String =
-        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-1.5-pro-32k"
+    @AppStorage("AIModel") private var AIModel: String =
+        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
 
     // Feishu related settings
     //    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
@@ -633,8 +633,8 @@ struct IntegrationSettingsView: View {
     @Binding var integrateWithObsidian: Bool
     @Binding var customPath: String
     @Binding var showPathAlert: Bool
-    @AppStorage("aiModel") private var aiModel: String =
-        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? ""
+    @AppStorage("AIModel") private var AIModel: String =
+        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
     let selectCustomDirectory: () -> Void
 
     private func openInFinder() {
@@ -728,7 +728,7 @@ struct IntegrationSettingsView: View {
                             Label("Model", systemImage: "brain")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Picker("", selection: $aiModel) {
+                            Picker("", selection: $AIModel) {
                                 ForEach(allowedModels) { model in
                                     Text(model.displayName)
                                         .tag(model.modelId)
