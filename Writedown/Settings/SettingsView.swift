@@ -197,7 +197,9 @@ struct SettingsView: View {
     @State private var customPath: String = FileManager.shared.currentNotesPath
     @State private var showPathPicker = false
     @State private var showPathAlert = false
-    @AppStorage("isPro") private var isPro: Bool = false
+
+    @AppStorage("aiModel") private var aiModel: String =
+        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-1.5-pro-32k"
 
     // Feishu related settings
     //    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
@@ -207,6 +209,14 @@ struct SettingsView: View {
     let updater = AutoUpdater()
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+
+    @AppStorage("isPro") private var isPro: Bool = false
+    // This computed property filters available models depending on the user's Pro status.
+    private var allowedModels: [AIModel] {
+        AIModelConfig.availableModels.filter { model in
+            isPro || (!model.isProOnly)
+        }
+    }
 
     private func configureObsidianVault() {
         let openPanel = NSOpenPanel()
@@ -623,7 +633,8 @@ struct IntegrationSettingsView: View {
     @Binding var integrateWithObsidian: Bool
     @Binding var customPath: String
     @Binding var showPathAlert: Bool
-    @AppStorage("aiModel") private var aiModel = "Doubao-1.5-pro"
+    @AppStorage("aiModel") private var aiModel: String =
+        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? ""
     let selectCustomDirectory: () -> Void
 
     private func openInFinder() {
@@ -636,6 +647,14 @@ struct IntegrationSettingsView: View {
             nil,
             inFileViewerRootedAtPath: notesDirectory.path
         )
+    }
+
+    @AppStorage("isPro") private var isPro: Bool = false
+    // This computed property filters available models depending on the user's Pro status.
+    private var allowedModels: [AIModel] {
+        AIModelConfig.availableModels.filter { model in
+            isPro || (!model.isProOnly)
+        }
     }
 
     var body: some View {
@@ -703,16 +722,19 @@ struct IntegrationSettingsView: View {
                 .groupBoxStyle(ModernGroupBoxStyle())
 
                 // AI Settings
-                GroupBox("AI Settings (Time-limited free)") {
+                GroupBox("AI Settings") {
                     VStack(spacing: 12) {
                         HStack {
                             Label("Model", systemImage: "brain")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Picker("", selection: $aiModel) {
-                                Text("Doubao-1.5-pro").tag("Doubao-1.5-pro")
+                                ForEach(allowedModels) { model in
+                                    Text(model.displayName)
+                                        .tag(model.modelId)
+                                }
                             }
-                            .frame(width: 120)
+                            .frame(width: 150)
                             .pickerStyle(.menu)
                         }
                     }
