@@ -14,7 +14,7 @@ struct WritedownApp: App {
         // Initialize Mixpanel with proper configuration
         Mixpanel.initialize(
             token: "f7863b6d43e142d2a35285b4d7764792",
-//            trackAutomaticEvents: false,  // Disable automatic event tracking
+            //            trackAutomaticEvents: false,  // Disable automatic event tracking
             flushInterval: 60  // Set flush interval to 60 seconds
         )
 
@@ -623,6 +623,9 @@ class GlobalKeyMonitor {
             // 写入剪贴板内容至文件
             try text.write(to: fileURL, atomically: true, encoding: .utf8)
             print("Saved clipboard content to: \(fileURL.path)")
+
+            // 增加使用次数统计
+            HotkeyCounter.shared.increment()
 
             // 定义反馈窗口的默认尺寸
             let defaultWidth: CGFloat = 360
