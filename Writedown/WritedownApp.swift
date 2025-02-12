@@ -594,6 +594,14 @@ class GlobalKeyMonitor {
     }
 
     private func saveClipboardContent() {
+        // 检查使用次数限制
+        if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
+            && !UserDefaults.standard.bool(forKey: "isPro")
+        {
+            WindowManager.shared.createLimitExceededWindow()
+            return
+        }
+
         // 从剪贴板获取字符串内容
         guard let text = NSPasteboard.general.string(forType: .string) else {
             print("No clipboard content found.")
