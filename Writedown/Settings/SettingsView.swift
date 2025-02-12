@@ -734,14 +734,27 @@ struct IntegrationSettingsView: View {
                                         .tag(model.modelId)
                                 }
                             }
-                            .frame(width: 150)
                             .pickerStyle(.menu)
+                            .frame(width: 150)
                         }
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
+                .onAppear {
+                    // 每次显示 AI Settings 时，验证当前选择的模型是否在允许的范围内
+                    if let currentModel = UserDefaults.standard.string(forKey: "AIModel") {
+                        if !allowedModels.contains(where: { $0.modelId == currentModel }) {
+                            // 如果当前值不在允许的模型中，则自动重置为允许列表中的第一个
+                            AIModel = allowedModels.first?.modelId ?? "ep-20250208231403-7dmtb"
+                        }
+                    } else {
+                        // 如果数据库中没有存储模型，则直接设置为允许列表中的第一个
+                        AIModel = allowedModels.first?.modelId ?? "ep-20250208231403-7dmtb"
+                    }
+                    print("刷新模型选择器视图: 当前 AIModel 为 \(AIModel)")
+                }
             }
             .padding(.horizontal, 16)
         }
