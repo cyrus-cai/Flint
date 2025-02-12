@@ -37,5 +37,7 @@ struct AIModelConfig {
         // Standard model – available for all users.
         AIModel(
             modelId: "ep-20250208231403-7dmtb", displayName: "DeepSeek-V3", isProOnly: true),
+//        AIModel(
+//            modelId: "ep-20250213001714-xxx2w", displayName: "DeepSeek-R1-7B", isProOnly: true),
     ]
 }
