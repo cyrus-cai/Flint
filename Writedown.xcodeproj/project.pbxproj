@@ -353,8 +353,6 @@
 			);
 			mainGroup = A37D47282CDE6ECE00B2E727;
 			packageReferences = (
-				A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */,
-				A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */,
 				A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			productRefGroup = A37D47322CDE6ECE00B2E727 /* Products */;
@@ -759,28 +757,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/qeude/SwiftDown.git";
-			requirement = {
-				branch = develop;
-				kind = branch;
-			};
-		};
 		A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
 			requirement = {
 				branch = master;
 				kind = branch;
-			};
-		};
-		A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/clerk/clerk-ios";
-			requirement = {
-				kind = exactVersion;
-				version = 0.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
