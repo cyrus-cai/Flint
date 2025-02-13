@@ -1,6 +1,15 @@
 {
-  "originHash" : "652a3e5623b2e6c8c6e0e0b946c185247190377f8f46737da6c1d9062f42423e",
+  "originHash" : "97b8ccf0a7343383563edbeb38802caea0dfefaa1fc1c790845973b5fa49e77d",
   "pins" : [
+    {
+      "identity" : "keyboardshortcuts",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sindresorhus/KeyboardShortcuts",
+      "state" : {
+        "revision" : "7ecc38bb6edf7d087d30e737057b8d8a9b7f51eb",
+        "version" : "2.2.4"
+      }
+    },
     {
       "identity" : "mixpanel-swift",
       "kind" : "remoteSourceControl",
