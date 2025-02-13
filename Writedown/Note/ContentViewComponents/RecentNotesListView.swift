@@ -55,7 +55,10 @@ struct RecentNote: Identifiable {
 }
 
 enum TimeGroup: String {
-    case today = "Today"
+    case last15Min = "Last 15 min"
+    case last1Hour = "Last 1 hour"
+    case thisMorning = "This morning"
+    case thisAfternoon = "This afternoon"
     case yesterday = "Yesterday"
     case thisWeek = "This Week"
     case older = "Earlier"
@@ -265,34 +268,99 @@ class RecentNotesViewModel: ObservableObject {
     var groupedFilteredNotes: [GroupedNotes] {
         let calendar = Calendar.current
         let now = Date()
-        let today = calendar.startOfDay(for: now)
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
-        let weekStart = calendar.date(byAdding: .day, value: -7, to: today)!
+        let todayStart = calendar.startOfDay(for: now)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: todayStart)!
+        let weekStart = calendar.date(byAdding: .day, value: -7, to: todayStart)!
 
-        var groups: [TimeGroup: [RecentNote]] = [:]
+        // Containers for non‐today groups and today's sub‐groups
+        var nonTodayGroups: [TimeGroup: [RecentNote]] = [:]
+        var todayGroups: [TimeGroup: [RecentNote]] = [:]
 
+        // Define thresholds for today
+        let fifteenMinutes: TimeInterval = 15 * 60
+        let oneHour: TimeInterval = 60 * 60
+        let noonToday =
+            calendar.date(bySettingHour: 12, minute: 0, second: 0, of: now)
+            ?? todayStart.addingTimeInterval(12 * 3600)
+
+        // Enable sub–groups only if enough time has passed today
+        let enableLast15 = now.timeIntervalSince(todayStart) >= fifteenMinutes
+        let enableLast1 = now.timeIntervalSince(todayStart) >= oneHour
+        let enableAfternoon = now >= noonToday
+
+        if enableLast15 {
+            todayGroups[.last15Min] = []
+        }
+        if enableLast1 {
+            todayGroups[.last1Hour] = []
+        }
+        // Always add a "This morning" group (even if it is the only one)
+        todayGroups[.thisMorning] = []
+        if enableAfternoon {
+            todayGroups[.thisAfternoon] = []
+        }
+
+        // Loop through filteredNotes and assign groups
         for note in filteredNotes {
             let noteDate = note.lastModified
-
             if calendar.isDate(noteDate, inSameDayAs: now) {
-                groups[.today, default: []].append(note)
+                // For today, use relative thresholds
+                if enableLast15 && noteDate >= now.addingTimeInterval(-fifteenMinutes) {
+                    todayGroups[.last15Min]?.append(note)
+                } else if enableLast1 && noteDate >= now.addingTimeInterval(-oneHour) {
+                    todayGroups[.last1Hour]?.append(note)
+                } else {
+                    // For notes older than one hour, choose morning vs. afternoon if applicable
+                    if enableAfternoon {
+                        if noteDate >= noonToday {
+                            todayGroups[.thisAfternoon]?.append(note)
+                        } else {
+                            todayGroups[.thisMorning]?.append(note)
+                        }
+                    } else {
+                        todayGroups[.thisMorning]?.append(note)
+                    }
+                }
             } else if calendar.isDate(noteDate, inSameDayAs: yesterday) {
-                groups[.yesterday, default: []].append(note)
+                nonTodayGroups[.yesterday, default: []].append(note)
             } else if noteDate >= weekStart {
-                groups[.thisWeek, default: []].append(note)
+                nonTodayGroups[.thisWeek, default: []].append(note)
             } else {
-                groups[.older, default: []].append(note)
+                nonTodayGroups[.older, default: []].append(note)
             }
         }
 
-        // Convert to array and sort by group order
-        let groupOrder: [TimeGroup] = [.today, .yesterday, .thisWeek, .older]
-        return groupOrder.compactMap { group in
-            if let notes = groups[group], !notes.isEmpty {
-                return GroupedNotes(group: group, notes: notes)
-            }
-            return nil
+        // Now build the resulting array in the desired order.
+        var groupsArray: [GroupedNotes] = []
+
+        // Order today's groups according to what's enabled.
+        var todayOrder: [TimeGroup] = []
+        if enableLast15 {
+            todayOrder.append(.last15Min)
         }
+        if enableLast1 {
+            todayOrder.append(.last1Hour)
+        }
+        if enableAfternoon {
+            todayOrder.append(.thisAfternoon)
+            todayOrder.append(.thisMorning)
+        } else {
+            todayOrder.append(.thisMorning)
+        }
+        for group in todayOrder {
+            if let notes = todayGroups[group], !notes.isEmpty {
+                groupsArray.append(GroupedNotes(group: group, notes: notes))
+            }
+        }
+
+        // Order non–today groups in a fixed order.
+        let nonTodayOrder: [TimeGroup] = [.yesterday, .thisWeek, .older]
+        for group in nonTodayOrder {
+            if let notes = nonTodayGroups[group], !notes.isEmpty {
+                groupsArray.append(GroupedNotes(group: group, notes: notes))
+            }
+        }
+        return groupsArray
     }
 
     func archiveGroupNotes(_ notes: [RecentNote], groupTitle: String) {
