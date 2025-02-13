@@ -2,6 +2,7 @@ import AppKit
 import Carbon
 //import ClerkSDK
 import Cocoa
+import KeyboardShortcuts
 import Mixpanel
 import ServiceManagement
 import SwiftUI
@@ -237,37 +238,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupGlobalHotkey() {
-        hotKey = HotKey(
-            keyCode: UInt32(kVK_ANSI_X), modifiers: UInt32(optionKey),
-            handler: { [weak self] in
-                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
-                    && !UserDefaults.standard.bool(forKey: "isPro")
-                {
-                    // 检查是否已经显示了限制窗口
-                    if self?.limitExceededWindow == nil {
-                        // 创建并显示限制窗口
-                        let window = LimitExceededWindowController()
-                        window.showWindow(nil)
-                        NSApp.activate(ignoringOtherApps: true)
-                        self?.limitExceededWindow = window
+        KeyboardShortcuts.onKeyUp(for: .quickWakeup) { [weak self] in
+            if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
+                && !UserDefaults.standard.bool(forKey: "isPro")
+            {
+                // Check if limit exceeded window is already shown
+                if self?.limitExceededWindow == nil {
+                    // Create and show limit exceeded window
+                    let window = LimitExceededWindowController()
+                    window.showWindow(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                    self?.limitExceededWindow = window
 
-                        // 添加窗口关闭的观察
-                        NotificationCenter.default.addObserver(
-                            self as Any,
-                            selector: #selector(self?.limitExceededWindowDidClose),
-                            name: NSWindow.willCloseNotification,
-                            object: window.window
-                        )
-                    }
-                } else {
-                    let wasHidden = self?.windowController?.window?.isVisible == false
-                    self?.toggleWindow()
-                    if wasHidden {
-                        HotkeyCounter.shared.increment()
-                        print("Shortcut count increased - window was hidden")
-                    }
+                    // Add window close observer
+                    NotificationCenter.default.addObserver(
+                        self as Any,
+                        selector: #selector(self?.limitExceededWindowDidClose),
+                        name: NSWindow.willCloseNotification,
+                        object: window.window
+                    )
                 }
-            })
+            } else {
+                let wasHidden = self?.windowController?.window?.isVisible == false
+                self?.toggleWindow()
+                if wasHidden {
+                    HotkeyCounter.shared.increment()
+                    print("Shortcut count increased - window was hidden")
+                }
+            }
+        }
     }
 
     @objc private func limitExceededWindowDidClose(_ notification: Notification) {

@@ -19,6 +19,8 @@
 		A35B0BB12D201A1C00E277FA /* FeishuTokenGenerate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */; };
 		A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35E117D2CF9F65400EF949D /* AutoUpdate.swift */; };
 		A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3717AC82CF600890073E925 /* FileManagerExtend.swift */; };
+		A37C396B2D5E4E3A003EBCC6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A37C396A2D5E4E3A003EBCC6 /* KeyboardShortcuts */; };
+		A37C396D2D5E501F003EBCC6 /* KeyboardShortcutNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37C396C2D5E501F003EBCC6 /* KeyboardShortcutNames.swift */; };
 		A37D47352CDE6ECE00B2E727 /* WritedownApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47342CDE6ECE00B2E727 /* WritedownApp.swift */; };
 		A37D47372CDE6ECE00B2E727 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47362CDE6ECE00B2E727 /* ContentView.swift */; };
 		A37D47392CDE6ECF00B2E727 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A37D47382CDE6ECF00B2E727 /* Assets.xcassets */; };
@@ -69,6 +71,7 @@
 		A35B0BB02D201A1C00E277FA /* FeishuTokenGenerate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeishuTokenGenerate.swift; sourceTree = "<group>"; };
 		A35E117D2CF9F65400EF949D /* AutoUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoUpdate.swift; sourceTree = "<group>"; };
 		A3717AC82CF600890073E925 /* FileManagerExtend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtend.swift; sourceTree = "<group>"; };
+		A37C396C2D5E501F003EBCC6 /* KeyboardShortcutNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutNames.swift; sourceTree = "<group>"; };
 		A37D47312CDE6ECE00B2E727 /* Writedown.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Writedown.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37D47342CDE6ECE00B2E727 /* WritedownApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WritedownApp.swift; sourceTree = "<group>"; };
 		A37D47362CDE6ECE00B2E727 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -98,6 +101,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3C585AE2D5B8C35000EF7AC /* Mixpanel in Frameworks */,
+				A37C396B2D5E4E3A003EBCC6 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,6 +250,7 @@
 		A398BF822D3966CB00187871 /* Configs */ = {
 			isa = PBXGroup;
 			children = (
+				A37C396C2D5E501F003EBCC6 /* KeyboardShortcutNames.swift */,
 				A398BF7E2D394A6D00187871 /* AppConfig.swift */,
 				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
 			);
@@ -279,6 +284,7 @@
 			name = Writedown;
 			packageProductDependencies = (
 				A3C585AD2D5B8C35000EF7AC /* Mixpanel */,
+				A37C396A2D5E4E3A003EBCC6 /* KeyboardShortcuts */,
 			);
 			productName = "Hyper Note";
 			productReference = A37D47312CDE6ECE00B2E727 /* Writedown.app */;
@@ -353,9 +359,8 @@
 			);
 			mainGroup = A37D47282CDE6ECE00B2E727;
 			packageReferences = (
-				A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */,
-				A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */,
 				A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
+				A37C39692D5E4E3A003EBCC6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 			);
 			productRefGroup = A37D47322CDE6ECE00B2E727 /* Products */;
 			projectDirPath = "";
@@ -415,6 +420,7 @@
 				A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */,
 				A35B0BAE2D2019B700E277FA /* FeishuAPI.swift in Sources */,
 				A37D47352CDE6ECE00B2E727 /* WritedownApp.swift in Sources */,
+				A37C396D2D5E501F003EBCC6 /* KeyboardShortcutNames.swift in Sources */,
 				A398BF7F2D394A6D00187871 /* AppConfig.swift in Sources */,
 				A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */,
 				A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */,
@@ -759,12 +765,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A30FF3912CE102560034F9DC /* XCRemoteSwiftPackageReference "SwiftDown" */ = {
+		A37C39692D5E4E3A003EBCC6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/qeude/SwiftDown.git";
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
-				branch = develop;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.4;
 			};
 		};
 		A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
@@ -775,17 +781,14 @@
 				kind = branch;
 			};
 		};
-		A3F6B1442D4CEC3F006FD834 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/clerk/clerk-ios";
-			requirement = {
-				kind = exactVersion;
-				version = 0.1.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A37C396A2D5E4E3A003EBCC6 /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A37C39692D5E4E3A003EBCC6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
 		A3C585AD2D5B8C35000EF7AC /* Mixpanel */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A3C585AC2D5B8C35000EF7AC /* XCRemoteSwiftPackageReference "mixpanel-swift" */;

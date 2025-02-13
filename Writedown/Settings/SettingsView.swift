@@ -1,5 +1,6 @@
 import Combine
 import SwiftUI
+import KeyboardShortcuts
 
 extension Notification.Name {
     static let autoSaveIntervalDidChange = Notification.Name("autoSaveIntervalDidChange")
@@ -774,9 +775,7 @@ struct HotkeySettingsView: View {
                             Label("Quick wake-up", systemImage: "bolt.square")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text("⌥ + X")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
+                            KeyboardShortcuts.Recorder("", name: .quickWakeup)
                         }
 
                         Divider()
