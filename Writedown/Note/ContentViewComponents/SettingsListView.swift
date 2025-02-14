@@ -48,6 +48,13 @@ struct SettingsListView: View {
                             Text(item.title)
                                 .foregroundColor(.primary)
                                 .padding(.leading, 4)
+
+                            if let shortcut = item.shortcut {
+                                Spacer()
+                                Text(shortcut)
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 12))
+                            }
                         }
                         .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,6 +165,15 @@ struct SettingsListView: View {
             //            return "link.circle.fill"
             case .showAll:
                 return "folder"
+            }
+        }
+
+        var shortcut: String? {
+            switch self {
+            case .settings:
+                return "⌘,"
+            default:
+                return nil
             }
         }
     }
