@@ -403,9 +403,25 @@ struct GeneralSettingsView: View {
                                             NSWorkspace.shared.open(url)
                                         }
                                     }) {
-                                        Label("Log in", systemImage: "person.crop.circle")
+                                        Label("Account", systemImage: "person.crop.circle")
                                             .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(.blue)
+                                            // .foregroundColor(.blue)
+
+                                        Spacer()
+
+                                         Text("Log in")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 4)
+                                            .background(
+                                                LinearGradient(
+                                                    colors: [Color(.systemBlue), Color(.systemIndigo)],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                            .cornerRadius(6)
                                     }
                                     .buttonStyle(.plain)
                                     Spacer()
@@ -416,7 +432,7 @@ struct GeneralSettingsView: View {
                         Divider()
 
                         HStack {
-                            Label("Current Plan", systemImage: "star.circle")
+                            Label("Plan", systemImage: "star.circle")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Text(isPro ? "Pro" : "")
