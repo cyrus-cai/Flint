@@ -49,16 +49,17 @@ struct SettingsListView: View {
                                 .foregroundColor(.primary)
                                 .padding(.leading, 4)
 
+                            Spacer()
+
                             if let shortcut = item.shortcut {
-                                Spacer()
-                                HStack(spacing: 4) {
+                                HStack(spacing: 2) {
                                     ForEach(shortcut.map(String.init), id: \.self) { char in
                                         Text(char)
                                             .font(.system(size: 11))
                                             .frame(width: 18, height: 18)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 4)
-                                                    .fill(Color(NSColor.tertiaryLabelColor).opacity(0.2))
+                                                    .fill(Color(NSColor.tertiaryLabelColor).opacity(0.3))
                                             )
                                     }
                                 }
