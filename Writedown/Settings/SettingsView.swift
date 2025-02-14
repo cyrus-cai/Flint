@@ -545,12 +545,12 @@ struct GeneralSettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
-                GroupBox("Activity Overview") {
-                    ContributionGraph(contributions: viewModel.noteCountByDay)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 8)
-                }
-                .groupBoxStyle(ModernGroupBoxStyle())
+                // GroupBox("Activity Overview") {
+                //     ContributionGraph(contributions: viewModel.noteCountByDay)
+                //         .padding(.vertical, 12)
+                //         .padding(.horizontal, 8)
+                // }
+                // .groupBoxStyle(ModernGroupBoxStyle())
             }
             .padding(.horizontal, 16)
         }
