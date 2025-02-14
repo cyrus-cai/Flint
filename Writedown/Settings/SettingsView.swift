@@ -685,18 +685,15 @@ struct IntegrationSettingsView: View {
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
 
-                            // Open button
-                            // if FileManager.shared.isPathConfigured {
-                            // if FileManager.shared.isPathConfigured {
                             HStack(spacing: 0) {
+
                                 Text(customPath)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .lineLimit(1)
                                     .truncationMode(.middle)
                                     .padding(.vertical, 8)
-                                    .padding(.horizontal, 12)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 8)
 
                                 Button("Change") {
                                     selectCustomDirectory()
@@ -704,25 +701,8 @@ struct IntegrationSettingsView: View {
                                 .font(.system(size: 13))
                                 .controlSize(.small)
                             }
-                            .padding(.trailing, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(.primary.opacity(0.05))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color.purple.opacity(0.1), lineWidth: 1)
-                                    )
-                            )
+                            // .padding(.trailing, 4)
                         }
-                        // Button("Open") {
-                        //     openInFinder()
-                        // }
-                        // .font(.system(size: 13))
-                        // .controlSize(.small)
-                        // .padding(.trailing, 8)
-                        // }
-
-                        // }
 
                         Divider()
 
