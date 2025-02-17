@@ -510,11 +510,11 @@ struct RecentNotesListView: View {
                         .font(.system(size: 14))
                         .tint(.purple)
                         .focused($searchFocused)
-                        .onHover { isHovered in
-                            if isHovered {
-                                searchFocused = true
-                            }
-                        }
+                        // .onHover { isHovered in
+                        //     if isHovered {
+                        //         searchFocused = true
+                        //     }
+                        // }
                     if !viewModel.searchText.isEmpty {
                         Button(action: {
                             viewModel.searchText = ""
