@@ -432,7 +432,7 @@ struct EditorView: View {
                     .onHover { _ in
                         //                        print("确保 hover 后立即获取焦点")
                         // 确保视图出现后立即获取焦点
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             isEditing = true
                         }
                     }
