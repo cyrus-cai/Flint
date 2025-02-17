@@ -1019,29 +1019,42 @@ struct TimeGroupHeader: View {
     }
 
     private func summarizeGroupNotes() {
+        // 确保能够转换为 TimeGroup，否则直接返回
         guard let group = TimeGroup(rawValue: title) else { return }
         isSummarizing = true
 
+        // 合并当前分组内所有笔记的标题和内容
         let combinedContent = notes.map { note in
             "Note: \(note.title)\n\(note.content)"
         }.joined(separator: "\n---\n")
 
-        var summary = ""
+        // 风控校验：不允许超过 10000 字
+        if combinedContent.count > 10000 {
+            print("内容超过 10000 字，无法进行摘要")
+            DispatchQueue.main.async {
+                // 更新摘要内容，提示用户文本过长
+                var newSummaries = viewModel.groupSummaries
+                newSummaries[group] = "Content is too long to be summarized."
+                viewModel.groupSummaries = newSummaries
+            }
+            isSummarizing = false
+            return
+        }
 
+        // 定义流式处理类，处理 API 逐步返回的数据
         class StreamHandler: SummarizeStreamDelegate {
             var summary: String = ""
             weak var viewModel: RecentNotesViewModel?
             let group: TimeGroup
-            let completion: () -> Void  // closure to signal when summarization is done
+            let completion: () -> Void  // 通知摘要完成
 
-            init(
-                viewModel: RecentNotesViewModel?, group: TimeGroup, completion: @escaping () -> Void
-            ) {
+            init(viewModel: RecentNotesViewModel?, group: TimeGroup, completion: @escaping () -> Void) {
                 print("🎯 StreamHandler initialized for group: \(group)")
                 self.viewModel = viewModel
                 self.group = group
                 self.completion = completion
-                // Clear any previous summary
+
+                // 清空之前的摘要
                 DispatchQueue.main.async {
                     var newSummaries = viewModel?.groupSummaries ?? [:]
                     newSummaries[group] = ""
@@ -1054,7 +1067,7 @@ struct TimeGroupHeader: View {
                     guard let self = self, let viewModel = self.viewModel else { return }
                     self.summary += content
                     print("🔄 Updating summary: \(self.summary)")
-                    // Update the summary in the view model
+                    // 更新摘要到 ViewModel
                     var newSummaries = viewModel.groupSummaries
                     newSummaries[self.group] = self.summary
                     viewModel.groupSummaries = newSummaries
@@ -1071,26 +1084,26 @@ struct TimeGroupHeader: View {
                     newSummaries[self.group] = self.summary
                     viewModel.groupSummaries = newSummaries
                     if #available(macOS 10.11, *) {
-                        NSHapticFeedbackManager.defaultPerformer.perform(
-                            .generic, performanceTime: .now)
+                        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
                     }
-                    self.completion()  // Notify view to update isSummarizing
+                    self.completion()  // 通知摘要流程结束
                 }
             }
 
             func failed(with error: Error) {
                 print("❌ Summary failed for group: \(group) - Error: \(error)")
                 DispatchQueue.main.async {
-                    self.completion()  // Also update on failure
+                    self.completion()  // 出错时也结束摘要流程
                 }
             }
         }
 
-        // Create the stream handler and specify that once it's done, update the view's state.
+        // 创建流式处理对象，并传入回调以更新 isSummarizing 状态
         let streamHandler = StreamHandler(viewModel: viewModel, group: group) {
             self.isSummarizing = false
         }
 
+        // 发起摘要请求（已通过前置校验确保文本长度不超过 10000 字）
         DoubaoAPI.shared.summarizeWithStream(text: combinedContent, delegate: streamHandler)
     }
 
