@@ -16,7 +16,7 @@ struct SettingsListView: View {
     // }
 
     private func openInFinder() {
-        guard let notesDirectory = FileManager.shared.notesDirectory else {
+        guard let notesDirectory = FileManager.shared.currentWeekDirectory else {
             print("Could not access notes directory")
             return
         }

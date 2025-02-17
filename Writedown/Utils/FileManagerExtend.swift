@@ -132,16 +132,7 @@ class FileManager {
             }
             return notes
         }
-        //        catch {
-        //            print("Error getting notes: \(error)")
-        //            return []
-        //        }
     }
-
-    // Check if path is configured
-    // var isPathConfigured: Bool {
-    //     return baseDirectory != nil
-    // }
 
     // Get current notes path for display
     var currentNotesPath: String {
