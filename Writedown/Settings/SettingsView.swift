@@ -1077,13 +1077,13 @@ struct AboutSettingsView: View {
 }
 
 struct AutoSaveIntervalSection: View {
-    @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 10
+    @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 15
 
     private let intervals = [
-        (2, "2s"),
-        (5, "5s"),
         (10, "10s"),
-        (20, "20s"),
+        (15, "15s"),
+        (30, "30s"),
+        (60, "1min"),
     ]
 
     var body: some View {
