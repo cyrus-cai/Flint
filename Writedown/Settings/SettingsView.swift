@@ -674,6 +674,8 @@ struct IntegrationSettingsView: View {
         }
     }
 
+    @AppStorage("notionIntegration") private var notionIntegration = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -752,6 +754,29 @@ struct IntegrationSettingsView: View {
                     }
                     print("刷新模型选择器视图: 当前 AIModel 为 \(AIModel)")
                 }
+
+                // External Settings
+                GroupBox("External Connections") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Notion", systemImage: "square.and.pencil")
+                                .font(.system(size: 13, weight: .medium))
+                            Text("beta")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.6))
+                                .cornerRadius(4)
+                            Spacer()
+                            Toggle("", isOn: $notionIntegration)
+                                .toggleStyle(.switch)
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
             }
             .padding(.horizontal, 16)
         }
