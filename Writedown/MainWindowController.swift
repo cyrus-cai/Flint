@@ -376,20 +376,28 @@ class MainWindowController: NSWindowController {
         if window.isVisible {
             hideWindow()
         } else {
-            showWindow()
+            showWindow(nil)
         }
     }
 
-    private func showWindow() {
-        guard let window = window else { return }
-
-        if !isPositionVisible(window.frame.origin) {
-            setDefaultPosition()
+    override func showWindow(_ sender: Any?) {
+        guard let window = self.window else {
+            super.showWindow(sender)
+            return
         }
 
-        window.makeKeyAndOrderFront(nil)
-        window.level = .statusBar + 1
-        NSApp.activate(ignoringOtherApps: true)
+        // 先将透明度设为 0，这样窗口初始状态为透明，
+        // 注意这里不改变窗口的位置，保持原有 frame
+        window.alphaValue = 0.0
+
+        // 调用 super.showWindow 展示窗口（位置不变）
+        super.showWindow(sender)
+
+        // 使用 NSAnimationContext 进行淡入动画，将透明度由 0 渐变到 1
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.2  // 可根据需要调整时长
+            window.animator().alphaValue = 1.0
+        }, completionHandler: nil)
     }
 
     private func hideWindow() {
