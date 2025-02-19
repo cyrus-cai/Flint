@@ -66,21 +66,18 @@ struct TitleBarView: View {
             // 在这里设置事件监听器
             let monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
                 if event.modifierFlags.contains(.command) {
-                    switch event.charactersIgnoringModifiers {
-                    case "f", "h":
+                    // Command+Shift+F: open file dictionary
+                    if event.modifierFlags.contains(.shift),
+                       let key = event.charactersIgnoringModifiers?.lowercased(),
+                       key == "f" {
                         toolbarState.openFileDictionary()
                         return nil
+                    }
+
+                    switch event.charactersIgnoringModifiers {
                     case "n", "k", "\r":
                         if !toolbarState.isEmpty {
                             toolbarState.addNew()
-                            return nil
-                        }
-                    case "o":
-                        if title != "Untitled" && !title.isEmpty,
-                            let uri = generateObsidianURI(from: title),
-                            let url = URL(string: uri)
-                        {
-                            NSWorkspace.shared.open(url)
                             return nil
                         }
                     case "]", "】":
