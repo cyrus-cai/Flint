@@ -66,28 +66,33 @@ struct TitleBarView: View {
             // 在这里设置事件监听器
             let monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
                 if event.modifierFlags.contains(.command) {
-                    // Command+Shift+F: open file dictionary
-                    if event.modifierFlags.contains(.shift),
-                       let key = event.charactersIgnoringModifiers?.lowercased(),
-                       key == "f" {
-                        toolbarState.openFileDictionary()
-                        return nil
-                    }
-
-                    switch event.charactersIgnoringModifiers {
-                    case "n", "k", "\r":
-                        if !toolbarState.isEmpty {
-                            toolbarState.addNew()
+                    if let key = event.charactersIgnoringModifiers?.lowercased() {
+                        if key == "f" {
+                            if event.modifierFlags.contains(.shift) {
+                                // Command+Shift+F: 调用自定义的 openFileDictionary()
+                                toolbarState.openFileDictionary()
+                            } else {
+                                // Command+F: 调用 macOS 自带的页面查找功能
+                                NSApp.sendAction(#selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
+                            }
                             return nil
                         }
-                    case "]", "】":
-                        toolbarState.navigateToPreviousNote()
-                        return nil
-                    case "[", "【":
-                        toolbarState.navigateToNextNote()
-                        return nil
-                    default:
-                        break
+
+                        switch key {
+                        case "n", "k", "\r":
+                            if !toolbarState.isEmpty {
+                                toolbarState.addNew()
+                                return nil
+                            }
+                        case "]", "】":
+                            toolbarState.navigateToPreviousNote()
+                            return nil
+                        case "[", "【":
+                            toolbarState.navigateToNextNote()
+                            return nil
+                        default:
+                            break
+                        }
                     }
                 }
                 return event

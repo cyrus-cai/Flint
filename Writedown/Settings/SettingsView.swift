@@ -854,7 +854,7 @@ struct HotkeySettingsView: View {
                             Label("History", systemImage: "clock")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text("⌘ + H / ⌘ + F")
+                            Text("⌘ + shift + F")
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
