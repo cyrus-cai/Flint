@@ -497,6 +497,7 @@ struct DownFunctionView: View {
                 .foregroundColor(.secondary)
                 .padding(.vertical, 8)
                 .opacity(0.5)
+                .animation(.easeInOut(duration: 0.3), value: showCopied)
         }
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, alignment: .center)
