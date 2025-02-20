@@ -802,7 +802,7 @@ struct HotkeySettingsView: View {
                         Divider()
 
                         HStack {
-                            Label("Quick save", systemImage: "bolt.square")
+                            Label("Quick save", systemImage: "square.and.arrow.down")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Text("⌘ + C (double click)")
@@ -875,6 +875,17 @@ struct HotkeySettingsView: View {
 
                 GroupBox("Navigation") {
                     VStack(spacing: 12) {
+                        HStack {
+                            Label("Copy All", systemImage: "doc.on.doc")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + ⇧ + C")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
+
                         HStack {
                             Label("History", systemImage: "clock")
                                 .font(.system(size: 13, weight: .medium))

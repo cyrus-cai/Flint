@@ -8,6 +8,7 @@ struct TitleBarView: View {
     let links: [String]
     @ObservedObject var toolbarState: TitleBarToolbarState
     let onNoteSelected: (String) -> Void  // 新增参数
+    let onCopy: () -> Void  // 新增参数
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -50,7 +51,8 @@ struct TitleBarView: View {
                         || toolbarState.showSettingsList,
                     onNoteSelected: onNoteSelected,
                     links: links,  // Pass links to toolbar
-                    title: title
+                    title: title,
+                    onCopy: onCopy
                 )
             }
 
@@ -122,6 +124,7 @@ struct TitleBarToolbar: View {
     let onNoteSelected: (String) -> Void
     let links: [String]  // Add links parameter
     let title: String
+    let onCopy: () -> Void  // Add onCopy parameter
 
     private func openSingleLink() {
         if let url = URL(string: links[0]) {
@@ -165,9 +168,8 @@ struct TitleBarToolbar: View {
             )
             .popover(isPresented: $state.showSettingsList) {
                 SettingsListView(
-                    //                    onRename: state.renameFile,
-                    //                    onDelete: state.deleteFile,
                     onSettings: state.openSettings,
+                    onCopy: onCopy,  // Pass onCopy callback
                     title: title
                 )
             }

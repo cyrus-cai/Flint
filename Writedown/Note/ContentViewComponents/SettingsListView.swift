@@ -6,6 +6,7 @@ struct SettingsListView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     let onSettings: () -> Void
+    let onCopy: () -> Void
     let title: String?
 
     // private func generateObsidianURI(from title: String) -> String? {
@@ -82,7 +83,7 @@ struct SettingsListView: View {
             }
         }
         .padding(.vertical, 6)
-        .frame(width: 160)
+        .frame(width: 200)
         .background(Color(NSColor.windowBackgroundColor))
     }
 
@@ -96,13 +97,14 @@ struct SettingsListView: View {
             openInFinder()
         case .settings:
             onSettings()
+        case .copyContents:
+            onCopy()
         //    case .openInFeishu:
         //        if let title = title, let url = generateFeishuURL(from: title) {
         //            if let feishuURL = URL(string: url) {
         //                NSWorkspace.shared.open(feishuURL)
         //            }
         //        }
-        //    }
         }
     }
 
@@ -146,6 +148,7 @@ struct SettingsListView: View {
     enum SettingsItem: Int, CaseIterable, Identifiable {
         // case openInObsidian
         //    case openInFeishu
+        case copyContents
         case showAll
         case settings
 
@@ -157,6 +160,8 @@ struct SettingsListView: View {
             //     return "Open in Obsidian"
             //        case .openInFeishu:
             //            return "Open in Feishu"
+            case .copyContents:
+                return "Copy Contents"
             case .showAll:
                 return "Show in Finder"
             case .settings:
@@ -174,11 +179,15 @@ struct SettingsListView: View {
             //            return "link.circle.fill"
             case .showAll:
                 return "folder"
+            case .copyContents:
+                return "copy"
             }
         }
 
         var shortcut: String? {
             switch self {
+            case .copyContents:
+                return "⌘⇧C"
             case .settings:
                 return "⌘,"
             default:

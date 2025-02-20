@@ -216,7 +216,8 @@ struct ContentView: View {
                     isHovered: isHovered,
                     links: links,
                     toolbarState: toolbarState,
-                    onNoteSelected: loadNoteContent)
+                    onNoteSelected: loadNoteContent,
+                    onCopy: copyFullContent)
                 EditorView(text: $text)
                 DownFunctionView(count: text.count, links: links, showCopied: showCopiedStatus)
             }
