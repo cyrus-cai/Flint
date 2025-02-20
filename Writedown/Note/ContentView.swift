@@ -64,6 +64,8 @@ struct ContentView: View {
     @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 10
     @State private var autoSaveTimer: AnyCancellable?
     @State private var keyboardMonitor: Any?
+    @State private var showCopyToast = false
+    @State private var showCopiedStatus = false
 
     enum SaveTrigger {
         case timer
@@ -216,7 +218,7 @@ struct ContentView: View {
                     toolbarState: toolbarState,
                     onNoteSelected: loadNoteContent)
                 EditorView(text: $text)
-                DownFunctionView(count: text.count, links: links)
+                DownFunctionView(count: text.count, links: links, showCopied: showCopiedStatus)
             }
 
             if showToast {
@@ -224,23 +226,6 @@ struct ContentView: View {
                     .padding(.bottom, 12)
                     .frame(maxHeight: .infinity, alignment: .bottom)
             }
-            // } else {
-            //     // 未配置存储路径的视图
-            //     VStack(spacing: 8) {
-            //         Text("Welcome to Writedown!")
-            //             .font(.title)
-            //             .padding(.top, 20)
-
-            //         Text("Please configure your storage location")
-            //             .foregroundColor(.secondary)
-
-            //         Button("Open Settings") {
-            //             WindowManager.shared.createSettingsWindow()
-            //         }
-            //         .buttonStyle(.borderedProminent)
-            //     }
-            //     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // }
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -302,13 +287,37 @@ struct ContentView: View {
 
     private func setupKeyboardMonitor() {
         keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.keyCode == 53 {  // ESC key
+            // Handle ESC key
+            if event.keyCode == 53 {
                 if let window = NSApp.keyWindow {
                     window.orderOut(nil)
                     return nil
                 }
             }
+
+            // Handle Command+Shift+C
+            if event.modifierFlags.contains(.command) && event.modifierFlags.contains(.shift) {
+                if let key = event.charactersIgnoringModifiers?.lowercased(), key == "c" {
+                    copyFullContent()
+                    return nil
+                }
+            }
             return event
+        }
+    }
+
+    private func copyFullContent() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+
+        withAnimation {
+            showCopiedStatus = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                showCopiedStatus = false
+            }
         }
     }
 
@@ -475,354 +484,15 @@ struct EditorView: View {
     }
 }
 
-//struct EditorView: View {
-//    @Binding var text: String
-//    @Environment(\.colorScheme) private var colorScheme
-//    @FocusState private var isEditing: Bool
-//    let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
-//    let linkColor = Color.purple
-//    @State private var isPlaceholderVisible = true
-//    @State private var lastHeight: CGFloat = 0
-//    @State private var debounceTimer: Timer?
-//    @State private var attributedText: NSAttributedString = NSAttributedString()
-//
-//    private func calculateHeight(for text: String, width: CGFloat) -> CGFloat {
-//        let storage = NSTextStorage(string: text)
-//        let container = NSTextContainer(size: CGSize(width: width - 36, height: .greatestFiniteMagnitude))
-//        container.lineFragmentPadding = 0
-//
-//        let manager = NSLayoutManager()
-//        manager.addTextContainer(container)
-//        storage.addLayoutManager(manager)
-//
-//        let range = NSRange(location: 0, length: text.utf16.count)
-//        storage.addAttributes([
-//            .font: NSFont(name: "PingFang SC", size: 14.0) ?? NSFont.systemFont(ofSize: 14.0)
-//        ], range: range)
-//
-//        manager.ensureLayout(for: container)
-//        let height = manager.usedRect(for: container).height
-//
-//        return height + 92
-//    }
-//
-//    private func updateAttributedText(_ text: String) {
-//        let attributedString = NSMutableAttributedString(string: text)
-//
-//        // 基本文本样式
-//        let baseAttributes: [NSAttributedString.Key: Any] = [
-//            .font: NSFont(name: "PingFang SC", size: 14.0) ?? NSFont.systemFont(ofSize: 14.0),
-//            .foregroundColor: colorScheme == .dark ? NSColor.white : NSColor.black
-//        ]
-//        attributedString.addAttributes(baseAttributes, range: NSRange(location: 0, length: text.count))
-//
-//        // 链接匹配模式
-//        let patterns = [
-//            "(https?://(?:www\\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,})",
-//            "(www\\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,})",
-//            "(https?://(?:www\\.|(?!www))[a-zA-Z0-9]+\\.[^\\s]{2,})",
-//            "(www\\.[a-zA-Z0-9]+\\.[^\\s]{2,})"
-//        ]
-//
-//        for pattern in patterns {
-//            do {
-//                let regex = try NSRegularExpression(pattern: pattern, options: .caseInsensitive)
-//                let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
-//
-//                for match in matches {
-//                    // 链接样式
-//                    let urlString = text[Range(match.range, in: text)!]
-//                    attributedString.addAttributes([
-//                        .foregroundColor: NSColor(linkColor),
-//                        .underlineStyle: NSUnderlineStyle.single.rawValue,
-//                        .link: urlString,
-//                        .cursor: NSCursor.pointingHand
-//                    ], range: match.range)
-//                }
-//            } catch {
-//                print("正则表达式错误: \(error)")
-//            }
-//        }
-//
-//        self.attributedText = attributedString
-//    }
-//
-//    struct KeyEventHandler: NSViewRepresentable {
-//        let onKeyDown: (NSEvent) -> Void
-//
-//        func makeNSView(context: Context) -> NSView {
-//            let view = KeyView()
-//            view.onKeyDown = onKeyDown
-//            return view
-//        }
-//
-//        func updateNSView(_ nsView: NSView, context: Context) {}
-//
-//        class KeyView: NSView {
-//            var onKeyDown: ((NSEvent) -> Void)?
-//
-//            override var acceptsFirstResponder: Bool { true }
-//
-//            override func keyDown(with event: NSEvent) {
-//                onKeyDown?(event)
-//                super.keyDown(with: event)
-//            }
-//        }
-//    }
-//
-//    var body: some View {
-//        GeometryReader { geometry in
-//            ZStack(alignment: .topLeading) {
-//                CustomTextEditor(text: $text,
-//                               isEditing: isEditing,
-//                               attributedText: attributedText)
-//                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                    .scrollContentBackground(.hidden)
-//                    .scrollIndicators(.automatic)
-//                    .background(Color.clear)
-//                    .padding(.horizontal, 16)
-//                    .padding(.top, 8)
-//                    .focused($isEditing)
-//                    .onAppear {
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                            print("isEditing = true1")
-//                            isEditing = true
-//                            updateAttributedText(text)
-//                        }
-//                    }
-//                    .preference(
-//                        key: ContentHeightPreferenceKey.self,
-//                        value: calculateHeight(for: text, width: geometry.size.width)
-//                    )
-//                    .tint(.purple)
-//                    .background(
-//                        KeyEventHandler { event in
-//                            if event.keyCode != 51 {
-//                                isPlaceholderVisible = false
-//                            }
-//                        }
-//                    )
-//                    .onChange(of: text) {
-//                        if text.isEmpty {
-//                            isPlaceholderVisible = true
-//                        }
-//                        updateAttributedText(text)
-//                    }
-//                    .onHover { hovering in
-//                        if hovering {
-//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                                print("isEditing = true")
-//                                isEditing = true
-//                            }
-//                        }
-//                    }
-//
-//                if text.isEmpty {
-//                    Text("Start writing...")
-//                        .font(.custom("PingFang SC", size: 14.0))
-//                        .padding(.horizontal, 20)
-//                        .padding(.top, 8)
-//                        .foregroundColor(.gray.opacity(0.2))
-//                }
-//            }
-//        }
-//    }
-//}
-
-// CustomTextEditor Implementation
-// 自定义的 NSTextView 子类，用于处理链接点击
-//class ClickableTextView: NSTextView {
-//    override func mouseDown(with event: NSEvent) {
-//        let point = convert(event.locationInWindow, from: nil)
-//        let index = characterIndex(for: point)
-//
-//        // 检查索引是否有效
-//        guard index < attributedString().length else {
-//            super.mouseDown(with: event)
-//            return
-//        }
-//
-//        // 检查点击位置是否有链接
-//        if let attr = attributedString().attribute(.link, at: index, effectiveRange: nil) as? String {
-//            if let url = URL(string: attr) {
-//                print("url is", url)
-//                NSWorkspace.shared.open(url)
-//                return
-//            }
-//        }
-//
-//        super.mouseDown(with: event)
-//    }
-//}
-
-//struct CustomTextEditor: NSViewRepresentable {
-//    @Binding var text: String
-//    var isEditing: Bool
-//    var attributedText: NSAttributedString
-//
-//    func makeNSView(context: Context) -> NSTextView {
-//        let textView = ClickableTextView()
-////        textView.isRichText = true
-//        textView.allowsUndo = true
-//        textView.font = .init(name: "PingFang SC", size: 14)
-//        textView.delegate = context.coordinator
-//        textView.backgroundColor = .clear
-//        textView.isEditable = true
-//        textView.drawsBackground = false
-//
-//        // 启用链接点击
-//        textView.isSelectable = true
-//        textView.linkTextAttributes = [
-//            .foregroundColor: NSColor(Color.purple),
-//            .underlineStyle: NSUnderlineStyle.single.rawValue,
-//            .cursor: NSCursor.pointingHand
-//        ]
-//
-//        // 设置自动布局
-//        textView.translatesAutoresizingMaskIntoConstraints = false
-//        textView.autoresizingMask = [.width, .height]
-//
-//        // Set insertion point color
-//        textView.insertionPointColor = NSColor(Color.purple)
-//
-//      // Set selection color
-//      textView.selectedTextAttributes = [
-//          .backgroundColor: NSColor(Color.purple).withAlphaComponent(0.2)
-//      ]
-//
-//        return textView
-//    }
-//
-//    func updateNSView(_ nsView: NSTextView, context: Context) {
-//           if nsView.attributedString() != attributedText {
-//               nsView.textStorage?.setAttributedString(attributedText)
-//           }
-//       }
-//
-//
-//    func makeCoordinator() -> Coordinator {
-//        Coordinator(self)
-//    }
-//
-//    class Coordinator: NSObject, NSTextViewDelegate {
-//        var parent: CustomTextEditor
-//
-//        init(_ parent: CustomTextEditor) {
-//            self.parent = parent
-//        }
-//
-//        func textDidChange(_ notification: Notification) {
-//            guard let textView = notification.object as? NSTextView else { return }
-//            parent.text = textView.string
-//        }
-//    }
-//}
-
-//struct CustomTextEditor: NSViewRepresentable {
-//    @Binding var text: String
-//    var isEditing: Bool
-//    var attributedText: NSAttributedString
-//
-//    class Coordinator: NSObject, NSTextViewDelegate {
-//        var parent: CustomTextEditor
-//        private var updateWorkItem: DispatchWorkItem?
-//
-//        init(_ parent: CustomTextEditor) {
-//            self.parent = parent
-//        }
-//
-//        func textDidChange(_ notification: Notification) {
-//            guard let textView = notification.object as? NSTextView else { return }
-//            // 立即更新纯文本
-//            parent.text = textView.string
-//
-//            // 取消之前的延迟更新
-//            updateWorkItem?.cancel()
-//
-//            // 创建新的延迟更新
-//            let workItem = DispatchWorkItem { [weak self, weak textView] in
-//                guard let textView = textView else { return }
-//                let selectedRanges = textView.selectedRanges
-//
-//                // 在主线程更新
-//                DispatchQueue.main.async {
-//                    // 如果文本视图正在编辑，不更新
-//                    guard textView.window?.firstResponder != textView else { return }
-//
-//                    // 更新富文本内容
-//                    textView.textStorage?.setAttributedString(self?.parent.attributedText ?? NSAttributedString())
-//
-//                    // 恢复光标位置
-//                    if let firstRange = selectedRanges.first?.rangeValue,
-//                       firstRange.location <= textView.string.count {
-//                        textView.setSelectedRanges(selectedRanges,
-//                                                 affinity: .downstream,
-//                                                 stillSelecting: false)
-//                    }
-//                }
-//            }
-//
-//            updateWorkItem = workItem
-//
-//            // 延迟0.5秒执行更新
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
-//        }
-//    }
-//
-//    func makeCoordinator() -> Coordinator {
-//        Coordinator(self)
-//    }
-//
-//    func makeNSView(context: Context) -> NSTextView {
-//        let textView = ClickableTextView()
-//        textView.allowsUndo = true
-//        textView.font = .init(name: "PingFang SC", size: 14)
-//        textView.delegate = context.coordinator
-//        textView.backgroundColor = .clear
-//        textView.isEditable = true
-//        textView.drawsBackground = false
-//        textView.isSelectable = true
-//
-//        textView.linkTextAttributes = [
-//            .foregroundColor: NSColor(Color.purple),
-//            .underlineStyle: NSUnderlineStyle.single.rawValue,
-//            .cursor: NSCursor.pointingHand
-//        ]
-//
-//        textView.insertionPointColor = NSColor(Color.purple)
-//        textView.selectedTextAttributes = [
-//            .backgroundColor: NSColor(Color.purple).withAlphaComponent(0.2)
-//        ]
-//
-//        return textView
-//    }
-//
-//    func updateNSView(_ nsView: NSTextView, context: Context) {
-//        // 只在文本视图未获得焦点时更新
-//        if nsView.window?.firstResponder != nsView {
-//            let selectedRanges = nsView.selectedRanges
-//            nsView.textStorage?.setAttributedString(attributedText)
-//
-//            // 恢复选择范围
-//            if let firstRange = selectedRanges.first?.rangeValue,
-//               firstRange.location <= attributedText.length {
-//                nsView.setSelectedRanges(selectedRanges,
-//                                       affinity: .downstream,
-//                                       stillSelecting: false)
-//            }
-//        }
-//    }
-//}
 
 struct DownFunctionView: View {
     let count: Int
     let links: [String]
-    @State private var showTooltip = false
-    @State private var showLinksPopover = false
+    let showCopied: Bool
 
     var body: some View {
         HStack(spacing: 4) {
-            Text("\(count) character\(count != 0 && count != 1 ? "s" : "")")
+            Text(showCopied ? "Copied" : "\(count) character\(count != 0 && count != 1 ? "s" : "")")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .padding(.vertical, 8)
@@ -830,7 +500,6 @@ struct DownFunctionView: View {
         }
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, alignment: .center)
-
     }
 }
 
