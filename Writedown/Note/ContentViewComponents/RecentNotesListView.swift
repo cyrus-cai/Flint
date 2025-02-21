@@ -439,32 +439,38 @@ struct RecentNotesListView: View {
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
             switch event.keyCode {
             case 125:  // Down arrow
-                // 上下键始终用于导航，不管搜索框是否聚焦
                 viewModel.selectNextNote()
                 return nil
             case 126:  // Up arrow
-                // 上下键始终用于导航，不管搜索框是否聚焦
                 viewModel.selectPreviousNote()
                 return nil
             case 36:  // Return key
-                // 如果有选中的笔记，执行选择操作
+                // 当中文输入正在进行时，不直接触发选择逻辑，让系统处理输入候选确认
+                let composing: Bool = {
+                    if let window = NSApp.keyWindow,
+                       let client = window.firstResponder as? NSTextInputClient {
+                        return client.hasMarkedText()
+                    }
+                    return false
+                }()
+                if composing {
+                    return event
+                }
+
                 if let currentIndex = viewModel.currentNoteIndex {
                     let currentNote = viewModel.filteredNotes[currentIndex]
                     onSelectNote(currentNote.content)
                     dismiss()
                     return nil
                 }
-                // 如果没有选中的笔记，让事件继续传递（比如在搜索框中）
                 return event
             case 51:  // Delete key
                 if event.modifierFlags.contains(.command) {
-                    // Command+Delete: 删除当前选中的条目
                     if let currentIndex = viewModel.currentNoteIndex {
                         let currentNote = viewModel.filteredNotes[currentIndex]
-                        withAnimation {  // 添加动画
+                        withAnimation {
                             viewModel.archiveNote(currentNote)
                         }
-
                     }
                     return nil
                 }
@@ -473,7 +479,6 @@ struct RecentNotesListView: View {
                 dismiss()
                 return nil
             default:
-                // 其他所有按键都正常传递
                 return event
             }
         }
