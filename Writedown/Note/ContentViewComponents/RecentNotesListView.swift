@@ -1030,7 +1030,7 @@ struct TimeGroupHeader: View {
 
         // 风控校验：不允许超过 10000 字
         if combinedContent.count > 10000 {
-            print("内容超过 10000 字，无法进行摘要")
+            print("The content exceeds 10,000 characters and cannot be summarized.")
             DispatchQueue.main.async {
                 // 更新摘要内容，提示用户文本过长
                 var newSummaries = viewModel.groupSummaries
