@@ -790,7 +790,8 @@ struct HotkeySettingsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                GroupBox("Quick Actions") {
+                // Wake Up Group
+                GroupBox("Wake Up") {
                     VStack(spacing: 12) {
                         HStack {
                             Label("Quick wake-up", systemImage: "bolt.square")
@@ -818,12 +819,9 @@ struct HotkeySettingsView: View {
                                 .foregroundColor(.secondary)
                         } else {
                             HStack {
-                                Text(
-                                    "Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)"
-                                )
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                                Spacer()
+                                Text("Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
                                 Button(action: {
                                     Task {
                                         do {
@@ -866,15 +864,26 @@ struct HotkeySettingsView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
-                GroupBox("Navigation") {
+                // Note Operations Group
+                GroupBox("Note Operations") {
                     VStack(spacing: 12) {
+                        HStack {
+                            Label("New Note", systemImage: "plus")
+                                .font(.system(size: 13, weight: .medium))
+                            Spacer()
+                            Text("⌘ + ⏎ / ⌘ + N / ⌘ + K")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
+
                         HStack {
                             Label("Copy All", systemImage: "doc.on.doc")
                                 .font(.system(size: 13, weight: .medium))
@@ -883,25 +892,20 @@ struct HotkeySettingsView: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-                        Divider()
-
+                // Navigation Group
+                GroupBox("Navigation") {
+                    VStack(spacing: 12) {
                         HStack {
                             Label("History", systemImage: "clock")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
-                            Text("⌘ + shift + F")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
-                        }
-
-                        Divider()
-
-                        HStack {
-                            Label("New Note", systemImage: "plus")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            Text("⌘ + ⏎ / ⌘ + N / ⌘ + K")
+                            Text("⌘ + ⇧ + F")
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                         }
