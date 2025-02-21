@@ -618,38 +618,8 @@ struct RecentNotesListView: View {
                         .padding(24)
                         .frame(height: 360)
                 }
-
-                // Footer
-                // if !viewModel.notes.isEmpty && !viewModel.filteredNotes.isEmpty {
-                // {
-                // Divider()
-                // HStack {
-                //     Button(action: openInFinder) {
-                //         HStack {
-                //             Text("Show All")
-                //                 .font(.system(size: 12))
-                //                 .foregroundColor(.secondary)
-                //         }
-                //         .frame(maxWidth: .infinity)
-                //         .padding(.vertical, 8)
-                //         .background(
-                //             RoundedRectangle(cornerRadius: 0)
-                //                 .fill(
-                //                     isShowAllHovered
-                //                         ? (colorScheme == .dark
-                //                             ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                //                         : Color.clear)
-                //         )
-                //     }
-                //     .buttonStyle(PlainButtonStyle())
-                //     .onHover { hovering in
-                //         isShowAllHovered = hovering
-                //     }
-                // }
-                // }
-
             }
-            .frame(width: 320)
+            .frame(width: 360)
             .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
             .cornerRadius(8)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
@@ -947,6 +917,30 @@ struct NoteRow: View {
                     isHoveringCopy = hovering
                 }
 
+                 // Share button
+                Button(action: shareContent) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 13))
+                            .foregroundColor(.primary)
+                        Spacer()
+                    }
+                    .frame(width: 28, height: 28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                isHoveringShare
+                                    ? (colorScheme == .dark
+                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                    : Color.clear)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    isHoveringShare = hovering
+                }
+
                 // Archive button
                 Button(action: onDelete) {
                     HStack {
@@ -971,29 +965,7 @@ struct NoteRow: View {
                     isDeleteHovered = hovering
                 }
 
-                // Share button
-                Button(action: shareContent) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 13))
-                            .foregroundColor(.primary)
-                        Spacer()
-                    }
-                    .frame(width: 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(
-                                isHoveringShare
-                                    ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                                    : Color.clear)
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-                .onHover { hovering in
-                    isHoveringShare = hovering
-                }
+
             }
         }
         .padding(.horizontal, 12)
@@ -1023,7 +995,7 @@ struct NotePreviewView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
         }
-        .frame(width: 280)
+        .frame(width: 320)
         .background(Color(NSColor.windowBackgroundColor))
         .cornerRadius(8)
         .shadow(color: .black.opacity(0.2), radius: 10, x: -4, y: 4)
