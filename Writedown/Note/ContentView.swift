@@ -284,6 +284,11 @@ struct ContentView: View {
                 object: nil
             )
         }
+        .onChange(of: toolbarState.showRecentNotes) { newValue in
+            if newValue == false {
+                NotificationCenter.default.post(name: Notification.Name("RestoreFocusNotification"), object: nil)
+            }
+        }
     }
 
     private func setupKeyboardMonitor() {
@@ -368,51 +373,43 @@ struct EditorView: View {
     let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
     let linkColor = Color.purple
     @State private var isPlaceholderVisible = true
-
     @State private var lastHeight: CGFloat = 0
     @State private var debounceTimer: Timer?
 
     private func calculateHeight(for text: String, width: CGFloat) -> CGFloat {
         let storage = NSTextStorage(string: text)
         let container = NSTextContainer(
-            size: CGSize(width: width - 36, height: .greatestFiniteMagnitude))  // 32为左右padding总和
+            size: CGSize(width: width - 36, height: .greatestFiniteMagnitude))
         container.lineFragmentPadding = 0
 
         let manager = NSLayoutManager()
         manager.addTextContainer(container)
         storage.addLayoutManager(manager)
 
-        // 设置文本属性
         let range = NSRange(location: 0, length: text.utf16.count)
         storage.addAttributes(
             [
                 .font: NSFont(name: "PingFang SC", size: 14.0) ?? NSFont.systemFont(ofSize: 14.0)
             ], range: range)
 
-        // 计算实际需要高度
         manager.ensureLayout(for: container)
         let height = manager.usedRect(for: container).height
-
-        // 加上padding的高度
-        return height + 92  // 80+12
+        return height + 92  // 80+12 的 padding
     }
 
     struct KeyEventHandler: NSViewRepresentable {
         let onKeyDown: (NSEvent) -> Void
-
         func makeNSView(context: Context) -> NSView {
             let view = KeyView()
             view.onKeyDown = onKeyDown
             return view
         }
-
         func updateNSView(_ nsView: NSView, context: Context) {}
 
         class KeyView: NSView {
             var onKeyDown: ((NSEvent) -> Void)?
 
             override var acceptsFirstResponder: Bool { true }
-
             override func keyDown(with event: NSEvent) {
                 onKeyDown?(event)
                 super.keyDown(with: event)
@@ -433,45 +430,27 @@ struct EditorView: View {
                     .padding(.top, 8)
                     .focused($isEditing)
                     .onAppear {
-                        //                        print("确保视图出现后立即获取焦点")
-                        // 确保视图出现后立即获取焦点
+                        // 初始时确保获得焦点
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             isEditing = true
                         }
                     }
-                    .onHover { _ in
-                        //                        print("确保 hover 后立即获取焦点")
-                        // 确保视图出现后立即获取焦点
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            isEditing = true
-                        }
+                    // 当接收到 RestoreFocusNotification 通知时恢复焦点
+                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name("RestoreFocusNotification"))) { _ in
+                        isEditing = true
                     }
-
                     .preference(
                         key: ContentHeightPreferenceKey.self,
                         value: calculateHeight(for: text, width: geometry.size.width)
                     )
-                    .tint(.purple)  // 设置光标颜色
+                    .tint(.purple)
                     .background(
                         KeyEventHandler { event in
-                            if event.keyCode != 51 {  // 51 是删除键的 keyCode
+                            if event.keyCode != 51 {
                                 isPlaceholderVisible = false
                             }
                         }
                     )
-                    .onChange(of: text) {
-                        if text.isEmpty {
-                            isPlaceholderVisible = true
-                        }
-                    }
-                    .onReceive(
-                        NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)
-                    ) { _ in
-                        print("receive focus change")
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            isEditing = true
-                        }
-                    }
 
                 if text.isEmpty {
                     Text("Start writing...")
