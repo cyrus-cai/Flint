@@ -707,6 +707,7 @@ struct NoteRow: View {
     let searchText: String
     @State private var isCopied = false
     @State private var isHoveringCopy = false
+    @State private var isHoveringShare = false
     @State private var showPreview = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var isInfoHovered = false
@@ -816,6 +817,15 @@ struct NoteRow: View {
             withAnimation {
                 isCopied = false
             }
+        }
+    }
+
+    private func shareContent() {
+        // 使用 NSSharingServicePicker 展示分享菜单，分享 note.content
+        let items: [Any] = [note.content]
+        if let window = NSApp.keyWindow, let contentView = window.contentView {
+            let sharingPicker = NSSharingServicePicker(items: items)
+            sharingPicker.show(relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
         }
     }
 
@@ -959,6 +969,30 @@ struct NoteRow: View {
                 .buttonStyle(PlainButtonStyle())
                 .onHover { hovering in
                     isDeleteHovered = hovering
+                }
+
+                // Share button
+                Button(action: shareContent) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 13))
+                            .foregroundColor(.primary)
+                        Spacer()
+                    }
+                    .frame(width: 28, height: 28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                isHoveringShare
+                                    ? (colorScheme == .dark
+                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                    : Color.clear)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    isHoveringShare = hovering
                 }
             }
         }
@@ -1200,8 +1234,6 @@ struct TimeGroupHeader: View {
                                 HStack(spacing: 4) {
                                     Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
                                         .font(.system(size: 12))
-                                    // Text(isCopied ? "Copied" : "Copy")
-                                    //     .font(.system(size: 11))
                                 }
                                 .frame(width: 28, height: 28)
                                 .background(
@@ -1226,8 +1258,6 @@ struct TimeGroupHeader: View {
                                     Image(systemName: "archivebox")
                                         .font(.system(size: 14))
                                         .foregroundColor(.red)
-                                    // Text("Copy & Archive")
-                                    //     .font(.system(size: 11))
                                 }
                                 .frame(width: 28, height: 28)
                                 .background(
@@ -1246,30 +1276,29 @@ struct TimeGroupHeader: View {
                                 isHoveringArchive = hovering
                             }
 
-                            // 新增 Share & Archive 按钮
-                            // Button(action: copyAndShare) {
-                            //     HStack(spacing: 4) {
-                            //         Image(systemName: "square.and.arrow.up")
-                            //             .font(.system(size: 12))
-                            //         // Text("Share & Archive")
-                            //         //     .font(.system(size: 11))
-                            //     }
-                            //     .frame(width: 28, height: 28)
-                            //     .background(
-                            //         RoundedRectangle(cornerRadius: 6)
-                            //             .fill(
-                            //                 isHoveringShare
-                            //                     ? (colorScheme == .dark
-                            //                         ? Color.white.opacity(0.1)
-                            //                         : Color.black.opacity(0.05))
-                            //                     : Color.clear
-                            //             )
-                            //     )
-                            // }
-                            // .buttonStyle(.plain)
-                            // .onHover { hovering in
-                            //     isHoveringShare = hovering
-                            // }
+                            // Share & Archive 按钮
+                            Button(action: shareAndArchive) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.blue)
+                                }
+                                .frame(width: 28, height: 28)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(
+                                            isHoveringShare
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05))
+                                                : Color.clear
+                                        )
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .onHover { hovering in
+                                isHoveringShare = hovering
+                            }
                         }
                         .padding(.horizontal, 8)
                         .padding(.bottom, 8)

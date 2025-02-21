@@ -293,22 +293,27 @@ struct ContentView: View {
 
     private func setupKeyboardMonitor() {
         keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.keyCode == 53 { // Esc 键的 keyCode
-                // 当 RecentNotesView 展开时，按 Esc 只关闭 RecentNotesView，不关闭整个窗口
+            // 检查是否按下 Esc 键（keyCode == 53）
+            if event.keyCode == 53 {
                 if toolbarState.showRecentNotes {
+                    // RecentNotesView 正在显示时，按 Esc 仅关闭 RecentNotesView
                     toolbarState.showRecentNotes = false
                     return nil
+                } else {
+                    // RecentNotesView 已关闭时，按 Esc 关闭整个窗口
+                    NSApp.keyWindow?.performClose(nil)
+                    return nil
                 }
-                // 如果 RecentNotesView 没有展开，则保持默认处理（可以根据需要修改）
-                return event
             }
-            // 处理 Command+Shift+C 快捷键
+
+            // 处理 Command+Shift+C 快捷键（复制全文内容）
             if event.modifierFlags.contains(.command) && event.modifierFlags.contains(.shift) {
                 if let key = event.charactersIgnoringModifiers?.lowercased(), key == "c" {
                     copyFullContent()
                     return nil
                 }
             }
+
             return event
         }
     }
