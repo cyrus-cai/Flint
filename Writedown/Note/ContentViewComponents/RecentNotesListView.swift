@@ -1015,7 +1015,7 @@ struct TimeGroupHeader: View {
 
     private var shouldShowSummarize: Bool {
         guard let group = TimeGroup(rawValue: title) else { return false }
-        return group != .older && !(viewModel.showingSummaries[group] ?? false)
+        return !(viewModel.showingSummaries[group] ?? false)
     }
 
     private func summarizeGroupNotes() {
