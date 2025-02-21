@@ -493,7 +493,7 @@ struct DownFunctionView: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Text(showCopied ? "Contents Copied" : "\(count) character\(count != 0 && count != 1 ? "s" : "")")
+            Text(showCopied ? "Contents Copied" : "\(count) Character\(count != 0 && count != 1 ? "s" : "")")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .padding(.vertical, 8)
