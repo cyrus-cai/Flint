@@ -72,7 +72,14 @@ struct SettingsListView: View {
                 )
                 .padding(.horizontal, 4)
 
-                // Add rectangle separator after Show All
+                if item == .copyContents {
+                    Rectangle()
+                        .fill(Color(NSColor.separatorColor))
+                        .frame(height: 1)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 12)
+                }
+
                 if item == .showAll {
                     Rectangle()
                         .fill(Color(NSColor.separatorColor))
@@ -89,22 +96,12 @@ struct SettingsListView: View {
 
     private func handleAction(_ item: SettingsItem) {
         switch item {
-        // case .openInObsidian:
-        //     if let title = title, let uri = generateObsidianURI(from: title) {
-        //         NSWorkspace.shared.open(URL(string: uri)!)
-        //     }
         case .showAll:
             openInFinder()
         case .settings:
             onSettings()
         case .copyContents:
             onCopy()
-        //    case .openInFeishu:
-        //        if let title = title, let url = generateFeishuURL(from: title) {
-        //            if let feishuURL = URL(string: url) {
-        //                NSWorkspace.shared.open(feishuURL)
-        //            }
-        //        }
         }
     }
 
