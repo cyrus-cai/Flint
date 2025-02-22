@@ -75,7 +75,7 @@ struct SettingsListView: View {
                 )
                 .padding(.horizontal, 4)
 
-                if item == .copyContents {
+                if item == .shareContents {
                     Rectangle()
                         .fill(Color(NSColor.separatorColor))
                         .frame(height: 1)
@@ -148,8 +148,6 @@ struct SettingsListView: View {
     }
 
     enum SettingsItem: Int, CaseIterable, Identifiable {
-        // case openInObsidian
-        //    case openInFeishu
         case copyContents
         case shareContents
         case showAll
@@ -159,10 +157,6 @@ struct SettingsListView: View {
 
         var title: String {
             switch self {
-            // case .openInObsidian:
-            //     return "Open in Obsidian"
-            //        case .openInFeishu:
-            //            return "Open in Feishu"
             case .copyContents:
                 return "Copy Contents"
             case .shareContents:
@@ -178,10 +172,6 @@ struct SettingsListView: View {
             switch self {
             case .settings:
                 return "gear"
-            // case .openInObsidian:
-            //     return "link.circle.fill"
-            //        case .openInFeishu:
-            //            return "link.circle.fill"
             case .showAll:
                 return "folder"
             case .copyContents:
