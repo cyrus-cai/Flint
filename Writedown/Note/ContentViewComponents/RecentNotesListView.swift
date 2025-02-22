@@ -1414,7 +1414,7 @@ struct StandardToastView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
                 if #available(macOS 15.0, *) {
                     Image(systemName: icon)
                         .font(.system(size: 14))
