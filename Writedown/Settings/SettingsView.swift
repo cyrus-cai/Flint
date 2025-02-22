@@ -1182,7 +1182,7 @@ struct AppearanceSettingsView: View {
                         Label("Appearance", systemImage: "paintbrush")
                             .font(.system(size: 13, weight: .medium))
 
-                        HStack(spacing: 16) {
+                        HStack(spacing: 24) { // Increased spacing from 16 to 24
                             // System appearance option
                             AppearanceOptionView(
                                 image: "system-example",
@@ -1210,7 +1210,7 @@ struct AppearanceSettingsView: View {
                                 appearanceMode = .dark
                             }
 
-                            Spacer() // Add this to push content to the left
+                            Spacer()
                         }
                         .frame(maxWidth: .infinity)  // Added to ensure HStack takes full width
                         .padding(.top, 8)
