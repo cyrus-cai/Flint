@@ -628,7 +628,7 @@ struct RecentNotesListView: View {
                         .frame(height: 360)
                 }
             }
-            .frame(width: 340)
+            .frame(width: 320)
             .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
             .cornerRadius(8)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
@@ -849,7 +849,7 @@ struct NoteRow: View {
                         Text("·")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
-                        Text("\(note.content.count) chars")
+                        Text("\(note.content.count) Chars")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
                     }

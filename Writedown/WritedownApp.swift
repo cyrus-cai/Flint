@@ -766,7 +766,7 @@ class ContentSavedWindowController: NSWindowController {
         let displayText: String = {
             if trimmedString.count > threshold {
                 return String(trimmedString.prefix(threshold)) + "..."
-                    + " (\(trimmedString.count) chars)"
+                    + " (\(trimmedString.count) Chars)"
             } else {
                 return trimmedString
             }
