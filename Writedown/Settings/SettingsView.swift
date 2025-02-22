@@ -260,67 +260,74 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
-            // 左侧边栏：展示所有设置选项，并在底部显示更新提示（复用 StandardToastView）
-            VStack(spacing: 0) {
-                List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
-                    Label(tab.rawValue, systemImage: tab.icon)
-                        .padding(.vertical, 4)
-                }
-                .listStyle(SidebarListStyle())
+        ZStack {
+            // 使用你想要的 material，这里以 .sidebar 为例；你也可以试试 .windowBackground 或其他系统材质
+            VisualEffectBlur(material: .sidebar)
+                .edgesIgnoringSafeArea(.all)
 
-                // 当 UpdateManager 检测到新版本后，显示提示视图
-                if updateManager.newVersionAvailable {
-                    StandardToastView(
-                        icon: "arrow.down.circle.fill",
-                        message: "New Version Available",
-                        explanatoryText: "Restart to install \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
-                    )
-                    .padding(.horizontal, 4)
-                    .onTapGesture {
-                        updateManager.installUpdatePackage()
+            NavigationSplitView {
+                // 侧边栏内容
+                VStack(spacing: 0) {
+                    List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
+                        Label(tab.rawValue, systemImage: tab.icon)
+                            .padding(.vertical, 4)
+                    }
+                    .listStyle(SidebarListStyle())
+
+                    if updateManager.newVersionAvailable {
+                        StandardToastView(
+                            icon: "arrow.down.circle.fill",
+                            message: "New Version Available",
+                            explanatoryText: "Restart to install \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
+                        )
+                        .padding(.horizontal, 4)
+                        .onTapGesture {
+                            updateManager.installUpdatePackage()
+                        }
                     }
                 }
-            }
-            .frame(minWidth: 240)
-        } detail: {
-            // 右侧内容区域，根据选项展示不同内容
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    switch selectedTab {
-                    case .general:
-                        GeneralSettingsView(isPro: $isPro)
-                    case .integration:
-                        IntegrationSettingsView(
-                            integrateWithObsidian: $integrateWithObsidian,
-                            customPath: $customPath,
-                            showPathAlert: $showPathAlert,
-                            selectCustomDirectory: selectCustomDirectory
-                        )
-                    case .appearance:
-                        AppearanceSettingsView()
-                    case .hotkeys:
-                        HotkeySettingsView(counter: counter)
-                    case .about:
-                        AboutSettingsView(
-                            version: version,
-                            buildNumber: buildNumber,
-                            isCheckingUpdate: .constant(false),
-                            isDownloading: .constant(false),
-                            downloadProgress: .constant(0),
-                            latestVersion: nil,
-                            updater: AutoUpdater(),
-                            progressSubscription: .constant(nil)
-                        )
-                    case .none:
-                        EmptyView()
+                .frame(minWidth: 240)
+            } detail: {
+                // 右侧内容区域，确保背景透明
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        switch selectedTab {
+                        case .general:
+                            GeneralSettingsView(isPro: $isPro)
+                        case .integration:
+                            IntegrationSettingsView(
+                                integrateWithObsidian: $integrateWithObsidian,
+                                customPath: $customPath,
+                                showPathAlert: $showPathAlert,
+                                selectCustomDirectory: selectCustomDirectory
+                            )
+                        case .appearance:
+                            AppearanceSettingsView()
+                        case .hotkeys:
+                            HotkeySettingsView(counter: counter)
+                        case .about:
+                            AboutSettingsView(
+                                version: version,
+                                buildNumber: buildNumber,
+                                isCheckingUpdate: .constant(false),
+                                isDownloading: .constant(false),
+                                downloadProgress: .constant(0),
+                                latestVersion: nil,
+                                updater: AutoUpdater(),
+                                progressSubscription: .constant(nil)
+                            )
+                        case .none:
+                            EmptyView()
+                        }
                     }
+                    .padding()
                 }
-                .padding()
+                // 添加以下两个修饰符确保 ScrollView 背景透明
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
         }
         .frame(width: 800, height: 500)
-        .background(Color(NSColor.windowBackgroundColor))
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
         .onAppear {
@@ -1270,6 +1277,26 @@ struct AppearanceOptionView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct VisualEffectBlur: NSViewRepresentable {
+    var material: NSVisualEffectView.Material
+    var blendingMode: NSVisualEffectView.BlendingMode = .withinWindow
+    var state: NSVisualEffectView.State = .active
+
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = material
+        view.blendingMode = blendingMode
+        view.state = state
+        return view
+    }
+
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.material = material
+        nsView.blendingMode = blendingMode
+        nsView.state = state
     }
 }
 

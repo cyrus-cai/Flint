@@ -89,6 +89,9 @@ class SettingsWindowController: NSWindowController {
             defer: false
         )
 
+        window.isOpaque = false
+        window.backgroundColor = NSColor.clear
+
         super.init(window: window)
 
         window.center()
