@@ -185,32 +185,22 @@ struct SettingsView: View {
     }
 
     @State private var selectedTab: SettingsTab? = .general
-    @State private var progressSubscription: AnyCancellable?
+    // 使用全局共享的 UpdateManager 来管理更新状态
+    @StateObject private var updateManager = UpdateManager.shared
+
     @State private var autoCorrect = false
     @State private var launchAtLogin = false
-    @State private var openInApp = false
     @StateObject private var counter = HotkeyCounter.shared
-    @State private var isCheckingUpdate = false
-    @State private var isDownloading = false
-    @State private var downloadProgress: Double = 0
-    @State private var latestVersion: String?
     @State private var integrateWithObsidian = true
     @State private var noIntegration = true
     @State private var obsidianVaultPath: String = ""
     @State private var customPath: String = FileManager.shared.currentNotesPath
     @State private var showPathPicker = false
     @State private var showPathAlert = false
-    @State private var newVersionAvailable: Bool = false
 
     @AppStorage("AIModel") private var AIModel: String =
         AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
 
-    // Feishu related settings
-    //    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
-    //    @State private var feishuAccessToken = ""
-    //    @State private var showFeishuTokenAlert = false
-
-    let updater = AutoUpdater()
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 
@@ -279,7 +269,8 @@ struct SettingsView: View {
                 }
                 .listStyle(SidebarListStyle())
 
-                if newVersionAvailable {
+                // 当 UpdateManager 检测到新版本后，显示提示视图
+                if updateManager.newVersionAvailable {
                     StandardToastView(
                         icon: "arrow.down.circle.fill",
                         message: "New Version Available",
@@ -289,35 +280,11 @@ struct SettingsView: View {
                     .onTapGesture {
                         Task {
                             do {
-                                isCheckingUpdate = true
-                                let updateInfo = try await updater.checkForUpdates()
-
-                                if let updateInfo = updateInfo {
-                                    guard let downloadURL = URL(string: updateInfo.downloadURL) else {
-                                        throw UpdateError.invalidUpdateFile
-                                    }
-
-                                    isDownloading = true
-                                    downloadProgress = 0
-
-                                    // Start download and monitor progress
-                                    progressSubscription = updater.progressPublisher
-                                        .receive(on: RunLoop.main)
-                                        .sink { progress in
-                                            downloadProgress = progress
-                                        }
-
-                                    let updateFile = try await updater.downloadUpdate(from: downloadURL)
-                                    progressSubscription?.cancel()
-
-                                    try updater.installUpdate(from: updateFile)
-                                    isDownloading = false
-                                }
+                                try await updateManager.checkAndDownloadUpdate()
                             } catch {
                                 let alert = NSAlert(error: error)
                                 alert.runModal()
                             }
-                            isCheckingUpdate = false
                         }
                     }
                 }
@@ -345,12 +312,12 @@ struct SettingsView: View {
                         AboutSettingsView(
                             version: version,
                             buildNumber: buildNumber,
-                            isCheckingUpdate: $isCheckingUpdate,
-                            isDownloading: $isDownloading,
-                            downloadProgress: $downloadProgress,
-                            latestVersion: latestVersion,
-                            updater: updater,
-                            progressSubscription: $progressSubscription
+                            isCheckingUpdate: .constant(false),
+                            isDownloading: .constant(false),
+                            downloadProgress: .constant(0),
+                            latestVersion: nil,
+                            updater: AutoUpdater(),
+                            progressSubscription: .constant(nil)
                         )
                     case .none:
                         EmptyView()
@@ -364,16 +331,8 @@ struct SettingsView: View {
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
         .onAppear {
-            // 每次打开设置时自动检测更新
-            Task {
-                do {
-                    let updateInfo = try await updater.checkForUpdates()
-                    newVersionAvailable = (updateInfo != nil)
-                } catch {
-                    print("Failed to check for updates: \(error)")
-                    newVersionAvailable = false
-                }
-            }
+            // 此处不再需要在 SettingsView 中单独检测更新
+            // 更新检查逻辑已在 UpdateManager 中统一管理
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) { _ in
             isPro = UserDefaults.standard.bool(forKey: "isPro")
@@ -1324,22 +1283,3 @@ struct AppearanceOptionView: View {
 #Preview {
     SettingsView()
 }
-
-// func createSettingsWindow() {
-//     let settingsWindow = NSWindow(
-//         contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
-//         styleMask: [.titled, .closable, .fullSizeContentView],  // Add fullSizeContentView
-//         backing: .buffered,
-//         defer: false
-//     )
-
-//     settingsWindow.titlebarAppearsTransparent = true
-//     settingsWindow.titleVisibility = .hidden
-//     settingsWindow.center()
-
-//     let contentView = SettingsView()
-//     let hostingView = NSHostingView(rootView: contentView)
-//     settingsWindow.contentView = hostingView
-
-//     settingsWindow.makeKeyAndOrderFront(nil)
-// }
