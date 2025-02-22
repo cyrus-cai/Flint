@@ -165,7 +165,11 @@ class MainWindowController: NSWindowController {
         window.title = "Hyper Note"
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
+
+        // 窗口必须设置为透明
+        window.isOpaque = false
         window.backgroundColor = .clear
+
         window.hasShadow = true
         window.invalidateShadow()
 
@@ -182,31 +186,9 @@ class MainWindowController: NSWindowController {
         window.ignoresMouseEvents = false
         window.acceptsMouseMovedEvents = true
         window.isMovableByWindowBackground = true
-        window.isOpaque = false
 
         window.minSize = NSSize(width: defaultWidth, height: minHeight)
         window.maxSize = NSSize(width: defaultWidth, height: maxHeight)
-
-        let visualEffectView = NSVisualEffectView()
-        visualEffectView.material = .popover
-        visualEffectView.state = .active
-        visualEffectView.blendingMode = .withinWindow
-
-        if let contentView = window.contentView {
-            visualEffectView.frame = contentView.bounds
-            contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
-
-            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
-                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            ])
-        }
-
-        window.backgroundColor = NSColor.windowBackgroundColor
-        //        window.backgroundColor = NSColor.windowBackgroundColor
 
         configureWindowButtons()
         setupResizeNotifications()
@@ -328,11 +310,14 @@ class MainWindowController: NSWindowController {
                 self?.updateWindowHeight(height)
             }
 
-        let hostingController = NSHostingController(rootView: contentView)
-        window?.contentViewController = hostingController
+        let hostingView = NSHostingView(rootView: contentView)
+        // 强制设置 hostingView 的背景为透明
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+        window?.contentView = hostingView
 
         // Observe content view frame changes
-        heightObserver = hostingController.view.observe(\.frame) { [weak self] view, _ in
+        heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
             let contentHeight = view.frame.height
             self?.updateWindowHeight(contentHeight)
         }

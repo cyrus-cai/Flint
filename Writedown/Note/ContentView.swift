@@ -208,26 +208,33 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // if isStorageConfigured {
-            VStack(spacing: 0) {
-                TitleBarView(
-                    title: title,
-                    isHovered: isHovered,
-                    links: links,
-                    toolbarState: toolbarState,
-                    onNoteSelected: loadNoteContent,
-                    onCopy: copyFullContent,
-                    onShare: shareFullContent)
-                EditorView(text: $text)
-                DownFunctionView(count: text.count, links: links, showCopied: showCopiedStatus)
-            }
+        ZStack {
+            // 在最底部加上 VisualEffectBlur，材质可以根据需要调整，比如 .sidebar 或 .underWindowBackground
+            VisualEffectBlur(material: .sidebar)
+                .edgesIgnoringSafeArea(.all)
 
-            if showToast {
-                ToastView(message: "Auto Saved", isShowing: $showToast)
-                    .padding(.bottom, 12)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
+            // 你笔记窗口的主要内容
+            ZStack(alignment: .top) {
+                VStack(spacing: 0) {
+                    TitleBarView(
+                        title: title,
+                        isHovered: isHovered,
+                        links: links,
+                        toolbarState: toolbarState,
+                        onNoteSelected: loadNoteContent,
+                        onCopy: copyFullContent,
+                        onShare: shareFullContent)
+                    EditorView(text: $text)
+                    DownFunctionView(count: text.count, links: links, showCopied: showCopiedStatus)
+                }
+
+                if showToast {
+                    ToastView(message: "Auto Saved", isShowing: $showToast)
+                        .padding(.bottom, 12)
+                        .frame(maxHeight: .infinity, alignment: .bottom)
+                }
             }
+            .background(Color.clear) // 确保内部视图背景透明
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -537,6 +544,26 @@ struct LinksPopoverView: View {
         .frame(minWidth: 200)
     }
 }
+
+// struct VisualEffectBlur: NSViewRepresentable {
+//     var material: NSVisualEffectView.Material
+//     var blendingMode: NSVisualEffectView.BlendingMode = .withinWindow
+//     var state: NSVisualEffectView.State = .active
+
+//     func makeNSView(context: Context) -> NSVisualEffectView {
+//         let view = NSVisualEffectView()
+//         view.material = material
+//         view.blendingMode = blendingMode
+//         view.state = state
+//         return view
+//     }
+
+//     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+//         nsView.material = material
+//         nsView.blendingMode = blendingMode
+//         nsView.state = state
+//     }
+// }
 
 #Preview {
     ContentView()
