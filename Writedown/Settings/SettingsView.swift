@@ -1,6 +1,6 @@
 import Combine
-import SwiftUI
 import KeyboardShortcuts
+import SwiftUI
 
 extension Notification.Name {
     static let autoSaveIntervalDidChange = Notification.Name("autoSaveIntervalDidChange")
@@ -169,6 +169,7 @@ struct SettingsView: View {
     enum SettingsTab: String, CaseIterable {
         case general = "General"
         case integration = "Note Settings"
+        case appearance = "Appearance"
         case hotkeys = "Hotkeys"
         case about = "About"
 
@@ -176,6 +177,7 @@ struct SettingsView: View {
             switch self {
             case .general: return "gear"
             case .integration: return "note.text"
+            case .appearance: return "paintbrush"
             case .hotkeys: return "keyboard"
             case .about: return "info.circle"
             }
@@ -219,6 +221,8 @@ struct SettingsView: View {
         }
     }
 
+    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+
     private func configureObsidianVault() {
         let openPanel = NSOpenPanel()
         openPanel.canChooseDirectories = true
@@ -247,6 +251,19 @@ struct SettingsView: View {
                 // Set new directory
                 FileManager.shared.setCustomDirectory(selectedPath)
                 customPath = selectedPath.path
+            }
+        }
+    }
+
+    private func updateAppearance(_ mode: AppearanceMode) {
+        if let window = NSApp.windows.first {
+            switch mode {
+            case .system:
+                window.appearance = nil
+            case .light:
+                window.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                window.appearance = NSAppearance(named: .darkAqua)
             }
         }
     }
@@ -284,6 +301,8 @@ struct SettingsView: View {
                             showPathAlert: $showPathAlert,
                             selectCustomDirectory: selectCustomDirectory
                         )
+                    case .appearance:
+                        AppearanceSettingsView()
                     case .hotkeys:
                         HotkeySettingsView(counter: counter)
                     case .about:
@@ -405,18 +424,20 @@ struct GeneralSettingsView: View {
                                     }) {
                                         Label("Account", systemImage: "person.crop.circle")
                                             .font(.system(size: 13, weight: .medium))
-                                            // .foregroundColor(.blue)
+                                        // .foregroundColor(.blue)
 
                                         Spacer()
 
-                                         Text("Log in")
+                                        Text("Log in")
                                             .font(.system(size: 13, weight: .medium))
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 12)
                                             .padding(.vertical, 4)
                                             .background(
                                                 LinearGradient(
-                                                    colors: [Color(.systemBlue), Color(.systemIndigo)],
+                                                    colors: [
+                                                        Color(.systemBlue), Color(.systemIndigo),
+                                                    ],
                                                     startPoint: .leading,
                                                     endPoint: .trailing
                                                 )
@@ -819,9 +840,11 @@ struct HotkeySettingsView: View {
                                 .foregroundColor(.secondary)
                         } else {
                             HStack {
-                                Text("Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.secondary)
+                                Text(
+                                    "Today used: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)"
+                                )
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
                                 Button(action: {
                                     Task {
                                         do {
@@ -1139,6 +1162,104 @@ struct AutoSaveIntervalSection: View {
                 object: nil
             )
         }
+    }
+}
+
+enum AppearanceMode: String, CaseIterable {
+    case system = "System"
+    case light = "Light"
+    case dark = "Dark"
+}
+
+struct AppearanceSettingsView: View {
+    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                GroupBox("Theme") {
+                    VStack(alignment: .leading, spacing: 12) {  // Changed alignment to .leading
+                        Label("Note Window Appearance", systemImage: "paintbrush")
+                            .font(.system(size: 13, weight: .medium))
+
+                        HStack(spacing: 16) {
+                            // System appearance option
+                            AppearanceOptionView(
+                                image: "system-example",
+                                title: "System",
+                                isSelected: appearanceMode == .system
+                            ) {
+                                appearanceMode = .system
+                            }
+
+                            // Light appearance option
+                            AppearanceOptionView(
+                                image: "light-example",
+                                title: "Light",
+                                isSelected: appearanceMode == .light
+                            ) {
+                                appearanceMode = .light
+                            }
+
+                            // Dark appearance option
+                            AppearanceOptionView(
+                                image: "dark-example",
+                                title: "Dark",
+                                isSelected: appearanceMode == .dark
+                            ) {
+                                appearanceMode = .dark
+                            }
+                        }
+                        .frame(maxWidth: .infinity)  // Added to ensure HStack takes full width
+                        .padding(.top, 8)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
+            }
+            .padding(.horizontal, 16)
+        }
+        .onChange(of: appearanceMode) { newValue in
+            if let window = NSApp.windows.first {
+                switch newValue {
+                case .system:
+                    window.appearance = nil
+                case .light:
+                    window.appearance = NSAppearance(named: .aqua)
+                case .dark:
+                    window.appearance = NSAppearance(named: .darkAqua)
+                }
+            }
+        }
+    }
+}
+
+struct AppearanceOptionView: View {
+    let image: String
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 100)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 2)
+                    )
+
+                Text(title)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

@@ -47,9 +47,14 @@ struct SettingsListView: View {
                     },
                     label: {
                         HStack(spacing: 6) {
+                            Image(systemName: item.icon)
+                                .font(.system(size: 13))
+                                .foregroundColor(.primary)
+                                .frame(width: 14)
+
                             Text(item.title)
                                 .foregroundColor(.primary)
-                                .padding(.leading, 4)
+                                .padding(.leading, 2)
 
                             Spacer()
 
@@ -61,9 +66,7 @@ struct SettingsListView: View {
                                             .frame(width: 18, height: 18)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 4)
-                                                    .fill(
-                                                        Color(NSColor.tertiaryLabelColor).opacity(
-                                                            0.3))
+                                                    .fill(Color(NSColor.tertiaryLabelColor).opacity(0.3))
                                             )
                                     }
                                 }
@@ -73,7 +76,7 @@ struct SettingsListView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 )
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 8)
 
                 if item == .shareContents {
                     Rectangle()
@@ -92,8 +95,8 @@ struct SettingsListView: View {
                 }
             }
         }
-        .padding(.vertical, 6)
-        .frame(width: 200)
+        .padding(.vertical, 8)
+        .frame(width: 220)
         .background(Color(NSColor.windowBackgroundColor))
     }
 
@@ -175,7 +178,7 @@ struct SettingsListView: View {
             case .showAll:
                 return "folder"
             case .copyContents:
-                return "copy"
+                return "doc.on.doc"
             case .shareContents:
                 return "square.and.arrow.up"
             }
