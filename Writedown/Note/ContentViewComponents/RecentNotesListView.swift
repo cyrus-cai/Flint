@@ -916,7 +916,7 @@ struct NoteRow: View {
                             .contentTransition(.symbolEffect(.replace))
                         Spacer()
                     }
-                    .frame(width: 28, height: 28)
+                    .frame(width: isCopied ? 32 : 28, height: 28)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
                             .fill(
