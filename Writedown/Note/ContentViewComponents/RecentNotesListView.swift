@@ -1413,8 +1413,8 @@ struct StandardToastView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
+        VStack(spacing: 4) {
+            HStack(alignment: .center, spacing: 12) {
                 if #available(macOS 15.0, *) {
                     Image(systemName: icon)
                         .font(.system(size: 14))
@@ -1426,10 +1426,11 @@ struct StandardToastView: View {
                         .foregroundColor(.green)
                 }
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text(message)
                         .foregroundColor(.primary)
                         .font(.system(size: 13, weight: .medium))
+                        .multilineTextAlignment(.leading)
                 }
 
                 if let button = actionButton {
@@ -1438,10 +1439,12 @@ struct StandardToastView: View {
                         .font(.system(size: 13, weight: .medium))
                 }
             }
+
             if let explanatoryText = explanatoryText {
                 Text(explanatoryText)
                     .foregroundColor(.secondary)
                     .font(.system(size: 11))
+                    .multilineTextAlignment(.leading)
             }
         }
         .padding(ToastStyle.padding)
