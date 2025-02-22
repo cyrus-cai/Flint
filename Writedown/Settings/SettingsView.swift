@@ -1221,7 +1221,8 @@ struct AppearanceSettingsView: View {
             .padding(.horizontal, 16)
         }
         .onChange(of: appearanceMode) { newValue in
-            if let window = NSApp.windows.first {
+            // 更新所有窗口的外观
+            NSApp.windows.forEach { window in
                 switch newValue {
                 case .system:
                     window.appearance = nil

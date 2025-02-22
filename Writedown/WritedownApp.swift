@@ -233,7 +233,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let appearanceMode = AppearanceMode(
             rawValue: UserDefaults.standard.string(forKey: "appearanceMode") ?? "System")
         {
-            updateAppearance(appearanceMode)
+            NSApp.windows.forEach { window in
+                switch appearanceMode {
+                case .system:
+                    window.appearance = nil
+                case .light:
+                    window.appearance = NSAppearance(named: .aqua)
+                case .dark:
+                    window.appearance = NSAppearance(named: .darkAqua)
+                }
+            }
         }
     }
 

@@ -96,6 +96,20 @@ class SettingsWindowController: NSWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.contentView = NSHostingView(rootView: SettingsView())
+
+        // 应用当前的外观设置
+        if let appearanceMode = AppearanceMode(
+            rawValue: UserDefaults.standard.string(forKey: "appearanceMode") ?? "System")
+        {
+            switch appearanceMode {
+            case .system:
+                window.appearance = nil
+            case .light:
+                window.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                window.appearance = NSAppearance(named: .darkAqua)
+            }
+        }
     }
 
     required init?(coder: NSCoder) {
