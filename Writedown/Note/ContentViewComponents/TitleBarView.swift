@@ -7,8 +7,9 @@ struct TitleBarView: View {
     let isHovered: Bool
     let links: [String]
     @ObservedObject var toolbarState: TitleBarToolbarState
-    let onNoteSelected: (String) -> Void  // 新增参数
-    let onCopy: () -> Void  // 新增参数
+    let onNoteSelected: (String) -> Void  // 用于切换笔记的回调
+    let onCopy: () -> Void  // 复制内容的回调
+    let onShare: () -> Void  // 分享内容的回调
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -52,7 +53,8 @@ struct TitleBarView: View {
                     onNoteSelected: onNoteSelected,
                     links: links,  // Pass links to toolbar
                     title: title,
-                    onCopy: onCopy
+                    onCopy: onCopy,
+                    onShare: onShare
                 )
             }
 
@@ -75,7 +77,9 @@ struct TitleBarView: View {
                                 toolbarState.openFileDictionary()
                             } else {
                                 // Command+F: 调用 macOS 自带的页面查找功能
-                                NSApp.sendAction(#selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
+                                NSApp.sendAction(
+                                    #selector(NSTextView.performFindPanelAction(_:)), to: nil,
+                                    from: nil)
                             }
                             return nil
                         }
@@ -125,6 +129,7 @@ struct TitleBarToolbar: View {
     let links: [String]  // Add links parameter
     let title: String
     let onCopy: () -> Void  // Add onCopy parameter
+    let onShare: () -> Void  // 新增 onShare 参数
 
     private func openSingleLink() {
         if let url = URL(string: links[0]) {
@@ -170,6 +175,7 @@ struct TitleBarToolbar: View {
                 SettingsListView(
                     onSettings: state.openSettings,
                     onCopy: onCopy,  // Pass onCopy callback
+                    onShare: onShare,  // Pass onShare callback
                     title: title
                 )
             }

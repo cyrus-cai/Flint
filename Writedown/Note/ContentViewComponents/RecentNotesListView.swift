@@ -448,7 +448,8 @@ struct RecentNotesListView: View {
                 // 当中文输入正在进行时，不直接触发选择逻辑，让系统处理输入候选确认
                 let composing: Bool = {
                     if let window = NSApp.keyWindow,
-                       let client = window.firstResponder as? NSTextInputClient {
+                        let client = window.firstResponder as? NSTextInputClient
+                    {
                         return client.hasMarkedText()
                     }
                     return false
@@ -795,7 +796,8 @@ struct NoteRow: View {
         let items: [Any] = [note.content]
         if let window = NSApp.keyWindow, let contentView = window.contentView {
             let sharingPicker = NSSharingServicePicker(items: items)
-            sharingPicker.show(relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
+            sharingPicker.show(
+                relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
         }
     }
 
@@ -917,7 +919,7 @@ struct NoteRow: View {
                     isHoveringCopy = hovering
                 }
 
-                 // Share button
+                // Share button
                 Button(action: shareContent) {
                     HStack {
                         Spacer()
@@ -964,7 +966,6 @@ struct NoteRow: View {
                 .onHover { hovering in
                     isDeleteHovered = hovering
                 }
-
 
             }
         }
@@ -1054,7 +1055,9 @@ struct TimeGroupHeader: View {
             let group: TimeGroup
             let completion: () -> Void  // 通知摘要完成
 
-            init(viewModel: RecentNotesViewModel?, group: TimeGroup, completion: @escaping () -> Void) {
+            init(
+                viewModel: RecentNotesViewModel?, group: TimeGroup, completion: @escaping () -> Void
+            ) {
                 print("🎯 StreamHandler initialized for group: \(group)")
                 self.viewModel = viewModel
                 self.group = group
@@ -1090,7 +1093,8 @@ struct TimeGroupHeader: View {
                     newSummaries[self.group] = self.summary
                     viewModel.groupSummaries = newSummaries
                     if #available(macOS 10.11, *) {
-                        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
+                        NSHapticFeedbackManager.defaultPerformer.perform(
+                            .generic, performanceTime: .now)
                     }
                     self.completion()  // 通知摘要流程结束
                 }
@@ -1153,7 +1157,8 @@ struct TimeGroupHeader: View {
             let items: [Any] = [summary]
             if let window = NSApp.keyWindow, let contentView = window.contentView {
                 let sharingPicker = NSSharingServicePicker(items: items)
-                sharingPicker.show(relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
+                sharingPicker.show(
+                    relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
             }
 
             // Archive the notes after sharing
@@ -1234,7 +1239,7 @@ struct TimeGroupHeader: View {
                                 HStack(spacing: 4) {
                                     Image(systemName: "square.and.arrow.up")
                                         .font(.system(size: 14))
-                                        // .foregroundColor(.red)
+                                    // .foregroundColor(.red)
                                 }
                                 .frame(width: 28, height: 28)
                                 .background(
@@ -1276,7 +1281,6 @@ struct TimeGroupHeader: View {
                             .onHover { hovering in
                                 isHoveringArchive = hovering
                             }
-
 
                         }
                         .padding(.horizontal, 8)

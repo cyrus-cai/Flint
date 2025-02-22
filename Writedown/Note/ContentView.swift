@@ -217,7 +217,8 @@ struct ContentView: View {
                     links: links,
                     toolbarState: toolbarState,
                     onNoteSelected: loadNoteContent,
-                    onCopy: copyFullContent)
+                    onCopy: copyFullContent,
+                    onShare: shareFullContent)
                 EditorView(text: $text)
                 DownFunctionView(count: text.count, links: links, showCopied: showCopiedStatus)
             }
@@ -286,7 +287,8 @@ struct ContentView: View {
         }
         .onChange(of: toolbarState.showRecentNotes) { newValue in
             if newValue == false {
-                NotificationCenter.default.post(name: Notification.Name("RestoreFocusNotification"), object: nil)
+                NotificationCenter.default.post(
+                    name: Notification.Name("RestoreFocusNotification"), object: nil)
             }
         }
     }
@@ -337,6 +339,18 @@ struct ContentView: View {
         if let monitor = keyboardMonitor {
             NSEvent.removeMonitor(monitor)
             keyboardMonitor = nil
+        }
+    }
+
+    private func shareFullContent() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+
+        if let window = NSApp.keyWindow, let contentView = window.contentView {
+            let items: [Any] = [text]
+            let sharingPicker = NSSharingServicePicker(items: items)
+            sharingPicker.show(
+                relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
         }
     }
 }
@@ -442,7 +456,10 @@ struct EditorView: View {
                         }
                     }
                     // 当接收到 RestoreFocusNotification 通知时恢复焦点
-                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name("RestoreFocusNotification"))) { _ in
+                    .onReceive(
+                        NotificationCenter.default.publisher(
+                            for: Notification.Name("RestoreFocusNotification"))
+                    ) { _ in
                         isEditing = true
                     }
                     .preference(
@@ -470,7 +487,6 @@ struct EditorView: View {
     }
 }
 
-
 struct DownFunctionView: View {
     let count: Int
     let links: [String]
@@ -478,12 +494,15 @@ struct DownFunctionView: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Text(showCopied ? "Contents Copied" : "\(count) Character\(count != 0 && count != 1 ? "s" : "")")
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .padding(.vertical, 8)
-                .opacity(0.5)
-                .animation(.easeInOut(duration: 0.3), value: showCopied)
+            Text(
+                showCopied
+                    ? "Contents Copied" : "\(count) Character\(count != 0 && count != 1 ? "s" : "")"
+            )
+            .font(.system(size: 12))
+            .foregroundColor(.secondary)
+            .padding(.vertical, 8)
+            .opacity(0.5)
+            .animation(.easeInOut(duration: 0.3), value: showCopied)
         }
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, alignment: .center)

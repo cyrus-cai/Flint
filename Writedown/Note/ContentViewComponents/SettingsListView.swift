@@ -7,6 +7,7 @@ struct SettingsListView: View {
 
     let onSettings: () -> Void
     let onCopy: () -> Void
+    let onShare: () -> Void
     let title: String?
 
     // private func generateObsidianURI(from title: String) -> String? {
@@ -60,7 +61,9 @@ struct SettingsListView: View {
                                             .frame(width: 18, height: 18)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 4)
-                                                    .fill(Color(NSColor.tertiaryLabelColor).opacity(0.3))
+                                                    .fill(
+                                                        Color(NSColor.tertiaryLabelColor).opacity(
+                                                            0.3))
                                             )
                                     }
                                 }
@@ -102,6 +105,8 @@ struct SettingsListView: View {
             onSettings()
         case .copyContents:
             onCopy()
+        case .shareContents:
+            onShare()
         }
     }
 
@@ -146,6 +151,7 @@ struct SettingsListView: View {
         // case openInObsidian
         //    case openInFeishu
         case copyContents
+        case shareContents
         case showAll
         case settings
 
@@ -159,6 +165,8 @@ struct SettingsListView: View {
             //            return "Open in Feishu"
             case .copyContents:
                 return "Copy Contents"
+            case .shareContents:
+                return "Share Contents"
             case .showAll:
                 return "Show in Finder"
             case .settings:
@@ -178,6 +186,8 @@ struct SettingsListView: View {
                 return "folder"
             case .copyContents:
                 return "copy"
+            case .shareContents:
+                return "square.and.arrow.up"
             }
         }
 
@@ -185,6 +195,8 @@ struct SettingsListView: View {
             switch self {
             case .copyContents:
                 return "⌘⇧C"
+            case .shareContents:
+                return nil
             case .settings:
                 return "⌘,"
             default:
