@@ -660,6 +660,7 @@ struct RecentNotesListView: View {
                         actionButton: ("Undo", { viewModel.undoGroupArchive() })
                     )
                 }
+                .padding(.horizontal, 12)
                 .transition(.opacity)
             }
         }
