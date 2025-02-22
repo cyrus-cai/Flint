@@ -660,6 +660,7 @@ struct RecentNotesListView: View {
                         actionButton: ("Undo", { viewModel.undoGroupArchive() })
                     )
                 }
+                .padding(.horizontal, 12)
                 .transition(.opacity)
             }
         }
@@ -1409,42 +1410,72 @@ struct StandardToastView: View {
     let icon: String
     let message: String
     var actionButton: (title: String, action: () -> Void)? = nil
+    var explanatoryText: String? = nil
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isButtonHovered = false
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Enhanced icon with animation
-            if #available(macOS 15.0, *) {
-                Image(systemName: icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(.green)
-                    .symbolEffect(.bounce.up, options: .repeat(1))
-            } else {
-                // Fallback on earlier versions
-            }
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 12) {
+                if #available(macOS 15.0, *) {
+                    Image(systemName: icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(.green)
+                        .symbolEffect(.bounce.up, options: .repeat(1))
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(.green)
+                }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(message)
-                    .foregroundColor(.primary)
-                    .font(.system(size: 13, weight: .medium))
-            }
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(message)
+                        .foregroundColor(.primary)
+                        .font(.system(size: 13, weight: .medium))
+                        .multilineTextAlignment(.leading)
 
-            if let button = actionButton {
-                Button(button.title, action: button.action)
+                    if let explanatoryText = explanatoryText {
+                        Text(explanatoryText)
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 11))
+                            .multilineTextAlignment(.leading)
+                    }
+                }
+
+                if let button = actionButton {
+                    Spacer()
+                    Button(action: button.action) {
+                        Text(button.title)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.primary.opacity(0.8))
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(.thinMaterial)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                    )
+                            )
+                            .opacity(isButtonHovered ? 0.8 : 1.0)
+                    }
                     .buttonStyle(.plain)
-                    // .foregroundColor(.red)
-                    .font(.system(size: 13, weight: .medium))
+                    .onHover { hovering in
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isButtonHovered = hovering
+                        }
+                    }
+                }
             }
         }
         .padding(ToastStyle.padding)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                    .fill(
-                        colorScheme == .dark
-                            ? ToastStyle.backgroundColor : ToastStyle.lightBackgroundColor)
-
-                // Add subtle gradient overlay
+                    .fill(colorScheme == .dark
+                          ? ToastStyle.backgroundColor
+                          : ToastStyle.lightBackgroundColor)
                 RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
                     .fill(
                         LinearGradient(
@@ -1453,8 +1484,6 @@ struct StandardToastView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-
-                // Add subtle border
                 RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
                     .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
             }

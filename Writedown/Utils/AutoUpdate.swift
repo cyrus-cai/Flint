@@ -11,7 +11,11 @@ import Foundation
 
 class AutoUpdater {
     // 版本信息接口地址
-    private let versionCheckURL = "https://www.figa.asia/api/version"
+    #if DEBUG
+        private let versionCheckURL = URL(string: "https://www.figa.asia/api/testversion")!
+    #else
+        private let versionCheckURL = URL(string: "https://www.figa.asia/api/version")!
+    #endif
     // 当前应用版本
     private var currentVersion: String
     // 临时下载目录
@@ -38,7 +42,7 @@ class AutoUpdater {
 
     // 检查更新
     func checkForUpdates() async throws -> UpdateInfo? {
-        let (data, _) = try await URLSession.shared.data(from: URL(string: versionCheckURL)!)
+        let (data, _) = try await URLSession.shared.data(from: versionCheckURL)
         let updateInfo = try JSONDecoder().decode(UpdateInfo.self, from: data)
 
         print(updateInfo, "updateInfo")
@@ -72,7 +76,7 @@ class AutoUpdater {
             downloadTask: URLSessionDownloadTask,
             didFinishDownloadingTo location: URL
         ) {
-            // 这��方法是必需的，但在我们的实现中不需要做任何事
+            // 这方法是必需的，但在我们的实现中不需要做任何事
             // 因为我们在 downloadUpdate 方法中处理文件移动
         }
 
@@ -174,7 +178,7 @@ class AutoUpdater {
     //        // 构建目标路径
     //        let targetAppPath = applicationsDirectory.appendingPathComponent("Writedown.app")
     //
-    //        // 在主队列中执行更新操��
+    //        // 在主队列中执行更新操作
     //        DispatchQueue.main.async { [self] in
     //            do {
     //                // 复制新版本到临时位置
@@ -217,17 +221,15 @@ class AutoUpdater {
     func installUpdate(from updateFile: URL) throws {
         let fileManager = Foundation.FileManager.default
 
-        // Clean and create extraction directory
+        // 清理并创建解压目录
         let updateDirectory = downloadDirectory.appendingPathComponent("extracted")
         print(updateDirectory, "updateDirectory")
         if fileManager.fileExists(atPath: updateDirectory.path) {
             try fileManager.removeItem(at: updateDirectory)
         }
-        try fileManager.createDirectory(
-            at: updateDirectory,
-            withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: updateDirectory, withIntermediateDirectories: true)
 
-        // Extract files
+        // 解压更新包
         print("Extracting update file...")
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
@@ -249,58 +251,41 @@ class AutoUpdater {
             throw UpdateError.shellCommandFailed
         }
 
-        // 获取应用程序文件夹路径
-        guard
-            let applicationsDirectory = fileManager.urls(
-                for: .applicationDirectory, in: .localDomainMask
-            ).first
-        else {
+        // 获取应用程序目录路径
+        guard let applicationsDirectory = fileManager.urls(for: .applicationDirectory, in: .localDomainMask).first else {
             throw UpdateError.invalidAppPath
         }
 
         let newAppPath = updateDirectory.appendingPathComponent("Writedown.app")
         let targetAppPath = applicationsDirectory.appendingPathComponent("Writedown.app")
 
-        // 在主队列中执行更新操作
+        // 直接执行更新操作，不再询问确认
         DispatchQueue.main.async {
             do {
-                let alert = NSAlert()
-                alert.messageText = "Update ready"
-                alert.informativeText = "New version has been downloaded. Click OK to install."
-                alert.addButton(withTitle: "OK")
-                alert.addButton(withTitle: "Cancel")
+                let scriptContent = """
+                    #!/bin/bash
+                    sleep 2  # 等待当前应用退出
+                    rm -rf "\(targetAppPath.path)"  # 删除旧版本
+                    cp -R "\(newAppPath.path)" "\(targetAppPath.path)"  # 复制新版本
+                    rm -rf "\(self.downloadDirectory.path)"  # 清理下载文件
+                    open "\(targetAppPath.path)"  # 启动新版本
+                    """
 
-                if alert.runModal() == .alertFirstButtonReturn {
-                    // 1. 创建一个临时脚本来执行更新
-                    let scriptContent = """
-                        #!/bin/bash
-                        sleep 2  # 等待原应用完全退出
-                        rm -rf "\(targetAppPath.path)"  # 删除旧版本
-                        cp -R "\(newAppPath.path)" "\(targetAppPath.path)"  # 复制新版本
-                        rm -rf "\(self.downloadDirectory.path)"  # 清理下载文件
-                        open "\(targetAppPath.path)"  # 启动新版本
-                        """
+                let scriptURL = self.downloadDirectory.appendingPathComponent("update_script.sh")
+                try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
 
-                    let scriptURL = self.downloadDirectory.appendingPathComponent(
-                        "update_script.sh")
-                    try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
+                let chmodProcess = Process()
+                chmodProcess.executableURL = URL(fileURLWithPath: "/bin/chmod")
+                chmodProcess.arguments = ["755", scriptURL.path]
+                try chmodProcess.run()
+                chmodProcess.waitUntilExit()
 
-                    // 使用 chmod 命令设置脚本权限
-                    let chmodProcess = Process()
-                    chmodProcess.executableURL = URL(fileURLWithPath: "/bin/chmod")
-                    chmodProcess.arguments = ["755", scriptURL.path]
-                    try chmodProcess.run()
-                    chmodProcess.waitUntilExit()
+                let updateTask = Process()
+                updateTask.executableURL = URL(fileURLWithPath: "/bin/bash")
+                updateTask.arguments = [scriptURL.path]
+                try updateTask.run()
 
-                    // 2. 启动更新脚本
-                    let updateTask = Process()
-                    updateTask.executableURL = URL(fileURLWithPath: "/bin/bash")
-                    updateTask.arguments = [scriptURL.path]
-                    try updateTask.run()
-
-                    // 3. 退出当前应用
-                    NSApplication.shared.terminate(nil)
-                }
+                NSApplication.shared.terminate(nil)
             } catch {
                 print("Update installation error:", error)
                 let errorAlert = NSAlert(error: error)
@@ -389,6 +374,28 @@ class AutoUpdater {
         }
         return false
     }
+
+    // New method to delete the downloaded update package
+    func deleteDownloadedUpdatePackage() throws {
+        let fileManager = Foundation.FileManager.default
+        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+            print("Deleted downloaded update package.")
+        } else {
+            print("No downloaded update package found.")
+        }
+    }
+
+    // In the AutoUpdater class, add a helper method to return the cached update file (if it exists).
+    func cachedUpdateFile() -> URL? {
+        let fileManager = Foundation.FileManager.default
+        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            return destinationURL
+        }
+        return nil
+    }
 }
 
 // 更新信息模型
@@ -416,6 +423,87 @@ enum UpdateError: Error {
             return "The update file is invalid or corrupted"
         case .helperCompilationFailed:
             return "Update auxiliary tool creation failed"
+        }
+    }
+}
+
+class UpdateManager: ObservableObject {
+    static let shared = UpdateManager()
+
+    @Published var newVersionAvailable: Bool = false
+    @Published var isDownloading: Bool = false
+    @Published var downloadProgress: Double = 0.0
+    @Published var remoteVersion: String? = nil  // 新增属性，用来存储接口返回的版本号
+
+    private let updater = AutoUpdater()
+    private var progressSubscription: AnyCancellable?
+
+    private init() {}
+
+    func checkAndDownloadUpdate() {
+        Task {
+            do {
+                if let updateInfo = try await updater.checkForUpdates() {
+                    DispatchQueue.main.async {
+                        self.isDownloading = true
+                        self.downloadProgress = 0
+                        self.remoteVersion = updateInfo.version  // 保存从接口获得的版本号
+                    }
+                    self.progressSubscription = updater.progressPublisher
+                        .receive(on: RunLoop.main)
+                        .sink { progress in
+                            self.downloadProgress = progress
+                        }
+                    guard let downloadURL = URL(string: updateInfo.downloadURL) else {
+                        throw URLError(.badURL)
+                    }
+                    _ = try await updater.downloadUpdate(from: downloadURL)
+                    self.progressSubscription?.cancel()
+                    DispatchQueue.main.async {
+                        self.isDownloading = false
+                        self.newVersionAvailable = true
+                    }
+                }
+            } catch {
+                print("Error checking or downloading update: \(error)")
+            }
+        }
+    }
+
+    // In the UpdateManager class (in the same file), add a new method to perform installation.
+    // This method checks if a cached update exists; if so, it installs directly.
+    // Otherwise, it falls back to checking for updates and downloading the package.
+    func installUpdatePackage() {
+        Task {
+            do {
+                // If an update package is already downloaded, install it immediately.
+                if let cachedFile = self.updater.cachedUpdateFile() {
+                    try self.updater.installUpdate(from: cachedFile)
+                } else if let updateInfo = try await self.updater.checkForUpdates(),
+                          let downloadURL = URL(string: updateInfo.downloadURL) {
+                    DispatchQueue.main.async {
+                        self.newVersionAvailable = true
+                        self.isDownloading = true
+                        self.downloadProgress = 0
+                    }
+                    self.progressSubscription = self.updater.progressPublisher
+                        .receive(on: RunLoop.main)
+                        .sink { progress in
+                            self.downloadProgress = progress
+                        }
+                    let updateFile = try await self.updater.downloadUpdate(from: downloadURL)
+                    self.progressSubscription?.cancel()
+                    try self.updater.installUpdate(from: updateFile)
+                    DispatchQueue.main.async {
+                        self.isDownloading = false
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    let alert = NSAlert(error: error)
+                    alert.runModal()
+                }
+            }
         }
     }
 }

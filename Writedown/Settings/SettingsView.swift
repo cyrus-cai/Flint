@@ -185,15 +185,12 @@ struct SettingsView: View {
     }
 
     @State private var selectedTab: SettingsTab? = .general
-    @State private var progressSubscription: AnyCancellable?
+    // 使用全局共享的 UpdateManager 来管理更新状态
+    @StateObject private var updateManager = UpdateManager.shared
+
     @State private var autoCorrect = false
     @State private var launchAtLogin = false
-    @State private var openInApp = false
     @StateObject private var counter = HotkeyCounter.shared
-    @State private var isCheckingUpdate = false
-    @State private var isDownloading = false
-    @State private var downloadProgress: Double = 0
-    @State private var latestVersion: String?
     @State private var integrateWithObsidian = true
     @State private var noIntegration = true
     @State private var obsidianVaultPath: String = ""
@@ -204,12 +201,6 @@ struct SettingsView: View {
     @AppStorage("AIModel") private var AIModel: String =
         AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
 
-    // Feishu related settings
-    //    @AppStorage("FeishuSyncEnabled") private var feishuSyncEnabled = false
-    //    @State private var feishuAccessToken = ""
-    //    @State private var showFeishuTokenAlert = false
-
-    let updater = AutoUpdater()
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 
@@ -269,26 +260,31 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Sidebar with custom top padding to account for hidden title bar
+        NavigationSplitView {
+            // 左侧边栏：展示所有设置选项，并在底部显示更新提示（复用 StandardToastView）
             VStack(spacing: 0) {
                 List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
-                    HStack {
-                        Image(systemName: tab.icon)
-                            .foregroundColor(.secondary)
-                            .frame(width: 16)
-                        Text(tab.rawValue)
-                            .font(.system(size: 13))
-                    }
-                    .tag(tab)
-                    .frame(height: 28)
+                    Label(tab.rawValue, systemImage: tab.icon)
+                        .padding(.vertical, 4)
                 }
-                .listStyle(.sidebar)
-                .frame(width: 180)
-                .background(Color(NSColor.controlBackgroundColor))
-            }
+                .listStyle(SidebarListStyle())
 
-            // Content area
+                // 当 UpdateManager 检测到新版本后，显示提示视图
+                if updateManager.newVersionAvailable {
+                    StandardToastView(
+                        icon: "arrow.down.circle.fill",
+                        message: "New Version Available",
+                        explanatoryText: "Restart to install \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
+                    )
+                    .padding(.horizontal, 4)
+                    .onTapGesture {
+                        updateManager.installUpdatePackage()
+                    }
+                }
+            }
+            .frame(minWidth: 240)
+        } detail: {
+            // 右侧内容区域，根据选项展示不同内容
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedTab {
@@ -309,39 +305,29 @@ struct SettingsView: View {
                         AboutSettingsView(
                             version: version,
                             buildNumber: buildNumber,
-                            isCheckingUpdate: $isCheckingUpdate,
-                            isDownloading: $isDownloading,
-                            downloadProgress: $downloadProgress,
-                            latestVersion: latestVersion,
-                            updater: updater,
-                            progressSubscription: $progressSubscription
+                            isCheckingUpdate: .constant(false),
+                            isDownloading: .constant(false),
+                            downloadProgress: .constant(0),
+                            latestVersion: nil,
+                            updater: AutoUpdater(),
+                            progressSubscription: .constant(nil)
                         )
                     case .none:
                         EmptyView()
                     }
                 }
-                .padding(.top, 20)  // Add top padding to content area
                 .padding()
             }
-            .frame(maxWidth: .infinity)
         }
         .frame(width: 800, height: 500)
         .background(Color(NSColor.windowBackgroundColor))
-        .alert("Configure Obsidian Folder", isPresented: $showPathAlert) {
-            Button("Select") {
-                selectCustomDirectory()
-            }
-        } message: {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "Writedown defaultly integrates with Obsidian. Pick a folder in your Obsidian vault."
-                )
-            }
-        }
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
-            _ in
+        .onAppear {
+            // 此处不再需要在 SettingsView 中单独检测更新
+            // 更新检查逻辑已在 UpdateManager 中统一管理
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) { _ in
             isPro = UserDefaults.standard.bool(forKey: "isPro")
         }
     }
@@ -976,6 +962,9 @@ struct AboutSettingsView: View {
     @Binding var progressSubscription: AnyCancellable?
     @Environment(\.colorScheme) var colorScheme
 
+    // New state variable to track update failures
+    @State private var updateFailed: Bool = false
+
     var body: some View {
         VStack(spacing: 20) {
             // Brand Icon and Name
@@ -1001,6 +990,22 @@ struct AboutSettingsView: View {
                         checkForUpdates()
                     }
                     .disabled(isCheckingUpdate)
+
+                    // Show Retry button when an update failure occurred.
+                    if updateFailed {
+                        Button("Retry") {
+                            Task {
+                                do {
+                                    try updater.deleteDownloadedUpdatePackage()
+                                } catch {
+                                    print("Failed to delete downloaded package: \(error)")
+                                }
+                                updateFailed = false
+                                checkForUpdates()
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
 
                     // Add Release Notes button
                     Button("Release Notes") {
@@ -1107,6 +1112,7 @@ struct AboutSettingsView: View {
                                 } catch {
                                     progressSubscription?.cancel()
                                     isDownloading = false
+                                    updateFailed = true  // Flag update failure so that Retry appears
                                     let errorAlert = NSAlert()
                                     errorAlert.messageText = "Update failed"
                                     errorAlert.informativeText = error.localizedDescription
@@ -1126,6 +1132,7 @@ struct AboutSettingsView: View {
                 }
             } catch {
                 await MainActor.run {
+                    updateFailed = true
                     let alert = NSAlert()
                     alert.messageText = "Failed to check for updates"
                     alert.informativeText = error.localizedDescription
@@ -1269,22 +1276,3 @@ struct AppearanceOptionView: View {
 #Preview {
     SettingsView()
 }
-
-// func createSettingsWindow() {
-//     let settingsWindow = NSWindow(
-//         contentRect: NSRect(x: 0, y: 0, width: 800, height: 500),
-//         styleMask: [.titled, .closable, .fullSizeContentView],  // Add fullSizeContentView
-//         backing: .buffered,
-//         defer: false
-//     )
-
-//     settingsWindow.titlebarAppearsTransparent = true
-//     settingsWindow.titleVisibility = .hidden
-//     settingsWindow.center()
-
-//     let contentView = SettingsView()
-//     let hostingView = NSHostingView(rootView: contentView)
-//     settingsWindow.contentView = hostingView
-
-//     settingsWindow.makeKeyAndOrderFront(nil)
-// }
