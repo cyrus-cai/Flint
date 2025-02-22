@@ -1239,10 +1239,10 @@ struct TimeGroupHeader: View {
                                     }
                                     .buttonStyle(.plain)
                                     .opacity(isCopyOptionsExpanded ? 1 : 0)
-                                    .scaleEffect(isCopyOptionsExpanded ? 1 : 0.9)
                                 }
                             }
                             .padding(2)
+                            .frame(height: 28)  // 固定垂直高度，确保悬停前后位置不变
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(
@@ -1250,8 +1250,7 @@ struct TimeGroupHeader: View {
                                             ? (colorScheme == .dark
                                                 ? Color.white.opacity(0.1)
                                                 : Color.black.opacity(0.05))
-                                            : Color.clear
-                                    )
+                                            : Color.clear)
                             )
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
@@ -1280,10 +1279,10 @@ struct TimeGroupHeader: View {
                                     }
                                     .buttonStyle(.plain)
                                     .opacity(isShareOptionsExpanded ? 1 : 0)
-                                    .scaleEffect(isShareOptionsExpanded ? 1 : 0.9)
                                 }
                             }
                             .padding(4)
+                            .frame(height: 28)  // 固定垂直高度，保证悬停时 y 轴位置不变
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(
@@ -1291,8 +1290,7 @@ struct TimeGroupHeader: View {
                                             ? (colorScheme == .dark
                                                 ? Color.white.opacity(0.1)
                                                 : Color.black.opacity(0.05))
-                                            : Color.clear
-                                    )
+                                            : Color.clear)
                             )
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
