@@ -432,6 +432,10 @@ struct RecentNotesListView: View {
     @FocusState private var searchFocused: Bool
     @State private var isShowAllHovered = false
     @State private var eventMonitor: Any?
+    @State private var isCopyButtonHovered = false
+    @State private var isCopyArchiveButtonHovered = false
+    @State private var isShareButtonHovered = false
+    @State private var isShareArchiveButtonHovered = false
 
     private func setupKeyboardMonitor() {
         removeKeyboardMonitor()
@@ -1023,9 +1027,10 @@ struct TimeGroupHeader: View {
     @StateObject var viewModel: RecentNotesViewModel
     @State private var isSummarizing = false
     @State private var isCopied = false
-    @State private var isHoveringCopy = false
-    @State private var isHoveringArchive = false
-    @State private var isHoveringShare = false
+    @State private var isCopyButtonHovered = false
+    @State private var isCopyArchiveButtonHovered = false
+    @State private var isShareButtonHovered = false
+    @State private var isShareArchiveButtonHovered = false
     @Environment(\.colorScheme) private var colorScheme
 
     // 控制 Copy 按钮扩展状态
@@ -1218,7 +1223,7 @@ struct TimeGroupHeader: View {
                     if !isSummarizing {
                         // 将 Copy 与 Share 操作放在同一个 HStack 中，横向排列
                         HStack(spacing: 8) {
-                            // Copy 操作
+                            // Copy 操作组
                             HStack(spacing: 0) {
                                 Button(action: copyContent) {
                                     Text("Copy")
@@ -1227,6 +1232,20 @@ struct TimeGroupHeader: View {
                                         .padding(.horizontal, 6)
                                 }
                                 .buttonStyle(.plain)
+                                .onHover { hovering in
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        isCopyButtonHovered = hovering
+                                        if hovering {
+                                            isCopyOptionsExpanded = true
+                                        }
+                                    }
+                                }
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(isCopyButtonHovered
+                                                ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                                : Color.clear)
+                                )
 
                                 if isCopyOptionsExpanded {
                                     Divider()
@@ -1238,27 +1257,33 @@ struct TimeGroupHeader: View {
                                             .padding(.horizontal, 6)
                                     }
                                     .buttonStyle(.plain)
+                                    .onHover { hovering in
+                                        withAnimation(.easeInOut(duration: 0.25)) {
+                                            isCopyArchiveButtonHovered = hovering
+                                            if hovering {
+                                                isCopyOptionsExpanded = true
+                                            }
+                                        }
+                                    }
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(isCopyArchiveButtonHovered
+                                                    ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                                    : Color.clear)
+                                    )
                                     .opacity(isCopyOptionsExpanded ? 1 : 0)
                                 }
                             }
                             .padding(2)
-                            .frame(height: 28)  // 固定垂直高度，确保悬停前后位置不变
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(
-                                        isCopyOptionsExpanded
-                                            ? (colorScheme == .dark
-                                                ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05))
-                                            : Color.clear)
-                            )
+                            .frame(height: 28)
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
-                                    isCopyOptionsExpanded = hovering
+                                    // 保证如果任一内部按钮悬停，则保持展开状态
+                                    isCopyOptionsExpanded = hovering || isCopyButtonHovered || isCopyArchiveButtonHovered
                                 }
                             }
 
-                            // Share 操作
+                            // Share 操作组
                             HStack(spacing: 0) {
                                 Button(action: shareContent) {
                                     Text("Share")
@@ -1267,6 +1292,20 @@ struct TimeGroupHeader: View {
                                         .padding(.horizontal, 6)
                                 }
                                 .buttonStyle(.plain)
+                                .onHover { hovering in
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        isShareButtonHovered = hovering
+                                        if (hovering) {
+                                            isShareOptionsExpanded = true
+                                        }
+                                    }
+                                }
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(isShareButtonHovered
+                                                ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                                : Color.clear)
+                                )
 
                                 if isShareOptionsExpanded {
                                     Divider()
@@ -1278,23 +1317,28 @@ struct TimeGroupHeader: View {
                                             .padding(.horizontal, 6)
                                     }
                                     .buttonStyle(.plain)
+                                    .onHover { hovering in
+                                        withAnimation(.easeInOut(duration: 0.25)) {
+                                            isShareArchiveButtonHovered = hovering
+                                            if hovering {
+                                                isShareOptionsExpanded = true
+                                            }
+                                        }
+                                    }
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(isShareArchiveButtonHovered
+                                                    ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                                    : Color.clear)
+                                    )
                                     .opacity(isShareOptionsExpanded ? 1 : 0)
                                 }
                             }
                             .padding(4)
-                            .frame(height: 28)  // 固定垂直高度，保证悬停时 y 轴位置不变
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(
-                                        isShareOptionsExpanded
-                                            ? (colorScheme == .dark
-                                                ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05))
-                                            : Color.clear)
-                            )
+                            .frame(height: 28)
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
-                                    isShareOptionsExpanded = hovering
+                                    isShareOptionsExpanded = hovering || isShareButtonHovered || isShareArchiveButtonHovered
                                 }
                             }
                         }
