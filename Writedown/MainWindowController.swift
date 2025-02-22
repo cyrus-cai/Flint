@@ -188,7 +188,7 @@ class MainWindowController: NSWindowController {
         window.maxSize = NSSize(width: defaultWidth, height: maxHeight)
 
         let visualEffectView = NSVisualEffectView()
-        visualEffectView.material = .sidebar
+        visualEffectView.material = .popover
         visualEffectView.state = .active
         visualEffectView.blendingMode = .withinWindow
 
