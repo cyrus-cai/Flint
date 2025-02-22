@@ -1413,17 +1413,23 @@ struct StandardToastView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
                 if #available(macOS 15.0, *) {
                     Image(systemName: icon)
                         .font(.system(size: 14))
                         .foregroundColor(.green)
                         .symbolEffect(.bounce.up, options: .repeat(1))
+                        .alignmentGuide(.firstTextBaseline) { d in
+                            d.height / 2
+                        }
                 } else {
                     Image(systemName: icon)
                         .font(.system(size: 14))
                         .foregroundColor(.green)
+                        .alignmentGuide(.firstTextBaseline) { d in
+                            d.height / 2
+                        }
                 }
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -1431,6 +1437,13 @@ struct StandardToastView: View {
                         .foregroundColor(.primary)
                         .font(.system(size: 13, weight: .medium))
                         .multilineTextAlignment(.leading)
+
+                    if let explanatoryText = explanatoryText {
+                        Text(explanatoryText)
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 11))
+                            .multilineTextAlignment(.leading)
+                    }
                 }
 
                 if let button = actionButton {
@@ -1438,13 +1451,6 @@ struct StandardToastView: View {
                         .buttonStyle(.plain)
                         .font(.system(size: 13, weight: .medium))
                 }
-            }
-
-            if let explanatoryText = explanatoryText {
-                Text(explanatoryText)
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 11))
-                    .multilineTextAlignment(.leading)
             }
         }
         .padding(ToastStyle.padding)
