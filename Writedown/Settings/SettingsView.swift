@@ -1180,7 +1180,7 @@ struct AppearanceSettingsView: View {
                 GroupBox("Theme") {
                     VStack(spacing: 12) {
                         HStack {
-                            Label("Appearance", systemImage: "paintbrush")
+                            Label("Note Window Appearance", systemImage: "paintbrush")
                                 .font(.system(size: 13, weight: .medium))
                             Spacer()
                             Picker("", selection: $appearanceMode) {
