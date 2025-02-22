@@ -1179,7 +1179,7 @@ struct AppearanceSettingsView: View {
             VStack(spacing: 16) {
                 GroupBox("Theme") {
                     VStack(alignment: .leading, spacing: 12) {  // Changed alignment to .leading
-                        Label("Note Window Appearance", systemImage: "paintbrush")
+                        Label("Appearance", systemImage: "paintbrush")
                             .font(.system(size: 13, weight: .medium))
 
                         HStack(spacing: 16) {
@@ -1209,6 +1209,8 @@ struct AppearanceSettingsView: View {
                             ) {
                                 appearanceMode = .dark
                             }
+
+                            Spacer() // Add this to push content to the left
                         }
                         .frame(maxWidth: .infinity)  // Added to ensure HStack takes full width
                         .padding(.top, 8)
