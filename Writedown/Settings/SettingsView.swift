@@ -271,7 +271,7 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationSplitView {
-            // 左侧边栏：列表展示所有标签，底部显示更新提示（若有更新）
+            // 左侧边栏：展示所有设置选项，并在底部显示更新提示（复用 StandardToastView）
             VStack(spacing: 0) {
                 List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
                     Label(tab.rawValue, systemImage: tab.icon)
@@ -279,18 +279,15 @@ struct SettingsView: View {
                 }
                 .listStyle(SidebarListStyle())
 
-                // 底部更新提示
                 if newVersionAvailable {
                     Divider()
-                    Text("New Version Avaliable")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(8)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    // 直接复用 StandardToastView 模块，显示绿色风格提示
+                    StandardToastView(icon: "arrow.down.circle.fill", message: "New Version Available")
+                        .padding(.horizontal, 12)
                 }
             }
         } detail: {
-            // 右侧内容区域，根据选项显示不同界面
+            // 右侧内容区域，根据选项展示不同内容
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedTab {
@@ -330,22 +327,18 @@ struct SettingsView: View {
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
         .onAppear {
-            // 每次打开设置时自动检查更新
+            // 每次打开设置时自动检测更新
             Task {
                 do {
                     let updateInfo = try await updater.checkForUpdates()
-                    // 如果返回 updateInfo 不为空，说明有新版本
                     newVersionAvailable = (updateInfo != nil)
                 } catch {
                     print("Failed to check for updates: \(error)")
                     newVersionAvailable = false
                 }
             }
-
-            // 可保留其它 onAppear 逻辑，例如刷新用户状态等
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
-            _ in
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) { _ in
             isPro = UserDefaults.standard.bool(forKey: "isPro")
         }
     }
