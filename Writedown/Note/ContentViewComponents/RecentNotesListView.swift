@@ -1028,6 +1028,9 @@ struct TimeGroupHeader: View {
     @State private var isHoveringShare = false
     @Environment(\.colorScheme) private var colorScheme
 
+    // 新增状态，用于控制 Copy 按钮展开状态
+    @State private var isCopyOptionsExpanded = false
+
     private var shouldShowSummarize: Bool {
         guard let group = TimeGroup(rawValue: title) else { return false }
         return !(viewModel.showingSummaries[group] ?? false)
@@ -1149,28 +1152,14 @@ struct TimeGroupHeader: View {
         }
     }
 
-    private func copyAndShare() {
-        if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
-            copyContent()
-            // 调用独立的 AppleScript 工具创建新 note
-            AppleScriptManager.createNewNote(with: summary)
-            // 随后归档该分组的所有笔记
-            // viewModel.archiveGroupNotes(notes, groupTitle: title)
-        }
-    }
-
     private func shareAndArchive() {
         if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
-            // Use native sharing instead of AppleScript
             let items: [Any] = [summary]
             if let window = NSApp.keyWindow, let contentView = window.contentView {
                 let sharingPicker = NSSharingServicePicker(items: items)
                 sharingPicker.show(
                     relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
             }
-
-            // Archive the notes after sharing
-            // viewModel.archiveGroupNotes(notes, groupTitle: title)
         }
     }
 
@@ -1180,7 +1169,6 @@ struct TimeGroupHeader: View {
                 Text(title)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
-
                 if shouldShowSummarize {
                     Button(action: summarizeGroupNotes) {
                         if !isSummarizing {
@@ -1195,9 +1183,7 @@ struct TimeGroupHeader: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    // .disabled(isSummarizing)
                 }
-
                 Spacer()
             }
             .padding(.horizontal, 12)
@@ -1216,80 +1202,60 @@ struct TimeGroupHeader: View {
                         .lineSpacing(4)
 
                     if !isSummarizing {
+                        // 新的复合 Copy 按钮：悬停时展开两个选项
                         HStack(spacing: 4) {
-                            // Copy 按钮
-                            Button(action: {
-                                copyContent()
-                            }) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                                        .font(.system(size: 12))
+                            HStack(spacing: 0) {
+                                // 始终显示的 Copy 按钮（折叠时显示图标，展开时显示文字）
+                                Button(action: {
+                                    copyContent()
+                                }) {
+                                    Group {
+                                        if isCopyOptionsExpanded {
+                                            Text("Copy")
+                                                .font(.system(size: 12))
+                                                .padding(.vertical, 4)
+                                                .padding(.horizontal, 8)
+                                        } else {
+                                            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                                                .font(.system(size: 12))
+                                                .frame(width: 28, height: 28)
+                                        }
+                                    }
                                 }
-                                .frame(width: 28, height: 28)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(
-                                            isHoveringCopy
-                                                ? (colorScheme == .dark
-                                                    ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05))
-                                                : Color.clear
-                                        )
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .onHover { hovering in
-                                isHoveringCopy = hovering
-                            }
+                                .buttonStyle(.plain)
 
-                            // Share & Archive 按钮
-                            Button(action: shareAndArchive) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.system(size: 14))
-                                    // .foregroundColor(.red)
+                                // 展开状态下显示第二个选项
+                                if isCopyOptionsExpanded {
+                                    Divider()
+                                        .frame(height: 28)
+                                    Button(action: {
+                                        copyAndArchive()
+                                    }) {
+                                        Text("Copy & Archive")
+                                            .font(.system(size: 12))
+                                            .padding(.vertical, 4)
+                                            .padding(.horizontal, 8)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .transition(.move(edge: .trailing).combined(with: .opacity))
                                 }
-                                .frame(width: 28, height: 28)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(
-                                            isHoveringShare
-                                                ? (colorScheme == .dark
-                                                    ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05))
-                                                : Color.clear
-                                        )
-                                )
                             }
-                            .buttonStyle(.plain)
+                            .padding(4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(
+                                        isCopyOptionsExpanded
+                                            ? (colorScheme == .dark
+                                                ? Color.white.opacity(0.1)
+                                                : Color.black.opacity(0.05)) : Color.clear)
+                            )
+                            .animation(.easeInOut(duration: 0.2), value: isCopyOptionsExpanded)
+                            // 整个复合按钮区域响应 onHover，保证在两个选项之间移动时保持展开
                             .onHover { hovering in
-                                isHoveringShare = hovering
+                                withAnimation {
+                                    isCopyOptionsExpanded = hovering
+                                }
                             }
-
-                            // Copy & Archive 按钮
-                            // Button(action: copyAndArchive) {
-                            //     HStack(spacing: 4) {
-                            //         Image(systemName: "archivebox")
-                            //             .font(.system(size: 14))
-                            //             .foregroundColor(.red)
-                            //     }
-                            //     .frame(width: 28, height: 28)
-                            //     .background(
-                            //         RoundedRectangle(cornerRadius: 6)
-                            //             .fill(
-                            //                 isHoveringArchive
-                            //                     ? (colorScheme == .dark
-                            //                         ? Color.white.opacity(0.1)
-                            //                         : Color.black.opacity(0.05))
-                            //                     : Color.clear
-                            //             )
-                            //     )
-                            // }
-                            // .buttonStyle(.plain)
-                            // .onHover { hovering in
-                            //     isHoveringArchive = hovering
-                            // }
-
                         }
                         .padding(.horizontal, 8)
                         .padding(.bottom, 8)
