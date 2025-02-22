@@ -462,27 +462,26 @@ class UpdateManager: ObservableObject {
         Task {
             do {
                 if let updateInfo = try await updater.checkForUpdates() {
-                    // 有新版本时，标识状态并开始下载
+                    // 开始下载更新，此时仅展示下载进度，不直接显示"新版本可用"
                     DispatchQueue.main.async {
-                        self.newVersionAvailable = true
                         self.isDownloading = true
                         self.downloadProgress = 0
                     }
-
                     self.progressSubscription = updater.progressPublisher
                         .receive(on: RunLoop.main)
                         .sink { progress in
                             self.downloadProgress = progress
                         }
-
                     guard let downloadURL = URL(string: updateInfo.downloadURL) else {
                         throw URLError(.badURL)
                     }
+                    // 下载更新包，若文件已存在则直接返回
                     _ = try await updater.downloadUpdate(from: downloadURL)
-
                     self.progressSubscription?.cancel()
+                    // 更新包下载完成后，将状态标识为"Update ready"
                     DispatchQueue.main.async {
                         self.isDownloading = false
+                        self.newVersionAvailable = true
                     }
                 }
             } catch {
