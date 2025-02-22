@@ -280,6 +280,8 @@ struct SettingsView: View {
                 .listStyle(SidebarListStyle())
 
                 if newVersionAvailable {
+                    Divider()
+                    // 直接复用 StandardToastView 模块，显示绿色风格提示
                     StandardToastView(icon: "arrow.down.circle.fill", message: "New Version Available")
                         .padding(.horizontal, 12)
                 }
@@ -554,8 +556,7 @@ struct GeneralSettingsView: View {
                                                 }
                                             }
                                         }
-                                    }
-                                } else {
+                                    } else {
                                         loginManager.disableLaunchAtLogin()
                                     }
                                 }
