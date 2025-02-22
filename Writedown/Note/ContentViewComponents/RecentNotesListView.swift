@@ -1409,42 +1409,48 @@ struct StandardToastView: View {
     let icon: String
     let message: String
     var actionButton: (title: String, action: () -> Void)? = nil
+    var explanatoryText: String? = nil
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Enhanced icon with animation
-            if #available(macOS 15.0, *) {
-                Image(systemName: icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(.green)
-                    .symbolEffect(.bounce.up, options: .repeat(1))
-            } else {
-                // Fallback on earlier versions
-            }
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                if #available(macOS 15.0, *) {
+                    Image(systemName: icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(.green)
+                        .symbolEffect(.bounce.up, options: .repeat(1))
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(.green)
+                }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(message)
-                    .foregroundColor(.primary)
-                    .font(.system(size: 13, weight: .medium))
-            }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(message)
+                        .foregroundColor(.primary)
+                        .font(.system(size: 13, weight: .medium))
+                }
 
-            if let button = actionButton {
-                Button(button.title, action: button.action)
-                    .buttonStyle(.plain)
-                    // .foregroundColor(.red)
-                    .font(.system(size: 13, weight: .medium))
+                if let button = actionButton {
+                    Button(button.title, action: button.action)
+                        .buttonStyle(.plain)
+                        .font(.system(size: 13, weight: .medium))
+                }
+            }
+            if let explanatoryText = explanatoryText {
+                Text(explanatoryText)
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 11))
             }
         }
         .padding(ToastStyle.padding)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                    .fill(
-                        colorScheme == .dark
-                            ? ToastStyle.backgroundColor : ToastStyle.lightBackgroundColor)
-
-                // Add subtle gradient overlay
+                    .fill(colorScheme == .dark
+                          ? ToastStyle.backgroundColor
+                          : ToastStyle.lightBackgroundColor)
                 RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
                     .fill(
                         LinearGradient(
@@ -1453,8 +1459,6 @@ struct StandardToastView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-
-                // Add subtle border
                 RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
                     .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
             }

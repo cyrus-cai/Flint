@@ -282,11 +282,15 @@ struct SettingsView: View {
                 if newVersionAvailable {
                     // Divider()
                     // 直接复用 StandardToastView 模块，显示绿色风格提示
-                    StandardToastView(icon: "arrow.down.circle.fill", message: "New Version Available")
-                        .padding(.horizontal, 4)
+                    StandardToastView(
+                        icon: "arrow.down.circle.fill",
+                        message: "New Version Available",
+                        explanatoryText: "Click to install"
+                    )
+                    .padding(.horizontal, 4)
                 }
             }
-            .frame(minWidth: 200)
+            .frame(minWidth: 240)
         } detail: {
             // 右侧内容区域，根据选项展示不同内容
             ScrollView {
