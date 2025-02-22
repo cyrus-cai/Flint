@@ -393,6 +393,18 @@ class AutoUpdater {
         }
         return false
     }
+
+    // New method to delete the downloaded update package
+    func deleteDownloadedUpdatePackage() throws {
+        let fileManager = Foundation.FileManager.default
+        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+            print("Deleted downloaded update package.")
+        } else {
+            print("No downloaded update package found.")
+        }
+    }
 }
 
 // 更新信息模型

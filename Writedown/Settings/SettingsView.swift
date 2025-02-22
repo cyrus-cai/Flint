@@ -1010,6 +1010,9 @@ struct AboutSettingsView: View {
     @Binding var progressSubscription: AnyCancellable?
     @Environment(\.colorScheme) var colorScheme
 
+    // New state variable to track update failures
+    @State private var updateFailed: Bool = false
+
     var body: some View {
         VStack(spacing: 20) {
             // Brand Icon and Name
@@ -1035,6 +1038,22 @@ struct AboutSettingsView: View {
                         checkForUpdates()
                     }
                     .disabled(isCheckingUpdate)
+
+                    // Show Retry button when an update failure occurred.
+                    if updateFailed {
+                        Button("Retry") {
+                            Task {
+                                do {
+                                    try updater.deleteDownloadedUpdatePackage()
+                                } catch {
+                                    print("Failed to delete downloaded package: \(error)")
+                                }
+                                updateFailed = false
+                                checkForUpdates()
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
 
                     // Add Release Notes button
                     Button("Release Notes") {
@@ -1141,6 +1160,7 @@ struct AboutSettingsView: View {
                                 } catch {
                                     progressSubscription?.cancel()
                                     isDownloading = false
+                                    updateFailed = true  // Flag update failure so that Retry appears
                                     let errorAlert = NSAlert()
                                     errorAlert.messageText = "Update failed"
                                     errorAlert.informativeText = error.localizedDescription
@@ -1160,6 +1180,7 @@ struct AboutSettingsView: View {
                 }
             } catch {
                 await MainActor.run {
+                    updateFailed = true
                     let alert = NSAlert()
                     alert.messageText = "Failed to check for updates"
                     alert.informativeText = error.localizedDescription
