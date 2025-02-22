@@ -178,6 +178,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotKey: HotKey?
     private var limitExceededWindow: LimitExceededWindowController?
     var globalKeyMonitor: GlobalKeyMonitor?
+
+    private func updateAppearance(_ mode: AppearanceMode) {
+        if let window = NSApp.windows.first {
+            switch mode {
+            case .system:
+                window.appearance = nil
+            case .light:
+                window.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                window.appearance = NSAppearance(named: .darkAqua)
+            }
+        }
+    }
     //    let hotkeyCounter = HotkeyCounter()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -215,6 +228,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupStatusBarItem()
+
+        // Apply saved appearance setting
+        if let appearanceMode = AppearanceMode(
+            rawValue: UserDefaults.standard.string(forKey: "appearanceMode") ?? "System")
+        {
+            updateAppearance(appearanceMode)
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool)
