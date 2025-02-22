@@ -196,6 +196,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Track app launch
         Mixpanel.mainInstance().track(event: "App Launched")
+         UpdateManager.shared.checkAndDownloadUpdate()
 
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)

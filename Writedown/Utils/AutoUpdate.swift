@@ -435,3 +435,49 @@ enum UpdateError: Error {
         }
     }
 }
+
+class UpdateManager: ObservableObject {
+    static let shared = UpdateManager()
+
+    @Published var newVersionAvailable: Bool = false
+    @Published var isDownloading: Bool = false
+    @Published var downloadProgress: Double = 0.0
+
+    private let updater = AutoUpdater()
+    private var progressSubscription: AnyCancellable?
+
+    private init() {}
+
+    func checkAndDownloadUpdate() {
+        Task {
+            do {
+                if let updateInfo = try await updater.checkForUpdates() {
+                    // 有新版本时，标识状态并开始下载
+                    DispatchQueue.main.async {
+                        self.newVersionAvailable = true
+                        self.isDownloading = true
+                        self.downloadProgress = 0
+                    }
+
+                    self.progressSubscription = updater.progressPublisher
+                        .receive(on: RunLoop.main)
+                        .sink { progress in
+                            self.downloadProgress = progress
+                        }
+
+                    guard let downloadURL = URL(string: updateInfo.downloadURL) else {
+                        throw URLError(.badURL)
+                    }
+                    _ = try await updater.downloadUpdate(from: downloadURL)
+
+                    self.progressSubscription?.cancel()
+                    DispatchQueue.main.async {
+                        self.isDownloading = false
+                    }
+                }
+            } catch {
+                print("Error checking or downloading update: \(error)")
+            }
+        }
+    }
+}
