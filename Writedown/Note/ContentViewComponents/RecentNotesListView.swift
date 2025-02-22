@@ -1228,7 +1228,7 @@ struct TimeGroupHeader: View {
                                 Button(action: copyContent) {
                                     Text("Copy")
                                         .font(.system(size: 12))
-                                        .padding(.vertical, 2)
+                                        .padding(.vertical, 4)
                                         .padding(.horizontal, 6)
                                 }
                                 .buttonStyle(.plain)
@@ -1242,8 +1242,11 @@ struct TimeGroupHeader: View {
                                 }
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
-                                        .fill(isCopyButtonHovered
-                                                ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                        .fill(
+                                            isCopyButtonHovered
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05))
                                                 : Color.clear)
                                 )
 
@@ -1253,7 +1256,7 @@ struct TimeGroupHeader: View {
                                     Button(action: copyAndArchive) {
                                         Text("Copy & Archive")
                                             .font(.system(size: 12))
-                                            .padding(.vertical, 2)
+                                            .padding(.vertical, 4)
                                             .padding(.horizontal, 6)
                                     }
                                     .buttonStyle(.plain)
@@ -1267,8 +1270,11 @@ struct TimeGroupHeader: View {
                                     }
                                     .background(
                                         RoundedRectangle(cornerRadius: 6)
-                                            .fill(isCopyArchiveButtonHovered
-                                                    ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                            .fill(
+                                                isCopyArchiveButtonHovered
+                                                    ? (colorScheme == .dark
+                                                        ? Color.white.opacity(0.1)
+                                                        : Color.black.opacity(0.05))
                                                     : Color.clear)
                                     )
                                     .opacity(isCopyOptionsExpanded ? 1 : 0)
@@ -1279,7 +1285,9 @@ struct TimeGroupHeader: View {
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
                                     // 保证如果任一内部按钮悬停，则保持展开状态
-                                    isCopyOptionsExpanded = hovering || isCopyButtonHovered || isCopyArchiveButtonHovered
+                                    isCopyOptionsExpanded =
+                                        hovering || isCopyButtonHovered
+                                        || isCopyArchiveButtonHovered
                                 }
                             }
 
@@ -1288,22 +1296,25 @@ struct TimeGroupHeader: View {
                                 Button(action: shareContent) {
                                     Text("Share")
                                         .font(.system(size: 12))
-                                        .padding(.vertical, 2)
+                                        .padding(.vertical, 4)
                                         .padding(.horizontal, 6)
                                 }
                                 .buttonStyle(.plain)
                                 .onHover { hovering in
                                     withAnimation(.easeInOut(duration: 0.25)) {
                                         isShareButtonHovered = hovering
-                                        if (hovering) {
+                                        if hovering {
                                             isShareOptionsExpanded = true
                                         }
                                     }
                                 }
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
-                                        .fill(isShareButtonHovered
-                                                ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                        .fill(
+                                            isShareButtonHovered
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05))
                                                 : Color.clear)
                                 )
 
@@ -1313,7 +1324,7 @@ struct TimeGroupHeader: View {
                                     Button(action: shareAndArchive) {
                                         Text("Share & Archive")
                                             .font(.system(size: 12))
-                                            .padding(.vertical, 2)
+                                            .padding(.vertical, 4)
                                             .padding(.horizontal, 6)
                                     }
                                     .buttonStyle(.plain)
@@ -1327,8 +1338,11 @@ struct TimeGroupHeader: View {
                                     }
                                     .background(
                                         RoundedRectangle(cornerRadius: 6)
-                                            .fill(isShareArchiveButtonHovered
-                                                    ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                            .fill(
+                                                isShareArchiveButtonHovered
+                                                    ? (colorScheme == .dark
+                                                        ? Color.white.opacity(0.1)
+                                                        : Color.black.opacity(0.05))
                                                     : Color.clear)
                                     )
                                     .opacity(isShareOptionsExpanded ? 1 : 0)
@@ -1338,7 +1352,9 @@ struct TimeGroupHeader: View {
                             .frame(height: 28)
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
-                                    isShareOptionsExpanded = hovering || isShareButtonHovered || isShareArchiveButtonHovered
+                                    isShareOptionsExpanded =
+                                        hovering || isShareButtonHovered
+                                        || isShareArchiveButtonHovered
                                 }
                             }
                         }
