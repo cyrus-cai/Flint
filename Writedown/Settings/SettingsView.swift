@@ -200,6 +200,7 @@ struct SettingsView: View {
     @State private var customPath: String = FileManager.shared.currentNotesPath
     @State private var showPathPicker = false
     @State private var showPathAlert = false
+    @State private var newVersionAvailable: Bool = false
 
     @AppStorage("AIModel") private var AIModel: String =
         AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
@@ -269,26 +270,27 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Sidebar with custom top padding to account for hidden title bar
+        NavigationSplitView {
+            // 左侧边栏：列表展示所有标签，底部显示更新提示（若有更新）
             VStack(spacing: 0) {
                 List(SettingsTab.allCases, id: \.self, selection: $selectedTab) { tab in
-                    HStack {
-                        Image(systemName: tab.icon)
-                            .foregroundColor(.secondary)
-                            .frame(width: 16)
-                        Text(tab.rawValue)
-                            .font(.system(size: 13))
-                    }
-                    .tag(tab)
-                    .frame(height: 28)
+                    Label(tab.rawValue, systemImage: tab.icon)
+                        .padding(.vertical, 4)
                 }
-                .listStyle(.sidebar)
-                .frame(width: 180)
-                .background(Color(NSColor.controlBackgroundColor))
-            }
+                .listStyle(SidebarListStyle())
 
-            // Content area
+                // 底部更新提示
+                if newVersionAvailable {
+                    Divider()
+                    Text("New Version Avaliable")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
+        } detail: {
+            // 右侧内容区域，根据选项显示不同界面
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedTab {
@@ -320,26 +322,28 @@ struct SettingsView: View {
                         EmptyView()
                     }
                 }
-                .padding(.top, 20)  // Add top padding to content area
                 .padding()
             }
-            .frame(maxWidth: .infinity)
         }
         .frame(width: 800, height: 500)
         .background(Color(NSColor.windowBackgroundColor))
-        .alert("Configure Obsidian Folder", isPresented: $showPathAlert) {
-            Button("Select") {
-                selectCustomDirectory()
-            }
-        } message: {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "Writedown defaultly integrates with Obsidian. Pick a folder in your Obsidian vault."
-                )
-            }
-        }
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
+        .onAppear {
+            // 每次打开设置时自动检查更新
+            Task {
+                do {
+                    let updateInfo = try await updater.checkForUpdates()
+                    // 如果返回 updateInfo 不为空，说明有新版本
+                    newVersionAvailable = (updateInfo != nil)
+                } catch {
+                    print("Failed to check for updates: \(error)")
+                    newVersionAvailable = false
+                }
+            }
+
+            // 可保留其它 onAppear 逻辑，例如刷新用户状态等
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
             _ in
             isPro = UserDefaults.standard.bool(forKey: "isPro")

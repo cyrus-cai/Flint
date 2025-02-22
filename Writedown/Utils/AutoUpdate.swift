@@ -11,7 +11,11 @@ import Foundation
 
 class AutoUpdater {
     // 版本信息接口地址
-    private let versionCheckURL = "https://www.figa.asia/api/version"
+    #if DEBUG
+        private let versionCheckURL = URL(string: "https://www.figa.asia/api/testversion")!
+    #else
+        private let versionCheckURL = URL(string: "https://www.figa.asia/api/version")!
+    #endif
     // 当前应用版本
     private var currentVersion: String
     // 临时下载目录
@@ -38,7 +42,7 @@ class AutoUpdater {
 
     // 检查更新
     func checkForUpdates() async throws -> UpdateInfo? {
-        let (data, _) = try await URLSession.shared.data(from: URL(string: versionCheckURL)!)
+        let (data, _) = try await URLSession.shared.data(from: versionCheckURL)
         let updateInfo = try JSONDecoder().decode(UpdateInfo.self, from: data)
 
         print(updateInfo, "updateInfo")
@@ -72,7 +76,7 @@ class AutoUpdater {
             downloadTask: URLSessionDownloadTask,
             didFinishDownloadingTo location: URL
         ) {
-            // 这��方法是必需的，但在我们的实现中不需要做任何事
+            // 这方法是必需的，但在我们的实现中不需要做任何事
             // 因为我们在 downloadUpdate 方法中处理文件移动
         }
 
@@ -174,7 +178,7 @@ class AutoUpdater {
     //        // 构建目标路径
     //        let targetAppPath = applicationsDirectory.appendingPathComponent("Writedown.app")
     //
-    //        // 在主队列中执行更新操��
+    //        // 在主队列中执行更新操作
     //        DispatchQueue.main.async { [self] in
     //            do {
     //                // 复制新版本到临时位置
