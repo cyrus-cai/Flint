@@ -1178,11 +1178,9 @@ struct AppearanceSettingsView: View {
         ScrollView {
             VStack(spacing: 16) {
                 GroupBox("Theme") {
-                    VStack(spacing: 12) {
-                        HStack {
-                            Label("Note Window Appearance", systemImage: "paintbrush")
-                                .font(.system(size: 13, weight: .medium))
-                        }
+                    VStack(alignment: .leading, spacing: 12) {  // Changed alignment to .leading
+                        Label("Note Window Appearance", systemImage: "paintbrush")
+                            .font(.system(size: 13, weight: .medium))
 
                         HStack(spacing: 16) {
                             // System appearance option
@@ -1212,6 +1210,7 @@ struct AppearanceSettingsView: View {
                                 appearanceMode = .dark
                             }
                         }
+                        .frame(maxWidth: .infinity)  // Added to ensure HStack takes full width
                         .padding(.top, 8)
                     }
                     .padding(.vertical, 10)
