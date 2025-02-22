@@ -1226,7 +1226,7 @@ struct TimeGroupHeader: View {
                             // Copy 操作组
                             HStack(spacing: 0) {
                                 Button(action: copyContent) {
-                                    Text("Copy")
+                                    Text(isCopied ? "✓ Copied" : "Copy")
                                         .font(.system(size: 12))
                                         .padding(.vertical, 4)
                                         .padding(.horizontal, 6)
