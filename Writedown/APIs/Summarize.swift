@@ -47,7 +47,7 @@ class DeepseekAPI {
 
     func summarize(text: String) async throws -> String {
         print("🤖 Starting summarization request")
-        print("📝 Input text length: \(text.count) characters")
+        print("📝 Input text length: \(text.count) chars")
 
         let systemPrompt =
             "请整理文本，按【Saved】、【Todo】分类。1.若 Saved 有内容。1.1若为代码，格式使用 ``` code inside ``` 1.2 若非代码，使用 bullet list ；2.若 Todo 有内容时，格式使用 - [ ] 3.若原文没有可整理为【Saved】或/和【Todo】的内容，相关条目下方应为空（无任何多余符号、描述等）4.【Saved】和【Todo】中间，需空行 5.以原文本的语言整理 6.严格遵循原文，杜绝额外补充，杜绝重复总结"
@@ -96,7 +96,7 @@ class DeepseekAPI {
             let summary = chatResponse.choices.first?.message.content ?? ""
 
             print("✅ Successfully generated summary")
-            print("📝 Summary length: \(summary.count) characters")
+            print("📝 Summary length: \(summary.count) chars")
 
             return summary
 

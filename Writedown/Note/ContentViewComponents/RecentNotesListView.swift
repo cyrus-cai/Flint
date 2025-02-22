@@ -841,7 +841,7 @@ struct NoteRow: View {
                         Text("·")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
-                        Text("\(note.content.count) characters")
+                        Text("\(note.content.count) chars")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
                     }
@@ -1259,28 +1259,28 @@ struct TimeGroupHeader: View {
                             }
 
                             // Copy & Archive 按钮
-                            Button(action: copyAndArchive) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "archivebox")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.red)
-                                }
-                                .frame(width: 28, height: 28)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(
-                                            isHoveringArchive
-                                                ? (colorScheme == .dark
-                                                    ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05))
-                                                : Color.clear
-                                        )
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .onHover { hovering in
-                                isHoveringArchive = hovering
-                            }
+                            // Button(action: copyAndArchive) {
+                            //     HStack(spacing: 4) {
+                            //         Image(systemName: "archivebox")
+                            //             .font(.system(size: 14))
+                            //             .foregroundColor(.red)
+                            //     }
+                            //     .frame(width: 28, height: 28)
+                            //     .background(
+                            //         RoundedRectangle(cornerRadius: 6)
+                            //             .fill(
+                            //                 isHoveringArchive
+                            //                     ? (colorScheme == .dark
+                            //                         ? Color.white.opacity(0.1)
+                            //                         : Color.black.opacity(0.05))
+                            //                     : Color.clear
+                            //             )
+                            //     )
+                            // }
+                            // .buttonStyle(.plain)
+                            // .onHover { hovering in
+                            //     isHoveringArchive = hovering
+                            // }
 
                         }
                         .padding(.horizontal, 8)
