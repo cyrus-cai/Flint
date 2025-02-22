@@ -559,8 +559,7 @@ struct RecentNotesListView: View {
                                             let noteRow = NoteRow(
                                                 note: note,
                                                 isHighLight: viewModel.currentNoteIndex
-                                                    == globalIndex
-                                                    ? true : false,
+                                                    == globalIndex ? true : false,
                                                 onTap: {
                                                     onSelectNote(note.content)
                                                     dismiss()
@@ -588,6 +587,15 @@ struct RecentNotesListView: View {
                                             }
                                             .id(note.id)
                                         }
+                                    }
+
+                                    // Add divider after each group except the last one
+                                    if group.group.rawValue
+                                        != viewModel.groupedFilteredNotes.last?.group.rawValue
+                                    {
+                                        Divider()
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 4)
                                     }
                                 }
                             }
