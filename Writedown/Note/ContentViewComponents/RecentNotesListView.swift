@@ -1216,14 +1216,15 @@ struct TimeGroupHeader: View {
                         .lineSpacing(4)
 
                     if !isSummarizing {
-                        // 复合 Copy 操作（改为文字）
-                        HStack(spacing: 4) {
+                        // 将 Copy 与 Share 操作放在同一个 HStack 中，横向排列
+                        HStack(spacing: 16) {
+                            // Copy 操作
                             HStack(spacing: 0) {
                                 Button(action: copyContent) {
                                     Text("Copy")
                                         .font(.system(size: 12))
-                                        .padding(.vertical, 4)
-                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .padding(.horizontal, 6)
                                 }
                                 .buttonStyle(.plain)
 
@@ -1233,15 +1234,15 @@ struct TimeGroupHeader: View {
                                     Button(action: copyAndArchive) {
                                         Text("Copy & Archive")
                                             .font(.system(size: 12))
-                                            .padding(.vertical, 4)
-                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 2)
+                                            .padding(.horizontal, 6)
                                     }
                                     .buttonStyle(.plain)
                                     .opacity(isCopyOptionsExpanded ? 1 : 0)
                                     .scaleEffect(isCopyOptionsExpanded ? 1 : 0.9)
                                 }
                             }
-                            .padding(4)
+                            .padding(2)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(
@@ -1255,18 +1256,14 @@ struct TimeGroupHeader: View {
                                     isCopyOptionsExpanded = hovering
                                 }
                             }
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, 8)
 
-                        // 复合 Share 操作（改为文字）
-                        HStack(spacing: 4) {
+                            // Share 操作
                             HStack(spacing: 0) {
                                 Button(action: shareContent) {
                                     Text("Share")
                                         .font(.system(size: 12))
-                                        .padding(.vertical, 4)
-                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .padding(.horizontal, 6)
                                 }
                                 .buttonStyle(.plain)
 
@@ -1276,8 +1273,8 @@ struct TimeGroupHeader: View {
                                     Button(action: shareAndArchive) {
                                         Text("Share & Archive")
                                             .font(.system(size: 12))
-                                            .padding(.vertical, 4)
-                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 2)
+                                            .padding(.horizontal, 6)
                                     }
                                     .buttonStyle(.plain)
                                     .opacity(isShareOptionsExpanded ? 1 : 0)
