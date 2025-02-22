@@ -1216,40 +1216,27 @@ struct TimeGroupHeader: View {
                         .lineSpacing(4)
 
                     if !isSummarizing {
-                        // 复合 Copy 按钮
+                        // 复合 Copy 操作（改为文字）
                         HStack(spacing: 4) {
                             HStack(spacing: 0) {
-                                Button(action: {
-                                    copyContent()
-                                }) {
-                                    Group {
-                                        if isCopyOptionsExpanded {
-                                            Text("Copy")
-                                                .font(.system(size: 12))
-                                                .padding(.vertical, 4)
-                                                .padding(.horizontal, 8)
-                                        } else {
-                                            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                                                .font(.system(size: 12))
-                                                .frame(width: 28, height: 28)
-                                        }
-                                    }
+                                Button(action: copyContent) {
+                                    Text("Copy")
+                                        .font(.system(size: 12))
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
                                 }
                                 .buttonStyle(.plain)
 
                                 if isCopyOptionsExpanded {
                                     Divider()
                                         .frame(height: 28)
-                                    Button(action: {
-                                        copyAndArchive()
-                                    }) {
+                                    Button(action: copyAndArchive) {
                                         Text("Copy & Archive")
                                             .font(.system(size: 12))
                                             .padding(.vertical, 4)
                                             .padding(.horizontal, 8)
                                     }
                                     .buttonStyle(.plain)
-                                    // 使用淡入加缩放效果，使动画更平稳
                                     .opacity(isCopyOptionsExpanded ? 1 : 0)
                                     .scaleEffect(isCopyOptionsExpanded ? 1 : 0.9)
                                 }
@@ -1261,8 +1248,7 @@ struct TimeGroupHeader: View {
                                         isCopyOptionsExpanded
                                             ? (colorScheme == .dark
                                                 ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05))
-                                            : Color.clear)
+                                                : Color.black.opacity(0.05)) : Color.clear)
                             )
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
@@ -1273,33 +1259,21 @@ struct TimeGroupHeader: View {
                         .padding(.horizontal, 8)
                         .padding(.bottom, 8)
 
-                        // 复合 Share 按钮
+                        // 复合 Share 操作（改为文字）
                         HStack(spacing: 4) {
                             HStack(spacing: 0) {
-                                Button(action: {
-                                    shareContent()
-                                }) {
-                                    Group {
-                                        if isShareOptionsExpanded {
-                                            Text("Share")
-                                                .font(.system(size: 12))
-                                                .padding(.vertical, 4)
-                                                .padding(.horizontal, 8)
-                                        } else {
-                                            Image(systemName: "square.and.arrow.up")
-                                                .font(.system(size: 12))
-                                                .frame(width: 28, height: 28)
-                                        }
-                                    }
+                                Button(action: shareContent) {
+                                    Text("Share")
+                                        .font(.system(size: 12))
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
                                 }
                                 .buttonStyle(.plain)
 
                                 if isShareOptionsExpanded {
                                     Divider()
                                         .frame(height: 28)
-                                    Button(action: {
-                                        shareAndArchive()
-                                    }) {
+                                    Button(action: shareAndArchive) {
                                         Text("Share & Archive")
                                             .font(.system(size: 12))
                                             .padding(.vertical, 4)
@@ -1317,8 +1291,7 @@ struct TimeGroupHeader: View {
                                         isShareOptionsExpanded
                                             ? (colorScheme == .dark
                                                 ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05))
-                                            : Color.clear)
+                                                : Color.black.opacity(0.05)) : Color.clear)
                             )
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
