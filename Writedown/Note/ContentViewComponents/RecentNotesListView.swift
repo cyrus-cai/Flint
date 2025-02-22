@@ -1411,6 +1411,7 @@ struct StandardToastView: View {
     var actionButton: (title: String, action: () -> Void)? = nil
     var explanatoryText: String? = nil
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isButtonHovered = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -1420,16 +1421,10 @@ struct StandardToastView: View {
                         .font(.system(size: 14))
                         .foregroundColor(.green)
                         .symbolEffect(.bounce.up, options: .repeat(1))
-                        .alignmentGuide(.firstTextBaseline) { d in
-                            d.height / 2
-                        }
                 } else {
                     Image(systemName: icon)
                         .font(.system(size: 14))
                         .foregroundColor(.green)
-                        .alignmentGuide(.firstTextBaseline) { d in
-                            d.height / 2
-                        }
                 }
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -1447,9 +1442,29 @@ struct StandardToastView: View {
                 }
 
                 if let button = actionButton {
-                    Button(button.title, action: button.action)
-                        .buttonStyle(.plain)
-                        .font(.system(size: 13, weight: .medium))
+                    Spacer()
+                    Button(action: button.action) {
+                        Text(button.title)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.primary.opacity(0.8))
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(.thinMaterial)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                    )
+                            )
+                            .opacity(isButtonHovered ? 0.8 : 1.0)
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { hovering in
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isButtonHovered = hovering
+                        }
+                    }
                 }
             }
         }
