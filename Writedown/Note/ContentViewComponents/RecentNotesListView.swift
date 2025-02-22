@@ -1028,9 +1028,9 @@ struct TimeGroupHeader: View {
     @State private var isHoveringShare = false
     @Environment(\.colorScheme) private var colorScheme
 
-    // 新增状态，用于控制 Copy 按钮展开状态
+    // 控制 Copy 按钮扩展状态
     @State private var isCopyOptionsExpanded = false
-    // 新增状态，用于控制 Share 按钮展开状态
+    // 控制 Share 按钮扩展状态
     @State private var isShareOptionsExpanded = false
 
     private var shouldShowSummarize: Bool {
@@ -1172,7 +1172,6 @@ struct TimeGroupHeader: View {
                 sharingPicker.show(
                     relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
             }
-            // 归档当前分组的笔记
             viewModel.archiveGroupNotes(notes, groupTitle: title)
         }
     }
@@ -1204,7 +1203,8 @@ struct TimeGroupHeader: View {
             .padding(.vertical, 8)
 
             if let group = TimeGroup(rawValue: title),
-                let groupSummary = viewModel.groupSummaries[group], !groupSummary.isEmpty
+                let groupSummary = viewModel.groupSummaries[group],
+                !groupSummary.isEmpty
             {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(groupSummary)
@@ -1216,7 +1216,7 @@ struct TimeGroupHeader: View {
                         .lineSpacing(4)
 
                     if !isSummarizing {
-                        // 复合 Copy 按钮：悬停时展开两个选项
+                        // 复合 Copy 按钮
                         HStack(spacing: 4) {
                             HStack(spacing: 0) {
                                 Button(action: {
@@ -1249,7 +1249,9 @@ struct TimeGroupHeader: View {
                                             .padding(.horizontal, 8)
                                     }
                                     .buttonStyle(.plain)
-                                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                                    // 使用淡入加缩放效果，使动画更平稳
+                                    .opacity(isCopyOptionsExpanded ? 1 : 0)
+                                    .scaleEffect(isCopyOptionsExpanded ? 1 : 0.9)
                                 }
                             }
                             .padding(4)
@@ -1262,9 +1264,8 @@ struct TimeGroupHeader: View {
                                                 : Color.black.opacity(0.05))
                                             : Color.clear)
                             )
-                            .animation(.easeInOut(duration: 0.2), value: isCopyOptionsExpanded)
                             .onHover { hovering in
-                                withAnimation {
+                                withAnimation(.easeInOut(duration: 0.25)) {
                                     isCopyOptionsExpanded = hovering
                                 }
                             }
@@ -1272,7 +1273,7 @@ struct TimeGroupHeader: View {
                         .padding(.horizontal, 8)
                         .padding(.bottom, 8)
 
-                        // 复合 Share 按钮：悬停时展开两个选项
+                        // 复合 Share 按钮
                         HStack(spacing: 4) {
                             HStack(spacing: 0) {
                                 Button(action: {
@@ -1305,7 +1306,8 @@ struct TimeGroupHeader: View {
                                             .padding(.horizontal, 8)
                                     }
                                     .buttonStyle(.plain)
-                                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                                    .opacity(isShareOptionsExpanded ? 1 : 0)
+                                    .scaleEffect(isShareOptionsExpanded ? 1 : 0.9)
                                 }
                             }
                             .padding(4)
@@ -1318,9 +1320,8 @@ struct TimeGroupHeader: View {
                                                 : Color.black.opacity(0.05))
                                             : Color.clear)
                             )
-                            .animation(.easeInOut(duration: 0.2), value: isShareOptionsExpanded)
                             .onHover { hovering in
-                                withAnimation {
+                                withAnimation(.easeInOut(duration: 0.25)) {
                                     isShareOptionsExpanded = hovering
                                 }
                             }
