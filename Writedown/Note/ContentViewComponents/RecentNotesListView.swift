@@ -1030,6 +1030,8 @@ struct TimeGroupHeader: View {
 
     // 新增状态，用于控制 Copy 按钮展开状态
     @State private var isCopyOptionsExpanded = false
+    // 新增状态，用于控制 Share 按钮展开状态
+    @State private var isShareOptionsExpanded = false
 
     private var shouldShowSummarize: Bool {
         guard let group = TimeGroup(rawValue: title) else { return false }
@@ -1152,6 +1154,16 @@ struct TimeGroupHeader: View {
         }
     }
 
+    private func shareContent() {
+        guard let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] else { return }
+        let items: [Any] = [summary]
+        if let window = NSApp.keyWindow, let contentView = window.contentView {
+            let sharingPicker = NSSharingServicePicker(items: items)
+            sharingPicker.show(
+                relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
+        }
+    }
+
     private func shareAndArchive() {
         if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
             let items: [Any] = [summary]
@@ -1160,6 +1172,8 @@ struct TimeGroupHeader: View {
                 sharingPicker.show(
                     relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
             }
+            // 归档当前分组的笔记
+            viewModel.archiveGroupNotes(notes, groupTitle: title)
         }
     }
 
@@ -1202,10 +1216,9 @@ struct TimeGroupHeader: View {
                         .lineSpacing(4)
 
                     if !isSummarizing {
-                        // 新的复合 Copy 按钮：悬停时展开两个选项
+                        // 复合 Copy 按钮：悬停时展开两个选项
                         HStack(spacing: 4) {
                             HStack(spacing: 0) {
-                                // 始终显示的 Copy 按钮（折叠时显示图标，展开时显示文字）
                                 Button(action: {
                                     copyContent()
                                 }) {
@@ -1224,7 +1237,6 @@ struct TimeGroupHeader: View {
                                 }
                                 .buttonStyle(.plain)
 
-                                // 展开状态下显示第二个选项
                                 if isCopyOptionsExpanded {
                                     Divider()
                                         .frame(height: 28)
@@ -1247,13 +1259,69 @@ struct TimeGroupHeader: View {
                                         isCopyOptionsExpanded
                                             ? (colorScheme == .dark
                                                 ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05)) : Color.clear)
+                                                : Color.black.opacity(0.05))
+                                            : Color.clear)
                             )
                             .animation(.easeInOut(duration: 0.2), value: isCopyOptionsExpanded)
-                            // 整个复合按钮区域响应 onHover，保证在两个选项之间移动时保持展开
                             .onHover { hovering in
                                 withAnimation {
                                     isCopyOptionsExpanded = hovering
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, 8)
+
+                        // 复合 Share 按钮：悬停时展开两个选项
+                        HStack(spacing: 4) {
+                            HStack(spacing: 0) {
+                                Button(action: {
+                                    shareContent()
+                                }) {
+                                    Group {
+                                        if isShareOptionsExpanded {
+                                            Text("Share")
+                                                .font(.system(size: 12))
+                                                .padding(.vertical, 4)
+                                                .padding(.horizontal, 8)
+                                        } else {
+                                            Image(systemName: "square.and.arrow.up")
+                                                .font(.system(size: 12))
+                                                .frame(width: 28, height: 28)
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
+
+                                if isShareOptionsExpanded {
+                                    Divider()
+                                        .frame(height: 28)
+                                    Button(action: {
+                                        shareAndArchive()
+                                    }) {
+                                        Text("Share & Archive")
+                                            .font(.system(size: 12))
+                                            .padding(.vertical, 4)
+                                            .padding(.horizontal, 8)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                                }
+                            }
+                            .padding(4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(
+                                        isShareOptionsExpanded
+                                            ? (colorScheme == .dark
+                                                ? Color.white.opacity(0.1)
+                                                : Color.black.opacity(0.05))
+                                            : Color.clear)
+                            )
+                            .animation(.easeInOut(duration: 0.2), value: isShareOptionsExpanded)
+                            .onHover { hovering in
+                                withAnimation {
+                                    isShareOptionsExpanded = hovering
                                 }
                             }
                         }
