@@ -619,7 +619,7 @@ struct RecentNotesListView: View {
                         .frame(height: 360)
                 }
             }
-            .frame(width: 360)
+            .frame(width: 340)
             .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
             .cornerRadius(8)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
@@ -1149,10 +1149,15 @@ struct TimeGroupHeader: View {
 
     private func shareAndArchive() {
         if let summary = viewModel.groupSummaries[TimeGroup(rawValue: title)!] {
-            // 调用独立的 AppleScript 工具创建新 note
-            AppleScriptManager.createNewNote(with: summary)
-            // 随后归档该分组的所有笔记
-            viewModel.archiveGroupNotes(notes, groupTitle: title)
+            // Use native sharing instead of AppleScript
+            let items: [Any] = [summary]
+            if let window = NSApp.keyWindow, let contentView = window.contentView {
+                let sharingPicker = NSSharingServicePicker(items: items)
+                sharingPicker.show(relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
+            }
+
+            // Archive the notes after sharing
+            // viewModel.archiveGroupNotes(notes, groupTitle: title)
         }
     }
 
@@ -1224,6 +1229,30 @@ struct TimeGroupHeader: View {
                                 isHoveringCopy = hovering
                             }
 
+                            // Share & Archive 按钮
+                            Button(action: shareAndArchive) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 14))
+                                        // .foregroundColor(.red)
+                                }
+                                .frame(width: 28, height: 28)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(
+                                            isHoveringShare
+                                                ? (colorScheme == .dark
+                                                    ? Color.white.opacity(0.1)
+                                                    : Color.black.opacity(0.05))
+                                                : Color.clear
+                                        )
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .onHover { hovering in
+                                isHoveringShare = hovering
+                            }
+
                             // Copy & Archive 按钮
                             Button(action: copyAndArchive) {
                                 HStack(spacing: 4) {
@@ -1248,29 +1277,7 @@ struct TimeGroupHeader: View {
                                 isHoveringArchive = hovering
                             }
 
-                            // Share & Archive 按钮
-                            Button(action: shareAndArchive) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.blue)
-                                }
-                                .frame(width: 28, height: 28)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(
-                                            isHoveringShare
-                                                ? (colorScheme == .dark
-                                                    ? Color.white.opacity(0.1)
-                                                    : Color.black.opacity(0.05))
-                                                : Color.clear
-                                        )
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .onHover { hovering in
-                                isHoveringShare = hovering
-                            }
+
                         }
                         .padding(.horizontal, 8)
                         .padding(.bottom, 8)
@@ -1346,7 +1353,7 @@ struct StandardToastView: View {
             if let button = actionButton {
                 Button(button.title, action: button.action)
                     .buttonStyle(.plain)
-                    .foregroundColor(.blue)
+                    // .foregroundColor(.red)
                     .font(.system(size: 13, weight: .medium))
             }
         }
