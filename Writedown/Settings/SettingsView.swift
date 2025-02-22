@@ -1182,15 +1182,37 @@ struct AppearanceSettingsView: View {
                         HStack {
                             Label("Note Window Appearance", systemImage: "paintbrush")
                                 .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            Picker("", selection: $appearanceMode) {
-                                ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                                    Text(mode.rawValue).tag(mode)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .frame(width: 150)
                         }
+
+                        HStack(spacing: 16) {
+                            // System appearance option
+                            AppearanceOptionView(
+                                image: "system-example",
+                                title: "System",
+                                isSelected: appearanceMode == .system
+                            ) {
+                                appearanceMode = .system
+                            }
+
+                            // Light appearance option
+                            AppearanceOptionView(
+                                image: "light-example",
+                                title: "Light",
+                                isSelected: appearanceMode == .light
+                            ) {
+                                appearanceMode = .light
+                            }
+
+                            // Dark appearance option
+                            AppearanceOptionView(
+                                image: "dark-example",
+                                title: "Dark",
+                                isSelected: appearanceMode == .dark
+                            ) {
+                                appearanceMode = .dark
+                            }
+                        }
+                        .padding(.top, 8)
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
@@ -1211,6 +1233,34 @@ struct AppearanceSettingsView: View {
                 }
             }
         }
+    }
+}
+
+struct AppearanceOptionView: View {
+    let image: String
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 100)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 2)
+                    )
+
+                Text(title)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
