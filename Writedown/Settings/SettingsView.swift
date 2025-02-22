@@ -274,7 +274,7 @@ struct SettingsView: View {
                     StandardToastView(
                         icon: "arrow.down.circle.fill",
                         message: "New Version Available",
-                        explanatoryText: "Click to install"
+                        explanatoryText: "Restart to install"
                     )
                     .padding(.horizontal, 4)
                     .onTapGesture {
