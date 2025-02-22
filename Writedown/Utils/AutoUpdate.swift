@@ -433,6 +433,7 @@ class UpdateManager: ObservableObject {
     @Published var newVersionAvailable: Bool = false
     @Published var isDownloading: Bool = false
     @Published var downloadProgress: Double = 0.0
+    @Published var remoteVersion: String? = nil  // 新增属性，用来存储接口返回的版本号
 
     private let updater = AutoUpdater()
     private var progressSubscription: AnyCancellable?
@@ -443,10 +444,10 @@ class UpdateManager: ObservableObject {
         Task {
             do {
                 if let updateInfo = try await updater.checkForUpdates() {
-                    // 开始下载更新，此时仅展示下载进度，不直接显示"新版本可用"
                     DispatchQueue.main.async {
                         self.isDownloading = true
                         self.downloadProgress = 0
+                        self.remoteVersion = updateInfo.version  // 保存从接口获得的版本号
                     }
                     self.progressSubscription = updater.progressPublisher
                         .receive(on: RunLoop.main)
@@ -456,10 +457,8 @@ class UpdateManager: ObservableObject {
                     guard let downloadURL = URL(string: updateInfo.downloadURL) else {
                         throw URLError(.badURL)
                     }
-                    // 下载更新包，若文件已存在则直接返回
                     _ = try await updater.downloadUpdate(from: downloadURL)
                     self.progressSubscription?.cancel()
-                    // 更新包下载完成后，将状态标识为"Update ready"
                     DispatchQueue.main.async {
                         self.isDownloading = false
                         self.newVersionAvailable = true

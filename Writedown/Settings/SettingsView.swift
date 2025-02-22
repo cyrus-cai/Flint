@@ -274,7 +274,7 @@ struct SettingsView: View {
                     StandardToastView(
                         icon: "arrow.down.circle.fill",
                         message: "New Version Available",
-                        explanatoryText: "Restart to install"
+                        explanatoryText: "Restart to install \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
                     )
                     .padding(.horizontal, 4)
                     .onTapGesture {
