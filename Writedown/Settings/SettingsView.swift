@@ -280,14 +280,46 @@ struct SettingsView: View {
                 .listStyle(SidebarListStyle())
 
                 if newVersionAvailable {
-                    // Divider()
-                    // 直接复用 StandardToastView 模块，显示绿色风格提示
                     StandardToastView(
                         icon: "arrow.down.circle.fill",
                         message: "New Version Available",
                         explanatoryText: "Click to install"
                     )
                     .padding(.horizontal, 4)
+                    .onTapGesture {
+                        Task {
+                            do {
+                                isCheckingUpdate = true
+                                let updateInfo = try await updater.checkForUpdates()
+
+                                if let updateInfo = updateInfo {
+                                    guard let downloadURL = URL(string: updateInfo.downloadURL) else {
+                                        throw UpdateError.invalidUpdateFile
+                                    }
+
+                                    isDownloading = true
+                                    downloadProgress = 0
+
+                                    // Start download and monitor progress
+                                    progressSubscription = updater.progressPublisher
+                                        .receive(on: RunLoop.main)
+                                        .sink { progress in
+                                            downloadProgress = progress
+                                        }
+
+                                    let updateFile = try await updater.downloadUpdate(from: downloadURL)
+                                    progressSubscription?.cancel()
+
+                                    try updater.installUpdate(from: updateFile)
+                                    isDownloading = false
+                                }
+                            } catch {
+                                let alert = NSAlert(error: error)
+                                alert.runModal()
+                            }
+                            isCheckingUpdate = false
+                        }
+                    }
                 }
             }
             .frame(minWidth: 240)
