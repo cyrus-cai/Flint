@@ -1178,7 +1178,7 @@ struct TimeGroupHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 Text(title)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
@@ -1217,7 +1217,7 @@ struct TimeGroupHeader: View {
 
                     if !isSummarizing {
                         // 将 Copy 与 Share 操作放在同一个 HStack 中，横向排列
-                        HStack(spacing: 16) {
+                        HStack(spacing: 8) {
                             // Copy 操作
                             HStack(spacing: 0) {
                                 Button(action: copyContent) {
@@ -1249,7 +1249,9 @@ struct TimeGroupHeader: View {
                                         isCopyOptionsExpanded
                                             ? (colorScheme == .dark
                                                 ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05)) : Color.clear)
+                                                : Color.black.opacity(0.05))
+                                            : Color.clear
+                                    )
                             )
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
@@ -1288,7 +1290,9 @@ struct TimeGroupHeader: View {
                                         isShareOptionsExpanded
                                             ? (colorScheme == .dark
                                                 ? Color.white.opacity(0.1)
-                                                : Color.black.opacity(0.05)) : Color.clear)
+                                                : Color.black.opacity(0.05))
+                                            : Color.clear
+                                    )
                             )
                             .onHover { hovering in
                                 withAnimation(.easeInOut(duration: 0.25)) {
