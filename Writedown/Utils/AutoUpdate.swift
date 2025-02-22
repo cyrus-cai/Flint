@@ -221,17 +221,15 @@ class AutoUpdater {
     func installUpdate(from updateFile: URL) throws {
         let fileManager = Foundation.FileManager.default
 
-        // Clean and create extraction directory
+        // 清理并创建解压目录
         let updateDirectory = downloadDirectory.appendingPathComponent("extracted")
         print(updateDirectory, "updateDirectory")
         if fileManager.fileExists(atPath: updateDirectory.path) {
             try fileManager.removeItem(at: updateDirectory)
         }
-        try fileManager.createDirectory(
-            at: updateDirectory,
-            withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: updateDirectory, withIntermediateDirectories: true)
 
-        // Extract files
+        // 解压更新包
         print("Extracting update file...")
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
@@ -253,58 +251,41 @@ class AutoUpdater {
             throw UpdateError.shellCommandFailed
         }
 
-        // 获取应用程序文件夹路径
-        guard
-            let applicationsDirectory = fileManager.urls(
-                for: .applicationDirectory, in: .localDomainMask
-            ).first
-        else {
+        // 获取应用程序目录路径
+        guard let applicationsDirectory = fileManager.urls(for: .applicationDirectory, in: .localDomainMask).first else {
             throw UpdateError.invalidAppPath
         }
 
         let newAppPath = updateDirectory.appendingPathComponent("Writedown.app")
         let targetAppPath = applicationsDirectory.appendingPathComponent("Writedown.app")
 
-        // 在主队列中执行更新操作
+        // 直接执行更新操作，不再询问确认
         DispatchQueue.main.async {
             do {
-                let alert = NSAlert()
-                alert.messageText = "Update ready"
-                alert.informativeText = "New version has been downloaded. Click OK to install."
-                alert.addButton(withTitle: "OK")
-                alert.addButton(withTitle: "Cancel")
+                let scriptContent = """
+                    #!/bin/bash
+                    sleep 2  # 等待当前应用退出
+                    rm -rf "\(targetAppPath.path)"  # 删除旧版本
+                    cp -R "\(newAppPath.path)" "\(targetAppPath.path)"  # 复制新版本
+                    rm -rf "\(self.downloadDirectory.path)"  # 清理下载文件
+                    open "\(targetAppPath.path)"  # 启动新版本
+                    """
 
-                if alert.runModal() == .alertFirstButtonReturn {
-                    // 1. 创建一个临时脚本来执行更新
-                    let scriptContent = """
-                        #!/bin/bash
-                        sleep 2  # 等待原应用完全退出
-                        rm -rf "\(targetAppPath.path)"  # 删除旧版本
-                        cp -R "\(newAppPath.path)" "\(targetAppPath.path)"  # 复制新版本
-                        rm -rf "\(self.downloadDirectory.path)"  # 清理下载文件
-                        open "\(targetAppPath.path)"  # 启动新版本
-                        """
+                let scriptURL = self.downloadDirectory.appendingPathComponent("update_script.sh")
+                try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
 
-                    let scriptURL = self.downloadDirectory.appendingPathComponent(
-                        "update_script.sh")
-                    try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
+                let chmodProcess = Process()
+                chmodProcess.executableURL = URL(fileURLWithPath: "/bin/chmod")
+                chmodProcess.arguments = ["755", scriptURL.path]
+                try chmodProcess.run()
+                chmodProcess.waitUntilExit()
 
-                    // 使用 chmod 命令设置脚本权限
-                    let chmodProcess = Process()
-                    chmodProcess.executableURL = URL(fileURLWithPath: "/bin/chmod")
-                    chmodProcess.arguments = ["755", scriptURL.path]
-                    try chmodProcess.run()
-                    chmodProcess.waitUntilExit()
+                let updateTask = Process()
+                updateTask.executableURL = URL(fileURLWithPath: "/bin/bash")
+                updateTask.arguments = [scriptURL.path]
+                try updateTask.run()
 
-                    // 2. 启动更新脚本
-                    let updateTask = Process()
-                    updateTask.executableURL = URL(fileURLWithPath: "/bin/bash")
-                    updateTask.arguments = [scriptURL.path]
-                    try updateTask.run()
-
-                    // 3. 退出当前应用
-                    NSApplication.shared.terminate(nil)
-                }
+                NSApplication.shared.terminate(nil)
             } catch {
                 print("Update installation error:", error)
                 let errorAlert = NSAlert(error: error)
