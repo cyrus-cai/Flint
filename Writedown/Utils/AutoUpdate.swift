@@ -405,6 +405,16 @@ class AutoUpdater {
             print("No downloaded update package found.")
         }
     }
+
+    // In the AutoUpdater class, add a helper method to return the cached update file (if it exists).
+    func cachedUpdateFile() -> URL? {
+        let fileManager = Foundation.FileManager.default
+        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            return destinationURL
+        }
+        return nil
+    }
 }
 
 // 更新信息模型
@@ -477,6 +487,43 @@ class UpdateManager: ObservableObject {
                 }
             } catch {
                 print("Error checking or downloading update: \(error)")
+            }
+        }
+    }
+
+    // In the UpdateManager class (in the same file), add a new method to perform installation.
+    // This method checks if a cached update exists; if so, it installs directly.
+    // Otherwise, it falls back to checking for updates and downloading the package.
+    func installUpdatePackage() {
+        Task {
+            do {
+                // If an update package is already downloaded, install it immediately.
+                if let cachedFile = self.updater.cachedUpdateFile() {
+                    try self.updater.installUpdate(from: cachedFile)
+                } else if let updateInfo = try await self.updater.checkForUpdates(),
+                          let downloadURL = URL(string: updateInfo.downloadURL) {
+                    DispatchQueue.main.async {
+                        self.newVersionAvailable = true
+                        self.isDownloading = true
+                        self.downloadProgress = 0
+                    }
+                    self.progressSubscription = self.updater.progressPublisher
+                        .receive(on: RunLoop.main)
+                        .sink { progress in
+                            self.downloadProgress = progress
+                        }
+                    let updateFile = try await self.updater.downloadUpdate(from: downloadURL)
+                    self.progressSubscription?.cancel()
+                    try self.updater.installUpdate(from: updateFile)
+                    DispatchQueue.main.async {
+                        self.isDownloading = false
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    let alert = NSAlert(error: error)
+                    alert.runModal()
+                }
             }
         }
     }

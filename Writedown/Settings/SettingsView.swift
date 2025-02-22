@@ -278,14 +278,7 @@ struct SettingsView: View {
                     )
                     .padding(.horizontal, 4)
                     .onTapGesture {
-                        Task {
-                            do {
-                                try await updateManager.checkAndDownloadUpdate()
-                            } catch {
-                                let alert = NSAlert(error: error)
-                                alert.runModal()
-                            }
-                        }
+                        updateManager.installUpdatePackage()
                     }
                 }
             }
