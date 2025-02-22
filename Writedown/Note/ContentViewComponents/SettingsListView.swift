@@ -186,7 +186,7 @@ struct SettingsListView: View {
             case .copyContents:
                 return "⌘⇧C"
             case .shareContents:
-                return nil
+                return "⌘⇧S"
             case .settings:
                 return "⌘,"
             default:

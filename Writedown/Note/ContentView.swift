@@ -298,21 +298,27 @@ struct ContentView: View {
             // 检查是否按下 Esc 键（keyCode == 53）
             if event.keyCode == 53 {
                 if toolbarState.showRecentNotes {
-                    // RecentNotesView 正在显示时，按 Esc 仅关闭 RecentNotesView
                     toolbarState.showRecentNotes = false
                     return nil
                 } else {
-                    // RecentNotesView 已关闭时，按 Esc 关闭整个窗口
                     NSApp.keyWindow?.performClose(nil)
                     return nil
                 }
             }
 
-            // 处理 Command+Shift+C 快捷键（复制全文内容）
+            // 处理 Command+Shift 组合键
             if event.modifierFlags.contains(.command) && event.modifierFlags.contains(.shift) {
-                if let key = event.charactersIgnoringModifiers?.lowercased(), key == "c" {
-                    copyFullContent()
-                    return nil
+                if let key = event.charactersIgnoringModifiers?.lowercased() {
+                    switch key {
+                    case "c":  // Command+Shift+C: 复制全文
+                        copyFullContent()
+                        return nil
+                    case "s":  // Command+Shift+S: 分享全文
+                        shareFullContent()
+                        return nil
+                    default:
+                        break
+                    }
                 }
             }
 
