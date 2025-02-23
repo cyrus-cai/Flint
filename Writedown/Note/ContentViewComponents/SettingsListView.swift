@@ -41,7 +41,6 @@ struct SettingsListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 过滤：只有当有新版本可用时才显示 .newVersionAvailable 条目
             ForEach(SettingsItem.allCases.filter { $0 != .newVersionAvailable || updateManager.newVersionAvailable }) { item in
                 HoverButton(
                     action: {
@@ -81,15 +80,7 @@ struct SettingsListView: View {
                 )
                 .padding(.horizontal, 8)
 
-                if item == .shareContents {
-                    Rectangle()
-                        .fill(Color(NSColor.separatorColor))
-                        .frame(height: 1)
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 12)
-                }
-
-                if item == .showAll {
+                if item == .shareContents || item == .showAll {
                     Rectangle()
                         .fill(Color(NSColor.separatorColor))
                         .frame(height: 1)
@@ -159,8 +150,8 @@ struct SettingsListView: View {
     enum SettingsItem: Int, CaseIterable, Identifiable {
         case copyContents
         case shareContents
-        case newVersionAvailable
         case showAll
+        case newVersionAvailable
         case settings
 
         var id: Int { rawValue }
@@ -172,7 +163,7 @@ struct SettingsListView: View {
             case .shareContents:
                 return "Share Contents"
             case .newVersionAvailable:
-                return "New Version Available"
+                return "Click to install Update"
             case .showAll:
                 return "Show in Finder"
             case .settings:
