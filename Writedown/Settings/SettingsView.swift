@@ -1264,11 +1264,11 @@ struct AppearanceOptionView: View {
                 Image(image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(height: 100)
+                    .frame(height: 92)
                     .cornerRadius(8)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 2)
+                            .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 4)
                     )
 
                 Text(title)
