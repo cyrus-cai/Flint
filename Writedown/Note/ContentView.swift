@@ -450,11 +450,27 @@ struct EditorView: View {
         }
     }
 
+    @AppStorage("editorFont") private var editorFont: String = "System"
+
+    // 根据 editorFont 返回对应的 Font
+    private func getEditorFont() -> Font {
+        switch editorFont {
+        case "Serif":
+            return Font.custom("Times New Roman", size: 14)
+        case "Mono":
+            return Font.system(size: 14, design: .monospaced)
+        case "Round":
+            return Font.custom("Arial Rounded MT Bold", size: 14)
+        default: // "System" 或其他未匹配的值
+            return Font.system(size: 14)
+        }
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $text)
-                    .font(.custom("PingFang SC", size: 14.0))
+                    .font(getEditorFont())
                     .disableAutocorrection(true)
                     .scrollContentBackground(.hidden)
                     .scrollIndicators(.automatic)
@@ -490,7 +506,7 @@ struct EditorView: View {
 
                 if text.isEmpty {
                     Text("Start writing...")
-                        .font(.custom("PingFang SC", size: 14.0))
+                        .font(getEditorFont())
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
                         .foregroundColor(.gray.opacity(0.2))

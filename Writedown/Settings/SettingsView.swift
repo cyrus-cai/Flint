@@ -276,7 +276,7 @@ struct SettingsView: View {
 
                     if updateManager.newVersionAvailable {
                         StandardToastView(
-                            icon: "arrow.up.circle.fill",
+                            icon: "arrow.down.circle.fill",
                             message: "New Version Available",
                             explanatoryText: "Restart to install \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
                         )
@@ -1187,6 +1187,11 @@ enum AppearanceMode: String, CaseIterable {
 
 struct AppearanceSettingsView: View {
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+    // 新增 editorFont 存储，默认值为 "System"
+    @AppStorage("editorFont") private var editorFont: String = "System"
+
+    // 可选字体列表
+    private let editorFonts = ["System", "Serif", "Mono", "Round"]
 
     var body: some View {
         ScrollView {
@@ -1228,6 +1233,24 @@ struct AppearanceSettingsView: View {
                         }
                         .frame(maxWidth: .infinity)  // Added to ensure HStack takes full width
                         .padding(.top, 8)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
+
+                // 新增"Editor Font"选项，只应用于 note 输入框
+                GroupBox("Editor Font") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Editor Font", systemImage: "textformat")
+                            .font(.system(size: 13, weight: .medium))
+
+                        Picker("Editor Font", selection: $editorFont) {
+                            ForEach(editorFonts, id: \.self) { font in
+                                Text(font).tag(font)
+                            }
+                        }
+                        .pickerStyle(.segmented)
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
