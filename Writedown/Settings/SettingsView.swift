@@ -743,15 +743,23 @@ struct IntegrationSettingsView: View {
                 // 新增"Editor Font"选项，只应用于 note 输入框
                 GroupBox("Editor") {
                     VStack(alignment: .leading, spacing: 12) {
-                        Label("Editor Font", systemImage: "textformat")
+                        Label("Font", systemImage: "textformat")
                             .font(.system(size: 13, weight: .medium))
 
-                        Picker("", selection: $editorFont) {
+                        HStack(spacing: 24) {
                             ForEach(editorFonts, id: \.self) { font in
-                                Text(font).tag(font)
+                                FontOptionView(
+                                    letter: String(font.prefix(2)),
+                                    title: font,
+                                    isSelected: editorFont == font
+                                ) {
+                                    editorFont = font
+                                }
                             }
+                            Spacer()
                         }
-                        .pickerStyle(.segmented)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 8)
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
@@ -1292,13 +1300,59 @@ struct AppearanceOptionView: View {
                     .cornerRadius(8)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 4)
+                            .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 2.5)
                             .opacity(isSelected ? 0.95 : 0)
                     )
 
                 Text(title)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct FontOptionView: View {
+    let letter: String
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    private func getPreviewFont() -> Font {
+        switch title {
+        case "Mono":
+            return .system(size: 24, design: .monospaced)
+        case "Heiti":
+            return .custom("Heiti SC", size: 24)
+        case "Serif":
+            return .custom("Songti SC", size: 24)
+        default: // "System"
+            return .custom("PingFang SC", size: 24)
+        }
+    }
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Text(letter)
+                    .font(getPreviewFont())
+                    .frame(width: 60, height: 60)
+                    .background(VisualEffectBlur(material: .sidebar).opacity(0.5))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 2.5)
+                            .opacity(isSelected ? 0.95 : 0)
+                    )
+
+                Text(title)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(4)
             }
         }
         .buttonStyle(PlainButtonStyle())
