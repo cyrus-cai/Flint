@@ -89,7 +89,7 @@ struct WritedownApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            EmptyView()
         }
     }
 }
