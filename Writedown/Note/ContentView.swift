@@ -413,12 +413,12 @@ struct EditorView: View {
     // 当 editorFont 为 "System" 时，返回自定义 PingFang SC 字体
     private func getEditorFont() -> Font {
         switch editorFont {
-        case "Serif":
-            return Font.custom("Times New Roman", size: 14)
+        // case "Serif":
+        //     return Font.custom("Georgia", size: 14)
         case "Mono":
             return Font.system(size: 14, design: .monospaced)
-        case "Round":
-            return Font.custom("Arial Rounded MT Bold", size: 14)
+        // case "Round":
+        //     return Font.custom("Arial Rounded MT Bold", size: 14)
         default: // 默认 "System" 或未匹配的值
             return Font.custom("PingFang SC", size: 14.0)
         }

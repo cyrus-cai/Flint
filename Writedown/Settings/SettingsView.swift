@@ -668,6 +668,13 @@ struct IntegrationSettingsView: View {
         AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
     let selectCustomDirectory: () -> Void
 
+        // 新增 editorFont 存储，默认值为 "System"
+    @AppStorage("editorFont") private var editorFont: String = "System"
+
+    // 可选字体列表
+    private let editorFonts = ["System","Mono"]
+        // private let editorFonts = ["System", "Serif", "Mono", "Round"]
+
     private func openInFinder() {
         guard let notesDirectory = FileManager.shared.notesDirectory else {
             print("Could not access notes directory")
@@ -734,8 +741,26 @@ struct IntegrationSettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
+                                // 新增"Editor Font"选项，只应用于 note 输入框
+                GroupBox("Editor") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Editor Font", systemImage: "textformat")
+                            .font(.system(size: 13, weight: .medium))
+
+                        Picker("", selection: $editorFont) {
+                            ForEach(editorFonts, id: \.self) { font in
+                                Text(font).tag(font)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
+
                 // AI Settings
-                GroupBox("AI Settings") {
+                GroupBox("AI") {
                     VStack(spacing: 12) {
                         HStack {
                             Label("Model", systemImage: "brain")
@@ -1187,11 +1212,6 @@ enum AppearanceMode: String, CaseIterable {
 
 struct AppearanceSettingsView: View {
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
-    // 新增 editorFont 存储，默认值为 "System"
-    @AppStorage("editorFont") private var editorFont: String = "System"
-
-    // 可选字体列表
-    private let editorFonts = ["System", "Serif", "Mono", "Round"]
 
     var body: some View {
         ScrollView {
@@ -1233,36 +1253,6 @@ struct AppearanceSettingsView: View {
                         }
                         .frame(maxWidth: .infinity)  // Added to ensure HStack takes full width
                         .padding(.top, 8)
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                }
-                .groupBoxStyle(ModernGroupBoxStyle())
-
-                // 新增"Editor Font"选项，只应用于 note 输入框
-                GroupBox("Editor Font") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Label("Editor Font", systemImage: "textformat")
-                            .font(.system(size: 13, weight: .medium))
-
-                        Picker("", selection: $editorFont) {
-                            ForEach(editorFonts, id: \.self) { font in
-                                Text(font)
-                                    .font(.system(
-                                        size: 13,
-                                        design: {
-                                            switch font {
-                                            case "Serif": return .serif
-                                            case "Mono": return .monospaced
-                                            case "Round": return .rounded
-                                            default: return .default
-                                            }
-                                        }()
-                                    ))
-                                    .tag(font)
-                            }
-                        }
-                        .pickerStyle(.segmented)
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
