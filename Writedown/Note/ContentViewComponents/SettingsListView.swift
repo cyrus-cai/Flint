@@ -191,7 +191,7 @@ struct SettingsListView: View {
             case .shareContents:
                 return "⌘⇧S"
             case .settings:
-                return "⌘,"
+                return nil
             default:
                 return nil
             }
