@@ -1269,6 +1269,7 @@ struct AppearanceOptionView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(isSelected ? Color.purple : Color.clear, lineWidth: 4)
+                            .opacity(isSelected ? 0.95 : 0)
                     )
 
                 Text(title)
