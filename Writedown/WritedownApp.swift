@@ -88,11 +88,9 @@ struct WritedownApp: App {
     }
 
     var body: some Scene {
-        Settings {
-            SettingsView()
+        WindowGroup {
+            ContentView()
         }
-        .windowStyle(.titleBar)
-        .windowResizability(.contentSize)
     }
 }
 
@@ -333,7 +331,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(openAppItem)
 
             let settingsItem = NSMenuItem(
-                title: "Settings", action: #selector(openSettings), keyEquivalent: ",")
+                title: "Settings", action: #selector(openSettings), keyEquivalent: "")
             settingsItem.target = self
             menu.addItem(settingsItem)
 

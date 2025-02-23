@@ -96,6 +96,9 @@ struct TitleBarView: View {
                         case "[", "【":
                             toolbarState.navigateToNextNote()
                             return nil
+                        case ",":  // Command + ,
+                            toolbarState.openSettings()
+                            return nil
                         default:
                             break
                         }
