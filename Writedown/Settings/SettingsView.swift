@@ -672,8 +672,8 @@ struct IntegrationSettingsView: View {
     @AppStorage("editorFont") private var editorFont: String = "System"
 
     // 可选字体列表
-    private let editorFonts = ["System","Mono"]
-        // private let editorFonts = ["System", "Serif", "Mono", "Round"]
+    // private let editorFonts = ["System","Mono"]
+    private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
 
     private func openInFinder() {
         guard let notesDirectory = FileManager.shared.notesDirectory else {
