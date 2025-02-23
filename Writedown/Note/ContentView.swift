@@ -408,6 +408,21 @@ struct EditorView: View {
     @State private var isPlaceholderVisible = true
     @State private var lastHeight: CGFloat = 0
     @State private var debounceTimer: Timer?
+    @AppStorage("editorFont") private var editorFont: String = "System"
+
+    // 当 editorFont 为 "System" 时，返回自定义 PingFang SC 字体
+    private func getEditorFont() -> Font {
+        switch editorFont {
+        case "Mono":
+            return Font.system(size: 14, design: .monospaced)
+        case "Heiti":
+             return Font.custom("Heiti SC", size: 14)
+        case "Serif":
+             return Font.custom("Songti SC", size: 14)
+        default: // 默认 "System" 或未匹配的值
+            return Font.custom("PingFang SC", size: 14.0)
+        }
+    }
 
     private func calculateHeight(for text: String, width: CGFloat) -> CGFloat {
         let storage = NSTextStorage(string: text)
@@ -454,7 +469,7 @@ struct EditorView: View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $text)
-                    .font(.custom("PingFang SC", size: 14.0))
+                    .font(getEditorFont())
                     .disableAutocorrection(true)
                     .scrollContentBackground(.hidden)
                     .scrollIndicators(.automatic)
@@ -490,7 +505,7 @@ struct EditorView: View {
 
                 if text.isEmpty {
                     Text("Start writing...")
-                        .font(.custom("PingFang SC", size: 14.0))
+                        .font(getEditorFont())
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
                         .foregroundColor(.gray.opacity(0.2))
