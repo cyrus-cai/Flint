@@ -668,11 +668,10 @@ struct IntegrationSettingsView: View {
         AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
     let selectCustomDirectory: () -> Void
 
-        // 新增 editorFont 存储，默认值为 "System"
+    // 新增 editorFont 存储，默认值为 "System"
     @AppStorage("editorFont") private var editorFont: String = "System"
 
     // 可选字体列表
-    // private let editorFonts = ["System","Mono"]
     private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
 
     private func openInFinder() {
@@ -741,7 +740,7 @@ struct IntegrationSettingsView: View {
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
-                                // 新增"Editor Font"选项，只应用于 note 输入框
+                // 新增"Editor Font"选项，只应用于 note 输入框
                 GroupBox("Editor") {
                     VStack(alignment: .leading, spacing: 12) {
                         Label("Editor Font", systemImage: "textformat")
