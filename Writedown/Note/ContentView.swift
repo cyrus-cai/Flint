@@ -408,6 +408,21 @@ struct EditorView: View {
     @State private var isPlaceholderVisible = true
     @State private var lastHeight: CGFloat = 0
     @State private var debounceTimer: Timer?
+    @AppStorage("editorFont") private var editorFont: String = "System"
+
+    // 当 editorFont 为 "System" 时，返回自定义 PingFang SC 字体
+    private func getEditorFont() -> Font {
+        switch editorFont {
+        case "Serif":
+            return Font.custom("Times New Roman", size: 14)
+        case "Mono":
+            return Font.system(size: 14, design: .monospaced)
+        case "Round":
+            return Font.custom("Arial Rounded MT Bold", size: 14)
+        default: // 默认 "System" 或未匹配的值
+            return Font.custom("PingFang SC", size: 14.0)
+        }
+    }
 
     private func calculateHeight(for text: String, width: CGFloat) -> CGFloat {
         let storage = NSTextStorage(string: text)
@@ -447,22 +462,6 @@ struct EditorView: View {
                 onKeyDown?(event)
                 super.keyDown(with: event)
             }
-        }
-    }
-
-    @AppStorage("editorFont") private var editorFont: String = "System"
-
-    // 根据 editorFont 返回对应的 Font
-    private func getEditorFont() -> Font {
-        switch editorFont {
-        case "Serif":
-            return Font.custom("Times New Roman", size: 14)
-        case "Mono":
-            return Font.system(size: 14, design: .monospaced)
-        case "Round":
-            return Font.custom("Arial Rounded MT Bold", size: 14)
-        default: // "System" 或其他未匹配的值
-            return Font.system(size: 14)
         }
     }
 

@@ -1245,7 +1245,7 @@ struct AppearanceSettingsView: View {
                         Label("Editor Font", systemImage: "textformat")
                             .font(.system(size: 13, weight: .medium))
 
-                        Picker("Editor Font", selection: $editorFont) {
+                        Picker("", selection: $editorFont) {
                             ForEach(editorFonts, id: \.self) { font in
                                 Text(font).tag(font)
                             }
