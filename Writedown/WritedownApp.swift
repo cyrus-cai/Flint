@@ -88,9 +88,12 @@ struct WritedownApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
-            EmptyView()
+        // 使用 Settings scene，这样窗口只会在用户主动打开设置时显示
+        Settings {
+            SettingsView()
         }
+        .windowStyle(HiddenTitleBarWindowStyle())
+        .windowResizability(.contentSize)
     }
 }
 
