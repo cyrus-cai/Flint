@@ -276,7 +276,7 @@ struct SettingsView: View {
 
                     if updateManager.newVersionAvailable {
                         StandardToastView(
-                            icon: "arrow.down.circle.fill",
+                            icon: "arrow.up.circle.fill",
                             message: "New Version Available",
                             explanatoryText: "Restart to install \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
                         )

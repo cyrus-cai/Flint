@@ -4,6 +4,8 @@ import SwiftUI
 struct SettingsListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    // 监听全局更新状态
+    @ObservedObject private var updateManager = UpdateManager.shared
 
     let onSettings: () -> Void
     let onCopy: () -> Void
@@ -39,7 +41,8 @@ struct SettingsListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(SettingsItem.allCases) { item in
+            // 过滤：只有当有新版本可用时才显示 .newVersionAvailable 条目
+            ForEach(SettingsItem.allCases.filter { $0 != .newVersionAvailable || updateManager.newVersionAvailable }) { item in
                 HoverButton(
                     action: {
                         handleAction(item)
@@ -102,14 +105,17 @@ struct SettingsListView: View {
 
     private func handleAction(_ item: SettingsItem) {
         switch item {
-        case .showAll:
-            openInFinder()
-        case .settings:
-            onSettings()
         case .copyContents:
             onCopy()
         case .shareContents:
             onShare()
+        case .newVersionAvailable:
+            // 点击新版本条目后调用更新安装方法
+            UpdateManager.shared.installUpdatePackage()
+        case .showAll:
+            openInFinder()
+        case .settings:
+            onSettings()
         }
     }
 
@@ -153,6 +159,7 @@ struct SettingsListView: View {
     enum SettingsItem: Int, CaseIterable, Identifiable {
         case copyContents
         case shareContents
+        case newVersionAvailable
         case showAll
         case settings
 
@@ -164,6 +171,8 @@ struct SettingsListView: View {
                 return "Copy Contents"
             case .shareContents:
                 return "Share Contents"
+            case .newVersionAvailable:
+                return "New Version Available"
             case .showAll:
                 return "Show in Finder"
             case .settings:
@@ -181,6 +190,8 @@ struct SettingsListView: View {
                 return "doc.on.doc"
             case .shareContents:
                 return "square.and.arrow.up"
+            case .newVersionAvailable:
+                return "arrow.up.circle.fill"
             }
         }
 
