@@ -734,7 +734,7 @@ class ContentSavedWindowController: NSWindowController {
         )
         let window = NonActivatingWindow(
             contentRect: windowFrame,
-            styleMask: [.borderless],
+            styleMask: [],
             backing: .buffered,
             defer: false
         )
