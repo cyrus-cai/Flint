@@ -1247,7 +1247,19 @@ struct AppearanceSettingsView: View {
 
                         Picker("", selection: $editorFont) {
                             ForEach(editorFonts, id: \.self) { font in
-                                Text(font).tag(font)
+                                Text(font)
+                                    .font(.system(
+                                        size: 13,
+                                        design: {
+                                            switch font {
+                                            case "Serif": return .serif
+                                            case "Mono": return .monospaced
+                                            case "Round": return .rounded
+                                            default: return .default
+                                            }
+                                        }()
+                                    ))
+                                    .tag(font)
                             }
                         }
                         .pickerStyle(.segmented)
