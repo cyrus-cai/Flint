@@ -90,12 +90,12 @@ struct TitleBarView: View {
                                 toolbarState.addNew()
                                 return nil
                             }
-                        case "]", "】":
-                            toolbarState.navigateToPreviousNote()
-                            return nil
-                        case "[", "【":
-                            toolbarState.navigateToNextNote()
-                            return nil
+                        // case "]", "】":
+                        //     toolbarState.navigateToPreviousNote()
+                        //     return nil
+                        // case "[", "【":
+                        //     toolbarState.navigateToNextNote()
+                        //     return nil
                         case ",":  // Command + ,
                             toolbarState.openSettings()
                             return nil
