@@ -306,17 +306,18 @@ class MainWindowController: NSWindowController {
     private func setupContentView() {
         let contentView = ContentView()
             .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
-                print("changed")
                 self?.updateWindowHeight(height)
             }
 
         let hostingView = NSHostingView(rootView: contentView)
-        // 强制设置 hostingView 的背景为透明
         hostingView.wantsLayer = true
         hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+        hostingView.layer?.cornerRadius = 12  // 这里设置为20，可根据需要调整
+        hostingView.layer?.masksToBounds = true
+
         window?.contentView = hostingView
 
-        // Observe content view frame changes
+        // 监听视图 frame 的变化
         heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
             let contentHeight = view.frame.height
             self?.updateWindowHeight(contentHeight)
