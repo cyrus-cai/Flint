@@ -95,7 +95,7 @@ class SettingsWindowController: NSWindowController {
         super.init(window: window)
 
         window.center()
-        window.title = "Settings"
+        window.title = ""
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.contentView = NSHostingView(rootView: SettingsView())
