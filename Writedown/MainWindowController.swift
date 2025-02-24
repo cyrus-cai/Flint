@@ -388,18 +388,19 @@ class MainWindowController: NSWindowController {
             return
         }
 
-        // 先将透明度设为 0，这样窗口初始状态为透明，
-        // 注意这里不改变窗口的位置，保持原有 frame
+        // 使用透明度动画实现淡入效果
         window.alphaValue = 0.0
-
-        // 调用 super.showWindow 展示窗口（位置不变）
         super.showWindow(sender)
 
-        // 使用 NSAnimationContext 进行淡入动画，将透明度由 0 渐变到 1
+        // 让窗口成为 key window，并将它置于最前面
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        // 动画淡入窗口
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.2  // 可根据需要调整时长
+            context.duration = 0.2
             window.animator().alphaValue = 1.0
-        }, completionHandler: nil)
+        })
     }
 
     private func hideWindow() {
