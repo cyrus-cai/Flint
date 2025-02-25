@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import KeyboardShortcuts
 
 struct OnboardingView: View {
     @Binding var isFirstLaunch: Bool
@@ -23,12 +24,13 @@ struct OnboardingView: View {
         OnboardingStep(
             icon: "bolt",
             title: "Designed for quick write-down",
-            description: "Anywhere, press ⌥ + C.",
+            description: "Anywhere, with your custom shortcut.",
             detail: "",
             hasAction: true,
             imageName: "quick-wake-demo",
             showLoginOption: true,
-            showStorageConfig: true
+            showStorageConfig: true,
+            showShortcutConfig: true
         ),
         //        OnboardingStep(
         //            icon: "lock",
@@ -345,6 +347,30 @@ struct StepContent: View {
                             )
                     )
 
+                    // Add shortcut configuration
+                    if step.showShortcutConfig {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Label("Quick wake-up shortcut", systemImage: "bolt.square")
+                                    .font(.system(size: 14, weight: .medium))
+                                Spacer()
+                                KeyboardShortcuts.Recorder("", name: .quickWakeup)
+                            }
+                            Text("Set your preferred keyboard shortcut to quickly access Writedown from anywhere")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.primary.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                )
+                        )
+                    }
+
                     // Add storage configuration
                     if step.showStorageConfig {
                         VStack(alignment: .leading, spacing: 12) {
@@ -366,23 +392,13 @@ struct StepContent: View {
                                 }
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
-                                // .padding(.horizontal, 12)
-                                // .padding(.vertical, 6)
-                                // .background(Color.primary.opacity(0.05))
-                                // .cornerRadius(6)
-                                // .overlay(
-                                //     RoundedRectangle(cornerRadius: 6)
-                                //         .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                // )
                             }
 
-                            // if FileManager.shared.isPathConfigured {
                             Text(FileManager.shared.currentNotesPath)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
-                            // }
                         }
                         .padding()
                         .background(
@@ -414,6 +430,7 @@ struct OnboardingStep {
     var imageName: String?
     var showLoginOption: Bool = false
     var showStorageConfig: Bool = false
+    var showShortcutConfig: Bool = false
 }
 
 private struct GradientButtonStyle: ButtonStyle {
