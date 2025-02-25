@@ -327,7 +327,7 @@ struct SettingsView: View {
                 .background(Color.clear)
             }
         }
-        .frame(width: 800, height: 500)
+        .frame(width: 1000, height: 640)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
         .onAppear {
@@ -1141,45 +1141,45 @@ struct AboutSettingsView: View {
                 .groupBoxStyle(ModernGroupBoxStyle())
 
                 // Author Information Section
-                GroupBox("Creator") {
-                    HStack(spacing: 16) {
-                        // Author Avatar
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .frame(width: 60, height: 60)
-                            .foregroundColor(.secondary)
-                            .background(Color.secondary.opacity(0.1))
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 1))
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("ProductLab Team")
-                                .font(.system(size: 14, weight: .semibold))
-
-                            Text("Made with ❤️ in San Francisco")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
-
-                            Button(action: {
-                                if let url = URL(string: "https://www.writedown.space") {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }) {
-                                Text("www.writedown.space")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.blue)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        Spacer()
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                }
-                .groupBoxStyle(ModernGroupBoxStyle())
+//                GroupBox("Creator") {
+//                    HStack(spacing: 16) {
+//                        // Author Avatar
+//                        Image(systemName: "person.crop.circle.fill")
+//                            .resizable()
+//                            .frame(width: 60, height: 60)
+//                            .foregroundColor(.secondary)
+//                            .background(Color.secondary.opacity(0.1))
+//                            .clipShape(Circle())
+//                            .overlay(Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+//
+//                        VStack(alignment: .leading, spacing: 6) {
+//                            Text("ProductLab Team")
+//                                .font(.system(size: 14, weight: .semibold))
+//
+//                            Text("Made with ❤️ in Shanghai")
+//                                .font(.system(size: 13))
+//                                .foregroundColor(.secondary)
+//
+//                            Button(action: {
+//                                if let url = URL(string: "https://www.writedown.space") {
+//                                    NSWorkspace.shared.open(url)
+//                                }
+//                            }) {
+//                                Text("www.writedown.space")
+//                                    .font(.system(size: 13))
+//                                    .foregroundColor(.blue)
+//                            }
+//                            .buttonStyle(.plain)
+//                        }
+//                        Spacer()
+//                    }
+//                    .padding(.vertical, 10)
+//                    .padding(.horizontal, 12)
+//                }
+//                .groupBoxStyle(ModernGroupBoxStyle())
 
                 // Copyright Section
-                Text("© 2023-2024 ProductLab. All rights reserved.")
+                Text("© 2025 ProductLab. All rights reserved.")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .padding(.top, 8)
