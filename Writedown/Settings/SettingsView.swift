@@ -386,41 +386,39 @@ struct GeneralSettingsView: View {
 
                                 Spacer()
 
-                                Button(action: {
-                                    let defaults = UserDefaults.standard
-                                    defaults.removeObject(forKey: "userName")
-                                    defaults.removeObject(forKey: "userEmail")
-                                    defaults.removeObject(forKey: "userAvatar")
-                                    defaults.removeObject(forKey: "isPro")
-                                    defaults.synchronize()
+                                Menu {
+                                    Button(action: {
+                                        let defaults = UserDefaults.standard
+                                        defaults.removeObject(forKey: "userName")
+                                        defaults.removeObject(forKey: "userEmail")
+                                        defaults.removeObject(forKey: "userAvatar")
+                                        defaults.removeObject(forKey: "isPro")
+                                        defaults.synchronize()
 
-                                    userName = ""
-                                    userEmail = ""
-                                    userAvatar = ""
+                                        userName = ""
+                                        userEmail = ""
+                                        userAvatar = ""
 
-                                    NotificationCenter.default.post(
-                                        name: NSNotification.Name("UserDidLogout"),
-                                        object: nil
-                                    )
-                                }) {
-                                    Text("Sign Out")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.red.opacity(0.8))
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color.red.opacity(0.1))
-                                        .cornerRadius(6)
+                                        NotificationCenter.default.post(
+                                            name: NSNotification.Name("UserDidLogout"),
+                                            object: nil
+                                        )
+                                    }) {
+                                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                                    }
+                                } label: {
+                                    Text("")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.secondary)
                                 }
-                                .buttonStyle(.plain)
+                                .menuStyle(BorderlessButtonMenuStyle())
+                                .frame(width:60)
                             }
                         } else {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Account")
                                         .font(.system(size: 14, weight: .semibold))
-                                    Text("Sign in to sync your settings")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.secondary)
                                 }
 
                                 Spacer()
