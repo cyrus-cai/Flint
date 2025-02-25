@@ -354,27 +354,30 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                GroupBox("Account") {
-                    VStack(spacing: 12) {
-                        HStack {
-                            if !userEmail.isEmpty {
+            VStack(spacing: 20) {
+                // Account Section
+                GroupBox {
+                    VStack(spacing: 16) {
+                        if !userEmail.isEmpty {
+                            HStack(spacing: 12) {
                                 AsyncImage(url: URL(string: userAvatar)) { image in
                                     image
                                         .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 24, height: 24)
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 36, height: 36)
                                         .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 1))
                                 } placeholder: {
-                                    Image(systemName: "person.crop.circle")
+                                    Image(systemName: "person.crop.circle.fill")
                                         .resizable()
-                                        .frame(width: 24, height: 24)
+                                        .frame(width: 36, height: 36)
+                                        .foregroundColor(.secondary)
                                 }
 
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .leading, spacing: 4) {
                                     if !userName.isEmpty {
                                         Text(userName)
-                                            .font(.system(size: 13, weight: .medium))
+                                            .font(.system(size: 14, weight: .semibold))
                                     }
                                     Text(userEmail)
                                         .font(.system(size: 12))
@@ -401,144 +404,177 @@ struct GeneralSettingsView: View {
                                     )
                                 }) {
                                     Text("Sign Out")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.red)
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.red.opacity(0.8))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.red.opacity(0.1))
+                                        .cornerRadius(6)
                                 }
                                 .buttonStyle(.plain)
-                            } else {
-                                HStack {
-                                    Button(action: {
-                                        if let url = URL(
-                                            string:
-                                                "https://www.writedown.space/login")
-                                        {
-                                            NSWorkspace.shared.open(url)
-                                        }
-                                    }) {
-                                        Label("Account", systemImage: "person.crop.circle")
-                                            .font(.system(size: 13, weight: .medium))
-                                        // .foregroundColor(.blue)
-
-                                        Spacer()
-
-                                        Text("Log in")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 4)
-                                            .background(
-                                                LinearGradient(
-                                                    colors: [
-                                                        Color(.systemBlue), Color(.systemIndigo),
-                                                    ],
-                                                    startPoint: .leading,
-                                                    endPoint: .trailing
-                                                )
-                                            )
-                                            .cornerRadius(6)
-                                    }
-                                    .buttonStyle(.plain)
-                                    Spacer()
-                                }
                             }
-                        }
+                        } else {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Account")
+                                        .font(.system(size: 14, weight: .semibold))
+                                    Text("Sign in to sync your settings")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                }
 
-                        Divider()
+                                Spacer()
 
-                        HStack {
-                            Label("Plan", systemImage: "star.circle")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            Text(isPro ? "Pro" : "")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(isPro ? .white : .secondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(
-                                    isPro
-                                        ? LinearGradient(
-                                            colors: [Color(.systemPurple), Color(.systemPink)],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        ).cornerRadius(6) : nil
-                                )
-
-                            if !isPro {
                                 Button(action: {
-                                    Task {
-                                        do {
-                                            let request = StripeCheckout.CheckoutRequest(
-                                                planId: "pro",
-                                                email: UserDefaults.standard.string(
-                                                    forKey: "userEmail")
-                                            )
-
-                                            let origin = Bundle.main.bundleIdentifier ?? "writedown"
-
-                                            let response =
-                                                await StripeCheckout.createCheckoutSession(
-                                                    request: request,
-                                                    origin:
-                                                        "https://www.writedown.space/stripePayment"
-                                                )
-
-                                            if let urlString = response.url,
-                                                let url = URL(string: urlString)
-                                            {
-                                                NSWorkspace.shared.open(url)
-                                            } else if let error = response.error {
-                                                print("Payment Error: \(error.message)")
-                                            }
-                                        }
+                                    if let url = URL(
+                                        string:
+                                            "https://www.writedown.space/login")
+                                    {
+                                        NSWorkspace.shared.open(url)
                                     }
                                 }) {
-                                    Text("Upgrade to Pro")
-                                        .font(.system(size: 12, weight: .medium))
+                                    Text("Log in")
+                                        .font(.system(size: 13, weight: .medium))
                                         .foregroundColor(.white)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
                                         .background(
                                             LinearGradient(
-                                                colors: [Color(.systemPurple), Color(.systemPink)],
+                                                colors: [
+                                                    Color(.systemBlue), Color(.systemIndigo),
+                                                ],
                                                 startPoint: .leading,
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .cornerRadius(6)
+                                        .cornerRadius(8)
+                                        .shadow(color: Color(.systemBlue).opacity(0.3), radius: 4, x: 0, y: 2)
                                 }
                                 .buttonStyle(.plain)
-                                .frame(alignment: .trailing)
-                                // Add refresh button
-                                if !userEmail.isEmpty {
-                                    Button(action: {
-                                        checkProStatus()
-                                    }) {
-                                        if isCheckingStatus {
-                                            ProgressView()
-                                                .scaleEffect(0.4)
-                                                .frame(width: 14, height: 14)
-                                        } else {
-                                            Image(systemName: "arrow.clockwise")
-                                                .imageScale(.small)
-                                        }
-                                    }
-                                    .disabled(isCheckingStatus)
-                                    .help("Check subscription status")
-                                }
                             }
                         }
 
+                        Divider()
+                            .padding(.vertical, 4)
+
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Plan")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text(isPro ? "Enjoy premium features" : "Upgrade for more features")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Spacer()
+
+                            if isPro {
+                                Text("Pro")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color(.systemPurple), Color(.systemPink)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        ).cornerRadius(8)
+                                    )
+                                    .shadow(color: Color(.systemPurple).opacity(0.3), radius: 4, x: 0, y: 2)
+                            } else {
+                                HStack(spacing: 8) {
+                                    Button(action: {
+                                        Task {
+                                            do {
+                                                let request = StripeCheckout.CheckoutRequest(
+                                                    planId: "pro",
+                                                    email: UserDefaults.standard.string(
+                                                        forKey: "userEmail")
+                                                )
+
+                                                let origin = Bundle.main.bundleIdentifier ?? "writedown"
+
+                                                let response =
+                                                    await StripeCheckout.createCheckoutSession(
+                                                        request: request,
+                                                        origin:
+                                                            "https://www.writedown.space/stripePayment"
+                                                    )
+
+                                                if let urlString = response.url,
+                                                    let url = URL(string: urlString)
+                                                {
+                                                    NSWorkspace.shared.open(url)
+                                                } else if let error = response.error {
+                                                    print("Payment Error: \(error.message)")
+                                                }
+                                            }
+                                        }
+                                    }) {
+                                        Text("Upgrade to Pro")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(
+                                                LinearGradient(
+                                                    colors: [Color(.systemPurple), Color(.systemPink)],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                            .cornerRadius(8)
+                                            .shadow(color: Color(.systemPurple).opacity(0.3), radius: 4, x: 0, y: 2)
+                                    }
+                                    .buttonStyle(.plain)
+
+                                    // Add refresh button
+                                    if !userEmail.isEmpty {
+                                        Button(action: {
+                                            checkProStatus()
+                                        }) {
+                                            if isCheckingStatus {
+                                                ProgressView()
+                                                    .scaleEffect(0.4)
+                                                    .frame(width: 14, height: 14)
+                                            } else {
+                                                Image(systemName: "arrow.clockwise")
+                                                    .imageScale(.small)
+                                                    .foregroundColor(.secondary)
+                                                    .frame(width: 28, height: 28)
+                                                    .background(Color.secondary.opacity(0.1))
+                                                    .clipShape(Circle())
+                                            }
+                                        }
+                                        .disabled(isCheckingStatus)
+                                        .help("Check subscription status")
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                        }
                     }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 16)
+                } label: {
+                    Label("Account", systemImage: "person.crop.circle")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.secondary)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
-                GroupBox("Preferences") {
-                    VStack(spacing: 12) {
+                // Preferences Section
+                GroupBox {
+                    VStack(spacing: 16) {
                         HStack {
-                            Label("Start at login", systemImage: "power")
-                                .font(.system(size: 14, weight: .medium))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Start at login")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Launch Writedown when you log in")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
                             Spacer()
                             Toggle("", isOn: $launchAtLogin)
                                 .onChange(of: launchAtLogin) { newValue in
@@ -560,29 +596,56 @@ struct GeneralSettingsView: View {
                         }
 
                         Divider()
+                            .padding(.vertical, 4)
 
                         HStack {
-                            Label("Language", systemImage: "globe")
-                                .font(.system(size: 13, weight: .medium))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Language")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Interface language")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
                             Spacer()
                             Text("English")
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.secondary.opacity(0.1))
+                                .cornerRadius(6)
                         }
                     }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 16)
+                } label: {
+                    Label("Preferences", systemImage: "gear")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.secondary)
                 }
                 .groupBoxStyle(ModernGroupBoxStyle())
 
-                // GroupBox("Activity Overview") {
-                //     ContributionGraph(contributions: viewModel.noteCountByDay)
-                //         .padding(.vertical, 12)
-                //         .padding(.horizontal, 8)
+                // Activity Section (commented out but modernized)
+                // GroupBox {
+                //     VStack(alignment: .leading, spacing: 12) {
+                //         Text("Your writing activity")
+                //             .font(.system(size: 14, weight: .semibold))
+                //             .padding(.bottom, 4)
+                //
+                //         ContributionGraph(contributions: viewModel.noteCountByDay)
+                //             .padding(.vertical, 12)
+                //     }
+                //     .padding(.vertical, 16)
+                //     .padding(.horizontal, 16)
+                // } label: {
+                //     Label("Activity", systemImage: "chart.bar")
+                //         .font(.system(size: 13, weight: .semibold))
+                //         .foregroundColor(.secondary)
                 // }
                 // .groupBoxStyle(ModernGroupBoxStyle())
             }
             .padding(.horizontal, 16)
+            .padding(.vertical, 8)
         }
         .onAppear {
             // 主动刷新用户状态
@@ -644,16 +707,15 @@ struct GeneralSettingsView: View {
 
 struct ModernGroupBoxStyle: GroupBoxStyle {
     func makeBody(configuration: Configuration) -> some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8) {
             configuration.label
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.secondary)
-                .padding(.bottom, 8)
+                .padding(.bottom, 4)
 
             configuration.content
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 12)
                         .fill(Color(nsColor: .controlBackgroundColor))
+                        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                 )
         }
         .padding(.vertical, 8)
