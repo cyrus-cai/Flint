@@ -1033,6 +1033,11 @@ struct TimeGroupHeader: View {
     @State private var isShareButtonHovered = false
     @State private var isShareArchiveButtonHovered = false
     @Environment(\.colorScheme) private var colorScheme
+    // 新增动画相关状态
+    @State private var animationProgress: CGFloat = 0
+    @State private var showLoadingPulse = false
+    @State private var showLoadingText = false
+    @State private var summarizeScale: CGFloat = 1.0
 
     // 控制 Copy 按钮扩展状态
     @State private var isCopyOptionsExpanded = false
@@ -1047,8 +1052,37 @@ struct TimeGroupHeader: View {
     private func summarizeGroupNotes() {
         // 确保能够转换为 TimeGroup，否则直接返回
         guard let group = TimeGroup(rawValue: title) else { return }
-        isSummarizing = true
 
+        // 添加按钮动画效果
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            summarizeScale = 0.9
+        }
+
+        // 恢复按钮大小
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                summarizeScale = 1.0
+            }
+        }
+
+        // 启动摘要动画
+        withAnimation(.easeInOut(duration: 0.4)) {
+            isSummarizing = true
+            showLoadingPulse = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeIn(duration: 0.3)) {
+                showLoadingText = true
+            }
+        }
+
+        // 启动进度动画
+        withAnimation(.linear(duration: 5).repeatForever(autoreverses: false)) {
+            animationProgress = 1.0
+        }
+
+        // 原有的 summarize 逻辑
         // 合并当前分组内所有笔记的标题和内容
         let combinedContent = notes.map { note in
             "Note: \(note.title)\n\(note.content)"
@@ -1062,8 +1096,14 @@ struct TimeGroupHeader: View {
                 var newSummaries = viewModel.groupSummaries
                 newSummaries[group] = "Content is too long to be summarized."
                 viewModel.groupSummaries = newSummaries
+
+                // 结束动画
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isSummarizing = false
+                    showLoadingPulse = false
+                    showLoadingText = false
+                }
             }
-            isSummarizing = false
             return
         }
 
@@ -1111,9 +1151,13 @@ struct TimeGroupHeader: View {
                     var newSummaries = viewModel.groupSummaries
                     newSummaries[self.group] = self.summary
                     viewModel.groupSummaries = newSummaries
-                    if #available(macOS 10.11, *) {
-                        NSHapticFeedbackManager.defaultPerformer.perform(
-                            .generic, performanceTime: .now)
+
+                    // 完成动画
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        if #available(macOS 10.11, *) {
+                            NSHapticFeedbackManager.defaultPerformer.perform(
+                                .generic, performanceTime: .now)
+                        }
                     }
                     self.completion()  // 通知摘要流程结束
                 }
@@ -1129,7 +1173,12 @@ struct TimeGroupHeader: View {
 
         // 创建流式处理对象，并传入回调以更新 isSummarizing 状态
         let streamHandler = StreamHandler(viewModel: viewModel, group: group) {
-            self.isSummarizing = false
+            // 摘要完成时的动画
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                self.isSummarizing = false
+                self.showLoadingPulse = false
+                self.showLoadingText = false
+            }
         }
 
         // 发起摘要请求（已通过前置校验确保文本长度不超过 10000 字）
@@ -1194,14 +1243,50 @@ struct TimeGroupHeader: View {
                             Text("Summarize")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary.opacity(0.8))
+                                .scaleEffect(summarizeScale)
                         } else {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .scaleEffect(0.4)
-                                .frame(width: 8, height: 8)
+                            HStack(spacing: 6) {
+                                // 更现代的加载指示器
+                                ZStack {
+                                    Circle()
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [.purple.opacity(0.7), .blue.opacity(0.5)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1.5
+                                        )
+                                        .frame(width: 16, height: 16)
+                                        .rotationEffect(Angle(degrees: animationProgress * 360))
+
+                                    // 脉冲效果
+                                    if showLoadingPulse {
+                                        Circle()
+                                            .fill(Color.purple.opacity(0.3))
+                                            .frame(width: 16, height: 16)
+                                            .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
+                                            .opacity(showLoadingPulse ? 0 : 0.3)
+                                            .animation(
+                                                Animation.easeInOut(duration: 1.2)
+                                                    .repeatForever(autoreverses: true),
+                                                value: showLoadingPulse
+                                            )
+                                    }
+                                }
+
+                                // 加载文本
+                                if showLoadingText {
+                                    Text("Summarizing...")
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(.secondary.opacity(0.8))
+                                        .transition(.opacity)
+                                }
+                            }
                         }
                     }
                     .buttonStyle(.plain)
+                    .contentShape(Rectangle())
                 }
                 Spacer()
             }
@@ -1220,9 +1305,14 @@ struct TimeGroupHeader: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .lineSpacing(4)
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.95).combined(with: .opacity),
+                            removal: .opacity
+                        ))
+                        .id("summary-\(group.rawValue)") // 重要：强制视图重绘以应用过渡效果
 
                     if !isSummarizing {
-                        // 将 Copy 与 Share 操作放在同一个 HStack 中，横向排列
+                        // 操作按钮
                         HStack(spacing: 8) {
                             // Copy 操作组
                             HStack(spacing: 0) {
@@ -1361,6 +1451,7 @@ struct TimeGroupHeader: View {
                         }
                         .padding(.horizontal, 8)
                         .padding(.bottom, 8)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
                 .background(
@@ -1392,6 +1483,11 @@ struct TimeGroupHeader: View {
                 .shadow(color: .purple.opacity(0.2), radius: 12, x: 0, y: 4)
                 .padding(.horizontal, 8)
                 .padding(.bottom, 4)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.95).combined(with: .opacity),
+                    removal: .opacity
+                ))
+                .animation(.spring(response: 0.5, dampingFraction: 0.7), value: groupSummary)
             }
         }
         .background(Color.clear)
