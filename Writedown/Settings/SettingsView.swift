@@ -1000,101 +1000,193 @@ struct AboutSettingsView: View {
     let updater: AutoUpdater
     @Binding var progressSubscription: AnyCancellable?
     @Environment(\.colorScheme) var colorScheme
-
-    // New state variable to track update failures
     @State private var updateFailed: Bool = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            // Brand Icon and Name
-            Image(colorScheme == .dark ? "brand-name-icon-dark" : "brand-name-icon")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 48)
-                .padding(.top)
+        ScrollView {
+            VStack(spacing: 20) {
+                // App Identity Section
+                VStack(spacing: 16) {
+                    Image(colorScheme == .dark ? "brand-name-icon-dark" : "brand-name-icon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 56)
+                        .padding(.top)
 
-            // Update Section
-            VStack(spacing: 8) {
-                if isDownloading {
-                    ProgressView(
-                        "Downloading...\(Int(downloadProgress * 100))%",
-                        value: downloadProgress,
-                        total: 1.0
-                    )
-                    .progressViewStyle(.linear)
-                    .frame(width: 200)
-                    .padding()
-                } else {
-                    Button(isCheckingUpdate ? "Checking..." : "Check for updates") {
-                        checkForUpdates()
-                    }
-                    .disabled(isCheckingUpdate)
+                    Text("Version \(version ?? "Unknown") (Build \(buildNumber ?? "Unknown"))")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical)
 
-                    // Show Retry button when an update failure occurred.
-                    if updateFailed {
-                        Button("Retry") {
-                            Task {
-                                do {
-                                    try updater.deleteDownloadedUpdatePackage()
-                                } catch {
-                                    print("Failed to delete downloaded package: \(error)")
+                // Updates Section
+                GroupBox("Updates") {
+                    VStack(spacing: 12) {
+                        if isDownloading {
+                            ProgressView(
+                                "Downloading...\(Int(downloadProgress * 100))%",
+                                value: downloadProgress,
+                                total: 1.0
+                            )
+                            .progressViewStyle(.linear)
+                            .frame(width: 200)
+                            .padding(.vertical, 8)
+                        } else {
+                            HStack {
+                                Label("Check for updates", systemImage: "arrow.clockwise")
+                                    .font(.system(size: 13, weight: .medium))
+                                Spacer()
+                                Button(isCheckingUpdate ? "Checking..." : "Check Now") {
+                                    checkForUpdates()
                                 }
-                                updateFailed = false
-                                checkForUpdates()
+                                .disabled(isCheckingUpdate)
+                            }
+
+                            if updateFailed {
+                                Divider()
+                                HStack {
+                                    Label("Previous attempt failed", systemImage: "exclamationmark.triangle")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(.orange)
+                                    Spacer()
+                                    Button("Retry") {
+                                        Task {
+                                            do {
+                                                try updater.deleteDownloadedUpdatePackage()
+                                            } catch {
+                                                print("Failed to delete downloaded package: \(error)")
+                                            }
+                                            updateFailed = false
+                                            checkForUpdates()
+                                        }
+                                    }
+                                    .controlSize(.small)
+                                }
+                            }
+
+                            if let latest = latestVersion {
+                                Divider()
+                                HStack {
+                                    Label("Latest available", systemImage: "tag")
+                                        .font(.system(size: 13, weight: .medium))
+                                    Spacer()
+                                    Text(latest)
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
-                        .padding(.top, 4)
                     }
-
-                    // Add Release Notes button
-                    Button("Release Notes") {
-                        if let url = URL(
-                            string:
-                                "https://xiikii.notion.site/Release-Note-18e84c8dbdaa807ba02ee18cd3895149?pvs=4"
-                        ) {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                    .padding(.top, 4)
-
-                    // Add Send Feedback button
-                    Button("Send Feedback") {
-                        if let service = NSSharingService(named: .composeEmail) {
-                            service.recipients = ["team_productlab@outlook.com"]
-                            service.subject = "Writedown Feedback"
-
-                            // Get app version
-                            let appVersion =
-                                Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-                                ?? "Unknown"
-
-                            // Get macOS version
-                            let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
-
-                            // Compose email body with both versions
-                            let body = """
-                                App Version: \(appVersion)
-                                macOS Version: \(osVersion)
-
-                                Feedback:
-
-                                """
-
-                            service.perform(withItems: [body])
-                        }
-                    }
-                    .padding(.top, 4)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
+                .groupBoxStyle(ModernGroupBoxStyle())
 
-                if let latest = latestVersion {
-                    Text("Latest version: \(latest)")
-                        .opacity(0.25)
+                // Documentation and Feedback Section
+                GroupBox("Support") {
+                    VStack(spacing: 12) {
+                        Button(action: {
+                            if let url = URL(string: "https://xiikii.notion.site/Release-Note-18e84c8dbdaa807ba02ee18cd3895149?pvs=4") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }) {
+                            HStack {
+                                Label("Release Notes", systemImage: "doc.text")
+                                    .font(.system(size: 13, weight: .medium))
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider()
+
+                        Button(action: {
+                            if let service = NSSharingService(named: .composeEmail) {
+                                service.recipients = ["team_productlab@outlook.com"]
+                                service.subject = "Writedown Feedback"
+
+                                // Get app version and OS version
+                                let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+                                let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
+
+                                // Compose email body
+                                let body = """
+                                    App Version: \(appVersion)
+                                    macOS Version: \(osVersion)
+
+                                    Feedback:
+
+                                    """
+
+                                service.perform(withItems: [body])
+                            }
+                        }) {
+                            HStack {
+                                Label("Send Feedback", systemImage: "envelope")
+                                    .font(.system(size: 13, weight: .medium))
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
                 }
-                Text("Current version: \(version ?? "") build\(buildNumber ?? "")")
-                    .opacity(0.25)
+                .groupBoxStyle(ModernGroupBoxStyle())
+
+                // Author Information Section
+                GroupBox("Creator") {
+                    HStack(spacing: 16) {
+                        // Author Avatar
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .frame(width: 60, height: 60)
+                            .foregroundColor(.secondary)
+                            .background(Color.secondary.opacity(0.1))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("ProductLab Team")
+                                .font(.system(size: 14, weight: .semibold))
+
+                            Text("Made with ❤️ in San Francisco")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+
+                            Button(action: {
+                                if let url = URL(string: "https://www.writedown.space") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }) {
+                                Text("www.writedown.space")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.blue)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                }
+                .groupBoxStyle(ModernGroupBoxStyle())
+
+                // Copyright Section
+                Text("© 2023-2024 ProductLab. All rights reserved.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 20)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func checkForUpdates() {
