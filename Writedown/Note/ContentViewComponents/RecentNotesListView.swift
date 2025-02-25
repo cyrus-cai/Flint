@@ -194,25 +194,25 @@ class RecentNotesViewModel: ObservableObject {
     }
 
     // 键盘导航：保持单一职责，只处理选中状态
-    // func selectNextNote() {
-    //     guard !filteredNotes.isEmpty else { return }
-    //     // 下箭头：切换到更旧的笔记，也就是数组中较大索引的项
-    //     withAnimation {
-    //         if let current = currentNoteIndex, current < filteredNotes.count - 1 {
-    //             currentNoteIndex = current + 1
-    //         }
-    //     }
-    // }
+    func selectNextNote() {
+        guard !filteredNotes.isEmpty else { return }
+        // 下箭头：切换到更旧的笔记，也就是数组中较大索引的项
+        withAnimation {
+            if let current = currentNoteIndex, current < filteredNotes.count - 1 {
+                currentNoteIndex = current + 1
+            }
+        }
+    }
 
-    // func selectPreviousNote() {
-    //     guard !filteredNotes.isEmpty else { return }
-    //     // 上箭头：切换到更新的笔记，也就是数组中较小索引的项
-    //     withAnimation {
-    //         if let current = currentNoteIndex, current > 0 {
-    //             currentNoteIndex = current - 1
-    //         }
-    //     }
-    // }
+    func selectPreviousNote() {
+        guard !filteredNotes.isEmpty else { return }
+        // 上箭头：切换到更新的笔记，也就是数组中较小索引的项
+        withAnimation {
+            if let current = currentNoteIndex, current > 0 {
+                currentNoteIndex = current - 1
+            }
+        }
+    }
 
     func setHoveredNote(_ index: Int?) {
         // 只在允许悬停时更新状态
@@ -426,12 +426,12 @@ struct RecentNotesListView: View {
 
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
             switch event.keyCode {
-            // case 125:  // Down arrow
-            //     viewModel.selectNextNote()
-            //     return nil
-            // case 126:  // Up arrow
-            //     viewModel.selectPreviousNote()
-            //     return nil
+            case 125:  // Down arrow
+                viewModel.selectNextNote()
+                return nil
+            case 126:  // Up arrow
+                viewModel.selectPreviousNote()
+                return nil
             case 36:  // Return key
                 // 当中文输入正在进行时，不直接触发选择逻辑，让系统处理输入候选确认
                 let composing: Bool = {

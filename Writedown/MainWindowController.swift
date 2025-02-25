@@ -90,14 +90,14 @@ class SettingsWindowController: NSWindowController {
         )
 
         window.isOpaque = false
-        window.backgroundColor = NSColor.clear
+        // window.backgroundColor = NSColor.clear
 
         super.init(window: window)
 
         window.center()
+        window.titleVisibility = .hidden
         window.title = ""
         window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
         window.contentView = NSHostingView(rootView: SettingsView())
 
         // 应用当前的外观设置
@@ -311,7 +311,7 @@ class MainWindowController: NSWindowController {
 
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.wantsLayer = true
-        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+        // hostingView.layer?.backgroundColor = NSColor.clear.cgColor
         hostingView.layer?.cornerRadius = 12  // 这里设置为20，可根据需要调整
         hostingView.layer?.masksToBounds = true
 
