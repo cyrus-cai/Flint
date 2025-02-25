@@ -747,7 +747,7 @@ class ContentSavedWindowController: NSWindowController {
 
         let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
         contentView.wantsLayer = true
-        contentView.layer?.backgroundColor = NSColor(white: 0.17, alpha: 0.95).cgColor
+        contentView.layer?.backgroundColor = NSColor(white: 0.5, alpha: 0.85).cgColor
         contentView.layer?.cornerRadius = 16
         contentView.layer?.masksToBounds = true
         window.contentView = contentView

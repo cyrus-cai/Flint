@@ -194,23 +194,39 @@ class RecentNotesViewModel: ObservableObject {
     }
 
     // 键盘导航：保持单一职责，只处理选中状态
-    func selectNextNote() {
+   func selectNextNote() {
         guard !filteredNotes.isEmpty else { return }
-        // 下箭头：切换到更旧的笔记，也就是数组中较大索引的项
-        withAnimation {
-            if let current = currentNoteIndex, current < filteredNotes.count - 1 {
-                currentNoteIndex = current + 1
-            }
+
+        // 暂时禁用悬停效果
+        isHoverEnabled = false
+
+        // 延迟重新启用悬停效果
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.isHoverEnabled = true
+        }
+
+        if let current = currentNoteIndex {
+            currentNoteIndex = min(current + 1, filteredNotes.count - 1)
+        } else {
+            currentNoteIndex = 0
         }
     }
 
     func selectPreviousNote() {
         guard !filteredNotes.isEmpty else { return }
-        // 上箭头：切换到更新的笔记，也就是数组中较小索引的项
-        withAnimation {
-            if let current = currentNoteIndex, current > 0 {
-                currentNoteIndex = current - 1
-            }
+
+        // 暂时禁用悬停效果
+        isHoverEnabled = false
+
+        // 延迟重新启用悬停效果
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.isHoverEnabled = true
+        }
+
+        if let current = currentNoteIndex {
+            currentNoteIndex = max(current - 1, 0)
+        } else {
+            currentNoteIndex = filteredNotes.count - 1
         }
     }
 
@@ -230,7 +246,7 @@ class RecentNotesViewModel: ObservableObject {
         isHoverEnabled = false
 
         // 延迟重新启用悬停效果
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.isHoverEnabled = true
         }
     }
