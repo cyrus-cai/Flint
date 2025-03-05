@@ -750,7 +750,8 @@ class ContentSavedWindowController: NSWindowController {
 
         // 添加毛玻璃效果视图
         let visualEffectView = NSVisualEffectView(frame: contentView.bounds)
-        visualEffectView.material = .hudWindow  // 或者使用 .popover 效果
+        // 根据系统外观自动选择合适的材质
+        visualEffectView.material = .windowBackground
         visualEffectView.blendingMode = .behindWindow
         visualEffectView.state = .active
         visualEffectView.wantsLayer = true
@@ -766,20 +767,18 @@ class ContentSavedWindowController: NSWindowController {
             visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
 
-        // 移除原来的背景色设置
-        // contentView.layer?.backgroundColor = NSColor(white: 0.5, alpha: 0.85).cgColor
         contentView.layer?.cornerRadius = 16
         contentView.layer?.masksToBounds = true
         window.contentView = contentView
 
-        // Create the horizontal stack view for all elements.
+        // 修改文本颜色，使用系统默认颜色以适配当前主题
         let stackView = NSStackView()
         stackView.orientation = .horizontal
         stackView.spacing = 12
         stackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stackView)
 
-        // Icon image view.
+        // Icon image view
         let iconImageView = NSImageView()
         if let appIcon = NSImage(named: "AppIcon") {
             iconImageView.image = appIcon
@@ -791,28 +790,27 @@ class ContentSavedWindowController: NSWindowController {
             iconImageView.heightAnchor.constraint(equalToConstant: 32),
         ])
 
-        // Text stack view containing title and subtitle.
+        // Text stack view containing title and subtitle
         let textStackView = NSStackView()
         textStackView.orientation = .vertical
         textStackView.spacing = 2
         textStackView.alignment = .leading
 
         let titleLabel = NSTextField(labelWithString: "Content saved")
-        titleLabel.textColor = .white
+        titleLabel.textColor = .labelColor  // 使用系统标签颜色
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
 
-        // Process the clipboard's text:
+        // Process the clipboard's text
         let trimmedContent = clipboardContent.drop(while: { $0 == " " })
         let tempTrimmedString = String(trimmedContent)
         let trimmedString = tempTrimmedString.trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\n", with: "  ")
 
-        let tagger = NSLinguisticTagger(
-            tagSchemes: [.language], options: 0)
+        let tagger = NSLinguisticTagger(tagSchemes: [.language], options: 0)
         tagger.string = trimmedString
         let dominantLanguage = tagger.dominantLanguage
 
-        let threshold = dominantLanguage == "zh-Hans" ? 10 : 20  // 根据语言设置 threshold
+        let threshold = dominantLanguage == "zh-Hans" ? 10 : 20
 
         let displayText: String = {
             if trimmedString.count > threshold {
@@ -822,27 +820,20 @@ class ContentSavedWindowController: NSWindowController {
                 return trimmedString
             }
         }()
+
         let subtitleLabel = NSTextField(labelWithString: displayText)
-        subtitleLabel.textColor = .white.withAlphaComponent(0.9)
+        subtitleLabel.textColor = .secondaryLabelColor  // 使用系统次要标签颜色
         subtitleLabel.font = .systemFont(ofSize: 13)
 
         textStackView.addArrangedSubview(titleLabel)
         textStackView.addArrangedSubview(subtitleLabel)
 
-        // Add the icon and text views into the main stack.
         stackView.addArrangedSubview(iconImageView)
         stackView.addArrangedSubview(textStackView)
 
-        // Add a spacer view to push the next view to the right.
         let spacerView = NSView()
         spacerView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         stackView.addArrangedSubview(spacerView)
-
-        // Add the "View" button in the right-hand area.
-        let viewButton = NSButton(
-            title: "View", target: self, action: #selector(viewButtonClicked(_:)))
-        viewButton.bezelStyle = .rounded
-        // stackView.addArrangedSubview(viewButton)
 
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
