@@ -747,7 +747,27 @@ class ContentSavedWindowController: NSWindowController {
 
         let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
         contentView.wantsLayer = true
-        contentView.layer?.backgroundColor = NSColor(white: 0.5, alpha: 0.85).cgColor
+
+        // 添加毛玻璃效果视图
+        let visualEffectView = NSVisualEffectView(frame: contentView.bounds)
+        visualEffectView.material = .hudWindow  // 或者使用 .popover 效果
+        visualEffectView.blendingMode = .behindWindow
+        visualEffectView.state = .active
+        visualEffectView.wantsLayer = true
+        visualEffectView.layer?.cornerRadius = 16
+        contentView.addSubview(visualEffectView)
+
+        // 确保毛玻璃效果视图随contentView大小变化
+        visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        ])
+
+        // 移除原来的背景色设置
+        // contentView.layer?.backgroundColor = NSColor(white: 0.5, alpha: 0.85).cgColor
         contentView.layer?.cornerRadius = 16
         contentView.layer?.masksToBounds = true
         window.contentView = contentView
