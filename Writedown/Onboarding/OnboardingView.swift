@@ -140,9 +140,14 @@ struct OnboardingView: View {
                     if let imageName = steps[currentStep].imageName {
                         Image(imageName)
                             .resizable()
-                            .aspectRatio(contentMode: .fit)
+                            .aspectRatio(contentMode: .fill)
                             .frame(width: 500, height: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                            )
                             .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
                             .offset(x: slideDirection == .right ? 30 : 30)
                             .animation(
