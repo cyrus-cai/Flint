@@ -106,6 +106,8 @@ struct OnboardingView: View {
             HStack(spacing: 0) {
                 // Left side - Content
                 VStack {
+                    Spacer() // Add this to push content down from top
+
                     // Content with slide animation
                     HStack(spacing: 0) {
                         ForEach(0..<steps.count, id: \.self) { index in
