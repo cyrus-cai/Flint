@@ -68,7 +68,7 @@ struct OnboardingView: View {
             title: "You're All Set!",
             description: "Ready to start your note-taking journey",
             detail: "",
-            imageName: "getting-started-demo"
+            imageName: nil
         ),
     ]
 
