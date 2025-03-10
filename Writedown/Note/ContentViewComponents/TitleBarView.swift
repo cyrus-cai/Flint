@@ -7,7 +7,7 @@ struct TitleBarView: View {
     let isHovered: Bool
     let links: [String]
     @ObservedObject var toolbarState: TitleBarToolbarState
-    let onNoteSelected: (String) -> Void  // 用于切换笔记的回调
+    let onNoteSelected: (String, URL?) -> Void
     let onCopy: () -> Void  // 复制内容的回调
     let onShare: () -> Void  // 分享内容的回调
 
@@ -128,7 +128,7 @@ struct TitleBarView: View {
 struct TitleBarToolbar: View {
     @ObservedObject var state: TitleBarToolbarState
     let isVisible: Bool
-    let onNoteSelected: (String) -> Void
+    let onNoteSelected: (String, URL?) -> Void
     let links: [String]  // Add links parameter
     let title: String
     let onCopy: () -> Void  // Add onCopy parameter
@@ -444,7 +444,7 @@ class TitleBarToolbarState: ObservableObject {
     var onDelete: (() -> Void)?
     var onSave: (() -> Void)?
     var onAddNew: (() -> Void)?
-    var onNoteSelected: ((String) -> Void)?
+    var onNoteSelected: ((String, URL?) -> Void)?
 
     init() {
         refreshRecentNotes()
@@ -481,7 +481,7 @@ class TitleBarToolbarState: ObservableObject {
 
         if currentNoteIndex > 0 {
             currentNoteIndex -= 1
-            onNoteSelected?(recentNotes[currentNoteIndex].content)
+            onNoteSelected?(recentNotes[currentNoteIndex].content, recentNotes[currentNoteIndex].fileURL)
         } else {
             showNavigationToast(message: "No more notes")
         }
@@ -492,7 +492,7 @@ class TitleBarToolbarState: ObservableObject {
 
         if currentNoteIndex < recentNotes.count - 1 {
             currentNoteIndex += 1
-            onNoteSelected?(recentNotes[currentNoteIndex].content)
+            onNoteSelected?(recentNotes[currentNoteIndex].content, recentNotes[currentNoteIndex].fileURL)
         } else {
             showNavigationToast(message: "No more notes")
         }

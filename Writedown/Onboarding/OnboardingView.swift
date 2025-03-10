@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import KeyboardShortcuts
 
 struct OnboardingView: View {
     @Binding var isFirstLaunch: Bool
@@ -23,12 +24,13 @@ struct OnboardingView: View {
         OnboardingStep(
             icon: "bolt",
             title: "Designed for quick write-down",
-            description: "Anywhere, press ⌥ + C.",
+            description: "Anywhere, with your custom shortcut.",
             detail: "",
             hasAction: true,
             imageName: "quick-wake-demo",
             showLoginOption: true,
-            showStorageConfig: true
+            showStorageConfig: true,
+            showShortcutConfig: true
         ),
         //        OnboardingStep(
         //            icon: "lock",
@@ -66,7 +68,7 @@ struct OnboardingView: View {
             title: "You're All Set!",
             description: "Ready to start your note-taking journey",
             detail: "",
-            imageName: "getting-started-demo"
+            imageName: nil
         ),
     ]
 
@@ -104,6 +106,8 @@ struct OnboardingView: View {
             HStack(spacing: 0) {
                 // Left side - Content
                 VStack {
+                    Spacer() // Add this to push content down from top
+
                     // Content with slide animation
                     HStack(spacing: 0) {
                         ForEach(0..<steps.count, id: \.self) { index in
@@ -138,9 +142,14 @@ struct OnboardingView: View {
                     if let imageName = steps[currentStep].imageName {
                         Image(imageName)
                             .resizable()
-                            .aspectRatio(contentMode: .fit)
+                            .aspectRatio(contentMode: .fill)
                             .frame(width: 500, height: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                            )
                             .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
                             .offset(x: slideDirection == .right ? 30 : 30)
                             .animation(
@@ -241,6 +250,11 @@ struct OnboardingView: View {
             }
             .padding(48)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+                .ignoresSafeArea()
+        )
     }
 }
 
@@ -340,6 +354,30 @@ struct StepContent: View {
                             )
                     )
 
+                    // Add shortcut configuration
+                    if step.showShortcutConfig {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Label("Quick wake-up shortcut", systemImage: "bolt.square")
+                                    .font(.system(size: 14, weight: .medium))
+                                Spacer()
+                                KeyboardShortcuts.Recorder("", name: .quickWakeup)
+                            }
+                            Text("Set your preferred keyboard shortcut to quickly access Writedown from anywhere")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.primary.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                )
+                        )
+                    }
+
                     // Add storage configuration
                     if step.showStorageConfig {
                         VStack(alignment: .leading, spacing: 12) {
@@ -361,23 +399,13 @@ struct StepContent: View {
                                 }
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
-                                // .padding(.horizontal, 12)
-                                // .padding(.vertical, 6)
-                                // .background(Color.primary.opacity(0.05))
-                                // .cornerRadius(6)
-                                // .overlay(
-                                //     RoundedRectangle(cornerRadius: 6)
-                                //         .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                // )
                             }
 
-                            // if FileManager.shared.isPathConfigured {
                             Text(FileManager.shared.currentNotesPath)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
-                            // }
                         }
                         .padding()
                         .background(
@@ -409,6 +437,7 @@ struct OnboardingStep {
     var imageName: String?
     var showLoginOption: Bool = false
     var showStorageConfig: Bool = false
+    var showShortcutConfig: Bool = false
 }
 
 private struct GradientButtonStyle: ButtonStyle {
@@ -473,5 +502,24 @@ private struct BorderedGradientButtonStyle: ButtonStyle {
             .scaleEffect(isHovered ? 1.02 : 1)
             .animation(.easeOut(duration: 0.1), value: isHovered)
             .onHover { isHovered = $0 }
+    }
+}
+
+// 添加 VisualEffectView 用于实现毛玻璃效果
+struct VisualEffectView: NSViewRepresentable {
+    let material: NSVisualEffectView.Material
+    let blendingMode: NSVisualEffectView.BlendingMode
+
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let visualEffectView = NSVisualEffectView()
+        visualEffectView.material = material
+        visualEffectView.blendingMode = blendingMode
+        visualEffectView.state = .active
+        return visualEffectView
+    }
+
+    func updateNSView(_ visualEffectView: NSVisualEffectView, context: Context) {
+        visualEffectView.material = material
+        visualEffectView.blendingMode = blendingMode
     }
 }
