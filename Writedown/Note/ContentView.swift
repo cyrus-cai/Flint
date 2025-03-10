@@ -128,23 +128,70 @@ struct ContentView: View {
         let documentTitle = title  // 计算标题，只处理一次
 
         do {
-            // 如果已存在当前笔记，则直接覆盖写入，而不是删除原文件
-            if let currentId = currentNoteId,
-                let fileURL = FileManager.shared.fileURL(for: currentId)
-            {
-                print("Overwriting existing file at \(fileURL.path)")
-            }
+            if let currentId = currentNoteId {
+                // We have an existing note ID, so update that file
+                if let fileURL = FileManager.shared.fileURL(for: currentId) {
+                    print("Overwriting existing file at \(fileURL.path)")
+                    try text.write(to: fileURL, atomically: true, encoding: .utf8)
+                    lastSaveDate = Date()
+                    startMonitoringFile()
+                } else {
+                    // The file with currentId doesn't exist anymore, create a new one
+                    guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
+                        throw NSError(
+                            domain: "FileError", code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
+                    }
 
-            guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
-                throw NSError(
-                    domain: "FileError", code: -1,
-                    userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
-            }
+                    // Before writing, check if a file with this title already exists
+                    // and it's not our current note (to avoid overwriting a different note)
+                    if Foundation.FileManager.default.fileExists(atPath: fileURL.path) {
+                        // Generate a unique title by adding a timestamp
+                        let uniqueTitle = "\(documentTitle)_\(Int(Date().timeIntervalSince1970))"
+                        guard let uniqueFileURL = FileManager.shared.fileURL(for: uniqueTitle) else {
+                            throw NSError(
+                                domain: "FileError", code: -1,
+                                userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
+                        }
 
-            try text.write(to: fileURL, atomically: true, encoding: .utf8)
-            currentNoteId = documentTitle
-            lastSaveDate = Date()
-            startMonitoringFile()
+                        try text.write(to: uniqueFileURL, atomically: true, encoding: .utf8)
+                        currentNoteId = uniqueTitle
+                    } else {
+                        try text.write(to: fileURL, atomically: true, encoding: .utf8)
+                        currentNoteId = documentTitle
+                    }
+
+                    lastSaveDate = Date()
+                    startMonitoringFile()
+                }
+            } else {
+                // This is a new note, create a new file
+                guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
+                    throw NSError(
+                        domain: "FileError", code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
+                }
+
+                // Check if a file with this title already exists
+                if Foundation.FileManager.default.fileExists(atPath: fileURL.path) {
+                    // Generate a unique title by adding a timestamp
+                    let uniqueTitle = "\(documentTitle)_\(Int(Date().timeIntervalSince1970))"
+                    guard let uniqueFileURL = FileManager.shared.fileURL(for: uniqueTitle) else {
+                        throw NSError(
+                            domain: "FileError", code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
+                        }
+
+                    try text.write(to: uniqueFileURL, atomically: true, encoding: .utf8)
+                    currentNoteId = uniqueTitle
+                } else {
+                    try text.write(to: fileURL, atomically: true, encoding: .utf8)
+                    currentNoteId = documentTitle
+                }
+
+                lastSaveDate = Date()
+                startMonitoringFile()
+            }
 
             if trigger == .addNew {
                 withAnimation {
