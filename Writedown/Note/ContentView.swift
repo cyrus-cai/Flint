@@ -125,47 +125,21 @@ struct ContentView: View {
         guard !text.isEmpty else { return }
 
         print("Saving document with trigger: \(trigger)")
-        let documentTitle = title  // 计算标题，只处理一次
 
         do {
-            if let currentId = currentNoteId {
-                // We have an existing note ID, so update that file
-                if let fileURL = FileManager.shared.fileURL(for: currentId) {
-                    print("Overwriting existing file at \(fileURL.path)")
-                    try text.write(to: fileURL, atomically: true, encoding: .utf8)
-                    lastSaveDate = Date()
-                    startMonitoringFile()
-                } else {
-                    // The file with currentId doesn't exist anymore, create a new one
-                    guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
-                        throw NSError(
-                            domain: "FileError", code: -1,
-                            userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
-                    }
+            // Case 1: We have an existing note (currentNoteId exists)
+            if let currentId = currentNoteId,
+               let fileURL = FileManager.shared.fileURL(for: currentId) {
+                // Always update the existing file for the same note
+                print("Updating existing note at \(fileURL.path)")
+                try text.write(to: fileURL, atomically: true, encoding: .utf8)
+                lastSaveDate = Date()
+                startMonitoringFile()
+            }
+            // Case 2: This is a new note (no currentNoteId)
+            else {
+                let documentTitle = title  // Calculate title for new note
 
-                    // Before writing, check if a file with this title already exists
-                    // and it's not our current note (to avoid overwriting a different note)
-                    if Foundation.FileManager.default.fileExists(atPath: fileURL.path) {
-                        // Generate a unique title by adding a timestamp
-                        let uniqueTitle = "\(documentTitle)_\(Int(Date().timeIntervalSince1970))"
-                        guard let uniqueFileURL = FileManager.shared.fileURL(for: uniqueTitle) else {
-                            throw NSError(
-                                domain: "FileError", code: -1,
-                                userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
-                        }
-
-                        try text.write(to: uniqueFileURL, atomically: true, encoding: .utf8)
-                        currentNoteId = uniqueTitle
-                    } else {
-                        try text.write(to: fileURL, atomically: true, encoding: .utf8)
-                        currentNoteId = documentTitle
-                    }
-
-                    lastSaveDate = Date()
-                    startMonitoringFile()
-                }
-            } else {
-                // This is a new note, create a new file
                 guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
                     throw NSError(
                         domain: "FileError", code: -1,
@@ -180,7 +154,7 @@ struct ContentView: View {
                         throw NSError(
                             domain: "FileError", code: -1,
                             userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
-                        }
+                    }
 
                     try text.write(to: uniqueFileURL, atomically: true, encoding: .utf8)
                     currentNoteId = uniqueTitle
@@ -209,20 +183,42 @@ struct ContentView: View {
         }
     }
 
-    func loadNoteContent(_ content: String) {
+    func loadNoteContent(_ content: String, fileURL: URL? = nil) {
         text = content
-        if let currentId = currentNoteId,
+
+        // If a fileURL is provided (from history list), use it to set currentNoteId
+        if let url = fileURL {
+            // Extract the filename without extension to use as currentNoteId
+            let filename = url.deletingPathExtension().lastPathComponent
+            currentNoteId = filename
+
+            do {
+                let attributes = try Foundation.FileManager.default.attributesOfItem(
+                    atPath: url.path)
+                lastSaveDate = attributes[.modificationDate] as? Date
+                // Start monitoring the loaded file
+                startMonitoringFile()
+            } catch {
+                print("Failed to get file modification time: \(error.localizedDescription)")
+            }
+        }
+        // If no fileURL is provided but we have a currentNoteId, try to use that
+        else if let currentId = currentNoteId,
             let fileURL = FileManager.shared.fileURL(for: currentId)
         {
             do {
                 let attributes = try Foundation.FileManager.default.attributesOfItem(
                     atPath: fileURL.path)
                 lastSaveDate = attributes[.modificationDate] as? Date
-                // 开始监听新加载的文件
+                // Start monitoring the loaded file
                 startMonitoringFile()
             } catch {
-                print("获取文件修改时间失败：\(error.localizedDescription)")
+                print("Failed to get file modification time: \(error.localizedDescription)")
             }
+        }
+        // If neither fileURL nor currentNoteId is available, treat as new note
+        else {
+            currentNoteId = nil
         }
     }
 
@@ -268,7 +264,9 @@ struct ContentView: View {
                         isHovered: isHovered,
                         links: links,
                         toolbarState: toolbarState,
-                        onNoteSelected: loadNoteContent,
+                        onNoteSelected: { content, fileURL in
+                            loadNoteContent(content, fileURL: fileURL)
+                        },
                         onCopy: copyFullContent,
                         onShare: shareFullContent)
                     EditorView(text: $text)
@@ -303,8 +301,8 @@ struct ContentView: View {
                     print("document saved before adding new")
                 }
             }
-            toolbarState.onNoteSelected = { content in
-                loadNoteContent(content)
+            toolbarState.onNoteSelected = { content, fileURL in
+                loadNoteContent(content, fileURL: fileURL)
             }
         }
         .ignoresSafeArea()

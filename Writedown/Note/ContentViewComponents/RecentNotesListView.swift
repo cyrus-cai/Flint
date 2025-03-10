@@ -425,7 +425,7 @@ class RecentNotesViewModel: ObservableObject {
 //MARK: - Main List View
 struct RecentNotesListView: View {
     let notes: [RecentNote]
-    let onSelectNote: (String) -> Void
+    let onSelectNote: (String, URL) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel = RecentNotesViewModel()
@@ -464,7 +464,7 @@ struct RecentNotesListView: View {
 
                 if let currentIndex = viewModel.currentNoteIndex {
                     let currentNote = viewModel.filteredNotes[currentIndex]
-                    onSelectNote(currentNote.content)
+                    onSelectNote(currentNote.content, currentNote.fileURL)
                     dismiss()
                     return nil
                 }
@@ -565,7 +565,7 @@ struct RecentNotesListView: View {
                                                 isHighLight: viewModel.currentNoteIndex
                                                     == globalIndex ? true : false,
                                                 onTap: {
-                                                    onSelectNote(note.content)
+                                                    onSelectNote(note.content, note.fileURL)
                                                     dismiss()
                                                 },
                                                 onDelete: {
