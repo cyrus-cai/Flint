@@ -1310,25 +1310,20 @@ struct TimeGroupHeader: View {
                                     .foregroundColor(.secondary.opacity(0.8))
                                     .transition(.opacity)
                             }
+                        }
 
-                            Button(action: stopSummarizing) {
-                                Text("Stop")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.red)
-                            }
-                            .buttonStyle(.plain)
+                        // 独立出来的 Stop 按钮
+                        Button(action: stopSummarizing) {
+                            Text("Stop")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.red)
+                                .padding(4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.red.opacity(0.1))
+                                )
                         }
-                        .padding(2.5)
-                        .padding(.horizontal, 4)
-                        .onHover { hovering in
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                isSummarizeHovered = hovering
-                            }
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(isSummarizeHovered ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) : Color.clear)
-                        )
+                        .buttonStyle(.plain)
                     }
                 }
                 Spacer()
