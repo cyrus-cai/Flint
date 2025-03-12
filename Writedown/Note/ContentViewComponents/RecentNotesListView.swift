@@ -1234,6 +1234,18 @@ struct TimeGroupHeader: View {
         }
     }
 
+    // Add a new helper function to stop summarization
+    private func stopSummarizing() {
+        // Call your API cancellation (make sure DoubaoAPI.shared.cancelSummarize() is implemented)
+        DoubaoAPI.shared.cancelSummarize()
+        withAnimation(.easeOut(duration: 0.3)) {
+            self.isSummarizing = false
+            self.showLoadingPulse = false
+            self.showLoadingText = false
+            self.isSummarizeHovered = false
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
@@ -1242,20 +1254,34 @@ struct TimeGroupHeader: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.secondary)
                 if shouldShowSummarize {
-                    Button(action: summarizeGroupNotes) {
-                        if !isSummarizing {
+                    if !isSummarizing {
+                        Button(action: summarizeGroupNotes) {
                             Text("Summarize")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary.opacity(0.8))
                                 .scaleEffect(summarizeScale)
-                        } else {
-                            HStack(spacing: 6) {
-                                // 更现代的加载指示器
-                                ZStack {
-                                    Circle()
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [.purple.opacity(0.7), .blue.opacity(0.5)],
+                        }
+                        .buttonStyle(.plain)
+                        .contentShape(Rectangle())
+                        .padding(2.5)
+                        .padding(.horizontal, 4)
+                        .onHover { hovering in
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                isSummarizeHovered = hovering
+                            }
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(isSummarizeHovered ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) : Color.clear)
+                        )
+                    } else {
+                        HStack(spacing: 6) {
+                            // Spinner indicator
+                            ZStack {
+                                Circle()
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [.purple.opacity(0.7), .blue.opacity(0.5)],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
                                             ),
@@ -1264,51 +1290,46 @@ struct TimeGroupHeader: View {
                                         .frame(width: 16, height: 16)
                                         .rotationEffect(Angle(degrees: animationProgress * 360))
 
-                                    // 脉冲效果
-                                    if showLoadingPulse {
-                                        Circle()
-                                            .fill(Color.purple.opacity(0.3))
-                                            .frame(width: 16, height: 16)
-                                            .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
-                                            .opacity(showLoadingPulse ? 0 : 0.3)
-                                            .animation(
-                                                Animation.easeInOut(duration: 1.2)
-                                                    .repeatForever(autoreverses: true),
-                                                value: showLoadingPulse
-                                            )
-                                    }
-                                }
-
-                                // 加载文本
-                                if showLoadingText {
-                                    Text("Summarizing...")
-                                        .font(.system(size: 11, weight: .medium))
-                                        .foregroundColor(.secondary.opacity(0.8))
-                                        .transition(.opacity)
+                                if showLoadingPulse {
+                                    Circle()
+                                        .fill(Color.purple.opacity(0.3))
+                                        .frame(width: 16, height: 16)
+                                        .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
+                                        .opacity(showLoadingPulse ? 0 : 0.3)
+                                        .animation(
+                                            Animation.easeInOut(duration: 1.2)
+                                                .repeatForever(autoreverses: true),
+                                            value: showLoadingPulse
+                                        )
                                 }
                             }
+
+                            if showLoadingText {
+                                Text("Summarizing...")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.secondary.opacity(0.8))
+                                    .transition(.opacity)
+                            }
+
+                            Button(action: stopSummarizing) {
+                                Text("Stop")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(.plain)
                         }
-                    }
-                    .buttonStyle(.plain)
-                    .contentShape(Rectangle())
-                    .padding(2.5)
-                    .padding(.horizontal, 4)
-                    .onHover { hovering in
-                        // 仅当不处于 summarizing 状态时才响应 hover 事件
-                        if !isSummarizing {
+                        .padding(2.5)
+                        .padding(.horizontal, 4)
+                        .onHover { hovering in
                             withAnimation(.easeInOut(duration: 0.25)) {
                                 isSummarizeHovered = hovering
                             }
                         }
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(isSummarizeHovered ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) : Color.clear)
+                        )
                     }
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(isSummarizing
-                                  ? Color.clear
-                                  : (isSummarizeHovered
-                                     ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                                     : Color.clear))
-                    )
                 }
                 Spacer()
             }
@@ -1576,7 +1597,6 @@ struct StandardToastView: View {
                                             .stroke(Color.primary.opacity(0.1), lineWidth: 1)
                                     )
                             )
-                            .opacity(isButtonHovered ? 0.8 : 1.0)
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in

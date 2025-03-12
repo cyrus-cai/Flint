@@ -133,6 +133,7 @@ class DoubaoAPI {
     static let shared = DoubaoAPI()
     private let baseURL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
     private let apiKey: String
+    private var currentTask: URLSessionDataTask?
 
     private init() {
         self.apiKey = "9eadfde1-ce10-4159-a87b-5490ba6a2209"
@@ -213,8 +214,8 @@ class DoubaoAPI {
         let session = URLSession(
             configuration: .default, delegate: StreamTaskHandler(delegate: delegate),
             delegateQueue: nil)
-        let task = session.dataTask(with: urlRequest)
-        task.resume()
+        currentTask = session.dataTask(with: urlRequest)
+        currentTask?.resume()
         print("🚀 API request started")
     }
 
@@ -294,6 +295,12 @@ class DoubaoAPI {
                 }
             }
         }
+    }
+
+    func cancelSummarize() {
+        currentTask?.cancel()
+        currentTask = nil
+        print("⏹️ Summarization cancelled")
     }
 }
 
