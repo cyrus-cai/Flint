@@ -1170,6 +1170,7 @@ struct TimeGroupHeader: View {
                     self.completion()  // 出错时也结束摘要流程
                 }
             }
+
         }
 
         // 创建流式处理对象，并传入回调以更新 isSummarizing 状态
