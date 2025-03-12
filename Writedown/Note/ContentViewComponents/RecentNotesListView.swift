@@ -55,13 +55,13 @@ struct RecentNote: Identifiable {
 }
 
 enum TimeGroup: String {
-    case last15Min = "⌛️ Last 15 min"
-    case last1Hour = "🕛 Last 1 hour"
-    case thisMorning = "🌞 This morning"
-    case thisAfternoon = "🌆 This afternoon"
-    case yesterday = "1️⃣ Yesterday"
-    case thisWeek = "◀️ This Week"
-    case older = "⏪️ Earlier"
+    case last15Min = "Last 15 min"
+    case last1Hour = "Last 1 hour"
+    case thisMorning = "This morning"
+    case thisAfternoon = "This afternoon"
+    case yesterday = "Yesterday"
+    case thisWeek = "This Week"
+    case older = "Earlier"
 }
 
 struct GroupedNotes {
@@ -1236,6 +1236,7 @@ struct TimeGroupHeader: View {
             HStack(spacing: 6) {
                 Text(title)
                     .font(.system(size: 12))
+                    .fontWeight(.semibold)
                     .foregroundColor(.secondary)
                 if shouldShowSummarize {
                     Button(action: summarizeGroupNotes) {
