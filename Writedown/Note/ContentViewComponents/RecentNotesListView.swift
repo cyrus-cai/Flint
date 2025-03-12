@@ -1032,6 +1032,7 @@ struct TimeGroupHeader: View {
     @State private var isCopyArchiveButtonHovered = false
     @State private var isShareButtonHovered = false
     @State private var isShareArchiveButtonHovered = false
+    @State private var isSummarizeHovered = false
     @Environment(\.colorScheme) private var colorScheme
     // 新增动画相关状态
     @State private var animationProgress: CGFloat = 0
@@ -1179,6 +1180,7 @@ struct TimeGroupHeader: View {
                 self.showLoadingPulse = false
                 self.showLoadingText = false
             }
+             self.isSummarizeHovered = false
         }
 
         // 发起摘要请求（已通过前置校验确保文本长度不超过 10000 字）
@@ -1288,6 +1290,24 @@ struct TimeGroupHeader: View {
                     }
                     .buttonStyle(.plain)
                     .contentShape(Rectangle())
+                    .padding(2.5)
+                    .padding(.horizontal, 4)
+                    .onHover { hovering in
+                        // 仅当不处于 summarizing 状态时才响应 hover 事件
+                        if !isSummarizing {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                isSummarizeHovered = hovering
+                            }
+                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(isSummarizing
+                                  ? Color.clear
+                                  : (isSummarizeHovered
+                                     ? (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                     : Color.clear))
+                    )
                 }
                 Spacer()
             }
