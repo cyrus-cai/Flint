@@ -24,11 +24,18 @@ extension FileManager {
             var recentNotes: [RecentNote] = []
             for (url, date) in recentURLs {
                 if let content = try? String(contentsOf: url, encoding: .utf8) {
-                    let lines = content.components(separatedBy: .newlines)
-                    let title = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
+                    // Get the filename without extension to use as the custom title
+                    let filename = url.deletingPathExtension().lastPathComponent
 
+                    // Get the first line for fallback if needed
+                    let lines = content.components(separatedBy: .newlines)
+                    let firstLine = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
+
+                    // Use filename as the title (since that's what we set during title editing)
+                    // but display the first line preview in the details
                     let note = RecentNote(
-                        title: title,
+                        title: filename,
+                        firstLinePreview: firstLine,
                         content: content,
                         lastModified: date,
                         fileURL: url
@@ -49,6 +56,7 @@ extension FileManager {
 struct RecentNote: Identifiable {
     let id = UUID()
     let title: String
+    let firstLinePreview: String  // Add this to store the first line separately
     let content: String
     let lastModified: Date
     let fileURL: URL
