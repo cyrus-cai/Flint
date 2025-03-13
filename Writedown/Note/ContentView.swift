@@ -67,10 +67,18 @@ struct ContentView: View {
     @State private var showCopyToast = false
     @State private var showCopiedStatus = false
 
+    // New states for title editing
+    @State private var isEditingTitle = false
+    @State private var editedTitle = ""
+
+    // Add a new state variable to track the custom title
+    @State private var customTitle: String?
+
     enum SaveTrigger {
         case timer
         case focusLost
         case addNew
+        case titleEdit
     }
 
     private func startMonitoringFile() {
@@ -130,11 +138,18 @@ struct ContentView: View {
             // Case 1: We have an existing note (currentNoteId exists)
             if let currentId = currentNoteId,
                let fileURL = FileManager.shared.fileURL(for: currentId) {
-                // Always update the existing file for the same note
-                print("Updating existing note at \(fileURL.path)")
-                try text.write(to: fileURL, atomically: true, encoding: .utf8)
-                lastSaveDate = Date()
-                startMonitoringFile()
+
+                // For title edit, we already handled the file renaming in saveTitleEdit()
+                if trigger == .titleEdit {
+                    // Do nothing here - file was already renamed
+                    return
+                } else {
+                    // Always update the existing file for the same note
+                    print("Updating existing note at \(fileURL.path)")
+                    try text.write(to: fileURL, atomically: true, encoding: .utf8)
+                    lastSaveDate = Date()
+                    startMonitoringFile()
+                }
             }
             // Case 2: This is a new note (no currentNoteId)
             else {
@@ -180,6 +195,18 @@ struct ContentView: View {
         } catch {
             saveError = error
             print("Save failed:", error.localizedDescription)
+
+            // Show error toast for title edit failures
+            if trigger == .titleEdit {
+                withAnimation {
+                    showToast = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    withAnimation {
+                        showToast = false
+                    }
+                }
+            }
         }
     }
 
@@ -191,6 +218,9 @@ struct ContentView: View {
             // Extract the filename without extension to use as currentNoteId
             let filename = url.deletingPathExtension().lastPathComponent
             currentNoteId = filename
+
+            // Set the custom title to the filename
+            customTitle = filename
 
             do {
                 let attributes = try Foundation.FileManager.default.attributesOfItem(
@@ -206,6 +236,9 @@ struct ContentView: View {
         else if let currentId = currentNoteId,
             let fileURL = FileManager.shared.fileURL(for: currentId)
         {
+            // Set the custom title to the currentNoteId
+            customTitle = currentId
+
             do {
                 let attributes = try Foundation.FileManager.default.attributesOfItem(
                     atPath: fileURL.path)
@@ -219,6 +252,7 @@ struct ContentView: View {
         // If neither fileURL nor currentNoteId is available, treat as new note
         else {
             currentNoteId = nil
+            customTitle = nil
         }
     }
 
@@ -226,6 +260,7 @@ struct ContentView: View {
         stopMonitoringFile()  // 停止监听当前文件
         text = ""
         currentNoteId = nil
+        customTitle = nil
     }
 
     private func setupAutoSaveTimer() {
@@ -243,11 +278,71 @@ struct ContentView: View {
     }
 
     private var title: String {
+        // If we have a custom title, use it
+        if let customTitle = customTitle, !customTitle.isEmpty {
+            return customTitle
+        }
+
+        // Otherwise fall back to the first line of content
         let firstLine = text.components(separatedBy: .newlines).first ?? ""
         if firstLine.isEmpty {
             return "Untitled"
         }
         return firstLine.count > 12 ? firstLine.prefix(12) + "..." : firstLine
+    }
+
+    // Function to handle title double-click
+    private func handleTitleDoubleClick() {
+        // Start with the current title (custom or derived)
+        editedTitle = customTitle ?? text.components(separatedBy: .newlines).first ?? ""
+        isEditingTitle = true
+    }
+
+    // Function to save the edited title
+    private func saveTitleEdit() {
+        if !editedTitle.isEmpty {
+            // Store the custom title
+            customTitle = editedTitle
+
+            // Rename the file if we have an existing note
+            if let currentId = currentNoteId,
+               let oldFileURL = FileManager.shared.fileURL(for: currentId),
+               let newFileURL = FileManager.shared.fileURL(for: editedTitle) {
+
+                do {
+                    // Check if a file with this title already exists
+                    if Foundation.FileManager.default.fileExists(atPath: newFileURL.path) {
+                        throw NSError(
+                            domain: "FileError", code: -2,
+                            userInfo: [NSLocalizedDescriptionKey: "A file with this name already exists"])
+                    }
+
+                    // Rename the file without changing its content
+                    try Foundation.FileManager.default.moveItem(at: oldFileURL, to: newFileURL)
+
+                    // Update currentNoteId to the new title
+                    currentNoteId = editedTitle
+
+                    // Start monitoring the new file
+                    startMonitoringFile()
+                } catch {
+                    saveError = error
+                    print("Title edit failed:", error.localizedDescription)
+
+                    withAnimation {
+                        showToast = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        withAnimation {
+                            showToast = false
+                        }
+                    }
+                }
+            }
+        }
+
+        // Exit editing mode
+        isEditingTitle = false
     }
 
     var body: some View {
@@ -259,22 +354,45 @@ struct ContentView: View {
             // 你笔记窗口的主要内容
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
-                    TitleBarView(
-                        title: title,
-                        isHovered: isHovered,
-                        links: links,
-                        toolbarState: toolbarState,
-                        onNoteSelected: { content, fileURL in
-                            loadNoteContent(content, fileURL: fileURL)
-                        },
-                        onCopy: copyFullContent,
-                        onShare: shareFullContent)
+                    // Title bar with editable title
+                    if isEditingTitle {
+                        // Editable title field
+                        HStack {
+                            Spacer()
+                            TextField("Enter title", text: $editedTitle, onCommit: saveTitleEdit)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 200)
+                                .padding(.vertical, 4)
+                                .onExitCommand {
+                                    isEditingTitle = false
+                                }
+                            Spacer()
+                        }
+                        .frame(height: 32)
+                        .background(Color.clear)
+                    } else {
+                        // Regular title bar
+                        TitleBarView(
+                            title: title,
+                            isHovered: isHovered,
+                            links: links,
+                            toolbarState: toolbarState,
+                            onNoteSelected: { content, fileURL in
+                                loadNoteContent(content, fileURL: fileURL)
+                            },
+                            onCopy: copyFullContent,
+                            onShare: shareFullContent)
+                            .onTapGesture(count: 2) {
+                                handleTitleDoubleClick()
+                            }
+                    }
+
                     EditorView(text: $text)
                     DownFunctionView(count: text.count, links: links, showCopied: showCopiedStatus)
                 }
 
                 if showToast {
-                    ToastView(message: "Auto Saved", isShowing: $showToast)
+                    ToastView(message: saveError == nil ? "Auto Saved" : "Error: \(saveError?.localizedDescription ?? "Unknown error")", isShowing: $showToast)
                         .padding(.bottom, 12)
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
@@ -304,6 +422,9 @@ struct ContentView: View {
             toolbarState.onNoteSelected = { content, fileURL in
                 loadNoteContent(content, fileURL: fileURL)
             }
+            toolbarState.onRename = {
+                handleTitleDoubleClick()
+            }
         }
         .ignoresSafeArea()
         .listStyle(.sidebar)
@@ -321,6 +442,11 @@ struct ContentView: View {
             if !text.isEmpty {
                 saveDocument(trigger: .focusLost)
                 print("document saved by losing focus")
+            }
+
+            // Also exit title editing mode if active
+            if isEditingTitle {
+                saveTitleEdit()
             }
         }
         // .onReceive(NotificationCenter.default.publisher(for: .storageLocationDidChange)) { _ in
@@ -352,6 +478,10 @@ struct ContentView: View {
                 if toolbarState.showRecentNotes {
                     toolbarState.showRecentNotes = false
                     return nil
+                } else if isEditingTitle {
+                    // Cancel title editing on Escape
+                    isEditingTitle = false
+                    return nil
                 } else {
                     NSApp.keyWindow?.performClose(nil)
                     return nil
@@ -367,6 +497,9 @@ struct ContentView: View {
                         return nil
                     case "s":  // Command+Shift+S: 分享全文
                         shareFullContent()
+                        return nil
+                    case "r":  // Command+Shift+R: 重命名标题
+                        handleTitleDoubleClick()
                         return nil
                     default:
                         break
