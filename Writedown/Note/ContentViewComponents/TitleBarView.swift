@@ -123,8 +123,8 @@ struct TitleBarView: View {
             .font(.system(size: 12))
             .foregroundColor(.secondary)
             .opacity(isHovered ? 0.85 : 0.25)
-            .padding(.vertical, 4)
-            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .padding(.horizontal, 6)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(isTitleHovered ?
