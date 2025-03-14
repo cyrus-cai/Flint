@@ -510,7 +510,7 @@ struct GeneralSettingsView: View {
                                             }
                                         }
                                     }) {
-                                        Text("Upgrade to Pro")
+                                        Text("RMB 48 Lifetime-Pro")
                                             .font(.system(size: 12, weight: .medium))
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 12)
@@ -954,7 +954,7 @@ struct HotkeySettingsView: View {
                                         }
                                     }
                                 }) {
-                                    Text("Upgrade to Pro")
+                                    Text("RMB 48 Lifetime-Pro")
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundColor(.white)
                                         .padding(.vertical, 4)

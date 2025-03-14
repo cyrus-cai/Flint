@@ -74,6 +74,9 @@ struct ContentView: View {
     // Add a new state variable to track the custom title
     @State private var customTitle: String?
 
+    // Add a focus state to track and control text field focus
+    @FocusState private var isTitleFieldFocused: Bool
+
     enum SaveTrigger {
         case timer
         case focusLost
@@ -197,16 +200,16 @@ struct ContentView: View {
             print("Save failed:", error.localizedDescription)
 
             // Show error toast for title edit failures
-            if trigger == .titleEdit {
-                withAnimation {
-                    showToast = true
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    withAnimation {
-                        showToast = false
-                    }
-                }
-            }
+            // if trigger == .titleEdit {
+            //     withAnimation {
+            //         showToast = true
+            //     }
+            //     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            //         withAnimation {
+            //             showToast = false
+            //         }
+            //     }
+            // }
         }
     }
 
@@ -296,6 +299,10 @@ struct ContentView: View {
         // Start with the current title (custom or derived)
         editedTitle = customTitle ?? text.components(separatedBy: .newlines).first ?? ""
         isEditingTitle = true
+        // Set focus to the title field
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            isTitleFieldFocused = true
+        }
     }
 
     // Function to save the edited title
@@ -366,6 +373,7 @@ struct ContentView: View {
                                 .onExitCommand {
                                     isEditingTitle = false
                                 }
+                                .focused($isTitleFieldFocused)
                             Spacer()
                         }
                         .frame(height: 32)
