@@ -131,7 +131,7 @@ struct TitleBarView: View {
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
                     .opacity(0.8)
-                    .transition(.opacity)
+                    .transition(.opacity.combined(with: .scale))
             }
         }
         .padding(.vertical, 2)
@@ -141,6 +141,7 @@ struct TitleBarView: View {
                 .fill(isTitleHovered ?
                     (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) :
                     Color.clear)
+                .animation(.easeInOut(duration: 0.15), value: isTitleHovered)
         )
         .padding(.trailing, 2)
         .onHover { hovering in
@@ -149,8 +150,15 @@ struct TitleBarView: View {
             }
         }
         .onTapGesture {
-            // Call the rename function when title is tapped
-            toolbarState.renameFile()
+            // Add a subtle animation before triggering rename
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                // Optional scale effect could be added here if we had a wrapper view with state
+
+                // Small delay to allow animation to complete
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    toolbarState.renameFile()
+                }
+            }
         }
     }
 }
