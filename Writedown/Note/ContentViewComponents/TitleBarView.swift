@@ -10,6 +10,8 @@ struct TitleBarView: View {
     let onNoteSelected: (String, URL?) -> Void
     let onCopy: () -> Void  // 复制内容的回调
     let onShare: () -> Void  // 分享内容的回调
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var isTitleHovered: Bool = false  // Add specific state for title hover
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -121,7 +123,20 @@ struct TitleBarView: View {
             .font(.system(size: 12))
             .foregroundColor(.secondary)
             .opacity(isHovered ? 0.85 : 0.25)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isTitleHovered ?
+                        (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) :
+                        Color.clear)
+            )
             .padding(.trailing, 2)
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isTitleHovered = hovering
+                }
+            }
     }
 }
 
