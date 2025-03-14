@@ -137,6 +137,10 @@ struct TitleBarView: View {
                     isTitleHovered = hovering
                 }
             }
+            .onTapGesture {
+                // Call the rename function when title is tapped
+                toolbarState.renameFile()
+            }
     }
 }
 
