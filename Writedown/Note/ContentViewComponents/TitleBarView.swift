@@ -119,28 +119,39 @@ struct TitleBarView: View {
     }
 
     private var titleSection: some View {
-        Text(title)
-            .font(.system(size: 12))
-            .foregroundColor(.secondary)
-            .opacity(isHovered ? 0.85 : 0.25)
-            .padding(.vertical, 2)
-            .padding(.horizontal, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isTitleHovered ?
-                        (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) :
-                        Color.clear)
-            )
-            .padding(.trailing, 2)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isTitleHovered = hovering
-                }
+        HStack(spacing: 4) {
+            Text(title)
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+                .opacity(isHovered ? 0.85 : 0.25)
+
+            // Edit icon that appears on hover
+            if isTitleHovered {
+                Image(systemName: "pencil")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+                    .opacity(0.8)
+                    .transition(.opacity)
             }
-            .onTapGesture {
-                // Call the rename function when title is tapped
-                toolbarState.renameFile()
+        }
+        .padding(.vertical, 2)
+        .padding(.horizontal, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isTitleHovered ?
+                    (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) :
+                    Color.clear)
+        )
+        .padding(.trailing, 2)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isTitleHovered = hovering
             }
+        }
+        .onTapGesture {
+            // Call the rename function when title is tapped
+            toolbarState.renameFile()
+        }
     }
 }
 
