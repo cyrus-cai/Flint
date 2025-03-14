@@ -374,6 +374,12 @@ struct ContentView: View {
                                     isEditingTitle = false
                                 }
                                 .focused($isTitleFieldFocused)
+                                .onChange(of: editedTitle) { newValue in
+                                    // 限制标题最大长度为25个字符
+                                    if newValue.count > 30 {
+                                        editedTitle = String(newValue.prefix(30))
+                                    }
+                                }
                             Spacer()
                         }
                         .frame(height: 32)

@@ -214,6 +214,8 @@ struct SettingsView: View {
 
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
 
+    private let titleCharacterLimit = 25
+
     private func configureObsidianVault() {
         let openPanel = NSOpenPanel()
         openPanel.canChooseDirectories = true
@@ -510,7 +512,7 @@ struct GeneralSettingsView: View {
                                             }
                                         }
                                     }) {
-                                        Text("RMB 48 Lifetime-Pro")
+                                        Text("Lifetime Pro · ¥48")
                                             .font(.system(size: 12, weight: .medium))
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 12)
@@ -954,7 +956,7 @@ struct HotkeySettingsView: View {
                                         }
                                     }
                                 }) {
-                                    Text("RMB 48 Lifetime-Pro")
+                                    Text("Lifetime Pro · ¥48")
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundColor(.white)
                                         .padding(.vertical, 4)
