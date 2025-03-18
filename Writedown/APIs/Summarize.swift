@@ -191,7 +191,7 @@ class DoubaoAPI {
         //     """
 
           let systemPrompt =
-            "请总结文本内容，按照用户文本中最常用的语言，尽可能简洁，不超过4个字符；如果没有明确主题，请返回'Untitled'"
+            "Please summarize the text content as a title, according to the most commonly used language in the user's text, as concisely as possible."
 
 
         let messages = [

@@ -226,8 +226,11 @@ struct TitleBarView: View {
         guard let noteContent = toolbarState.noteContent,
               !noteContent.isEmpty,
               noteContent.count >= 20 else {
+            print("📝 AI重命名失败: 内容不足或为空, 长度: \(toolbarState.noteContent?.count ?? 0)")
             return
         }
+
+        print("🔄 开始AI重命名流程, 内容长度: \(noteContent.count)")
 
         // 添加按钮动画效果
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
@@ -270,16 +273,25 @@ struct TitleBarView: View {
                     animationProgress = 0
                 }
 
+                print("✅ AI生成标题完成: \"\(newTitle)\"")
+
                 if !newTitle.isEmpty {
                     // 添加完成时的震动效果
                     NSHapticFeedbackManager.defaultPerformer.perform(.generic,
-                                                                     performanceTime: .now)
+                                                                   performanceTime: .now)
+
+                    // 记录调用重命名前的回调状态
+                    print("🔍 重命名回调状态: \(self.toolbarState.onRenameWithTitle != nil ? "存在" : "不存在")")
+
                     toolbarState.setGeneratedTitle(newTitle)
+                } else {
+                    print("⚠️ AI生成的标题为空，取消重命名")
                 }
             }
         }
 
         // 调用API生成标题
+        print("🚀 调用API开始生成标题...")
         DoubaoAPI.shared.summarizeWithStream(text: noteContent, delegate: streamHandler)
     }
 }
@@ -627,8 +639,13 @@ extension TitleBarToolbarState {
 
     // 应用生成的标题
     func setGeneratedTitle(_ title: String) {
+        print("📣 尝试应用标题: \"\(title)\"")
+
         if let onRenameWithTitle = onRenameWithTitle {
+            print("✅ 找到重命名回调，开始执行...")
             onRenameWithTitle(title)
+        } else {
+            print("⚠️ 重命名回调不存在，无法应用标题")
         }
     }
 }
