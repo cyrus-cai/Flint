@@ -416,6 +416,7 @@ struct ContentView: View {
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
             toolbarState.isEmpty = text.isEmpty
+            toolbarState.currentNoteContent = text
         }
         .onAppear {
             setupAutoSaveTimer()

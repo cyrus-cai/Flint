@@ -12,6 +12,7 @@ struct TitleBarView: View {
     let onShare: () -> Void  // 分享内容的回调
     @Environment(\.colorScheme) private var colorScheme
     @State private var isTitleHovered: Bool = false  // Add specific state for title hover
+    @State private var isGeneratingTitle: Bool = false
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -127,11 +128,33 @@ struct TitleBarView: View {
 
             // Edit icon that appears on hover
             if isTitleHovered {
-                Image(systemName: "pencil")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
-                    .opacity(0.8)
-                    .transition(.opacity.combined(with: .scale))
+                HStack(spacing: 6) {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                        .opacity(0.8)
+                        .transition(.opacity.combined(with: .scale))
+                        .onTapGesture {
+                            toolbarState.renameFile()
+                        }
+
+                    // AI button - only show when note content length >= 20
+                    if toolbarState.noteContentLength >= 20 && !isGeneratingTitle {
+                        Image(systemName: "wand.and.stars")
+                            .font(.system(size: 10))
+                            .foregroundColor(.purple)
+                            .opacity(0.8)
+                            .transition(.opacity.combined(with: .scale))
+                            .onTapGesture {
+                                generateTitleWithAI()
+                            }
+                    } else {
+                        // 添加调试文本，查看内容长度
+                        Text("(\(toolbarState.noteContentLength))")
+                            .font(.system(size: 8))
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
         }
         .padding(.vertical, 2)
@@ -160,6 +183,29 @@ struct TitleBarView: View {
                 }
             }
         }
+    }
+
+    // 新增生成标题的方法
+    private func generateTitleWithAI() {
+        guard let noteContent = toolbarState.noteContent,
+              !noteContent.isEmpty,
+              noteContent.count >= 20 else {
+            return
+        }
+
+        isGeneratingTitle = true
+
+        // 创建AI请求处理器
+        let streamHandler = TitleStreamHandler { newTitle in
+            // 收到标题后更新UI
+            isGeneratingTitle = false
+            if !newTitle.isEmpty {
+                toolbarState.setGeneratedTitle(newTitle)
+            }
+        }
+
+        // 调用API生成标题
+        DoubaoAPI.shared.summarizeWithStream(text: noteContent, delegate: streamHandler)
     }
 }
 
@@ -465,6 +511,53 @@ enum TitleBarIcon {
     }
 }
 
+// MARK: - Title Stream Handler
+class TitleStreamHandler: SummarizeStreamDelegate {
+    var accumulator = ""
+    let completion: (String) -> Void
+
+    init(completion: @escaping (String) -> Void) {
+        self.completion = completion
+    }
+
+    // 更改方法名以匹配协议
+    func receivedPartialContent(_ content: String) {
+        accumulator += content
+    }
+
+    func completed() {
+        // 提取不超过15字的摘要作为标题
+        let title = String(accumulator.prefix(15)).trimmingCharacters(in: .whitespacesAndNewlines)
+        completion(title)
+    }
+
+    func failed(with error: Error) {
+        print("Title generation failed: \(error.localizedDescription)")
+        completion("")
+    }
+}
+
+// MARK: - Toolbar State Extension
+extension TitleBarToolbarState {
+    // 笔记内容的长度 - 用于决定是否显示AI按钮
+    var noteContentLength: Int {
+        return noteContent?.count ?? 0
+    }
+
+    // 笔记的当前内容
+    var noteContent: String? {
+        // 从文件中获取或使用缓存的内容
+        return currentNoteContent
+    }
+
+    // 应用生成的标题
+    func setGeneratedTitle(_ title: String) {
+        if let onRenameWithTitle = onRenameWithTitle {
+            onRenameWithTitle(title)
+        }
+    }
+}
+
 // MARK: - Toolbar State
 class TitleBarToolbarState: ObservableObject {
     @Published var showSettingsList = false
@@ -475,10 +568,12 @@ class TitleBarToolbarState: ObservableObject {
     @Published var showToast = false
     @Published var toastMessage = ""
     @Published var recentNotes: [RecentNote] = []
-    @Published var isEmpty: Bool = true  // Add isEmpty state
+    @Published var isEmpty: Bool = true
+    @Published var currentNoteContent: String? = nil  // 添加当前笔记内容
     private var currentNoteIndex: Int = 0
 
     var onRename: (() -> Void)?
+    var onRenameWithTitle: ((String) -> Void)?  // 添加带有标题参数的重命名回调
     var onDelete: (() -> Void)?
     var onSave: (() -> Void)?
     var onAddNew: (() -> Void)?
