@@ -1193,7 +1193,7 @@ struct TimeGroupHeader: View {
         }
 
         // 发起摘要请求（已通过前置校验确保文本长度不超过 10000 字）
-        DoubaoAPI.shared.summarizeWithStream(text: combinedContent, delegate: streamHandler)
+        DoubaoAPI.shared.summarizeWithStream(text: combinedContent, delegate: streamHandler, type: .content)
     }
 
     private func copyContent() {
