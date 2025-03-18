@@ -82,6 +82,7 @@ struct ContentView: View {
         case focusLost
         case addNew
         case titleEdit
+        case titleChanged
     }
 
     private func startMonitoringFile() {
@@ -439,6 +440,21 @@ struct ContentView: View {
             }
             toolbarState.onRename = {
                 handleTitleDoubleClick()
+            }
+            toolbarState.onRenameWithTitle = { newTitle in
+                // 确保 currentNoteId 不为 nil
+                guard let currentId = currentNoteId,
+                      let oldFileURL = FileManager.shared.fileURL(for: currentId),
+                      let newFileURL = FileManager.shared.fileURL(for: newTitle) else { return }
+
+                do {
+                    try Foundation.FileManager.default.moveItem(at: oldFileURL, to: newFileURL)
+                    currentNoteId = newTitle
+                    customTitle = newTitle  // 更新自定义标题
+                    startMonitoringFile()  // 重新开始监控文件
+                } catch {
+                    print("Error renaming file: \(error)")
+                }
             }
         }
         .ignoresSafeArea()
