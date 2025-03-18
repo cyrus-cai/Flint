@@ -168,18 +168,16 @@ struct TitleBarView: View {
                                 .frame(width: 16, height: 16)
                                 .rotationEffect(Angle(degrees: animationProgress * 360))
 
-                            if showLoadingPulse {
-                                Circle()
-                                    .fill(Color.purple.opacity(0.3))
-                                    .frame(width: 16, height: 16)
-                                    .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
-                                    .opacity(showLoadingPulse ? 0 : 0.3)
-                                    .animation(
-                                        Animation.easeInOut(duration: 1.2)
-                                            .repeatForever(autoreverses: true),
-                                        value: showLoadingPulse
-                                    )
-                            }
+                            Circle()
+                                .fill(Color.purple.opacity(0.3))
+                                .frame(width: 16, height: 16)
+                                .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
+                                .opacity(showLoadingPulse ? 0 : 0.3)
+                                .animation(
+                                    Animation.easeInOut(duration: 1.2)
+                                        .repeatForever(autoreverses: true),
+                                    value: showLoadingPulse
+                                )
                         }
 
                         if showLoadingText {
@@ -189,10 +187,8 @@ struct TitleBarView: View {
                                 .transition(.opacity)
                         }
                     } else {
-                        // 添加调试文本，查看内容长度
-                        Text("(\(toolbarState.noteContentLength))")
-                            .font(.system(size: 8))
-                            .foregroundColor(.secondary)
+                        // 移除统计显示，保持空间即可
+                        EmptyView()
                     }
                 }
             }
