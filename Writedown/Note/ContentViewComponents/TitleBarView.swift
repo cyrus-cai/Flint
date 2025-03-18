@@ -14,6 +14,9 @@ struct TitleBarView: View {
     @State private var isTitleHovered: Bool = false  // Add specific state for title hover
     @State private var isGeneratingTitle: Bool = false
     @State private var aiButtonScale: CGFloat = 1.0
+    @State private var animationProgress: CGFloat = 0
+    @State private var showLoadingPulse = false
+    @State private var showLoadingText = false
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -151,11 +154,40 @@ struct TitleBarView: View {
                                 generateTitleWithAI()
                             }
                     } else if isGeneratingTitle {
-                        // 可以添加一个加载指示器来表示正在生成标题
-                        ProgressView()
-                            .scaleEffect(0.5)
-                            .frame(width: 10, height: 10)
-                            .tint(.purple)
+                        // 使用与 summarize 相同的光环加载效果
+                        ZStack {
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.purple.opacity(0.7), .blue.opacity(0.5)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                                .frame(width: 16, height: 16)
+                                .rotationEffect(Angle(degrees: animationProgress * 360))
+
+                            if showLoadingPulse {
+                                Circle()
+                                    .fill(Color.purple.opacity(0.3))
+                                    .frame(width: 16, height: 16)
+                                    .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
+                                    .opacity(showLoadingPulse ? 0 : 0.3)
+                                    .animation(
+                                        Animation.easeInOut(duration: 1.2)
+                                            .repeatForever(autoreverses: true),
+                                        value: showLoadingPulse
+                                    )
+                            }
+                        }
+
+                        if showLoadingText {
+                            Text("Renaming...")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary.opacity(0.8))
+                                .transition(.opacity)
+                        }
                     } else {
                         // 添加调试文本，查看内容长度
                         Text("(\(toolbarState.noteContentLength))")
@@ -203,7 +235,6 @@ struct TitleBarView: View {
 
         // 添加按钮动画效果
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-            // 需要添加一个状态变量来控制缩放
             aiButtonScale = 0.9
         }
 
@@ -214,18 +245,41 @@ struct TitleBarView: View {
             }
         }
 
-        isGeneratingTitle = true
+        // 启动摘要动画
+        withAnimation(.easeInOut(duration: 0.4)) {
+            isGeneratingTitle = true
+            showLoadingPulse = true
+        }
 
-        // 可以考虑添加加载动画或脉冲效果
-        // showLoadingPulse = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeIn(duration: 0.3)) {
+                showLoadingText = true
+            }
+        }
+
+        // 启动进度动画
+        withAnimation(.linear(duration: 5).repeatForever(autoreverses: false)) {
+            animationProgress = 1.0
+        }
 
         // 创建AI请求处理器
         let streamHandler = TitleStreamHandler { newTitle in
-            // 收到标题后更新UI
-            isGeneratingTitle = false
-            // showLoadingPulse = false
-            if !newTitle.isEmpty {
-                toolbarState.setGeneratedTitle(newTitle)
+            // 收到标题后更新UI并添加震动效果
+            DispatchQueue.main.async {
+                // 结束动画
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    isGeneratingTitle = false
+                    showLoadingPulse = false
+                    showLoadingText = false
+                    animationProgress = 0
+                }
+
+                if !newTitle.isEmpty {
+                    // 添加完成时的震动效果
+                    NSHapticFeedbackManager.defaultPerformer.perform(.generic,
+                                                                     performanceTime: .now)
+                    toolbarState.setGeneratedTitle(newTitle)
+                }
             }
         }
 
