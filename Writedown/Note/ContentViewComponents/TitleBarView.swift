@@ -526,8 +526,8 @@ class TitleStreamHandler: SummarizeStreamDelegate {
     }
 
     func completed() {
-        // 提取不超过15字的摘要作为标题
-        let title = String(accumulator.prefix(15)).trimmingCharacters(in: .whitespacesAndNewlines)
+        // 提取不超过30字的摘要作为标题
+        let title = String(accumulator.prefix(30)).trimmingCharacters(in: .whitespacesAndNewlines)
         completion(title)
     }
 
