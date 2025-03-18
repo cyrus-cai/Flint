@@ -191,7 +191,7 @@ class DoubaoAPI {
         //     """
 
           let systemPrompt =
-            "Please summarize the text content as a title, according to the most commonly used language in the user's text, as concisely as possible."
+            "Please summarize the text content as a title, according to the most commonly used language in the user's text, as concisely & short as possible."
 
 
         let messages = [
