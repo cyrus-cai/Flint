@@ -13,6 +13,7 @@ struct TitleBarView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var isTitleHovered: Bool = false  // Add specific state for title hover
     @State private var isGeneratingTitle: Bool = false
+    @State private var aiButtonScale: CGFloat = 1.0
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -144,10 +145,17 @@ struct TitleBarView: View {
                             .font(.system(size: 10))
                             .foregroundColor(.purple)
                             .opacity(0.8)
+                            .scaleEffect(aiButtonScale)
                             .transition(.opacity.combined(with: .scale))
                             .onTapGesture {
                                 generateTitleWithAI()
                             }
+                    } else if isGeneratingTitle {
+                        // 可以添加一个加载指示器来表示正在生成标题
+                        ProgressView()
+                            .scaleEffect(0.5)
+                            .frame(width: 10, height: 10)
+                            .tint(.purple)
                     } else {
                         // 添加调试文本，查看内容长度
                         Text("(\(toolbarState.noteContentLength))")
@@ -193,12 +201,29 @@ struct TitleBarView: View {
             return
         }
 
+        // 添加按钮动画效果
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            // 需要添加一个状态变量来控制缩放
+            aiButtonScale = 0.9
+        }
+
+        // 恢复按钮大小
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                aiButtonScale = 1.0
+            }
+        }
+
         isGeneratingTitle = true
+
+        // 可以考虑添加加载动画或脉冲效果
+        // showLoadingPulse = true
 
         // 创建AI请求处理器
         let streamHandler = TitleStreamHandler { newTitle in
             // 收到标题后更新UI
             isGeneratingTitle = false
+            // showLoadingPulse = false
             if !newTitle.isEmpty {
                 toolbarState.setGeneratedTitle(newTitle)
             }
