@@ -778,8 +778,6 @@ struct EditButtonWithHover: View {
             .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
             .scaleEffect(isHovered ? 1.1 : 1.0)
             .transition(.opacity.combined(with: .scale))
-            .frame(width: 24, height: 24)
-            .contentShape(Rectangle())
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isHovered = hovering
@@ -797,22 +795,21 @@ struct SummarizeButtonWithHover: View {
     @State private var isHovered = false
 
     var body: some View {
-        Image(systemName: "wand.and.stars")
-            .font(.system(size: 10))
-            .foregroundColor(isHovered ? .primary : .secondary)
-            .opacity(isHovered ? 1.0 : 0.8)
-            .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
-            .scaleEffect(isHovered ? 1.1 : 1.0)
-            .transition(.opacity.combined(with: .scale))
-            // .frame(width: 24, height: 24)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                action()
+        Button(action: action) {
+            Image(systemName: "wand.and.stars")
+                .font(.system(size: 10))
+                .foregroundColor(isHovered ? .primary : .secondary)
+                .opacity(isHovered ? 1.0 : 0.8)
+                .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
+                .scaleEffect(isHovered ? 1.1 : 1.0)
+                .transition(.opacity.combined(with: .scale))
+                .padding(2) // 添加内边距来扩大点击区域
+        }
+        .buttonStyle(PlainButtonStyle()) // 使用PlainButtonStyle避免按钮默认样式
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
             }
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isHovered = hovering
-                }
-            }
+        }
     }
 }
