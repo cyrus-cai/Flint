@@ -778,6 +778,8 @@ struct EditButtonWithHover: View {
             .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
             .scaleEffect(isHovered ? 1.1 : 1.0)
             .transition(.opacity.combined(with: .scale))
+            .frame(width: 24, height: 24)
+            .contentShape(Rectangle())
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isHovered = hovering
@@ -802,7 +804,8 @@ struct SummarizeButtonWithHover: View {
             .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
             .scaleEffect(isHovered ? 1.1 : 1.0)
             .transition(.opacity.combined(with: .scale))
-            .contentShape(Rectangle()) // Make the entire rectangular area respond to interactions
+            // .frame(width: 24, height: 24)
+            .contentShape(Rectangle())
             .onTapGesture {
                 action()
             }
