@@ -337,14 +337,14 @@ struct ContentView: View {
                     saveError = error
                     print("Title edit failed:", error.localizedDescription)
 
-                    withAnimation {
-                        showToast = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                        withAnimation {
-                            showToast = false
-                        }
-                    }
+                    // withAnimation {
+                    //     showToast = true
+                    // }
+                    // DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    //     withAnimation {
+                    //         showToast = false
+                    //     }
+                    // }
                 }
             }
         }
