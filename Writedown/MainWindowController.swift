@@ -335,10 +335,13 @@ class MainWindowController: NSWindowController {
         frame.origin.y += frame.height - newHeight
         frame.size.height = newHeight
 
-        print(frame.size.height, "height")
+        // print(frame.size.height, "height")
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.0
+            // 将动画时长从0.0改为0.2秒，创建平滑过渡效果
+            context.duration = 0.2
+            // 设置缓动函数使动画更自然
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             window.animator().setFrame(frame, display: true)
         }
     }
