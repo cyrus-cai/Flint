@@ -802,6 +802,7 @@ struct SummarizeButtonWithHover: View {
             .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
             .scaleEffect(isHovered ? 1.1 : 1.0)
             .transition(.opacity.combined(with: .scale))
+            .contentShape(Rectangle()) // Make the entire rectangular area respond to interactions
             .onTapGesture {
                 action()
             }
