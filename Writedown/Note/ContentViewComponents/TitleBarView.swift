@@ -146,7 +146,7 @@ struct TitleBarView: View {
                     if toolbarState.noteContentLength >= 20 && !isGeneratingTitle {
                         Image(systemName: "wand.and.stars")
                             .font(.system(size: 10))
-                            .foregroundColor(.purple)
+                            .foregroundColor(.secondary)
                             .opacity(0.8)
                             .scaleEffect(aiButtonScale)
                             .transition(.opacity.combined(with: .scale))
@@ -159,7 +159,7 @@ struct TitleBarView: View {
                             Circle()
                                 .stroke(
                                     LinearGradient(
-                                        colors: [.purple.opacity(0.7), .blue.opacity(0.5)],
+                                        colors: [.secondary.opacity(0.7), .secondary.opacity(0.5)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
@@ -169,7 +169,7 @@ struct TitleBarView: View {
                                 .rotationEffect(Angle(degrees: animationProgress * 360))
 
                             Circle()
-                                .fill(Color.purple.opacity(0.3))
+                                .fill(Color.secondary.opacity(0.3))
                                 .frame(width: 16, height: 16)
                                 .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
                                 .opacity(showLoadingPulse ? 0 : 0.3)
