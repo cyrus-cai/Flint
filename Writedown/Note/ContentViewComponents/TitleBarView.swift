@@ -133,26 +133,17 @@ struct TitleBarView: View {
             // Edit icon that appears on hover
             if isTitleHovered {
                 HStack(spacing: 6) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                        .opacity(0.8)
-                        .transition(.opacity.combined(with: .scale))
-                        .onTapGesture {
-                            toolbarState.renameFile()
-                        }
+                    // 编辑按钮 - 添加单独的悬停状态
+                    EditButtonWithHover {
+                        toolbarState.renameFile()
+                    }
 
-                    // AI button - only show when note content length >= 20
+                    // AI按钮 - 添加单独的悬停状态
                     if toolbarState.noteContentLength >= 20 && !isGeneratingTitle {
-                        Image(systemName: "wand.and.stars")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                            .opacity(0.8)
-                            .scaleEffect(aiButtonScale)
-                            .transition(.opacity.combined(with: .scale))
-                            .onTapGesture {
-                                generateTitleWithAI()
-                            }
+                        SummarizeButtonWithHover {
+                            generateTitleWithAI()
+                        }
+                        .scaleEffect(aiButtonScale)
                     } else if isGeneratingTitle {
                         // 使用与 summarize 相同的光环加载效果
                         ZStack {
@@ -187,7 +178,6 @@ struct TitleBarView: View {
                                 .transition(.opacity)
                         }
                     } else {
-                        // 移除统计显示，保持空间即可
                         EmptyView()
                     }
                 }
@@ -772,5 +762,53 @@ struct NavigationToastView: View {
             .transition(.opacity)
             .frame(maxWidth: .infinity, alignment: .bottom)
         }
+    }
+}
+
+// 新增编辑按钮组件
+struct EditButtonWithHover: View {
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Image(systemName: "pencil")
+            .font(.system(size: 10))
+            .foregroundColor(isHovered ? .primary : .secondary)
+            .opacity(isHovered ? 1.0 : 0.8)
+            .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
+            .scaleEffect(isHovered ? 1.1 : 1.0)
+            .transition(.opacity.combined(with: .scale))
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isHovered = hovering
+                }
+            }
+            .onTapGesture {
+                action()
+            }
+    }
+}
+
+// 新增摘要按钮组件
+struct SummarizeButtonWithHover: View {
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Image(systemName: "wand.and.stars")
+            .font(.system(size: 10))
+            .foregroundColor(isHovered ? .primary : .secondary)
+            .opacity(isHovered ? 1.0 : 0.8)
+            .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
+            .scaleEffect(isHovered ? 1.1 : 1.0)
+            .transition(.opacity.combined(with: .scale))
+            .onTapGesture {
+                action()
+            }
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isHovered = hovering
+                }
+            }
     }
 }
