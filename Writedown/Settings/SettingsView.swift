@@ -6,6 +6,16 @@ extension Notification.Name {
     static let autoSaveIntervalDidChange = Notification.Name("autoSaveIntervalDidChange")
 }
 
+extension String {
+    func truncated(limit: Int = 25) -> String {
+        if self.count > limit {
+            let index = self.index(self.startIndex, offsetBy: limit - 3)
+            return String(self[..<index]) + "..."
+        }
+        return self
+    }
+}
+
 struct ContributionCell: View {
     let count: Int
     @Environment(\.colorScheme) var colorScheme
@@ -215,6 +225,10 @@ struct SettingsView: View {
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
 
     private let titleCharacterLimit = 25
+
+    private func truncateTitle(_ title: String) -> String {
+        return title.truncated(limit: titleCharacterLimit)
+    }
 
     private func configureObsidianVault() {
         let openPanel = NSOpenPanel()
@@ -588,8 +602,6 @@ struct GeneralSettingsView: View {
                                                 }
                                             }
                                         }
-                                    } else {
-                                        loginManager.disableLaunchAtLogin()
                                     }
                                 }
                                 .toggleStyle(.switch)
