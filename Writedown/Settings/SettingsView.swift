@@ -906,6 +906,7 @@ struct IntegrationSettingsView: View {
 struct HotkeySettingsView: View {
     @ObservedObject var counter: HotkeyCounter
     @AppStorage("isPro") private var isPro: Bool = false
+    @AppStorage("enableDoubleOption") private var enableDoubleOption = true
 
     var body: some View {
         ScrollView {
@@ -919,6 +920,31 @@ struct HotkeySettingsView: View {
                             Spacer()
                             KeyboardShortcuts.Recorder("", name: .quickWakeup)
                         }
+
+                        Divider()
+
+                        // 新增开关选项
+                        VStack(alignment: .leading, spacing: 4) {
+                            Toggle("Enable double Option key shortcut", isOn: $enableDoubleOption)
+                                .font(.system(size: 12))
+                                .toggleStyle(.switch)
+                                .padding(.leading, 20)
+                                .help("Double press Option key to toggle window")
+
+                            Text("Quickly show/hide window with keyboard")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .padding(.leading, 20)
+                        }
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.primary.opacity(0.05))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                        )
 
                         Divider()
 

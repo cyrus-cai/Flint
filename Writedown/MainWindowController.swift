@@ -510,13 +510,13 @@ class MainWindowController: NSWindowController {
     }
 
     private func checkDoubleOptionKey(_ event: NSEvent) {
-        // flagsChanged 事件在修改修饰键状态时触发（包括按下和松开），这里只对包含 Option 键的状态进行检测
+        // 添加功能开关检查
+        guard UserDefaults.standard.bool(forKey: "enableDoubleOption") else { return }
+
         if event.modifierFlags.contains(.option) {
             let now = Date()
             if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
-                // 如果两次按下时间间隔小于 0.3 秒，则认为是双击 Option 键
                 self.toggleWindow()
-                // 重置时间，以避免多次触发
                 self.lastOptionKeyTapDate = nil
             } else {
                 self.lastOptionKeyTapDate = now
