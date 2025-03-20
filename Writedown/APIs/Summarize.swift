@@ -52,6 +52,10 @@ class DeepseekAPI {
         let systemPrompt =
             "请整理文本，按【Saved】、【Todo】分类。1.若 Saved 有内容。1.1若为代码，格式使用 ``` code inside ``` 1.2 若非代码，使用 bullet list ；2.若 Todo 有内容时，格式使用 - [ ] 3.若原文没有可整理为【Saved】或/和【Todo】的内容，相关条目下方应为空（无任何多余符号、描述等）4.【Saved】和【Todo】中间，需空行 5.以原文本的语言整理 6.严格遵循原文，杜绝额外补充，杜绝重复总结"
 
+
+            //  let systemPrompt =
+            // "请整理文本。1.若为代码，格式使用 ``` code inside ``` 2. 若非代码，使用 bullet list ；3.若 Todo 有内容时，格式使用 - [ ] 4.以原文本的语言整理 5.严格遵循原文，杜绝额外补充，杜绝重复总结"
+
         let messages = [
             ChatMessage(role: "system", content: systemPrompt),
             ChatMessage(role: "user", content: text),
@@ -170,8 +174,8 @@ class DoubaoAPI {
     }
 
     /// Begins a streaming summarization request.
-    func summarizeWithStream(text: String, delegate: SummarizeStreamDelegate) {
-        print("🔄 Starting streaming summarization")
+    func summarizeWithStream(text: String, delegate: SummarizeStreamDelegate, type: SummarizeType = .title) {
+        print("🔄 Starting streaming summarization of type: \(type)")
         print("📝 Input text length: \(text.count) characters")
 
         // Retrieve the user-selected model from UserDefaults.
@@ -182,9 +186,17 @@ class DoubaoAPI {
             ?? AIModelConfig.availableModels.first(where: { !$0.isProOnly })?.modelId
             ?? "ep-20250212220411-mtfqd"
 
-        let systemPrompt = """
+        // Select the appropriate prompt based on summarization type
+        let systemPrompt: String
+
+        switch type {
+        case .title:
+            systemPrompt = "Please summarize the text content as a title, according to the most commonly used language in the user's text, as concisely & short as possible, less than 4 English words or 8 chinese words."
+        case .content:
+            systemPrompt = """
             请整理以下文本，按【Saved】、【Todo】分类。1.其中 Saved 有内容时。如果有代码，格式建议使用 ``` code inside ```，其他格式使用纯文本；2.Todo 有内容时，格式建议采用 - [ ] ，如果原文中没有对应内容，【Saved】、【Todo】下面应该完全为空（没有 - 或 - [ ] 等符号）。3.【Saved】、【Todo】中间空行 4.按照用户文本中最常用的语言，决定回复的语言 5.请严格遵循原文！避免随意补充！避免内容重复！避免任何无关字符加入！避免添加不存在的'Note'等字符！
             """
+        }
 
         let messages = [
             ChatMessage(role: "system", content: systemPrompt),
@@ -324,4 +336,10 @@ enum DeepseekError: Error {
             return "The API is not properly configured"
         }
     }
+}
+
+// Add an enum to indicate summarization type
+enum SummarizeType {
+    case title   // For generating concise titles
+    case content // For summarizing note content in structured format
 }

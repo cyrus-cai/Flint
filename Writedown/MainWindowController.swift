@@ -130,6 +130,8 @@ class MainWindowController: NSWindowController {
 
     private var trackingArea: NSTrackingArea?
     private var isResizing: Bool = false
+    private var lastOptionKeyTapDate: Date?
+    private var optionKeyTapMonitor: Any?
 
     init() {
         let window = NSWindow(
@@ -149,10 +151,7 @@ class MainWindowController: NSWindowController {
         configureWindow()
         setupContentView()
         setupInitialPosition()
-
-        DispatchQueue.main.async { [weak self] in
-            self?.setupTrackingArea()
-        }
+        setupOptionKeyMonitor()
     }
 
     required init?(coder: NSCoder) {
@@ -335,10 +334,13 @@ class MainWindowController: NSWindowController {
         frame.origin.y += frame.height - newHeight
         frame.size.height = newHeight
 
-        print(frame.size.height, "height")
+        // print(frame.size.height, "height")
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.0
+            // 将动画时长从0.0改为0.2秒，创建平滑过渡效果
+            context.duration = 0.2
+            // 设置缓动函数使动画更自然
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             window.animator().setFrame(frame, display: true)
         }
     }
@@ -489,12 +491,36 @@ class MainWindowController: NSWindowController {
     }
 
     deinit {
-        if let trackingArea = trackingArea,
-            let contentView = window?.contentView
-        {
+        if let trackingArea = trackingArea, let contentView = window?.contentView {
             contentView.removeTrackingArea(trackingArea)
         }
         NotificationCenter.default.removeObserver(self)
+
+        if let monitor = optionKeyTapMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
         WindowManager.shared.closeWindow(self)
+    }
+
+    private func setupOptionKeyMonitor() {
+        optionKeyTapMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            self?.checkDoubleOptionKey(event)
+            return event
+        }
+    }
+
+    private func checkDoubleOptionKey(_ event: NSEvent) {
+        // 添加功能开关检查
+        guard UserDefaults.standard.bool(forKey: "enableDoubleOption") else { return }
+
+        if event.modifierFlags.contains(.option) {
+            let now = Date()
+            if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
+                self.toggleWindow()
+                self.lastOptionKeyTapDate = nil
+            } else {
+                self.lastOptionKeyTapDate = now
+            }
+        }
     }
 }

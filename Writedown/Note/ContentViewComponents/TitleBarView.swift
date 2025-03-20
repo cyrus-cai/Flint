@@ -10,6 +10,13 @@ struct TitleBarView: View {
     let onNoteSelected: (String, URL?) -> Void
     let onCopy: () -> Void  // 复制内容的回调
     let onShare: () -> Void  // 分享内容的回调
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var isTitleHovered: Bool = false  // Add specific state for title hover
+    @State private var isGeneratingTitle: Bool = false
+    @State private var aiButtonScale: CGFloat = 1.0
+    @State private var animationProgress: CGFloat = 0
+    @State private var showLoadingPulse = false
+    @State private var showLoadingText = false
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -117,11 +124,165 @@ struct TitleBarView: View {
     }
 
     private var titleSection: some View {
-        Text(title)
-            .font(.system(size: 12))
-            .foregroundColor(.secondary)
-            .opacity(isHovered ? 0.85 : 0.25)
-            .padding(.trailing, 2)
+        HStack(spacing: 4) {
+            Text(title)
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+                .opacity(isHovered ? 0.85 : 0.25)
+
+            // Edit icon that appears on hover
+            if isTitleHovered {
+                HStack(spacing: 6) {
+                    // 编辑按钮 - 添加单独的悬停状态
+                    EditButtonWithHover {
+                        toolbarState.renameFile()
+                    }
+
+                    // AI按钮 - 添加单独的悬停状态
+                    if toolbarState.noteContentLength >= 20 && !isGeneratingTitle {
+                        SummarizeButtonWithHover {
+                            generateTitleWithAI()
+                        }
+                        .scaleEffect(aiButtonScale)
+                    } else if isGeneratingTitle {
+                        // 使用与 summarize 相同的光环加载效果
+                        ZStack {
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.secondary.opacity(0.7), .secondary.opacity(0.5)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                                .frame(width: 16, height: 16)
+                                .rotationEffect(Angle(degrees: animationProgress * 360))
+
+                            Circle()
+                                .fill(Color.secondary.opacity(0.3))
+                                .frame(width: 16, height: 16)
+                                .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
+                                .opacity(showLoadingPulse ? 0 : 0.3)
+                                .animation(
+                                    Animation.easeInOut(duration: 1.2)
+                                        .repeatForever(autoreverses: true),
+                                    value: showLoadingPulse
+                                )
+                        }
+
+                        if showLoadingText {
+                            Text("Renaming...")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary.opacity(0.8))
+                                .transition(.opacity)
+                        }
+                    } else {
+                        EmptyView()
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 2)
+        .padding(.horizontal, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isTitleHovered ?
+                    (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)) :
+                    Color.clear)
+                .animation(.easeInOut(duration: 0.15), value: isTitleHovered)
+        )
+        .padding(.trailing, 2)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isTitleHovered = hovering
+            }
+        }
+        .onTapGesture {
+            // Add a subtle animation before triggering rename
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                // Optional scale effect could be added here if we had a wrapper view with state
+
+                // Small delay to allow animation to complete
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    toolbarState.renameFile()
+                }
+            }
+        }
+    }
+
+    // 新增生成标题的方法
+    private func generateTitleWithAI() {
+        guard let noteContent = toolbarState.noteContent,
+              !noteContent.isEmpty,
+              noteContent.count >= 20 else {
+            print("📝 AI重命名失败: 内容不足或为空, 长度: \(toolbarState.noteContent?.count ?? 0)")
+            return
+        }
+
+        print("🔄 开始AI重命名流程, 内容长度: \(noteContent.count)")
+
+        // 添加按钮动画效果
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            aiButtonScale = 0.9
+        }
+
+        // 恢复按钮大小
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                aiButtonScale = 1.0
+            }
+        }
+
+        // 启动摘要动画
+        withAnimation(.easeInOut(duration: 0.4)) {
+            isGeneratingTitle = true
+            showLoadingPulse = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeIn(duration: 0.3)) {
+                showLoadingText = true
+            }
+        }
+
+        // 启动进度动画
+        withAnimation(.linear(duration: 5).repeatForever(autoreverses: false)) {
+            animationProgress = 1.0
+        }
+
+        // 创建AI请求处理器
+        let streamHandler = TitleStreamHandler { newTitle in
+            // 收到标题后更新UI并添加震动效果
+            DispatchQueue.main.async {
+                // 结束动画
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    isGeneratingTitle = false
+                    showLoadingPulse = false
+                    showLoadingText = false
+                    animationProgress = 0
+                }
+
+                print("✅ AI生成标题完成: \"\(newTitle)\"")
+
+                if !newTitle.isEmpty {
+                    // 添加完成时的震动效果
+                    NSHapticFeedbackManager.defaultPerformer.perform(.generic,
+                                                                   performanceTime: .now)
+
+                    // 记录调用重命名前的回调状态
+                    print("🔍 重命名回调状态: \(self.toolbarState.onRenameWithTitle != nil ? "存在" : "不存在")")
+
+                    toolbarState.setGeneratedTitle(newTitle)
+                } else {
+                    print("⚠️ AI生成的标题为空，取消重命名")
+                }
+            }
+        }
+
+        // 调用API生成标题
+        print("🚀 调用API开始生成标题...")
+        DoubaoAPI.shared.summarizeWithStream(text: noteContent, delegate: streamHandler)
     }
 }
 
@@ -427,6 +588,58 @@ enum TitleBarIcon {
     }
 }
 
+// MARK: - Title Stream Handler
+class TitleStreamHandler: SummarizeStreamDelegate {
+    var accumulator = ""
+    let completion: (String) -> Void
+
+    init(completion: @escaping (String) -> Void) {
+        self.completion = completion
+    }
+
+    // 更改方法名以匹配协议
+    func receivedPartialContent(_ content: String) {
+        accumulator += content
+    }
+
+    func completed() {
+        // 提取不超过30字的摘要作为标题
+        let title = String(accumulator.prefix(30)).trimmingCharacters(in: .whitespacesAndNewlines)
+        completion(title)
+    }
+
+    func failed(with error: Error) {
+        print("Title generation failed: \(error.localizedDescription)")
+        completion("")
+    }
+}
+
+// MARK: - Toolbar State Extension
+extension TitleBarToolbarState {
+    // 笔记内容的长度 - 用于决定是否显示AI按钮
+    var noteContentLength: Int {
+        return noteContent?.count ?? 0
+    }
+
+    // 笔记的当前内容
+    var noteContent: String? {
+        // 从文件中获取或使用缓存的内容
+        return currentNoteContent
+    }
+
+    // 应用生成的标题
+    func setGeneratedTitle(_ title: String) {
+        print("📣 尝试应用标题: \"\(title)\"")
+
+        if let onRenameWithTitle = onRenameWithTitle {
+            print("✅ 找到重命名回调，开始执行...")
+            onRenameWithTitle(title)
+        } else {
+            print("⚠️ 重命名回调不存在，无法应用标题")
+        }
+    }
+}
+
 // MARK: - Toolbar State
 class TitleBarToolbarState: ObservableObject {
     @Published var showSettingsList = false
@@ -437,10 +650,12 @@ class TitleBarToolbarState: ObservableObject {
     @Published var showToast = false
     @Published var toastMessage = ""
     @Published var recentNotes: [RecentNote] = []
-    @Published var isEmpty: Bool = true  // Add isEmpty state
+    @Published var isEmpty: Bool = true
+    @Published var currentNoteContent: String? = nil  // 添加当前笔记内容
     private var currentNoteIndex: Int = 0
 
     var onRename: (() -> Void)?
+    var onRenameWithTitle: ((String) -> Void)?  // 添加带有标题参数的重命名回调
     var onDelete: (() -> Void)?
     var onSave: (() -> Void)?
     var onAddNew: (() -> Void)?
@@ -546,6 +761,56 @@ struct NavigationToastView: View {
             .cornerRadius(12)
             .transition(.opacity)
             .frame(maxWidth: .infinity, alignment: .bottom)
+        }
+    }
+}
+
+// 新增编辑按钮组件
+struct EditButtonWithHover: View {
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "pencil")
+                .font(.system(size: 10))
+                .foregroundColor(isHovered ? .primary : .secondary)
+                .opacity(isHovered ? 1.0 : 0.8)
+                .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
+                .scaleEffect(isHovered ? 1.1 : 1.0)
+                .transition(.opacity.combined(with: .scale))
+                .padding(2) // 添加内边距来扩大点击区域
+        }
+        .buttonStyle(PlainButtonStyle()) // 使用PlainButtonStyle避免按钮默认样式
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
+            }
+        }
+    }
+}
+
+// 新增摘要按钮组件
+struct SummarizeButtonWithHover: View {
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "wand.and.stars")
+                .font(.system(size: 10))
+                .foregroundColor(isHovered ? .primary : .secondary)
+                .opacity(isHovered ? 1.0 : 0.8)
+                .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
+                .scaleEffect(isHovered ? 1.1 : 1.0)
+                .transition(.opacity.combined(with: .scale))
+                .padding(2) // 添加内边距来扩大点击区域
+        }
+        .buttonStyle(PlainButtonStyle()) // 使用PlainButtonStyle避免按钮默认样式
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
+            }
         }
     }
 }

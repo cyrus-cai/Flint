@@ -6,6 +6,16 @@ extension Notification.Name {
     static let autoSaveIntervalDidChange = Notification.Name("autoSaveIntervalDidChange")
 }
 
+extension String {
+    func truncated(limit: Int = 25) -> String {
+        if self.count > limit {
+            let index = self.index(self.startIndex, offsetBy: limit - 3)
+            return String(self[..<index]) + "..."
+        }
+        return self
+    }
+}
+
 struct ContributionCell: View {
     let count: Int
     @Environment(\.colorScheme) var colorScheme
@@ -214,6 +224,12 @@ struct SettingsView: View {
 
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
 
+    private let titleCharacterLimit = 25
+
+    private func truncateTitle(_ title: String) -> String {
+        return title.truncated(limit: titleCharacterLimit)
+    }
+
     private func configureObsidianVault() {
         let openPanel = NSOpenPanel()
         openPanel.canChooseDirectories = true
@@ -290,7 +306,7 @@ struct SettingsView: View {
             } detail: {
                 // 右侧内容区域，确保背景透明
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .trailing, spacing: 20) {
                         switch selectedTab {
                         case .general:
                             GeneralSettingsView(isPro: $isPro)
@@ -510,7 +526,7 @@ struct GeneralSettingsView: View {
                                             }
                                         }
                                     }) {
-                                        Text("Upgrade to Pro")
+                                        Text("Lifetime Pro · ¥48")
                                             .font(.system(size: 12, weight: .medium))
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 12)
@@ -586,8 +602,6 @@ struct GeneralSettingsView: View {
                                                 }
                                             }
                                         }
-                                    } else {
-                                        loginManager.disableLaunchAtLogin()
                                     }
                                 }
                                 .toggleStyle(.switch)
@@ -892,6 +906,7 @@ struct IntegrationSettingsView: View {
 struct HotkeySettingsView: View {
     @ObservedObject var counter: HotkeyCounter
     @AppStorage("isPro") private var isPro: Bool = false
+    @AppStorage("enableDoubleOption") private var enableDoubleOption = true
 
     var body: some View {
         ScrollView {
@@ -905,6 +920,27 @@ struct HotkeySettingsView: View {
                             Spacer()
                             KeyboardShortcuts.Recorder("", name: .quickWakeup)
                         }
+
+                        // 优化后的开关选项布局
+                        VStack(alignment:.trailing, spacing: 8) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "option")
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 12))
+
+                                Toggle("Enable double Option key shortcut", isOn: $enableDoubleOption)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .toggleStyle(.switch)
+                                    .help("Double press Option key to toggle window")
+                            }
+                        }
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.primary.opacity(0.03))
+                        )
+                        .frame(maxWidth: .infinity, alignment: .trailing)
 
                         Divider()
 
@@ -954,7 +990,7 @@ struct HotkeySettingsView: View {
                                         }
                                     }
                                 }) {
-                                    Text("Upgrade to Pro")
+                                    Text("Lifetime Pro · ¥48")
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundColor(.white)
                                         .padding(.vertical, 4)

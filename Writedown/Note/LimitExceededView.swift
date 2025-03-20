@@ -69,7 +69,7 @@ struct LimitExceededView: View {
                         }
                     }
                 }) {
-                    Text("Upgrade to Pro")
+                    Text("RMB 48 Lifetime-Pro")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
