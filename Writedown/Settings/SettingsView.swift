@@ -306,7 +306,7 @@ struct SettingsView: View {
             } detail: {
                 // 右侧内容区域，确保背景透明
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .trailing, spacing: 20) {
                         switch selectedTab {
                         case .general:
                             GeneralSettingsView(isPro: $isPro)
@@ -921,30 +921,26 @@ struct HotkeySettingsView: View {
                             KeyboardShortcuts.Recorder("", name: .quickWakeup)
                         }
 
-                        Divider()
+                        // 优化后的开关选项布局
+                        VStack(alignment:.trailing, spacing: 8) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "option")
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 12))
 
-                        // 新增开关选项
-                        VStack(alignment: .leading, spacing: 4) {
-                            Toggle("Enable double Option key shortcut", isOn: $enableDoubleOption)
-                                .font(.system(size: 12))
-                                .toggleStyle(.switch)
-                                .padding(.leading, 20)
-                                .help("Double press Option key to toggle window")
-
-                            Text("Quickly show/hide window with keyboard")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .padding(.leading, 20)
+                                Toggle("Enable double Option key shortcut", isOn: $enableDoubleOption)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .toggleStyle(.switch)
+                                    .help("Double press Option key to toggle window")
+                            }
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 12)
                         .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color.primary.opacity(0.05))
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.primary.opacity(0.03))
                         )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                        )
+                        .frame(maxWidth: .infinity, alignment: .trailing)
 
                         Divider()
 
