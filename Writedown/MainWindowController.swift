@@ -130,6 +130,8 @@ class MainWindowController: NSWindowController {
 
     private var trackingArea: NSTrackingArea?
     private var isResizing: Bool = false
+    private var lastOptionKeyTapDate: Date?
+    private var optionKeyTapMonitor: Any?
 
     init() {
         let window = NSWindow(
@@ -149,10 +151,7 @@ class MainWindowController: NSWindowController {
         configureWindow()
         setupContentView()
         setupInitialPosition()
-
-        DispatchQueue.main.async { [weak self] in
-            self?.setupTrackingArea()
-        }
+        setupOptionKeyMonitor()
     }
 
     required init?(coder: NSCoder) {
@@ -492,12 +491,36 @@ class MainWindowController: NSWindowController {
     }
 
     deinit {
-        if let trackingArea = trackingArea,
-            let contentView = window?.contentView
-        {
+        if let trackingArea = trackingArea, let contentView = window?.contentView {
             contentView.removeTrackingArea(trackingArea)
         }
         NotificationCenter.default.removeObserver(self)
+
+        if let monitor = optionKeyTapMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
         WindowManager.shared.closeWindow(self)
+    }
+
+    private func setupOptionKeyMonitor() {
+        optionKeyTapMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            self?.checkDoubleOptionKey(event)
+            return event
+        }
+    }
+
+    private func checkDoubleOptionKey(_ event: NSEvent) {
+        // flagsChanged 事件在修改修饰键状态时触发（包括按下和松开），这里只对包含 Option 键的状态进行检测
+        if event.modifierFlags.contains(.option) {
+            let now = Date()
+            if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
+                // 如果两次按下时间间隔小于 0.3 秒，则认为是双击 Option 键
+                self.toggleWindow()
+                // 重置时间，以避免多次触发
+                self.lastOptionKeyTapDate = nil
+            } else {
+                self.lastOptionKeyTapDate = now
+            }
+        }
     }
 }
