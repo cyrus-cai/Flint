@@ -148,6 +148,10 @@ class MainWindowController: NSWindowController {
 
         super.init(window: window)
 
+        DispatchQueue.main.async { [weak self] in
+            self?.setupTrackingArea()
+        }
+
         configureWindow()
         setupContentView()
         setupInitialPosition()
