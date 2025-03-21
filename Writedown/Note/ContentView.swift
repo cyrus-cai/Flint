@@ -287,8 +287,8 @@ struct ContentView: View {
                     saveDocument(trigger: .timer)
                     print("document saved with interval: \(autoSaveInterval)s")
 
-                    // Check if text just exceeded 20 characters
-                    if text.count >= 20 {
+                    // Check if text just exceeded 20 characters and AI rename is enabled
+                    if text.count >= 20 && UserDefaults.standard.bool(forKey: "enableAIRename") {
                         // Generate a content fingerprint to track this note regardless of title changes
                         let currentContentHash = text.prefix(100).hashValue
 
