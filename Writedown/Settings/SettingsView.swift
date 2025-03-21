@@ -847,6 +847,21 @@ struct IntegrationSettingsView: View {
                 // AI Settings
                 GroupBox("AI") {
                     VStack(spacing: 12) {
+                         HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Auto generate note titles")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Automatically generate titles for notes with AI")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $enableAIRename)
+                                .toggleStyle(.switch)
+                        }
+
+                        Divider()
+
                         HStack {
                             Label("Model", systemImage: "brain")
                                 .font(.system(size: 13, weight: .medium))
@@ -861,18 +876,7 @@ struct IntegrationSettingsView: View {
                             .frame(width: 150)
                         }
 
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Auto generate note titles")
-                                    .font(.system(size: 14, weight: .semibold))
-                                Text("Automatically generate titles for notes with AI")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Toggle("", isOn: $enableAIRename)
-                                .toggleStyle(.switch)
-                        }
+
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
