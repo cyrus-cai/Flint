@@ -77,6 +77,9 @@ struct ContentView: View {
     // Add a focus state to track and control text field focus
     @FocusState private var isTitleFieldFocused: Bool
 
+    // Add this property to track content hash
+    @State private var contentHashForAIRename: Int = 0
+
     enum SaveTrigger {
         case timer
         case focusLost
@@ -258,6 +261,11 @@ struct ContentView: View {
             currentNoteId = nil
             customTitle = nil
         }
+
+        // Set content hash to prevent auto-renaming of existing notes
+        if !content.isEmpty {
+            contentHashForAIRename = content.prefix(100).hashValue
+        }
     }
 
     private func createNewNote() {
@@ -265,6 +273,7 @@ struct ContentView: View {
         text = ""
         currentNoteId = nil
         customTitle = nil
+        contentHashForAIRename = 0  // Reset the content hash for new notes
     }
 
     private func setupAutoSaveTimer() {
@@ -277,8 +286,47 @@ struct ContentView: View {
                 if !text.isEmpty {
                     saveDocument(trigger: .timer)
                     print("document saved with interval: \(autoSaveInterval)s")
+
+                    // Check if text just exceeded 20 characters
+                    if text.count >= 20 {
+                        // Generate a content fingerprint to track this note regardless of title changes
+                        let currentContentHash = text.prefix(100).hashValue
+
+                        // Only trigger AI rename if we haven't renamed this specific content yet
+                        // AND the hash is different from our tracked hash (prevents multiple renames after editing)
+                        if contentHashForAIRename == 0 {
+                            // First time seeing content over 20 chars - track this and rename
+                            contentHashForAIRename = currentContentHash
+
+                            // Trigger AI rename after a short delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                self.triggerAIRename(content: self.text)
+                            }
+                        }
+                    }
                 }
             }
+    }
+
+    // Add new method to trigger AI rename
+    private func triggerAIRename(content: String) {
+        print("Auto-triggering AI rename for note: \(currentNoteId ?? "untitled")")
+
+        if content.count >= 20 {
+            // Pass the content directly to the API
+            DoubaoAPI.shared.summarizeWithStream(
+                text: content,
+                delegate: TitleStreamHandler { newTitle in
+                    DispatchQueue.main.async {
+                        if !newTitle.isEmpty {
+                            print("✅ Auto AI rename generated title: \"\(newTitle)\"")
+                            self.toolbarState.onRenameWithTitle?(newTitle)
+                        }
+                    }
+                },
+                type: .title // Make sure to specify title generation type
+            )
+        }
     }
 
     private var title: String {
