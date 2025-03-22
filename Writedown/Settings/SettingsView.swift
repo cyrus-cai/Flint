@@ -199,7 +199,7 @@ struct SettingsView: View {
     @StateObject private var updateManager = UpdateManager.shared
 
     @State private var autoCorrect = false
-    @State private var launchAtLogin = false
+//    @State private var launchAtLogin = false
     @StateObject private var counter = HotkeyCounter.shared
     @State private var integrateWithObsidian = true
     @State private var noIntegration = true
@@ -208,23 +208,24 @@ struct SettingsView: View {
     @State private var showPathPicker = false
     @State private var showPathAlert = false
 
-    @AppStorage("AIModel") private var AIModel: String =
-        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
+    @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
+    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
+    @AppStorage(AppStorageKeys.appearanceMode) private var appearanceMode: AppearanceMode = AppDefaults.appearanceMode
+    @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
 
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 
-    @AppStorage("isPro") private var isPro: Bool = false
-    // This computed property filters available models depending on the user's Pro status.
-    private var allowedModels: [AIModel] {
-        AIModelConfig.availableModels.filter { model in
-            isPro || (!model.isProOnly)
-        }
-    }
+    @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin = AppDefaults.launchAtLogin
+    @AppStorage(AppStorageKeys.userName) private var userName: String = AppDefaults.userName
+    @AppStorage(AppStorageKeys.userEmail) private var userEmail: String = AppDefaults.userEmail
+    @AppStorage(AppStorageKeys.userAvatar) private var userAvatar: String = AppDefaults.userAvatar
+    @AppStorage(AppStorageKeys.hasRequestedLaunchPermission) private var hasRequestedPermission = AppDefaults.hasRequestedLaunchPermission
 
-    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+    @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
+    @AppStorage(AppStorageKeys.notionIntegration) private var notionIntegration = AppDefaults.notionIntegration
 
-    @AppStorage("enableAIRename") private var enableAIRename: Bool = true
+    @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleOption = AppDefaults.enableDoubleOption
 
     private let titleCharacterLimit = 25
 
@@ -362,11 +363,11 @@ struct SettingsView: View {
 
 struct GeneralSettingsView: View {
     @StateObject private var viewModel = GeneralSettingsViewModel()
-    @AppStorage("launchAtLogin") private var launchAtLogin = false
-    @AppStorage("userName") private var userName: String = ""
-    @AppStorage("userEmail") private var userEmail: String = ""
-    @AppStorage("userAvatar") private var userAvatar: String = ""
-    @AppStorage("hasRequestedLaunchPermission") private var hasRequestedPermission = false
+    @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin = AppDefaults.launchAtLogin
+    @AppStorage(AppStorageKeys.userName) private var userName: String = AppDefaults.userName
+    @AppStorage(AppStorageKeys.userEmail) private var userEmail: String = AppDefaults.userEmail
+    @AppStorage(AppStorageKeys.userAvatar) private var userAvatar: String = AppDefaults.userAvatar
+    @AppStorage(AppStorageKeys.hasRequestedLaunchPermission) private var hasRequestedPermission = AppDefaults.hasRequestedLaunchPermission
     private let loginManager = LoginManager.shared
     @Binding var isPro: Bool
     @State private var isCheckingStatus = false
@@ -408,10 +409,10 @@ struct GeneralSettingsView: View {
                                 Menu {
                                     Button(action: {
                                         let defaults = UserDefaults.standard
-                                        defaults.removeObject(forKey: "userName")
-                                        defaults.removeObject(forKey: "userEmail")
-                                        defaults.removeObject(forKey: "userAvatar")
-                                        defaults.removeObject(forKey: "isPro")
+                                        defaults.removeObject(forKey: AppStorageKeys.userName)
+                                        defaults.removeObject(forKey: AppStorageKeys.userEmail)
+                                        defaults.removeObject(forKey: AppStorageKeys.userAvatar)
+                                        defaults.removeObject(forKey: AppStorageKeys.isPro)
                                         defaults.synchronize()
 
                                         userName = ""
@@ -507,7 +508,7 @@ struct GeneralSettingsView: View {
                                                 let request = StripeCheckout.CheckoutRequest(
                                                     planId: "pro",
                                                     email: UserDefaults.standard.string(
-                                                        forKey: "userEmail")
+                                                        forKey: AppStorageKeys.userEmail)
                                                 )
 
                                                 let origin = Bundle.main.bundleIdentifier ?? "writedown"
@@ -664,17 +665,17 @@ struct GeneralSettingsView: View {
         }
         .onAppear {
             // 主动刷新用户状态
-            userName = UserDefaults.standard.string(forKey: "userName") ?? ""
-            userEmail = UserDefaults.standard.string(forKey: "userEmail") ?? ""
-            userAvatar = UserDefaults.standard.string(forKey: "userAvatar") ?? ""
+            userName = UserDefaults.standard.string(forKey: AppStorageKeys.userName) ?? ""
+            userEmail = UserDefaults.standard.string(forKey: AppStorageKeys.userEmail) ?? ""
+            userAvatar = UserDefaults.standard.string(forKey: AppStorageKeys.userAvatar) ?? ""
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) {
             _ in
             print("🔄 Settings view received login notification")
             // 强制刷新用户状态
-            userName = UserDefaults.standard.string(forKey: "userName") ?? ""
-            userEmail = UserDefaults.standard.string(forKey: "userEmail") ?? ""
-            userAvatar = UserDefaults.standard.string(forKey: "userAvatar") ?? ""
+            userName = UserDefaults.standard.string(forKey: AppStorageKeys.userName) ?? ""
+            userEmail = UserDefaults.standard.string(forKey: AppStorageKeys.userEmail) ?? ""
+            userAvatar = UserDefaults.standard.string(forKey: AppStorageKeys.userAvatar) ?? ""
         }
     }
 
@@ -696,7 +697,7 @@ struct GeneralSettingsView: View {
     }
 
     private func checkProStatus() {
-        guard let email = UserDefaults.standard.string(forKey: "userEmail") else {
+        guard let email = UserDefaults.standard.string(forKey: AppStorageKeys.userEmail) else {
             return
         }
 
@@ -706,7 +707,7 @@ struct GeneralSettingsView: View {
             do {
                 let isPro = try await ProStatusChecker.shared.checkProStatus(email: email)
                 await MainActor.run {
-                    UserDefaults.standard.set(isPro, forKey: "isPro")
+                    UserDefaults.standard.set(isPro, forKey: AppStorageKeys.isPro)
                     self.isPro = isPro
                     isCheckingStatus = false
                 }
@@ -742,12 +743,11 @@ struct IntegrationSettingsView: View {
     @Binding var customPath: String
     @Binding var showPathAlert: Bool
     @Binding var enableAIRename: Bool
-    @AppStorage("AIModel") private var AIModel: String =
-        AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
+    @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
     let selectCustomDirectory: () -> Void
 
     // 新增 editorFont 存储，默认值为 "System"
-    @AppStorage("editorFont") private var editorFont: String = "System"
+    @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
 
     // 可选字体列表
     private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
@@ -764,7 +764,7 @@ struct IntegrationSettingsView: View {
         )
     }
 
-    @AppStorage("isPro") private var isPro: Bool = false
+    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
     // This computed property filters available models depending on the user's Pro status.
     private var allowedModels: [AIModel] {
         AIModelConfig.availableModels.filter { model in
@@ -772,7 +772,7 @@ struct IntegrationSettingsView: View {
         }
     }
 
-    @AppStorage("notionIntegration") private var notionIntegration = false
+    @AppStorage(AppStorageKeys.notionIntegration) private var notionIntegration = AppDefaults.notionIntegration
 
     var body: some View {
         ScrollView {
@@ -884,7 +884,7 @@ struct IntegrationSettingsView: View {
                 .groupBoxStyle(ModernGroupBoxStyle())
                 .onAppear {
                     // 每次显示 AI Settings 时，验证当前选择的模型是否在允许的范围内
-                    if let currentModel = UserDefaults.standard.string(forKey: "AIModel") {
+                    if let currentModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel) {
                         if !allowedModels.contains(where: { $0.modelId == currentModel }) {
                             // 如果当前值不在允许的模型中，则自动重置为允许列表中的第一个
                             AIModel = allowedModels.first?.modelId ?? "ep-20250208231403-7dmtb"
@@ -926,8 +926,8 @@ struct IntegrationSettingsView: View {
 
 struct HotkeySettingsView: View {
     @ObservedObject var counter: HotkeyCounter
-    @AppStorage("isPro") private var isPro: Bool = false
-    @AppStorage("enableDoubleOption") private var enableDoubleOption = true
+    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
+    @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleOption = AppDefaults.enableDoubleOption
 
     var body: some View {
         ScrollView {
@@ -993,7 +993,7 @@ struct HotkeySettingsView: View {
                                             let request = StripeCheckout.CheckoutRequest(
                                                 planId: "pro",
                                                 email: UserDefaults.standard.string(
-                                                    forKey: "userEmail")
+                                                    forKey: AppStorageKeys.userEmail)
                                             )
 
                                             let response =
@@ -1395,7 +1395,7 @@ struct AboutSettingsView: View {
 }
 
 struct AutoSaveIntervalSection: View {
-    @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 15
+    @AppStorage(AppStorageKeys.autoSaveInterval) private var autoSaveInterval: TimeInterval = AppDefaults.autoSaveInterval
 
     private let intervals = [
         (10, "10s"),
@@ -1427,7 +1427,7 @@ enum AppearanceMode: String, CaseIterable {
 }
 
 struct AppearanceSettingsView: View {
-    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+    @AppStorage(AppStorageKeys.appearanceMode) private var appearanceMode: AppearanceMode = AppDefaults.appearanceMode
 
     var body: some View {
         ScrollView {

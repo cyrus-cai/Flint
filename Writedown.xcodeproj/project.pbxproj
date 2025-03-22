@@ -39,6 +39,7 @@
 		A3C585AE2D5B8C35000EF7AC /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = A3C585AD2D5B8C35000EF7AC /* Mixpanel */; };
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 		A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */; };
+		A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -93,6 +94,7 @@
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 		A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeCheckout.swift; sourceTree = "<group>"; };
+		A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -253,6 +255,7 @@
 				A37C396C2D5E501F003EBCC6 /* KeyboardShortcutNames.swift */,
 				A398BF7E2D394A6D00187871 /* AppConfig.swift */,
 				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
+				A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */,
 			);
 			path = Configs;
 			sourceTree = "<group>";
@@ -409,6 +412,7 @@
 				A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */,
 				A35B0BB12D201A1C00E277FA /* FeishuTokenGenerate.swift in Sources */,
 				A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */,
+				A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */,
 				A3A50DA62D3AB2FD00382A2A /* OnboardingWindowController.swift in Sources */,
 				A3A50DA42D3AB27D00382A2A /* OnboardingView.swift in Sources */,
 				A398BF7D2D39434600187871 /* LimitExceededView.swift in Sources */,

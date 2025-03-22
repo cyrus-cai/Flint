@@ -61,7 +61,7 @@ struct ContentView: View {
     @State private var saveError: Error?
     // @State private var isStorageConfigured = FileManager.shared.isPathConfigured
     @State private var fileMonitor: DispatchSourceFileSystemObject?
-    @AppStorage("autoSaveInterval") private var autoSaveInterval: TimeInterval = 10
+    @AppStorage(AppStorageKeys.autoSaveInterval) private var autoSaveInterval: TimeInterval = AppDefaults.autoSaveInterval
     @State private var autoSaveTimer: AnyCancellable?
     @State private var keyboardMonitor: Any?
     @State private var showCopyToast = false
@@ -79,6 +79,8 @@ struct ContentView: View {
 
     // Add this property to track content hash
     @State private var contentHashForAIRename: Int = 0
+
+    @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
 
     enum SaveTrigger {
         case timer
