@@ -12,6 +12,7 @@ struct WritedownApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     init() {
+        registerDefaultSettings()
         // Initialize Mixpanel with proper configuration
         Mixpanel.initialize(
             token: "f7863b6d43e142d2a35285b4d7764792",
@@ -926,4 +927,13 @@ class ContentSavedWindowController: NSWindowController {
                 self.close()
             })
     }
+}
+
+private func registerDefaultSettings() {
+    let defaults: [String: Any] = [
+        "enableAIRename": true,
+        // Other default settings can be added here
+    ]
+
+    UserDefaults.standard.register(defaults: defaults)
 }

@@ -224,6 +224,8 @@ struct SettingsView: View {
 
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
 
+    @AppStorage("enableAIRename") private var enableAIRename: Bool = true
+
     private let titleCharacterLimit = 25
 
     private func truncateTitle(_ title: String) -> String {
@@ -315,6 +317,7 @@ struct SettingsView: View {
                                 integrateWithObsidian: $integrateWithObsidian,
                                 customPath: $customPath,
                                 showPathAlert: $showPathAlert,
+                                enableAIRename: $enableAIRename,
                                 selectCustomDirectory: selectCustomDirectory
                             )
                         case .appearance:
@@ -738,6 +741,7 @@ struct IntegrationSettingsView: View {
     @Binding var integrateWithObsidian: Bool
     @Binding var customPath: String
     @Binding var showPathAlert: Bool
+    @Binding var enableAIRename: Bool
     @AppStorage("AIModel") private var AIModel: String =
         AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
     let selectCustomDirectory: () -> Void
@@ -843,6 +847,21 @@ struct IntegrationSettingsView: View {
                 // AI Settings
                 GroupBox("AI") {
                     VStack(spacing: 12) {
+                         HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Auto generate note titles")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Automatically generate titles for notes with AI")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $enableAIRename)
+                                .toggleStyle(.switch)
+                        }
+
+                        Divider()
+
                         HStack {
                             Label("Model", systemImage: "brain")
                                 .font(.system(size: 13, weight: .medium))
@@ -856,6 +875,8 @@ struct IntegrationSettingsView: View {
                             .pickerStyle(.menu)
                             .frame(width: 150)
                         }
+
+
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
