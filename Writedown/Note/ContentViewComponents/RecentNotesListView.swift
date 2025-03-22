@@ -889,7 +889,7 @@ struct NoteRow: View {
                             Text("·")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
-                            Text("from \(sourceApp)")
+                            Text("\(sourceApp)")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                         }
