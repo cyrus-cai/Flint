@@ -889,12 +889,16 @@ struct NoteRow: View {
                             Text("·")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
-                            Text("\(sourceApp)")
+                            Text("from \(sourceApp)")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
                         }
                     }
                     .opacity(0.6)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
