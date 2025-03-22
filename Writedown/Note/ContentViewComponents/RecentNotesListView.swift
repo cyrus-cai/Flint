@@ -37,9 +37,14 @@ extension FileManager {
 
                     // Check for source metadata in the first line
                     if let firstLine = lines.first, firstLine.hasPrefix("<!-- Source:") {
-                        let endIndex = firstLine.firstIndex(of: "-") ?? firstLine.endIndex
-                        let startIndex = firstLine.index(firstLine.startIndex, offsetBy: 12) // Length of "<!-- Source: "
-                        sourceApp = String(firstLine[startIndex..<endIndex]).trimmingCharacters(in: .whitespaces)
+                        // Look for the closing comment tag
+                        if let endTagIndex = firstLine.range(of: "-->")?.lowerBound {
+                            let startIndex = firstLine.index(firstLine.startIndex, offsetBy: 12) // Length of "<!-- Source: "
+                            // Make sure the range is valid
+                            if startIndex < endTagIndex {
+                                sourceApp = String(firstLine[startIndex..<endTagIndex]).trimmingCharacters(in: .whitespaces)
+                            }
+                        }
                     }
 
                     // Use filename as the title (since that's what we set during title editing)
