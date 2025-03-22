@@ -746,7 +746,7 @@ struct NoteRow: View {
         let diffInDays = diffInHours / 24
 
         if diffInMinutes < 1 {
-            return "less than 1 min"
+            return "< 1 min"
         } else if diffInMinutes < 60 {
             return "\(diffInMinutes) min"
         } else if diffInHours < 24 {
