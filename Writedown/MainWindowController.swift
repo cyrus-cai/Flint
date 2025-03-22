@@ -520,7 +520,19 @@ class MainWindowController: NSWindowController {
         if event.modifierFlags.contains(.option) {
             let now = Date()
             if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
-                self.toggleWindow()
+                // Add daily limit check
+                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
+                    && !UserDefaults.standard.bool(forKey: "isPro")
+                {
+                    // Show limit exceeded window
+                    WindowManager.shared.createLimitExceededWindow()
+                } else {
+                    self.toggleWindow()
+                    // Increment the counter only if window was hidden and now being shown
+                    if !self.window!.isVisible {
+                        HotkeyCounter.shared.increment()
+                    }
+                }
                 self.lastOptionKeyTapDate = nil
             } else {
                 self.lastOptionKeyTapDate = now
