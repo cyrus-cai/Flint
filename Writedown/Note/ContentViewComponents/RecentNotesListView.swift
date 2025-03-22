@@ -31,6 +31,17 @@ extension FileManager {
                     let lines = content.components(separatedBy: .newlines)
                     let firstLine = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
 
+                    // Extract source app from metadata comment if available
+                    var sourceApp: String? = nil
+                    let cleanContent = content
+
+                    // Check for source metadata in the first line
+                    if let firstLine = lines.first, firstLine.hasPrefix("<!-- Source:") {
+                        let endIndex = firstLine.firstIndex(of: "-") ?? firstLine.endIndex
+                        let startIndex = firstLine.index(firstLine.startIndex, offsetBy: 12) // Length of "<!-- Source: "
+                        sourceApp = String(firstLine[startIndex..<endIndex]).trimmingCharacters(in: .whitespaces)
+                    }
+
                     // Use filename as the title (since that's what we set during title editing)
                     // but display the first line preview in the details
                     let note = RecentNote(
@@ -38,7 +49,8 @@ extension FileManager {
                         firstLinePreview: firstLine,
                         content: content,
                         lastModified: date,
-                        fileURL: url
+                        fileURL: url,
+                        sourceApp: sourceApp
                     )
                     recentNotes.append(note)
                 }
@@ -60,6 +72,7 @@ struct RecentNote: Identifiable {
     let content: String
     let lastModified: Date
     let fileURL: URL
+    let sourceApp: String?  // New field for source application
 }
 
 enum TimeGroup: String {
@@ -865,6 +878,16 @@ struct NoteRow: View {
                         Text("\(note.content.count) Chars")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+
+                        // Display source app if available
+                        if let sourceApp = note.sourceApp {
+                            Text("·")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            Text("from \(sourceApp)")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .opacity(0.6)
                 }

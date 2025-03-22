@@ -625,31 +625,20 @@ class GlobalKeyMonitor {
     }
 
     private func saveClipboardContent() {
-        // 检查使用次数限制
-        if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
-            && !UserDefaults.standard.bool(forKey: "isPro")
-        {
-            WindowManager.shared.createLimitExceededWindow()
+        guard let clipboardContent = NSPasteboard.general.string(forType: .string) else {
             return
         }
 
-        // 从剪贴板获取字符串内容
-        guard let text = NSPasteboard.general.string(forType: .string) else {
-            print("No clipboard content found.")
-            return
-        }
+        // Get the frontmost application name
+        let sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "Unknown"
 
-        print("剪贴板内容: \(text)")
-
-        // 根据文本生成文件名
-        var title: String {
-            let firstLine = text.components(separatedBy: .newlines).first ?? ""
-            return firstLine.isEmpty
-                ? "Untitled" : (firstLine.count > 12 ? firstLine.prefix(12) + "..." : firstLine)
-        }
+        // Create title for the note
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let title = dateFormatter.string(from: Date())
 
         do {
-            // 获取用于保存的文件 URL
+            // Get file URL for saving
             let fileURL = FileManager.shared.fileURL(for: title)
             guard let fileURL = fileURL else {
                 throw NSError(
@@ -659,8 +648,11 @@ class GlobalKeyMonitor {
                 )
             }
 
-            // 写入剪贴板内容至文件
-            try text.write(to: fileURL, atomically: true, encoding: .utf8)
+            // Add source app information as a metadata line at the beginning of the file
+            let textWithMetadata = "<!-- Source: \(sourceApp) -->\n\(clipboardContent)"
+
+            // Write content to file
+            try textWithMetadata.write(to: fileURL, atomically: true, encoding: .utf8)
             print("Saved clipboard content to: \(fileURL.path)")
 
             // 增加使用次数统计
@@ -683,7 +675,7 @@ class GlobalKeyMonitor {
                     height: defaultHeight
                 )
                 let feedbackWindow = ContentSavedWindowController(
-                    position: feedbackFrame, clipboardContent: text)
+                    position: feedbackFrame, clipboardContent: textWithMetadata)
                 feedbackWindow.showWindow(nil)
             } else {
                 // 没有活动窗口时，使用默认位置（屏幕右上角）
@@ -698,7 +690,7 @@ class GlobalKeyMonitor {
                     height: defaultHeight
                 )
                 let feedbackWindow = ContentSavedWindowController(
-                    position: feedbackFrame, clipboardContent: text)
+                    position: feedbackFrame, clipboardContent: textWithMetadata)
                 feedbackWindow.showWindow(nil)
             }
 
