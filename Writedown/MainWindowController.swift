@@ -507,32 +507,32 @@ class MainWindowController: NSWindowController {
     }
 
     private func setupOptionKeyMonitor() {
-        optionKeyTapMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+        optionKeyTapMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
             self?.checkDoubleOptionKey(event)
-            return event
+        }
+    }
+
+    // 公共方法：执行 Quick wake-up 逻辑
+    private func performQuickWakeup() {
+        if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit &&
+            !UserDefaults.standard.bool(forKey: "isPro") {
+            WindowManager.shared.createLimitExceededWindow()
+        } else {
+            self.toggleWindow()
+            if let window = self.window, !window.isVisible {
+                HotkeyCounter.shared.increment()
+            }
         }
     }
 
     private func checkDoubleOptionKey(_ event: NSEvent) {
-        // 添加功能开关检查
+        // 仅当开启功能时才处理
         guard UserDefaults.standard.bool(forKey: "enableDoubleOption") else { return }
 
         if event.modifierFlags.contains(.option) {
             let now = Date()
             if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
-                // Add daily limit check
-                if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
-                    && !UserDefaults.standard.bool(forKey: "isPro")
-                {
-                    // Show limit exceeded window
-                    WindowManager.shared.createLimitExceededWindow()
-                } else {
-                    self.toggleWindow()
-                    // Increment the counter only if window was hidden and now being shown
-                    if !self.window!.isVisible {
-                        HotkeyCounter.shared.increment()
-                    }
-                }
+                self.performQuickWakeup()  // 调用统一逻辑
                 self.lastOptionKeyTapDate = nil
             } else {
                 self.lastOptionKeyTapDate = now
