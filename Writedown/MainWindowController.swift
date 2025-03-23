@@ -504,6 +504,9 @@ class MainWindowController: NSWindowController {
         if let monitor = optionKeyTapMonitor {
             NSEvent.removeMonitor(monitor)
         }
+        if let globalMonitor = globalOptionKeyTapMonitor {
+            NSEvent.removeMonitor(globalMonitor)
+        }
         WindowManager.shared.closeWindow(self)
     }
 
