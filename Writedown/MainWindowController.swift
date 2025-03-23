@@ -132,6 +132,7 @@ class MainWindowController: NSWindowController {
     private var isResizing: Bool = false
     private var lastOptionKeyTapDate: Date?
     private var optionKeyTapMonitor: Any?
+    private var globalOptionKeyTapMonitor: Any?
 
     init() {
         let window = NSWindow(
@@ -507,7 +508,14 @@ class MainWindowController: NSWindowController {
     }
 
     private func setupOptionKeyMonitor() {
-        optionKeyTapMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+        // 局部监控：当 App 已聚焦时捕获事件
+        optionKeyTapMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            self?.checkDoubleOptionKey(event)
+            return event
+        }
+
+        // 全局监控：无论 App 是否聚焦都捕获事件
+        globalOptionKeyTapMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
             self?.checkDoubleOptionKey(event)
         }
     }
@@ -518,21 +526,26 @@ class MainWindowController: NSWindowController {
             !UserDefaults.standard.bool(forKey: "isPro") {
             WindowManager.shared.createLimitExceededWindow()
         } else {
-            self.toggleWindow()
-            if let window = self.window, !window.isVisible {
+            let wasHidden = !(self.window?.isVisible ?? false)
+            self.toggleWindow()  // 内部会根据 window.isVisible 调用 hideWindow() 或 showWindow(nil)
+            if wasHidden {
                 HotkeyCounter.shared.increment()
             }
         }
     }
 
     private func checkDoubleOptionKey(_ event: NSEvent) {
-        // 仅当开启功能时才处理
+        // 仅当启用双击 Option 快捷键时处理
         guard UserDefaults.standard.bool(forKey: "enableDoubleOption") else { return }
+
+        // 打印调试信息以确认事件是否被捕获（调试完成后可以移除）
+        print("Option key changed: \(event.modifierFlags) at \(event.timestamp)")
 
         if event.modifierFlags.contains(.option) {
             let now = Date()
             if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
-                self.performQuickWakeup()  // 调用统一逻辑
+                print("Double tap Option detected")
+                self.performQuickWakeup()
                 self.lastOptionKeyTapDate = nil
             } else {
                 self.lastOptionKeyTapDate = now
