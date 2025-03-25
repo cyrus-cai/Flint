@@ -541,10 +541,14 @@ class MainWindowController: NSWindowController {
         // 仅当启用双击 Option 快捷键时处理
         guard UserDefaults.standard.bool(forKey: "enableDoubleOption") else { return }
 
-        // 打印调试信息以确认事件是否被捕获（调试完成后可以移除）
-        print("Option key changed: \(event.modifierFlags) at \(event.timestamp)")
+        // 我们需要检查是否只有 Option 键被按下，而没有其他修饰键
+        let onlyOptionPressed = event.modifierFlags.contains(.option) &&
+            !event.modifierFlags.contains(.command) &&
+            !event.modifierFlags.contains(.control) &&
+            !event.modifierFlags.contains(.shift) &&
+            !event.modifierFlags.contains(.function)
 
-        if event.modifierFlags.contains(.option) {
+        if onlyOptionPressed {
             let now = Date()
             if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
                 print("Double tap Option detected")
@@ -553,6 +557,10 @@ class MainWindowController: NSWindowController {
             } else {
                 self.lastOptionKeyTapDate = now
             }
+        } else if event.modifierFlags.isEmpty {
+            // 当所有修饰键都释放时，重置上次点击时间
+            // 这样用户必须完全释放 Option 键后再次按下才能触发双击
+            self.lastOptionKeyTapDate = nil
         }
     }
 }
