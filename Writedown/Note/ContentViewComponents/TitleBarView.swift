@@ -311,25 +311,25 @@ struct TitleBarToolbar: View {
     var body: some View {
         HStack(spacing: 4) {
 
-            if !links.isEmpty {
-                if links.count == 1 {
-                    // Single link - direct button
-                    TitleBarButton(
-                        icon: .paperclip,
-                        action: openSingleLink
-                    )
-                } else {
-                    // Multiple links - show popover
-                    TitleBarButton(
-                        icon: .paperclip,
-                        badgeCount: links.count,  // Pass the count here
-                        action: { state.showAttachments = true }
-                    )
-                    .popover(isPresented: $state.showAttachments) {
-                        LinkListView(links: links)
-                    }
-                }
-            }
+            // if !links.isEmpty {
+            //     if links.count == 1 {
+            //         // Single link - direct button
+            //         TitleBarButton(
+            //             icon: .paperclip,
+            //             action: openSingleLink
+            //         )
+            //     } else {
+            //         // Multiple links - show popover
+            //         TitleBarButton(
+            //             icon: .paperclip,
+            //             badgeCount: links.count,  // Pass the count here
+            //             action: { state.showAttachments = true }
+            //         )
+            //         .popover(isPresented: $state.showAttachments) {
+            //             LinkListView(links: links)
+            //         }
+            //     }
+            // }
 
             TitleBarButton(
                 icon: .command,
