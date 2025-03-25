@@ -1644,7 +1644,9 @@ struct CollapsibleGroupView: View {
                 Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
+                // 对 TimeGroupHeader 应用负的左边距，减少与箭头的间距
                 TimeGroupHeader(title: group.group.rawValue, notes: group.notes, viewModel: viewModel)
+                    .padding(.leading, -8)
             }
             .contentShape(Rectangle())
             .onTapGesture {
