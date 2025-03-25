@@ -570,7 +570,7 @@ struct RecentNotesListView: View {
                         ScrollView {
                             LazyVStack(spacing: 6) {
                                 ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) { group in
-                                    CollapsibleGroupView(group: group, viewModel: viewModel)
+                                    CollapsibleGroupView(group: group, viewModel: viewModel, onSelectNote: onSelectNote)
                                     if group.group.rawValue != viewModel.groupedFilteredNotes.last?.group.rawValue {
                                         Divider()
                                             .padding(.horizontal, 12)
@@ -1625,11 +1625,14 @@ struct CollapsibleGroupView: View {
     let group: GroupedNotes
     @ObservedObject var viewModel: RecentNotesViewModel
     @State private var isExpanded: Bool
+    let onSelectNote: (String, URL) -> Void
+    @Environment(\.dismiss) private var dismiss
 
     // Default collapse for the "Earlier" group (i.e. .older case)
-    init(group: GroupedNotes, viewModel: RecentNotesViewModel) {
+    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void) {
         self.group = group
         self.viewModel = viewModel
+        self.onSelectNote = onSelectNote
         if group.group == .older {
             _isExpanded = State(initialValue: false)
         } else {
@@ -1662,7 +1665,8 @@ struct CollapsibleGroupView: View {
                         note: note,
                         isHighLight: viewModel.currentNoteIndex == globalIndex,
                         onTap: {
-                            // You can insert the note selection action here
+                            onSelectNote(note.content, note.fileURL)
+                            dismiss()
                         },
                         onDelete: {
                             withAnimation {
