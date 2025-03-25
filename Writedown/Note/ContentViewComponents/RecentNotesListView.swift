@@ -569,60 +569,9 @@ struct RecentNotesListView: View {
                     ScrollViewReader { proxy in
                         ScrollView {
                             LazyVStack(spacing: 6) {
-                                ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) {
-                                    group in
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        // Group header
-                                        TimeGroupHeader(
-                                            title: group.group.rawValue,
-                                            notes: group.notes,
-                                            viewModel: viewModel)
-
-                                        // Notes in this group
-                                        ForEach(Array(group.notes.enumerated()), id: \.element.id) {
-                                            index, note in
-                                            let globalIndex =
-                                                viewModel.filteredNotes.firstIndex(where: {
-                                                    $0.id == note.id
-                                                }) ?? 0
-
-                                            let noteRow = NoteRow(
-                                                note: note,
-                                                isHighLight: viewModel.currentNoteIndex
-                                                    == globalIndex ? true : false,
-                                                onTap: {
-                                                    onSelectNote(note.content, note.fileURL)
-                                                    dismiss()
-                                                },
-                                                onDelete: {
-                                                    withAnimation {
-                                                        viewModel.archiveNote(note)
-                                                    }
-                                                },
-                                                onHover: { isHovered in
-                                                    viewModel.setHoveredNote(
-                                                        isHovered ? globalIndex : nil)
-                                                },
-                                                searchText: viewModel.searchText
-                                            )
-
-                                            LazyVStack {
-                                                noteRow
-                                                    .transition(
-                                                        .asymmetric(
-                                                            insertion: .opacity,
-                                                            removal: .move(edge: .leading)
-                                                        )
-                                                    )
-                                            }
-                                            .id(note.id)
-                                        }
-                                    }
-
-                                    // Add divider after each group except the last one
-                                    if group.group.rawValue
-                                        != viewModel.groupedFilteredNotes.last?.group.rawValue
-                                    {
+                                ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) { group in
+                                    CollapsibleGroupView(group: group, viewModel: viewModel)
+                                    if group.group.rawValue != viewModel.groupedFilteredNotes.last?.group.rawValue {
                                         Divider()
                                             .padding(.horizontal, 12)
                                             .padding(.vertical, 4)
@@ -1668,5 +1617,64 @@ struct StandardToastView: View {
             y: 4
         )
         .padding(.bottom, 12)
+    }
+}
+
+// New view: CollapsibleGroupView
+struct CollapsibleGroupView: View {
+    let group: GroupedNotes
+    @ObservedObject var viewModel: RecentNotesViewModel
+    @State private var isExpanded: Bool
+
+    // Default collapse for the "Earlier" group (i.e. .older case)
+    init(group: GroupedNotes, viewModel: RecentNotesViewModel) {
+        self.group = group
+        self.viewModel = viewModel
+        if group.group == .older {
+            _isExpanded = State(initialValue: false)
+        } else {
+            _isExpanded = State(initialValue: true)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            // Header with disclosure indicator
+            HStack(spacing: 0) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                TimeGroupHeader(title: group.group.rawValue, notes: group.notes, viewModel: viewModel)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation {
+                    isExpanded.toggle()
+                }
+            }
+            // Only show the note rows when expanded
+            if isExpanded {
+                ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
+                    let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
+                    NoteRow(
+                        note: note,
+                        isHighLight: viewModel.currentNoteIndex == globalIndex,
+                        onTap: {
+                            // You can insert the note selection action here
+                        },
+                        onDelete: {
+                            withAnimation {
+                                viewModel.archiveNote(note)
+                            }
+                        },
+                        onHover: { isHovered in
+                            viewModel.setHoveredNote(isHovered ? globalIndex : nil)
+                        },
+                        searchText: viewModel.searchText
+                    )
+                    .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .leading)))
+                }
+            }
+        }
     }
 }
