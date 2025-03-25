@@ -1650,7 +1650,7 @@ struct CollapsibleGroupView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                withAnimation {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
                     isExpanded.toggle()
                 }
             }
@@ -1674,7 +1674,7 @@ struct CollapsibleGroupView: View {
                         },
                         searchText: viewModel.searchText
                     )
-                    .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .leading)))
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
         }
