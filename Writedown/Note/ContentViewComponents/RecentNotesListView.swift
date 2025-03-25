@@ -1633,7 +1633,10 @@ struct CollapsibleGroupView: View {
         self.group = group
         self.viewModel = viewModel
         self.onSelectNote = onSelectNote
-        if group.group == .older {
+        // When search is active, always expand all groups
+        if !viewModel.searchText.isEmpty {
+            _isExpanded = State(initialValue: true)
+        } else if group.group == .older {
             _isExpanded = State(initialValue: false)
         } else {
             _isExpanded = State(initialValue: true)
@@ -1679,6 +1682,19 @@ struct CollapsibleGroupView: View {
                         searchText: viewModel.searchText
                     )
                     .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+        }
+        .onChange(of: viewModel.searchText) { newValue in
+            // When search text changes, expand all groups if search is active
+            if !newValue.isEmpty {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
+                    isExpanded = true
+                }
+            } else if group.group == .older {
+                // Return to default collapsed state for "Earlier" group when search is cleared
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
+                    isExpanded = false
                 }
             }
         }
