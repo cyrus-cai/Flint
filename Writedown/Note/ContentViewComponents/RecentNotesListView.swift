@@ -855,6 +855,15 @@ struct NoteRow: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
+            .contextMenu {
+                Button(action: copyContent) {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+
+                Button(action: shareContent) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
 
             if isHighLight {
                 // Info button
@@ -896,55 +905,6 @@ struct NoteRow: View {
                 }
                 .popover(isPresented: $showPreview, arrowEdge: .leading) {
                     NotePreviewView(content: note.content)
-                }
-
-                // Copy button
-                Button(action: copyContent) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 13))
-                            .foregroundColor(.primary)
-                            .contentTransition(.symbolEffect(.replace))
-                        Spacer()
-                    }
-                    .frame(width: isCopied ? 32 : 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(
-                                isHoveringCopy
-                                    ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                                    : Color.clear)
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-                .onHover { hovering in
-                    isHoveringCopy = hovering
-                }
-
-                // Share button
-                Button(action: shareContent) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 13))
-                            .foregroundColor(.primary)
-                        Spacer()
-                    }
-                    .frame(width: 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(
-                                isHoveringShare
-                                    ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                                    : Color.clear)
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-                .onHover { hovering in
-                    isHoveringShare = hovering
                 }
 
                 // Archive button
