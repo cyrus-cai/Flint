@@ -672,6 +672,8 @@ struct NoteRow: View {
     @State private var isInfoHovered = false
     @State private var isSummarizing = false
     @State private var summary: String?
+    @State private var showArchivePreview = false
+    @State private var archiveHoverWorkItem: DispatchWorkItem?
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDeleteHovered = false
@@ -967,8 +969,31 @@ struct NoteRow: View {
                 .buttonStyle(PlainButtonStyle())
                 .onHover { hovering in
                     isDeleteHovered = hovering
+                    if hovering {
+                        let workItem = DispatchWorkItem {
+                            withAnimation {
+                                showArchivePreview = true
+                            }
+                        }
+                        archiveHoverWorkItem = workItem
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
+                    } else {
+                        archiveHoverWorkItem?.cancel()
+                        withAnimation {
+                            showArchivePreview = false
+                        }
+                    }
                 }
-
+                .popover(isPresented: $showArchivePreview, arrowEdge: .leading) {
+                    VStack(alignment: .leading) {
+                        Text("Archive this note")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .padding(8)
+                    }
+                    .frame(width: 120)
+                    .background(Color(NSColor.windowBackgroundColor))
+                }
             }
         }
         .padding(.horizontal, 12)
