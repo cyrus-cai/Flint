@@ -949,7 +949,7 @@ struct NoteRow: View {
                 Button(action: onDelete) {
                     HStack {
                         Spacer()
-                        Image(systemName: "archivebox")
+                        Image(systemName: "checkmark")
                             .font(.system(size: 13))
                             .foregroundColor(.primary)
                         Spacer()
