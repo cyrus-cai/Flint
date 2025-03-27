@@ -905,7 +905,10 @@ struct NoteRow: View {
                         }
                     }
                 }
-                .help("Show note details")
+                   .popover(isPresented: $showPreview, arrowEdge: .leading) {
+                    NotePreviewView(content: note.content)
+                }
+
 
                 // Archive button
                 Button(action: onDelete) {
