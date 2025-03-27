@@ -903,9 +903,7 @@ struct NoteRow: View {
                         }
                     }
                 }
-                .popover(isPresented: $showPreview, arrowEdge: .leading) {
-                    NotePreviewView(content: note.content)
-                }
+                .help("Show note details")
 
                 // Archive button
                 Button(action: onDelete) {
@@ -922,7 +920,8 @@ struct NoteRow: View {
                             .fill(
                                 isDeleteHovered
                                     ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                        ? Color.white.opacity(0.1)
+                                        : Color.black.opacity(0.05))
                                     : Color.clear)
                     )
                 }
@@ -944,16 +943,7 @@ struct NoteRow: View {
                         }
                     }
                 }
-                .popover(isPresented: $showArchivePreview, arrowEdge: .leading) {
-                    VStack(alignment: .leading) {
-                        Text("Archive this note")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                            .padding(8)
-                    }
-                    .frame(width: 120)
-                    .background(Color(NSColor.windowBackgroundColor))
-                }
+                .help("Archive this note")
             }
         }
         .padding(.horizontal, 12)
