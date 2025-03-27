@@ -177,25 +177,26 @@ class RecentNotesViewModel: ObservableObject {
             try fileManager.archiveNote(at: fileToArchive)
 
             withAnimation(.easeOut(duration: 0.0)) {
-                // Remove from memory
+                // Remove from memory, update selection, and refresh notes list
                 notes.removeAll { $0.fileURL == note.fileURL }
-
-                // Update selection state
                 updateSelectionAfterDeletion()
-
-                // Refresh notes list
                 notes = FileManager.getRecentNotes()
             }
 
-            // Show archive toast
+            // Set undo support for the single note archive
+            archivedNotes = [note]
+            archivedNotesCount = 1
+
             withAnimation(.easeIn(duration: 0.2)) {
-                showArchiveToast = true
+                showUndoArchiveToast = true
             }
 
-            // Hide toast after delay
+            // Automatically hide the undo toast after delay if not undone
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 withAnimation(.easeOut(duration: 0.2)) {
-                    self.showArchiveToast = false
+                    self.showUndoArchiveToast = false
+                    self.archivedNotes = []
+                    self.archivedNotesCount = 0
                 }
             }
 
@@ -630,8 +631,9 @@ struct RecentNotesListView: View {
                     Spacer()
                     StandardToastView(
                         icon: "archivebox.fill",
-                        message:
-                            "Copied summary & archived \(viewModel.archivedNotesCount) \(viewModel.archivedNotesCount == 1 ? "note" : "notes")",
+                        message: viewModel.archivedNotesCount == 1
+                            ? "Note Archived"
+                            : "Copied summary & archived \(viewModel.archivedNotesCount) \(viewModel.archivedNotesCount == 1 ? "note" : "notes")",
                         actionButton: ("Undo", { viewModel.undoGroupArchive() })
                     )
                 }
