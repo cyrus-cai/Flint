@@ -619,8 +619,7 @@ struct RecentNotesListView: View {
                                     CollapsibleGroupView(
                                         group: group,
                                         viewModel: viewModel,
-                                        onSelectNote: onSelectNote,
-                                        scrollProxy: proxy
+                                        onSelectNote: onSelectNote
                                     )
                                     if group.group.rawValue != viewModel.groupedFilteredNotes.last?.group.rawValue {
                                         Divider()
@@ -632,15 +631,6 @@ struct RecentNotesListView: View {
                             .padding(.vertical, 4)
                         }
                         .frame(height: 360)
-                        .onChange(of: viewModel.currentNoteIndex) {
-                            if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    if let note = viewModel.filteredNotes[safe: index] {
-                                        proxy.scrollTo(note.id)
-                                    }
-                                }
-                            }
-                        }
                     }
                     .onHover { _ in
                         if searchFocused {
@@ -1744,15 +1734,11 @@ struct CollapsibleGroupView: View {
     @Environment(\.dismiss) private var dismiss
     @Namespace private var groupNamespace
 
-    // 添加对ScrollViewProxy的引用
-    var scrollProxy: ScrollViewProxy?
-
     // Default collapse for the "Earlier" group (i.e. .older case)
-    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void, scrollProxy: ScrollViewProxy? = nil) {
+    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void) {
         self.group = group
         self.viewModel = viewModel
         self.onSelectNote = onSelectNote
-        self.scrollProxy = scrollProxy
         // When search is active, always expand all groups
         if !viewModel.searchText.isEmpty {
             _isExpanded = State(initialValue: true)
@@ -1777,20 +1763,8 @@ struct CollapsibleGroupView: View {
             .id("header-\(group.group.rawValue)")
             .contentShape(Rectangle())
             .onTapGesture {
-                let wasExpanded = isExpanded
-
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
                     isExpanded.toggle()
-                }
-
-                // 如果是从收起状态变为展开状态，滚动到可见区域
-                if !wasExpanded && group.group == .older {
-                    // 使用延迟以确保布局已更新
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            scrollProxy?.scrollTo("content-\(group.group.rawValue)", anchor: .top)
-                        }
-                    }
                 }
             }
 
@@ -1814,15 +1788,14 @@ struct CollapsibleGroupView: View {
                             onHover: { isHovered in
                                 viewModel.setHoveredNote(isHovered ? globalIndex : nil)
                             },
-                            searchText: viewModel.searchText, onToggleStar: {
+                            searchText: viewModel.searchText,
+                            onToggleStar: {
                                 withAnimation {
                                     viewModel.toggleStarred(note)
                                 }
                             }
                         )
                         .transition(.opacity.combined(with: .move(edge: .top)))
-                        // 最后一个元素添加ID用于滚动
-                        .id(index == group.notes.count - 1 ? "content-\(group.group.rawValue)" : nil)
                     }
                 }
             }
