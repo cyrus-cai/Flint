@@ -78,6 +78,7 @@ struct RecentNote: Identifiable {
     let lastModified: Date
     let fileURL: URL
     let sourceApp: String?  // New field for source application
+    var isStarred: Bool = false  // 新增的星标属性
 }
 
 enum TimeGroup: String {
@@ -114,22 +115,34 @@ class RecentNotesViewModel: ObservableObject {
     @Published var archivedNotes: [RecentNote] = []
     @Published var showUndoArchiveToast = false
     @Published var archivedNotesCount = 0
+    @Published var showStarredOnly = false
+
+    // 用于存储星标笔记的路径
+    private let starredNotesKey = "StarredNotes"
 
     init() {
         notes = FileManager.getRecentNotes()
         if !notes.isEmpty {
             currentNoteIndex = 0
         }
+
+        // 加载星标状态
+        loadStarredStatus()
     }
 
     var filteredNotes: [RecentNote] {
-        if searchText.isEmpty {
-            return notes
+        let searchFiltered = notes.filter { note in
+            if searchText.isEmpty { return true }
+            return note.title.localizedCaseInsensitiveContains(searchText) ||
+                   note.content.localizedCaseInsensitiveContains(searchText)
         }
-        return notes.filter { note in
-            note.title.localizedCaseInsensitiveContains(searchText)
-                || note.content.localizedCaseInsensitiveContains(searchText)
+
+        // 添加星标筛选
+        if showStarredOnly {
+            return searchFiltered.filter { $0.isStarred }
         }
+
+        return searchFiltered
     }
 
     func deleteNote(_ note: RecentNote) {
@@ -447,6 +460,38 @@ class RecentNotesViewModel: ObservableObject {
             archivedNotes = []
         }
     }
+
+    // 切换笔记的星标状态
+    func toggleStarred(_ note: RecentNote) {
+        guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
+
+        // 切换星标状态
+        notes[index].isStarred.toggle()
+
+        // 持久化星标状态
+        saveStarredStatus()
+
+        // 通知UI更新
+        objectWillChange.send()
+    }
+
+    // 保存星标状态到 UserDefaults
+    private func saveStarredStatus() {
+        let starredPaths = notes.filter { $0.isStarred }.map { $0.fileURL.path }
+        UserDefaults.standard.set(starredPaths, forKey: starredNotesKey)
+    }
+
+    // 从 UserDefaults 加载星标状态
+    private func loadStarredStatus() {
+        let starredPaths = UserDefaults.standard.stringArray(forKey: starredNotesKey) ?? []
+
+        // 更新笔记的星标状态
+        for (index, note) in notes.enumerated() {
+            if starredPaths.contains(note.fileURL.path) {
+                notes[index].isStarred = true
+            }
+        }
+    }
 }
 
 //MARK: - Main List View
@@ -670,12 +715,14 @@ struct NoteRow: View {
     let onDelete: () -> Void
     let onHover: (Bool) -> Void
     let searchText: String
+    var onToggleStar: () -> Void  // 新增的星标切换回调
     @State private var isCopied = false
     @State private var isHoveringCopy = false
     @State private var isHoveringShare = false
     @State private var showPreview = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var isInfoHovered = false
+    @State private var isStarHovered = false  // 添加星标悬停状态
     @State private var isSummarizing = false
     @State private var summary: String?
     @State private var showArchivePreview = false
@@ -871,6 +918,22 @@ struct NoteRow: View {
                 }
             }
 
+            // Always show star if the note is starred, regardless of hover state
+            if note.isStarred && !isHighLight {
+                Button(action: onToggleStar) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(.yellow)
+                        Spacer()
+                    }
+                    .frame(width: 28, height: 28)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .help("Remove from starred")
+            }
+
             if isHighLight {
                 // Info button
                 Button(action: {}) {
@@ -953,6 +1016,32 @@ struct NoteRow: View {
                     }
                 }
                 .help("Archive this note")
+
+                // Star button - only shown on hover if not already starred
+                Button(action: onToggleStar) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: note.isStarred ? "star.fill" : "star")
+                            .font(.system(size: 13))
+                            .foregroundColor(note.isStarred ? .yellow : .primary)
+                        Spacer()
+                    }
+                    .frame(width: 28, height: 28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                isStarHovered
+                                    ? (colorScheme == .dark
+                                        ? Color.white.opacity(0.1)
+                                        : Color.black.opacity(0.05))
+                                    : Color.clear)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    isStarHovered = hovering
+                }
+                .help(note.isStarred ? "Remove from starred" : "Add to starred")
             }
         }
         .padding(.horizontal, 12)
@@ -1683,7 +1772,11 @@ struct CollapsibleGroupView: View {
                             onHover: { isHovered in
                                 viewModel.setHoveredNote(isHovered ? globalIndex : nil)
                             },
-                            searchText: viewModel.searchText
+                            searchText: viewModel.searchText, onToggleStar: {
+                                withAnimation {
+                                    viewModel.toggleStarred(note)
+                                }
+                            }
                         )
                         .transition(.opacity.combined(with: .move(edge: .top)))
                         // 最后一个元素添加ID用于滚动
