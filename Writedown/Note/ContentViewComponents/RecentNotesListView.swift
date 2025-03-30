@@ -115,6 +115,7 @@ class RecentNotesViewModel: ObservableObject {
     @Published var archivedNotes: [RecentNote] = []
     @Published var showUndoArchiveToast = false
     @Published var archivedNotesCount = 0
+    @Published var showStarredOnly = false
 
     // 用于存储星标笔记的路径
     private let starredNotesKey = "StarredNotes"
@@ -130,13 +131,18 @@ class RecentNotesViewModel: ObservableObject {
     }
 
     var filteredNotes: [RecentNote] {
-        if searchText.isEmpty {
-            return notes
+        let searchFiltered = notes.filter { note in
+            if searchText.isEmpty { return true }
+            return note.title.localizedCaseInsensitiveContains(searchText) ||
+                   note.content.localizedCaseInsensitiveContains(searchText)
         }
-        return notes.filter { note in
-            note.title.localizedCaseInsensitiveContains(searchText)
-                || note.content.localizedCaseInsensitiveContains(searchText)
+
+        // 添加星标筛选
+        if showStarredOnly {
+            return searchFiltered.filter { $0.isStarred }
         }
+
+        return searchFiltered
     }
 
     func deleteNote(_ note: RecentNote) {
