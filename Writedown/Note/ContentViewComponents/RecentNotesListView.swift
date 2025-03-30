@@ -582,7 +582,6 @@ struct RecentNotesListView: View {
                             .padding(.vertical, 4)
                         }
                         .frame(height: 360)
-
                         .onChange(of: viewModel.currentNoteIndex) {
                             if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
                                 withAnimation {
@@ -591,6 +590,29 @@ struct RecentNotesListView: View {
                                     }
                                 }
                             }
+                        }
+                        .onAppear {
+                            // 订阅通知以处理组展开时的滚动
+                            NotificationCenter.default.addObserver(
+                                forName: Notification.Name("scrollToGroup"),
+                                object: nil,
+                                queue: .main) { notification in
+                                    if let groupID = notification.userInfo?["groupID"] as? String {
+                                        // 使用动画延迟确保滚动发生在展开后
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                            withAnimation {
+                                                proxy.scrollTo(groupID, anchor: .top)
+                                            }
+                                        }
+                                    }
+                                }
+                        }
+                        .onDisappear {
+                            NotificationCenter.default.removeObserver(
+                                self,
+                                name: Notification.Name("scrollToGroup"),
+                                object: nil
+                            )
                         }
                     }
                     .onHover { _ in
@@ -1607,6 +1629,7 @@ struct CollapsibleGroupView: View {
     @State private var isExpanded: Bool
     let onSelectNote: (String, URL) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Namespace private var groupNamespace
 
     // Default collapse for the "Earlier" group (i.e. .older case)
     init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void) {
@@ -1634,35 +1657,48 @@ struct CollapsibleGroupView: View {
                 TimeGroupHeader(title: group.group.rawValue, notes: group.notes, viewModel: viewModel)
                 .padding(.leading, -6)
             }
+            .id("header-\(group.group.rawValue)")
             .contentShape(Rectangle())
             .onTapGesture {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
                     isExpanded.toggle()
+
+                    // 当展开时，通知父级滚动到这个组视图
+                    if isExpanded {
+                        NotificationCenter.default.post(
+                            name: Notification.Name("scrollToGroup"),
+                            object: nil,
+                            userInfo: ["groupID": "content-\(group.group.rawValue)"]
+                        )
+                    }
                 }
             }
             // Only show the note rows when expanded
             if isExpanded {
-                ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
-                    let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
-                    NoteRow(
-                        note: note,
-                        isHighLight: viewModel.currentNoteIndex == globalIndex,
-                        onTap: {
-                            onSelectNote(note.content, note.fileURL)
-                            dismiss()
-                        },
-                        onDelete: {
-                            withAnimation {
-                                viewModel.archiveNote(note)
-                            }
-                        },
-                        onHover: { isHovered in
-                            viewModel.setHoveredNote(isHovered ? globalIndex : nil)
-                        },
-                        searchText: viewModel.searchText
-                    )
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                VStack {
+                    ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
+                        let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
+                        NoteRow(
+                            note: note,
+                            isHighLight: viewModel.currentNoteIndex == globalIndex,
+                            onTap: {
+                                onSelectNote(note.content, note.fileURL)
+                                dismiss()
+                            },
+                            onDelete: {
+                                withAnimation {
+                                    viewModel.archiveNote(note)
+                                }
+                            },
+                            onHover: { isHovered in
+                                viewModel.setHoveredNote(isHovered ? globalIndex : nil)
+                            },
+                            searchText: viewModel.searchText
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                 }
+                .id("content-\(group.group.rawValue)")
             }
         }
         .onChange(of: viewModel.searchText) { newValue in
