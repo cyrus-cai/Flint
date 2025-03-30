@@ -78,6 +78,7 @@ struct RecentNote: Identifiable {
     let lastModified: Date
     let fileURL: URL
     let sourceApp: String?  // New field for source application
+    var isStarred: Bool = false  // 新增的星标属性
 }
 
 enum TimeGroup: String {
@@ -115,11 +116,17 @@ class RecentNotesViewModel: ObservableObject {
     @Published var showUndoArchiveToast = false
     @Published var archivedNotesCount = 0
 
+    // 用于存储星标笔记的路径
+    private let starredNotesKey = "StarredNotes"
+
     init() {
         notes = FileManager.getRecentNotes()
         if !notes.isEmpty {
             currentNoteIndex = 0
         }
+
+        // 加载星标状态
+        loadStarredStatus()
     }
 
     var filteredNotes: [RecentNote] {
@@ -447,6 +454,38 @@ class RecentNotesViewModel: ObservableObject {
             archivedNotes = []
         }
     }
+
+    // 切换笔记的星标状态
+    func toggleStarred(_ note: RecentNote) {
+        guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
+
+        // 切换星标状态
+        notes[index].isStarred.toggle()
+
+        // 持久化星标状态
+        saveStarredStatus()
+
+        // 通知UI更新
+        objectWillChange.send()
+    }
+
+    // 保存星标状态到 UserDefaults
+    private func saveStarredStatus() {
+        let starredPaths = notes.filter { $0.isStarred }.map { $0.fileURL.path }
+        UserDefaults.standard.set(starredPaths, forKey: starredNotesKey)
+    }
+
+    // 从 UserDefaults 加载星标状态
+    private func loadStarredStatus() {
+        let starredPaths = UserDefaults.standard.stringArray(forKey: starredNotesKey) ?? []
+
+        // 更新笔记的星标状态
+        for (index, note) in notes.enumerated() {
+            if starredPaths.contains(note.fileURL.path) {
+                notes[index].isStarred = true
+            }
+        }
+    }
 }
 
 //MARK: - Main List View
@@ -670,6 +709,7 @@ struct NoteRow: View {
     let onDelete: () -> Void
     let onHover: (Bool) -> Void
     let searchText: String
+    var onToggleStar: () -> Void  // 新增的星标切换回调
     @State private var isCopied = false
     @State private var isHoveringCopy = false
     @State private var isHoveringShare = false
@@ -954,6 +994,16 @@ struct NoteRow: View {
                 }
                 .help("Archive this note")
             }
+
+            // 添加星标按钮
+            Button(action: onToggleStar) {
+                Image(systemName: note.isStarred ? "star.fill" : "star")
+                    .font(.system(size: 12))
+                    .foregroundColor(note.isStarred ? .yellow : .secondary)
+                    .opacity(note.isStarred || isHoveringCopy || isHoveringShare ? 1.0 : 0.5)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .help(note.isStarred ? "Remove from starred" : "Add to starred")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
@@ -1683,7 +1733,11 @@ struct CollapsibleGroupView: View {
                             onHover: { isHovered in
                                 viewModel.setHoveredNote(isHovered ? globalIndex : nil)
                             },
-                            searchText: viewModel.searchText
+                            searchText: viewModel.searchText, onToggleStar: {
+                                withAnimation {
+                                    viewModel.toggleStarred(note)
+                                }
+                            }
                         )
                         .transition(.opacity.combined(with: .move(edge: .top)))
                         // 最后一个元素添加ID用于滚动
