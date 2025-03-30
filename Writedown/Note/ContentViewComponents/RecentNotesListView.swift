@@ -909,12 +909,54 @@ struct NoteRow: View {
             }
             .buttonStyle(PlainButtonStyle())
             .contextMenu {
-                Button(action: copyContent) {
-                    Label("Copy", systemImage: "doc.on.doc")
+                Group {
+                    Button(action: copyContent) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "doc.on.doc")
+                                .imageScale(.medium)
+                                .foregroundColor(.blue)
+                            Text("Copy")
+                                .font(.system(size: 13))
+                        }
+                        .padding(.vertical, 3)
+                    }
+
+                    Button(action: shareContent) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "square.and.arrow.up")
+                                .imageScale(.medium)
+                                .foregroundColor(.green)
+                            Text("Share")
+                                .font(.system(size: 13))
+                        }
+                        .padding(.vertical, 4)
+                    }
                 }
 
-                Button(action: shareContent) {
-                    Label("Share", systemImage: "square.and.arrow.up")
+                Divider()
+
+                Button(action: onToggleStar) {
+                    HStack(spacing: 8) {
+                        Image(systemName: note.isStarred ? "star.fill" : "star")
+                            .imageScale(.medium)
+                            .foregroundColor(.yellow)
+                        Text(note.isStarred ? "Remove Star" : "Add Star")
+                            .font(.system(size: 13))
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                Divider()
+
+                Button(action: onDelete) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "archivebox")
+                            .imageScale(.medium)
+                            .foregroundColor(.red)
+                        Text("Archive Note")
+                            .font(.system(size: 13))
+                    }
+                    .padding(.vertical, 4)
                 }
             }
 
