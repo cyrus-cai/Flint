@@ -722,6 +722,7 @@ struct NoteRow: View {
     @State private var showPreview = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var isInfoHovered = false
+    @State private var isStarHovered = false  // 添加星标悬停状态
     @State private var isSummarizing = false
     @State private var summary: String?
     @State private var showArchivePreview = false
@@ -917,6 +918,22 @@ struct NoteRow: View {
                 }
             }
 
+            // Always show star if the note is starred, regardless of hover state
+            if note.isStarred && !isHighLight {
+                Button(action: onToggleStar) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(.yellow)
+                        Spacer()
+                    }
+                    .frame(width: 28, height: 28)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .help("Remove from starred")
+            }
+
             if isHighLight {
                 // Info button
                 Button(action: {}) {
@@ -999,17 +1016,33 @@ struct NoteRow: View {
                     }
                 }
                 .help("Archive this note")
-            }
 
-            // 添加星标按钮
-            Button(action: onToggleStar) {
-                Image(systemName: note.isStarred ? "star.fill" : "star")
-                    .font(.system(size: 12))
-                    .foregroundColor(note.isStarred ? .yellow : .secondary)
-                    .opacity(note.isStarred || isHoveringCopy || isHoveringShare ? 1.0 : 0.5)
+                // Star button - only shown on hover if not already starred
+                Button(action: onToggleStar) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: note.isStarred ? "star.fill" : "star")
+                            .font(.system(size: 13))
+                            .foregroundColor(note.isStarred ? .yellow : .primary)
+                        Spacer()
+                    }
+                    .frame(width: 28, height: 28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                isStarHovered
+                                    ? (colorScheme == .dark
+                                        ? Color.white.opacity(0.1)
+                                        : Color.black.opacity(0.05))
+                                    : Color.clear)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    isStarHovered = hovering
+                }
+                .help(note.isStarred ? "Remove from starred" : "Add to starred")
             }
-            .buttonStyle(PlainButtonStyle())
-            .help(note.isStarred ? "Remove from starred" : "Add to starred")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
