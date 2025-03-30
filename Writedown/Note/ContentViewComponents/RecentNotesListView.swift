@@ -177,25 +177,26 @@ class RecentNotesViewModel: ObservableObject {
             try fileManager.archiveNote(at: fileToArchive)
 
             withAnimation(.easeOut(duration: 0.0)) {
-                // Remove from memory
+                // Remove from memory, update selection, and refresh notes list
                 notes.removeAll { $0.fileURL == note.fileURL }
-
-                // Update selection state
                 updateSelectionAfterDeletion()
-
-                // Refresh notes list
                 notes = FileManager.getRecentNotes()
             }
 
-            // Show archive toast
+            // Set undo support for the single note archive
+            archivedNotes = [note]
+            archivedNotesCount = 1
+
             withAnimation(.easeIn(duration: 0.2)) {
-                showArchiveToast = true
+                showUndoArchiveToast = true
             }
 
-            // Hide toast after delay
+            // Automatically hide the undo toast after delay if not undone
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 withAnimation(.easeOut(duration: 0.2)) {
-                    self.showArchiveToast = false
+                    self.showUndoArchiveToast = false
+                    self.archivedNotes = []
+                    self.archivedNotesCount = 0
                 }
             }
 
@@ -570,7 +571,12 @@ struct RecentNotesListView: View {
                         ScrollView {
                             LazyVStack(spacing: 6) {
                                 ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) { group in
-                                    CollapsibleGroupView(group: group, viewModel: viewModel, onSelectNote: onSelectNote)
+                                    CollapsibleGroupView(
+                                        group: group,
+                                        viewModel: viewModel,
+                                        onSelectNote: onSelectNote,
+                                        scrollProxy: proxy
+                                    )
                                     if group.group.rawValue != viewModel.groupedFilteredNotes.last?.group.rawValue {
                                         Divider()
                                             .padding(.horizontal, 12)
@@ -581,10 +587,9 @@ struct RecentNotesListView: View {
                             .padding(.vertical, 4)
                         }
                         .frame(height: 360)
-
                         .onChange(of: viewModel.currentNoteIndex) {
                             if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
-                                withAnimation {
+                                withAnimation(.easeInOut(duration: 0.2)) {
                                     if let note = viewModel.filteredNotes[safe: index] {
                                         proxy.scrollTo(note.id)
                                     }
@@ -630,8 +635,9 @@ struct RecentNotesListView: View {
                     Spacer()
                     StandardToastView(
                         icon: "archivebox.fill",
-                        message:
-                            "Copied summary & archived \(viewModel.archivedNotesCount) \(viewModel.archivedNotesCount == 1 ? "note" : "notes")",
+                        message: viewModel.archivedNotesCount == 1
+                            ? "Note Archived"
+                            : "Copied summary & archived \(viewModel.archivedNotesCount) \(viewModel.archivedNotesCount == 1 ? "note" : "notes")",
                         actionButton: ("Undo", { viewModel.undoGroupArchive() })
                     )
                 }
@@ -672,6 +678,8 @@ struct NoteRow: View {
     @State private var isInfoHovered = false
     @State private var isSummarizing = false
     @State private var summary: String?
+    @State private var showArchivePreview = false
+    @State private var archiveHoverWorkItem: DispatchWorkItem?
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isDeleteHovered = false
@@ -853,6 +861,15 @@ struct NoteRow: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
+            .contextMenu {
+                Button(action: copyContent) {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+
+                Button(action: shareContent) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
 
             if isHighLight {
                 // Info button
@@ -892,64 +909,16 @@ struct NoteRow: View {
                         }
                     }
                 }
-                .popover(isPresented: $showPreview, arrowEdge: .leading) {
+                   .popover(isPresented: $showPreview, arrowEdge: .leading) {
                     NotePreviewView(content: note.content)
                 }
 
-                // Copy button
-                Button(action: copyContent) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 13))
-                            .foregroundColor(.primary)
-                            .contentTransition(.symbolEffect(.replace))
-                        Spacer()
-                    }
-                    .frame(width: isCopied ? 32 : 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(
-                                isHoveringCopy
-                                    ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                                    : Color.clear)
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-                .onHover { hovering in
-                    isHoveringCopy = hovering
-                }
-
-                // Share button
-                Button(action: shareContent) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 13))
-                            .foregroundColor(.primary)
-                        Spacer()
-                    }
-                    .frame(width: 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(
-                                isHoveringShare
-                                    ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
-                                    : Color.clear)
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-                .onHover { hovering in
-                    isHoveringShare = hovering
-                }
 
                 // Archive button
                 Button(action: onDelete) {
                     HStack {
                         Spacer()
-                        Image(systemName: "archivebox")
+                        Image(systemName: "checkmark")
                             .font(.system(size: 13))
                             .foregroundColor(.primary)
                         Spacer()
@@ -960,15 +929,30 @@ struct NoteRow: View {
                             .fill(
                                 isDeleteHovered
                                     ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                                        ? Color.white.opacity(0.1)
+                                        : Color.black.opacity(0.05))
                                     : Color.clear)
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
                 .onHover { hovering in
                     isDeleteHovered = hovering
+                    if hovering {
+                        let workItem = DispatchWorkItem {
+                            withAnimation {
+                                showArchivePreview = true
+                            }
+                        }
+                        archiveHoverWorkItem = workItem
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
+                    } else {
+                        archiveHoverWorkItem?.cancel()
+                        withAnimation {
+                            showArchivePreview = false
+                        }
+                    }
                 }
-
+                .help("Archive this note")
             }
         }
         .padding(.horizontal, 12)
@@ -1627,12 +1611,17 @@ struct CollapsibleGroupView: View {
     @State private var isExpanded: Bool
     let onSelectNote: (String, URL) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Namespace private var groupNamespace
+
+    // 添加对ScrollViewProxy的引用
+    var scrollProxy: ScrollViewProxy?
 
     // Default collapse for the "Earlier" group (i.e. .older case)
-    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void) {
+    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void, scrollProxy: ScrollViewProxy? = nil) {
         self.group = group
         self.viewModel = viewModel
         self.onSelectNote = onSelectNote
+        self.scrollProxy = scrollProxy
         // When search is active, always expand all groups
         if !viewModel.searchText.isEmpty {
             _isExpanded = State(initialValue: true)
@@ -1654,34 +1643,52 @@ struct CollapsibleGroupView: View {
                 TimeGroupHeader(title: group.group.rawValue, notes: group.notes, viewModel: viewModel)
                 .padding(.leading, -6)
             }
+            .id("header-\(group.group.rawValue)")
             .contentShape(Rectangle())
             .onTapGesture {
+                let wasExpanded = isExpanded
+
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
                     isExpanded.toggle()
                 }
+
+                // 如果是从收起状态变为展开状态，滚动到可见区域
+                if !wasExpanded && group.group == .older {
+                    // 使用延迟以确保布局已更新
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            scrollProxy?.scrollTo("content-\(group.group.rawValue)", anchor: .top)
+                        }
+                    }
+                }
             }
+
             // Only show the note rows when expanded
             if isExpanded {
-                ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
-                    let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
-                    NoteRow(
-                        note: note,
-                        isHighLight: viewModel.currentNoteIndex == globalIndex,
-                        onTap: {
-                            onSelectNote(note.content, note.fileURL)
-                            dismiss()
-                        },
-                        onDelete: {
-                            withAnimation {
-                                viewModel.archiveNote(note)
-                            }
-                        },
-                        onHover: { isHovered in
-                            viewModel.setHoveredNote(isHovered ? globalIndex : nil)
-                        },
-                        searchText: viewModel.searchText
-                    )
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                VStack(spacing: 2) {
+                    ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
+                        let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
+                        NoteRow(
+                            note: note,
+                            isHighLight: viewModel.currentNoteIndex == globalIndex,
+                            onTap: {
+                                onSelectNote(note.content, note.fileURL)
+                                dismiss()
+                            },
+                            onDelete: {
+                                withAnimation {
+                                    viewModel.archiveNote(note)
+                                }
+                            },
+                            onHover: { isHovered in
+                                viewModel.setHoveredNote(isHovered ? globalIndex : nil)
+                            },
+                            searchText: viewModel.searchText
+                        )
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        // 最后一个元素添加ID用于滚动
+                        .id(index == group.notes.count - 1 ? "content-\(group.group.rawValue)" : nil)
+                    }
                 }
             }
         }
