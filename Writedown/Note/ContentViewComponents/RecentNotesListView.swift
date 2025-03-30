@@ -571,7 +571,12 @@ struct RecentNotesListView: View {
                         ScrollView {
                             LazyVStack(spacing: 6) {
                                 ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) { group in
-                                    CollapsibleGroupView(group: group, viewModel: viewModel, onSelectNote: onSelectNote)
+                                    CollapsibleGroupView(
+                                        group: group,
+                                        viewModel: viewModel,
+                                        onSelectNote: onSelectNote,
+                                        scrollProxy: proxy
+                                    )
                                     if group.group.rawValue != viewModel.groupedFilteredNotes.last?.group.rawValue {
                                         Divider()
                                             .padding(.horizontal, 12)
@@ -584,35 +589,12 @@ struct RecentNotesListView: View {
                         .frame(height: 360)
                         .onChange(of: viewModel.currentNoteIndex) {
                             if let index = viewModel.currentNoteIndex, !viewModel.hoverEnabled {
-                                withAnimation {
+                                withAnimation(.easeInOut(duration: 0.2)) {
                                     if let note = viewModel.filteredNotes[safe: index] {
                                         proxy.scrollTo(note.id)
                                     }
                                 }
                             }
-                        }
-                        .onAppear {
-                            // 订阅通知以处理组展开时的滚动
-                            NotificationCenter.default.addObserver(
-                                forName: Notification.Name("scrollToGroup"),
-                                object: nil,
-                                queue: .main) { notification in
-                                    if let groupID = notification.userInfo?["groupID"] as? String {
-                                        // 使用动画延迟确保滚动发生在展开后
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            withAnimation {
-                                                proxy.scrollTo(groupID, anchor: .top)
-                                            }
-                                        }
-                                    }
-                                }
-                        }
-                        .onDisappear {
-                            NotificationCenter.default.removeObserver(
-                                self,
-                                name: Notification.Name("scrollToGroup"),
-                                object: nil
-                            )
                         }
                     }
                     .onHover { _ in
@@ -1631,11 +1613,15 @@ struct CollapsibleGroupView: View {
     @Environment(\.dismiss) private var dismiss
     @Namespace private var groupNamespace
 
+    // 添加对ScrollViewProxy的引用
+    var scrollProxy: ScrollViewProxy?
+
     // Default collapse for the "Earlier" group (i.e. .older case)
-    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void) {
+    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void, scrollProxy: ScrollViewProxy? = nil) {
         self.group = group
         self.viewModel = viewModel
         self.onSelectNote = onSelectNote
+        self.scrollProxy = scrollProxy
         // When search is active, always expand all groups
         if !viewModel.searchText.isEmpty {
             _isExpanded = State(initialValue: true)
@@ -1660,22 +1646,26 @@ struct CollapsibleGroupView: View {
             .id("header-\(group.group.rawValue)")
             .contentShape(Rectangle())
             .onTapGesture {
+                let wasExpanded = isExpanded
+
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
                     isExpanded.toggle()
+                }
 
-                    // 当展开时，通知父级滚动到这个组视图
-                    if isExpanded {
-                        NotificationCenter.default.post(
-                            name: Notification.Name("scrollToGroup"),
-                            object: nil,
-                            userInfo: ["groupID": "content-\(group.group.rawValue)"]
-                        )
+                // 如果是从收起状态变为展开状态，滚动到可见区域
+                if !wasExpanded && group.group == .older {
+                    // 使用延迟以确保布局已更新
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            scrollProxy?.scrollTo("content-\(group.group.rawValue)", anchor: .top)
+                        }
                     }
                 }
             }
+
             // Only show the note rows when expanded
             if isExpanded {
-                VStack {
+                VStack(spacing: 2) {
                     ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
                         let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
                         NoteRow(
@@ -1695,10 +1685,11 @@ struct CollapsibleGroupView: View {
                             },
                             searchText: viewModel.searchText
                         )
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        // 最后一个元素添加ID用于滚动
+                        .id(index == group.notes.count - 1 ? "content-\(group.group.rawValue)" : nil)
                     }
                 }
-                .id("content-\(group.group.rawValue)")
             }
         }
         .onChange(of: viewModel.searchText) { newValue in
