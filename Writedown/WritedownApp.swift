@@ -741,26 +741,48 @@ class ContentSavedWindowController: NSWindowController {
         let contentView = NSView(frame: window.contentView?.bounds ?? windowFrame)
         contentView.wantsLayer = true
 
-        // 添加毛玻璃效果视图
-        let visualEffectView = NSVisualEffectView(frame: contentView.bounds)
-        // 根据系统外观自动选择合适的材质
-        visualEffectView.material = .windowBackground
-        visualEffectView.blendingMode = .behindWindow
-        visualEffectView.state = .active
-        visualEffectView.wantsLayer = true
-        visualEffectView.layer?.cornerRadius = 16
-        contentView.addSubview(visualEffectView)
+        // macOS 26+ Liquid Glass 适配
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 使用更现代的视觉效果
+            // 当 Xcode 26 SDK 可用时，可以替换为 NSGlassEffectView
+            let visualEffectView = NSVisualEffectView(frame: contentView.bounds)
+            visualEffectView.material = .hudWindow
+            visualEffectView.blendingMode = .behindWindow
+            visualEffectView.state = .active
+            visualEffectView.wantsLayer = true
+            visualEffectView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+            contentView.addSubview(visualEffectView)
+            
+            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            ])
+            
+            contentView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+        } else {
+            // macOS 15-25: 添加传统毛玻璃效果视图
+            let visualEffectView = NSVisualEffectView(frame: contentView.bounds)
+            visualEffectView.material = .windowBackground
+            visualEffectView.blendingMode = .behindWindow
+            visualEffectView.state = .active
+            visualEffectView.wantsLayer = true
+            visualEffectView.layer?.cornerRadius = 16
+            contentView.addSubview(visualEffectView)
 
-        // 确保毛玻璃效果视图随contentView大小变化
-        visualEffectView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-        ])
-
-        contentView.layer?.cornerRadius = 16
+            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            ])
+            
+            contentView.layer?.cornerRadius = 16
+        }
+        
         contentView.layer?.masksToBounds = true
         window.contentView = contentView
 

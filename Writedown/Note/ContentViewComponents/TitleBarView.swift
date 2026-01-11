@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftUICore
+import SwiftUI
 
 // MARK: - TitleBar Related Views
 struct TitleBarView: View {
@@ -386,7 +386,8 @@ struct LinkListView: View {
                     .padding(.vertical, 1)
                     .background(
                         Capsule()
-                            .fill(.thinMaterial)  // 使用系统材质实现毛玻璃效果
+                            // macOS 26+ Liquid Glass 适配: 使用自适应材质
+                            .fill(DesignSystem.supportsLiquidGlass ? .ultraThinMaterial : .thinMaterial)
                             .overlay(
                                 Capsule()
                                     .fill(Color.primary.opacity(0.02))  // 叠加浅紫色
@@ -479,7 +480,8 @@ struct BadgeView: View {
             .padding(.vertical, 0.5)
             .background(
                 Capsule()
-                    .fill(.thinMaterial)  // 使用系统材质实现毛玻璃效果
+                    // macOS 26+ Liquid Glass 适配: 使用自适应材质
+                    .fill(DesignSystem.supportsLiquidGlass ? .ultraThinMaterial : .thinMaterial)
                     .overlay(
                         Capsule()
                             .fill(Color.purple.opacity(0.02))  // 叠加浅紫色

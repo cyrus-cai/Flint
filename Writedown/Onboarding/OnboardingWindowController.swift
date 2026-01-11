@@ -28,20 +28,27 @@ class OnboardingWindowController: NSWindowController {
         )
         window.contentView = contentView
 
-        // 添加毛玻璃效果
-        if let contentView = window.contentView {
-            let visualEffectView = NSVisualEffectView()
-            visualEffectView.material = .windowBackground
-            visualEffectView.state = .active
-            contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
+        // macOS 26+ Liquid Glass 适配
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 系统自动处理 Liquid Glass 效果
+            // 不需要手动添加 NSVisualEffectView
+            window.isOpaque = false
+        } else {
+            // macOS 15-25: 添加传统毛玻璃效果
+            if let contentView = window.contentView {
+                let visualEffectView = NSVisualEffectView()
+                visualEffectView.material = .windowBackground
+                visualEffectView.state = .active
+                contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
 
-            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
-                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            ])
+                visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                    visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                    visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                    visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                ])
+            }
         }
 
         // 隐藏标准窗口按钮（红绿灯）

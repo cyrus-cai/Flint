@@ -252,8 +252,19 @@ struct OnboardingView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
-            VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
-                .ignoresSafeArea()
+            // macOS 26+ Liquid Glass 适配: 使用自适应背景
+            Group {
+                if #available(macOS 26.0, *) {
+                    // macOS 26+: 使用更轻薄的材质让 Liquid Glass 效果更明显
+                    Color.clear
+                        .background(.ultraThinMaterial)
+                        .ignoresSafeArea()
+                } else {
+                    // macOS 15-25: 使用传统 HUD 窗口材质
+                    VisualEffectBlur(material: .hudWindow, blendingMode: .behindWindow)
+                        .ignoresSafeArea()
+                }
+            }
         )
     }
 }
@@ -505,21 +516,6 @@ private struct BorderedGradientButtonStyle: ButtonStyle {
     }
 }
 
-// 添加 VisualEffectView 用于实现毛玻璃效果
-struct VisualEffectView: NSViewRepresentable {
-    let material: NSVisualEffectView.Material
-    let blendingMode: NSVisualEffectView.BlendingMode
-
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let visualEffectView = NSVisualEffectView()
-        visualEffectView.material = material
-        visualEffectView.blendingMode = blendingMode
-        visualEffectView.state = .active
-        return visualEffectView
-    }
-
-    func updateNSView(_ visualEffectView: NSVisualEffectView, context: Context) {
-        visualEffectView.material = material
-        visualEffectView.blendingMode = blendingMode
-    }
-}
+// MARK: - VisualEffectView 已移至 Utils/VisualEffects.swift
+// 统一使用 Utils/VisualEffects.swift 中的 VisualEffectView (VisualEffectBlur 的别名)
+// 支持 macOS 26+ Liquid Glass 自适应

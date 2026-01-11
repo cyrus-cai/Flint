@@ -90,7 +90,15 @@ class SettingsWindowController: NSWindowController {
         )
 
         window.isOpaque = false
-        // window.backgroundColor = NSColor.clear
+        
+        // macOS 26+ Liquid Glass 适配
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 系统自动处理玻璃效果
+            // 不设置 backgroundColor，让 Liquid Glass 自然显示
+        } else {
+            // macOS 15-25: 可选择设置透明背景
+            // window.backgroundColor = NSColor.clear
+        }
 
         super.init(window: window)
 
@@ -170,9 +178,17 @@ class MainWindowController: NSWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
 
-        // 窗口必须设置为透明
-        window.isOpaque = false
-        window.backgroundColor = .clear
+        // macOS 26+ Liquid Glass 适配
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 让系统处理 Liquid Glass 效果
+            // 不需要手动设置透明背景，系统会自动应用玻璃效果
+            window.isOpaque = false
+            // 注意: 不设置 backgroundColor = .clear，让玻璃材质自然显示
+        } else {
+            // macOS 15-25: 传统透明窗口设置
+            window.isOpaque = false
+            window.backgroundColor = .clear
+        }
 
         window.hasShadow = true
         window.invalidateShadow()
@@ -315,8 +331,13 @@ class MainWindowController: NSWindowController {
 
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.wantsLayer = true
-        // hostingView.layer?.backgroundColor = NSColor.clear.cgColor
-        hostingView.layer?.cornerRadius = 12  // 这里设置为20，可根据需要调整
+        
+        // macOS 26+ 适配: 使用更大的圆角配合 Liquid Glass
+        if #available(macOS 26.0, *) {
+            hostingView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+        } else {
+            hostingView.layer?.cornerRadius = 12
+        }
         hostingView.layer?.masksToBounds = true
 
         window?.contentView = hostingView

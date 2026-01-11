@@ -129,27 +129,42 @@ class LimitExceededWindowController: NSWindowController {
 
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
-        window.backgroundColor = NSColor.windowBackgroundColor
-
-        let visualEffectView = NSVisualEffectView()
-        visualEffectView.material = .sidebar
-        visualEffectView.state = .active
-        visualEffectView.blendingMode = .behindWindow
+        
+        // macOS 26+ Liquid Glass 适配
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 系统自动处理 Liquid Glass 效果
+            window.isOpaque = false
+            // 不设置 backgroundColor，让玻璃效果自然显示
+        } else {
+            // macOS 15-25: 使用传统窗口背景
+            window.backgroundColor = NSColor.windowBackgroundColor
+        }
 
         let hostingController = NSHostingController(rootView: LimitExceededView())
         window.contentViewController = hostingController
 
-        if let contentView = window.contentView {
-            visualEffectView.frame = contentView.bounds
-            contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
+        // macOS 26+ Liquid Glass 适配: 仅在旧系统添加 NSVisualEffectView
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 不需要手动添加毛玻璃效果
+        } else {
+            // macOS 15-25: 添加传统毛玻璃效果
+            let visualEffectView = NSVisualEffectView()
+            visualEffectView.material = .sidebar
+            visualEffectView.state = .active
+            visualEffectView.blendingMode = .behindWindow
 
-            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
-                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            ])
+            if let contentView = window.contentView {
+                visualEffectView.frame = contentView.bounds
+                contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
+
+                visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                    visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                    visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                    visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                ])
+            }
         }
 
         super.init(window: window)

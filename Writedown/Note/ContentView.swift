@@ -405,9 +405,18 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // 在最底部加上 VisualEffectBlur，材质可以根据需要调整，比如 .sidebar 或 .underWindowBackground
-            VisualEffectBlur(material: .sidebar)
-                .edgesIgnoringSafeArea(.all)
+            // macOS 26+ Liquid Glass 适配: 使用自适应背景
+            // 在最底部加上背景效果
+            if #available(macOS 26.0, *) {
+                // macOS 26+: 系统会自动处理 Liquid Glass 效果
+                // 使用更轻量的背景让玻璃效果更突出
+                Color.clear
+                    .edgesIgnoringSafeArea(.all)
+            } else {
+                // macOS 15-25: 使用传统毛玻璃效果
+                VisualEffectBlur(material: .sidebar)
+                    .edgesIgnoringSafeArea(.all)
+            }
 
             // 你笔记窗口的主要内容
             ZStack(alignment: .top) {
@@ -646,8 +655,22 @@ struct ToastView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(.gray.opacity(0.15))
-                .background(.thickMaterial)
+                // macOS 26+ Liquid Glass 适配: 使用自适应材质背景
+                .background {
+                    if #available(macOS 26.0, *) {
+                        // macOS 26+: 使用更轻薄的材质，让 Liquid Glass 效果更明显
+                        RoundedRectangle(cornerRadius: 40)
+                            .fill(.ultraThinMaterial)
+                    } else {
+                        // macOS 15-25: 使用传统厚材质
+                        RoundedRectangle(cornerRadius: 40)
+                            .fill(.thickMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 40)
+                                    .fill(Color.gray.opacity(0.15))
+                            )
+                    }
+                }
                 .foregroundColor(.primary)
                 .cornerRadius(40)
                 .transition(.opacity)

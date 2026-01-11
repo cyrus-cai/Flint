@@ -280,9 +280,16 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            // 使用你想要的 material，这里以 .sidebar 为例；你也可以试试 .windowBackground 或其他系统材质
-            VisualEffectBlur(material: .sidebar)
-                .edgesIgnoringSafeArea(.all)
+            // macOS 26+ Liquid Glass 适配: 使用自适应背景
+            if #available(macOS 26.0, *) {
+                // macOS 26+: 系统会自动处理 Liquid Glass 效果
+                Color.clear
+                    .edgesIgnoringSafeArea(.all)
+            } else {
+                // macOS 15-25: 使用传统毛玻璃效果
+                VisualEffectBlur(material: .sidebar)
+                    .edgesIgnoringSafeArea(.all)
+            }
 
             NavigationSplitView {
                 // 侧边栏内容
@@ -1568,25 +1575,9 @@ struct FontOptionView: View {
     }
 }
 
-struct VisualEffectBlur: NSViewRepresentable {
-    var material: NSVisualEffectView.Material
-    var blendingMode: NSVisualEffectView.BlendingMode = .withinWindow
-    var state: NSVisualEffectView.State = .active
-
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = blendingMode
-        view.state = state
-        return view
-    }
-
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.material = material
-        nsView.blendingMode = blendingMode
-        nsView.state = state
-    }
-}
+// MARK: - VisualEffectBlur 已移至 Utils/VisualEffects.swift
+// 统一使用 Utils/VisualEffects.swift 中的 VisualEffectBlur 定义
+// 支持 macOS 26+ Liquid Glass 自适应
 
 #Preview {
     SettingsView()

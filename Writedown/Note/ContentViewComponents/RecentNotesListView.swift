@@ -1680,7 +1680,8 @@ struct StandardToastView: View {
                             .padding(.horizontal, 8)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .fill(.thinMaterial)
+                                    // macOS 26+ Liquid Glass 适配
+                                    .fill(DesignSystem.supportsLiquidGlass ? .ultraThinMaterial : .thinMaterial)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 6)
                                             .stroke(Color.primary.opacity(0.1), lineWidth: 1)
