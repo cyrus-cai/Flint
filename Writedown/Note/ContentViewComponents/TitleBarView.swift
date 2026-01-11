@@ -384,19 +384,32 @@ struct LinkListView: View {
                     //                    .foregroundColor(Color.purple)  修改文字颜色为紫色
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
-                    .background(
-                        Capsule()
-                            // macOS 26+ Liquid Glass 适配: 使用自适应材质
-                            .fill(DesignSystem.supportsLiquidGlass ? .ultraThinMaterial : .thinMaterial)
-                            .overlay(
-                                Capsule()
-                                    .fill(Color.primary.opacity(0.02))  // 叠加浅紫色
-                            )
-                            .overlay(  // 添加描边
-                                Capsule()
-                                    .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
-                            )
-                    )
+                    .background {
+                        // macOS 26+ Liquid Glass 适配: 使用自适应材质
+                        if #available(macOS 26.0, *) {
+                            Capsule()
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    Capsule()
+                                        .fill(Color.primary.opacity(0.02))  // 叠加浅紫色
+                                )
+                                .overlay(  // 添加描边
+                                    Capsule()
+                                        .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
+                                )
+                        } else {
+                            Capsule()
+                                .fill(.thinMaterial)
+                                .overlay(
+                                    Capsule()
+                                        .fill(Color.primary.opacity(0.02))  // 叠加浅紫色
+                                )
+                                .overlay(  // 添加描边
+                                    Capsule()
+                                        .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                    }
                     .frame(minWidth: 12)
             }
 
@@ -478,19 +491,32 @@ struct BadgeView: View {
             .foregroundColor(Color.purple)  // 修改文字颜色为紫色
             .padding(.horizontal, 3)
             .padding(.vertical, 0.5)
-            .background(
-                Capsule()
-                    // macOS 26+ Liquid Glass 适配: 使用自适应材质
-                    .fill(DesignSystem.supportsLiquidGlass ? .ultraThinMaterial : .thinMaterial)
-                    .overlay(
-                        Capsule()
-                            .fill(Color.purple.opacity(0.02))  // 叠加浅紫色
-                    )
-                    .overlay(  // 添加描边
-                        Capsule()
-                            .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
-                    )
-            )
+            .background {
+                // macOS 26+ Liquid Glass 适配: 使用自适应材质
+                if #available(macOS 26.0, *) {
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            Capsule()
+                                .fill(Color.purple.opacity(0.02))  // 叠加浅紫色
+                        )
+                        .overlay(  // 添加描边
+                            Capsule()
+                                .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
+                        )
+                } else {
+                    Capsule()
+                        .fill(.thinMaterial)
+                        .overlay(
+                            Capsule()
+                                .fill(Color.purple.opacity(0.02))  // 叠加浅紫色
+                        )
+                        .overlay(  // 添加描边
+                            Capsule()
+                                .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
+                        )
+                }
+            }
             .frame(minWidth: 12)
     }
 }

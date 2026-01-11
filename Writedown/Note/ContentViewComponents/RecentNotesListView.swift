@@ -1713,24 +1713,44 @@ struct StandardToastView: View {
             }
         }
         .padding(ToastStyle.padding)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                    .fill(colorScheme == .dark
-                          ? ToastStyle.backgroundColor
-                          : ToastStyle.lightBackgroundColor)
-                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [.green.opacity(0.1), .clear],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+        // macOS 26+ Liquid Glass 适配: 使用自适应背景
+        .background {
+            if #available(macOS 26.0, *) {
+                // macOS 26+: 使用 Liquid Glass 材质效果
+                ZStack {
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [.green.opacity(0.1), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
-                RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                    .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
+                }
+            } else {
+                // macOS 15-25: 使用传统背景
+                ZStack {
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .fill(colorScheme == .dark
+                              ? ToastStyle.backgroundColor
+                              : ToastStyle.lightBackgroundColor)
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [.green.opacity(0.1), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
+                }
             }
-        )
+        }
         .shadow(
             color: ToastStyle.shadowColor,
             radius: 12,
