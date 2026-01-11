@@ -329,20 +329,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Show context menu
             let menu = NSMenu()
 
+            // macOS 26+ 新设计: 菜单项添加 SF Symbols 图标
             let openAppItem = NSMenuItem(
                 title: "Open Writedown", action: #selector(toggleWindow), keyEquivalent: "")
             openAppItem.target = self
+            openAppItem.image = NSImage(systemSymbolName: "doc.text", accessibilityDescription: "Open")
             menu.addItem(openAppItem)
 
             let settingsItem = NSMenuItem(
-                title: "Settings", action: #selector(openSettings), keyEquivalent: "")
+                title: "Settings", action: #selector(openSettings), keyEquivalent: ",")
             settingsItem.target = self
+            settingsItem.image = NSImage(systemSymbolName: "gear", accessibilityDescription: "Settings")
             menu.addItem(settingsItem)
 
             menu.addItem(NSMenuItem.separator())
 
             let quitItem = NSMenuItem(
                 title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+            quitItem.image = NSImage(systemSymbolName: "power", accessibilityDescription: "Quit")
             menu.addItem(quitItem)
 
             statusItem?.menu = menu

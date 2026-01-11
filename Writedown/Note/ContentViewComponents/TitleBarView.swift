@@ -745,6 +745,14 @@ struct NavigationToastView: View {
     private var isWarning: Bool {
         message == "No more notes"
     }
+    
+    // MARK: - macOS 26+ Liquid Glass 适配
+    private var adaptiveCornerRadius: CGFloat {
+        if #available(macOS 26.0, *) {
+            return 16 // Larger, softer corners for Liquid Glass
+        }
+        return 12 // Traditional macOS corner radius
+    }
 
     var body: some View {
         if isShowing {
@@ -759,8 +767,19 @@ struct NavigationToastView: View {
                     .font(.system(size: 12))
             }
             .padding(10)
-            .background(Color(NSColor.windowBackgroundColor))
-            .cornerRadius(12)
+            // macOS 26+ Liquid Glass 适配: 使用自适应材质背景
+            .background {
+                if #available(macOS 26.0, *) {
+                    // macOS 26+: 使用轻薄材质让 Liquid Glass 效果更明显
+                    RoundedRectangle(cornerRadius: adaptiveCornerRadius)
+                        .fill(.ultraThinMaterial)
+                } else {
+                    // macOS 15-25: 使用窗口背景色
+                    RoundedRectangle(cornerRadius: adaptiveCornerRadius)
+                        .fill(Color(NSColor.windowBackgroundColor))
+                }
+            }
+            .cornerRadius(adaptiveCornerRadius)
             .transition(.opacity)
             .frame(maxWidth: .infinity, alignment: .bottom)
         }

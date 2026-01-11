@@ -1630,7 +1630,13 @@ struct ToastStyle {
     static let backgroundColor = Color(white: 0.15).opacity(0.95)
     static let lightBackgroundColor = Color(white: 0.95).opacity(0.95)
     static let shadowColor = Color.black.opacity(0.2)
-    static let cornerRadius: CGFloat = 8
+    // macOS 26+ Liquid Glass 适配: 使用更大的圆角
+    static var cornerRadius: CGFloat {
+        if #available(macOS 26.0, *) {
+            return 12 // Larger, softer corners for Liquid Glass
+        }
+        return 8 // Traditional macOS corner radius
+    }
     static let padding = EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
 }
 
@@ -1678,15 +1684,24 @@ struct StandardToastView: View {
                             .foregroundColor(.primary.opacity(0.8))
                             .padding(.vertical, 4)
                             .padding(.horizontal, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    // macOS 26+ Liquid Glass 适配
-                                    .fill(DesignSystem.supportsLiquidGlass ? .ultraThinMaterial : .thinMaterial)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                    )
-                            )
+                            .background {
+                                // macOS 26+ Liquid Glass 适配
+                                if #available(macOS 26.0, *) {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                        )
+                                } else {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(.thinMaterial)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                        )
+                                }
+                            }
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in
