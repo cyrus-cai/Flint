@@ -125,7 +125,7 @@ class HotkeyCounter: ObservableObject {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
     //    let updater = AutoUpdater()
     // private var windowController: MainWindowController? // Removed to use WindowManager
     private var statusItem: NSStatusItem?
@@ -171,6 +171,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)
+        NSUserNotificationCenter.default.delegate = self
         globalKeyMonitor = GlobalKeyMonitor()
 
         // 检查是否需要显示引导页
@@ -406,8 +407,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             notification.title = "Payment Successful"
                             notification.informativeText = "Welcome to Writedown Pro!"
                             NSUserNotificationCenter.default.deliver(notification)
-                        }
-                    }
+    }
+
+    // MARK: - NSUserNotificationCenterDelegate
+    func userNotificationCenter(_ center: NSUserNotificationCenter, didActivate notification: NSUserNotification) {
+        if notification.activationType == .contentsClicked {
+            if let userInfo = notification.userInfo,
+               let filePath = userInfo["filePath"] as? String,
+               let content = userInfo["content"] as? String {
+                let fileURL = URL(fileURLWithPath: filePath)
+                
+                // If there is no active note window, create one using the window manager.
+                if WindowManager.shared.activeWindow == nil {
+                    WindowManager.shared.createNewWindow()
+                }
+
+                // Bring the main note window to the front.
+                if let noteWindowController = WindowManager.shared.activeWindow as? MainWindowController {
+                    noteWindowController.showWindow(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+
+                    // Post notification to update ContentView
+                    NotificationCenter.default.post(
+                        name: Notification.Name("LoadNoteNotification"),
+                        object: nil,
+                        userInfo: ["content": content, "fileURL": fileURL]
+                    )
+                }
+            }
+        }
+    }
+}
                 } catch {
                     print("❌ Payment verification failed:", error)
                 }
@@ -560,45 +590,15 @@ class GlobalKeyMonitor {
             // 增加使用次数统计
             HotkeyCounter.shared.increment()
 
-            // 定义反馈窗口的默认尺寸
-            let defaultWidth: CGFloat = 360
-            let defaultHeight: CGFloat = 64 // Use actual height of ContentSavedWindow
-
-            // 展示 "Contents saved" 提示窗口
-            if let noteWindowController = WindowManager.shared.activeWindow,
-                let noteWindow = noteWindowController.window
-            {
-                // 如果存在活动窗口，则使用该窗口的位置，并水平居中提示窗口
-                let noteFrame = noteWindow.frame
-                let feedbackFrame = NSRect(
-                    x: noteFrame.origin.x + (noteFrame.width - defaultWidth) / 2, // Horizontally centered
-                    y: noteFrame.origin.y + (noteFrame.height - defaultHeight) / 2, // Vertically centered
-                    width: defaultWidth,
-                    height: defaultHeight
-                )
-                let feedbackWindow = ContentSavedWindowController(
-                    position: feedbackFrame, clipboardContent: textWithMetadata,
-                    sourceApp: sourceApp, charCount: clipboardContent.count, fileURL: fileURL)
-                feedbackWindow.showWindow(nil)
-            } else {
-                // 没有活动窗口时，使用默认位置（屏幕右上角）
-                guard let screen = NSScreen.main else { return }
-                let screenFrame = screen.visibleFrame
-                let rightTopX = screenFrame.maxX - defaultWidth - 20
-                let rightTopY = screenFrame.maxY - defaultHeight - 20 // Correct Y calculation (subtract height)
-                let feedbackFrame = NSRect(
-                    x: rightTopX,
-                    y: rightTopY,
-                    width: defaultWidth,
-                    height: defaultHeight
-                )
-                let feedbackWindow = ContentSavedWindowController(
-                    position: feedbackFrame, clipboardContent: textWithMetadata,
-                    sourceApp: sourceApp, charCount: clipboardContent.count, fileURL: fileURL)
-                feedbackWindow.showWindow(nil)
-            }
-
-            // 不再调用 NSApp.activate(ignoringOtherApps:)，确保反馈窗口不会改变当前应用的焦点
+            // Create and deliver system notification
+            let notification = NSUserNotification()
+            notification.title = "Content Saved"
+            notification.subtitle = "From \(sourceApp)"
+            notification.informativeText = "\(clipboardContent.count) chars saved"
+            notification.soundName = NSUserNotificationDefaultSoundName
+            notification.userInfo = ["filePath": fileURL.path, "content": textWithMetadata]
+            
+            NSUserNotificationCenter.default.deliver(notification)
         } catch {
             print("Save failed: \(error.localizedDescription)")
         }
