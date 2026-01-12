@@ -578,7 +578,8 @@ class GlobalKeyMonitor {
                     height: defaultHeight
                 )
                 let feedbackWindow = ContentSavedWindowController(
-                    position: feedbackFrame, clipboardContent: textWithMetadata)
+                    position: feedbackFrame, clipboardContent: textWithMetadata,
+                    sourceApp: sourceApp, charCount: clipboardContent.count)
                 feedbackWindow.showWindow(nil)
             } else {
                 // 没有活动窗口时，使用默认位置（屏幕右上角）
@@ -593,7 +594,8 @@ class GlobalKeyMonitor {
                     height: defaultHeight
                 )
                 let feedbackWindow = ContentSavedWindowController(
-                    position: feedbackFrame, clipboardContent: textWithMetadata)
+                    position: feedbackFrame, clipboardContent: textWithMetadata,
+                    sourceApp: sourceApp, charCount: clipboardContent.count)
                 feedbackWindow.showWindow(nil)
             }
 
@@ -614,13 +616,17 @@ class ContentSavedWindowController: NSWindowController {
     private var windowController: MainWindowController?
     // Store the clipboard content for later use
     private let clipboardContent: String
+    private let sourceApp: String
+    private let charCount: Int
 
     @objc func toggleWindow() {
         windowController?.toggleWindow()
     }
 
-    init(position: NSRect, clipboardContent: String) {
+    init(position: NSRect, clipboardContent: String, sourceApp: String, charCount: Int) {
         self.clipboardContent = clipboardContent
+        self.sourceApp = sourceApp
+        self.charCount = charCount
 
         let windowFrame = NSRect(
             x: position.origin.x,
@@ -714,30 +720,11 @@ class ContentSavedWindowController: NSWindowController {
         textStackView.spacing = 2
         textStackView.alignment = .leading
 
-        let titleLabel = NSTextField(labelWithString: "Content saved")
+        let titleLabel = NSTextField(labelWithString: "Content Saved")
         titleLabel.textColor = .labelColor  // 使用系统标签颜色
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
 
-        // Process the clipboard's text
-        let trimmedContent = clipboardContent.drop(while: { $0 == " " })
-        let tempTrimmedString = String(trimmedContent)
-        let trimmedString = tempTrimmedString.trimmingCharacters(in: .whitespacesAndNewlines)
-            .replacingOccurrences(of: "\n", with: "  ")
-
-        let tagger = NSLinguisticTagger(tagSchemes: [.language], options: 0)
-        tagger.string = trimmedString
-        let dominantLanguage = tagger.dominantLanguage
-
-        let threshold = dominantLanguage == "zh-Hans" ? 10 : 20
-
-        let displayText: String = {
-            if trimmedString.count > threshold {
-                return String(trimmedString.prefix(threshold)) + "..."
-                    + " (\(trimmedString.count) Chars)"
-            } else {
-                return trimmedString
-            }
-        }()
+        let displayText = "From \(sourceApp) | \(charCount) chars"
 
         let subtitleLabel = NSTextField(labelWithString: displayText)
         subtitleLabel.textColor = .secondaryLabelColor  // 使用系统次要标签颜色
