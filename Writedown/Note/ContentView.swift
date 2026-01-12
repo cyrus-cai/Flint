@@ -67,6 +67,8 @@ struct ContentView: View {
     @State private var showCopyToast = false
     @State private var showCopiedStatus = false
 
+    static let loadNoteNotification = Notification.Name("LoadNoteNotification")
+
     // New states for title editing
     @State private var isEditingTitle = false
     @State private var editedTitle = ""
@@ -220,6 +222,11 @@ struct ContentView: View {
     }
 
     func loadNoteContent(_ content: String, fileURL: URL? = nil) {
+        // Save current content before loading new note
+        if !text.isEmpty {
+            saveDocument(trigger: .addNew)
+        }
+
         text = content
 
         // If a fileURL is provided (from history list), use it to set currentNoteId
@@ -526,6 +533,13 @@ struct ContentView: View {
                 for: Notification.Name("autoSaveIntervalDidChange"))
         ) { _ in
             setupAutoSaveTimer()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ContentView.loadNoteNotification)) { notification in
+            if let userInfo = notification.userInfo,
+               let content = userInfo["content"] as? String,
+               let fileURL = userInfo["fileURL"] as? URL {
+                loadNoteContent(content, fileURL: fileURL)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) {
             _ in

@@ -127,7 +127,7 @@ class HotkeyCounter: ObservableObject {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     //    let updater = AutoUpdater()
-    private var windowController: MainWindowController?
+    // private var windowController: MainWindowController? // Removed to use WindowManager
     private var statusItem: NSStatusItem?
     private var hotKey: HotKey?
     private var limitExceededWindow: LimitExceededWindowController?
@@ -222,18 +222,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         -> Bool
     {
         if !flag {
-            windowController?.showWindow(nil)
+            WindowManager.shared.activeWindow?.showWindow(nil)
         }
         return true
     }
 
     private func setupMainWindow() {
-        windowController = MainWindowController()
-        windowController?.showWindow(nil)
+        WindowManager.shared.createOrShowMainWindow()
     }
 
     @objc func toggleWindow() {
-        windowController?.toggleWindow()
+        WindowManager.shared.activeWindow?.toggleWindow()
         // Track window toggle
         Mixpanel.mainInstance().track(event: "Window Toggled")
     }
@@ -260,7 +259,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     )
                 }
             } else {
-                let wasHidden = self?.windowController?.window?.isVisible == false
+                let wasHidden = WindowManager.shared.activeWindow?.window?.isVisible == false
                 self?.toggleWindow()
                 if wasHidden {
                     HotkeyCounter.shared.increment()
@@ -563,30 +562,30 @@ class GlobalKeyMonitor {
 
             // 定义反馈窗口的默认尺寸
             let defaultWidth: CGFloat = 360
-            let defaultHeight: CGFloat = 100
+            let defaultHeight: CGFloat = 64 // Use actual height of ContentSavedWindow
 
             // 展示 "Contents saved" 提示窗口
             if let noteWindowController = WindowManager.shared.activeWindow,
                 let noteWindow = noteWindowController.window
             {
-                // 如果存在活动窗口，则使用该窗口的位置，并垂直居中提示窗口
+                // 如果存在活动窗口，则使用该窗口的位置，并水平居中提示窗口
                 let noteFrame = noteWindow.frame
                 let feedbackFrame = NSRect(
-                    x: noteFrame.origin.x,
-                    y: noteFrame.origin.y + (noteFrame.height - defaultHeight) / 2,
-                    width: noteFrame.width,
+                    x: noteFrame.origin.x + (noteFrame.width - defaultWidth) / 2, // Horizontally centered
+                    y: noteFrame.origin.y + (noteFrame.height - defaultHeight) / 2, // Vertically centered
+                    width: defaultWidth,
                     height: defaultHeight
                 )
                 let feedbackWindow = ContentSavedWindowController(
                     position: feedbackFrame, clipboardContent: textWithMetadata,
-                    sourceApp: sourceApp, charCount: clipboardContent.count)
+                    sourceApp: sourceApp, charCount: clipboardContent.count, fileURL: fileURL)
                 feedbackWindow.showWindow(nil)
             } else {
                 // 没有活动窗口时，使用默认位置（屏幕右上角）
                 guard let screen = NSScreen.main else { return }
                 let screenFrame = screen.visibleFrame
                 let rightTopX = screenFrame.maxX - defaultWidth - 20
-                let rightTopY = screenFrame.maxY - defaultHeight + 20
+                let rightTopY = screenFrame.maxY - defaultHeight - 20 // Correct Y calculation (subtract height)
                 let feedbackFrame = NSRect(
                     x: rightTopX,
                     y: rightTopY,
@@ -595,7 +594,7 @@ class GlobalKeyMonitor {
                 )
                 let feedbackWindow = ContentSavedWindowController(
                     position: feedbackFrame, clipboardContent: textWithMetadata,
-                    sourceApp: sourceApp, charCount: clipboardContent.count)
+                    sourceApp: sourceApp, charCount: clipboardContent.count, fileURL: fileURL)
                 feedbackWindow.showWindow(nil)
             }
 
@@ -613,20 +612,25 @@ class NonActivatingWindow: NSWindow {
 }
 
 class ContentSavedWindowController: NSWindowController {
-    private var windowController: MainWindowController?
+    // private var windowController: MainWindowController?
     // Store the clipboard content for later use
     private let clipboardContent: String
     private let sourceApp: String
     private let charCount: Int
+    private let fileURL: URL
+
+    // Remove unused property
+    // private var windowController: MainWindowController?
 
     @objc func toggleWindow() {
-        windowController?.toggleWindow()
+         WindowManager.shared.activeWindow?.toggleWindow()
     }
 
-    init(position: NSRect, clipboardContent: String, sourceApp: String, charCount: Int) {
+    init(position: NSRect, clipboardContent: String, sourceApp: String, charCount: Int, fileURL: URL) {
         self.clipboardContent = clipboardContent
         self.sourceApp = sourceApp
         self.charCount = charCount
+        self.fileURL = fileURL
 
         let windowFrame = NSRect(
             x: position.origin.x,
@@ -745,10 +749,37 @@ class ContentSavedWindowController: NSWindowController {
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             stackView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
+
+        // Add click gesture to the content view
+        let clickGesture = NSClickGestureRecognizer(target: self, action: #selector(viewClicked))
+        contentView.addGestureRecognizer(clickGesture)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    @objc private func viewClicked() {
+        // Close the notification window.
+        self.close()
+
+        // If there is no active note window, create one using the window manager.
+        if WindowManager.shared.activeWindow == nil {
+            WindowManager.shared.createNewWindow()
+        }
+
+        // Bring the main note window to the front.
+        if let noteWindowController = WindowManager.shared.activeWindow as? MainWindowController {
+            noteWindowController.showWindow(nil)
+            NSApp.activate(ignoringOtherApps: true)
+
+            // Post notification to update ContentView
+            NotificationCenter.default.post(
+                name: Notification.Name("LoadNoteNotification"),
+                object: nil,
+                userInfo: ["content": clipboardContent, "fileURL": fileURL]
+            )
+        }
     }
 
     // When the "View" button is clicked, close this notification window,
