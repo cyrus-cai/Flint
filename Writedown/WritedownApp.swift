@@ -42,6 +42,14 @@ struct WritedownApp: App {
         }
         .windowStyle(HiddenTitleBarWindowStyle())
         .windowResizability(.contentSize)
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings...") {
+                    WindowManager.shared.createSettingsWindow()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
+        }
     }
 }
 
