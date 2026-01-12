@@ -809,12 +809,6 @@ struct AboutSettingsView: View {
 
 // MARK: - Appearance Settings
 
-enum AppearanceMode: String, CaseIterable {
-    case system = "System"
-    case light = "Light"
-    case dark = "Dark"
-}
-
 struct AppearanceSettingsView: View {
     @AppStorage(AppStorageKeys.appearanceMode) private var appearanceMode: AppearanceMode = AppDefaults.appearanceMode
 
