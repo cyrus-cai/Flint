@@ -1,6 +1,23 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Popover Background Modifier for RecentNotesListView
+/// On macOS 26+, removes background to let native Liquid Glass popover effect show through
+/// On earlier versions, uses colored background
+private struct RecentNotesPopoverBackgroundModifier: ViewModifier {
+    let colorScheme: ColorScheme
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 透明背景，让原生 Liquid Glass 效果显示
+            content
+        } else {
+            // macOS 15-25: 使用传统背景色
+            content.background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+        }
+    }
+}
+
 //// MARK: - File Manager Extension
 extension FileManager {
     static func getRecentNotes() -> [RecentNote] {
@@ -648,7 +665,8 @@ struct RecentNotesListView: View {
                 }
             }
             .frame(width: 320)
-            .background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
+            // macOS 26+: 不设置背景，让原生 popover 的 Liquid Glass 效果显示
+            .modifier(RecentNotesPopoverBackgroundModifier(colorScheme: colorScheme))
             .cornerRadius(8)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
 
@@ -1586,6 +1604,54 @@ struct TimeGroupHeader: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
+                .modifier(AISummaryCardBackgroundModifier(colorScheme: colorScheme))
+                .shadow(color: .purple.opacity(0.2), radius: 12, x: 0, y: 4)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 4)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.95).combined(with: .opacity),
+                    removal: .opacity
+                ))
+                .animation(.spring(response: 0.5, dampingFraction: 0.7), value: groupSummary)
+            }
+        }
+        .background(Color.clear)
+    }
+}
+
+/// Background modifier for AI Summary Card that uses native glassEffect on macOS 26+
+private struct AISummaryCardBackgroundModifier: ViewModifier {
+    let colorScheme: ColorScheme
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 使用原生 Liquid Glass 效果
+            content
+                .glassEffect(in: .rect(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [.purple.opacity(0.1), .clear],
+                                startPoint: .bottomTrailing,
+                                endPoint: .topLeading
+                            )
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(
+                            LinearGradient(
+                                gradient: Gradient(colors: [.purple, .pink]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        } else {
+            // macOS 15-25: 使用传统背景
+            content
                 .background(
                     ZStack {
                         RoundedRectangle(cornerRadius: 8)
@@ -1612,17 +1678,7 @@ struct TimeGroupHeader: View {
                             )
                     }
                 )
-                .shadow(color: .purple.opacity(0.2), radius: 12, x: 0, y: 4)
-                .padding(.horizontal, 8)
-                .padding(.bottom, 4)
-                .transition(.asymmetric(
-                    insertion: .scale(scale: 0.95).combined(with: .opacity),
-                    removal: .opacity
-                ))
-                .animation(.spring(response: 0.5, dampingFraction: 0.7), value: groupSummary)
-            }
         }
-        .background(Color.clear)
     }
 }
 
@@ -1684,24 +1740,7 @@ struct StandardToastView: View {
                             .foregroundColor(.primary.opacity(0.8))
                             .padding(.vertical, 4)
                             .padding(.horizontal, 8)
-                            .background {
-                                // macOS 26+ Liquid Glass 适配
-                                if #available(macOS 26.0, *) {
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 6)
-                                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                        )
-                                } else {
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(.thinMaterial)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 6)
-                                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                        )
-                                }
-                            }
+                            .modifier(ToastActionButtonBackgroundModifier())
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in
@@ -1713,44 +1752,8 @@ struct StandardToastView: View {
             }
         }
         .padding(ToastStyle.padding)
-        // macOS 26+ Liquid Glass 适配: 使用自适应背景
-        .background {
-            if #available(macOS 26.0, *) {
-                // macOS 26+: 使用 Liquid Glass 材质效果
-                ZStack {
-                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                        .fill(.ultraThinMaterial)
-                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [.green.opacity(0.1), .clear],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                        .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
-                }
-            } else {
-                // macOS 15-25: 使用传统背景
-                ZStack {
-                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                        .fill(colorScheme == .dark
-                              ? ToastStyle.backgroundColor
-                              : ToastStyle.lightBackgroundColor)
-                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [.green.opacity(0.1), .clear],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
-                        .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
-                }
-            }
-        }
+        // macOS 26+ Liquid Glass 适配: 使用原生 glassEffect
+        .modifier(StandardToastBackgroundModifier(colorScheme: colorScheme))
         .shadow(
             color: ToastStyle.shadowColor,
             radius: 12,
@@ -1758,6 +1761,80 @@ struct StandardToastView: View {
             y: 4
         )
         .padding(.bottom, 12)
+    }
+}
+
+/// Background modifier for action button in StandardToastView
+private struct ToastActionButtonBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: Use native Liquid Glass effect
+            content
+                .glassEffect(in: .rect(cornerRadius: 6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                )
+        } else {
+            // macOS 15-25: Use traditional Material
+            content
+                .background {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(.thinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                        )
+                }
+        }
+    }
+}
+
+/// Background modifier for StandardToastView that uses native glassEffect on macOS 26+
+private struct StandardToastBackgroundModifier: ViewModifier {
+    let colorScheme: ColorScheme
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 使用原生 Liquid Glass 效果
+            content
+                .glassEffect(in: .rect(cornerRadius: ToastStyle.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [.green.opacity(0.1), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                        .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
+                )
+        } else {
+            // macOS 15-25: 使用传统背景
+            content
+                .background {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                            .fill(colorScheme == .dark
+                                  ? ToastStyle.backgroundColor
+                                  : ToastStyle.lightBackgroundColor)
+                        RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.green.opacity(0.1), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        RoundedRectangle(cornerRadius: ToastStyle.cornerRadius)
+                            .strokeBorder(Color.green.opacity(0.2), lineWidth: 1)
+                    }
+                }
+        }
     }
 }
 

@@ -253,6 +253,67 @@ extension View {
             }
         )
     }
+    
+    // MARK: - Native Liquid Glass Effect (macOS 26+)
+    
+    /// Applies native Liquid Glass effect on macOS 26+, falls back to Material on older systems
+    /// Use this for floating elements like toolbars, badges, and toasts
+    @ViewBuilder
+    func liquidGlass<S: Shape>(
+        in shape: S,
+        tint: Color? = nil
+    ) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: Use native .glassEffect() modifier
+            self.glassEffect(in: shape)
+                .modifier(OptionalTintModifier(tint: tint))
+        } else {
+            // macOS 15-25: Fall back to Material
+            self.background(shape.fill(.regularMaterial))
+        }
+    }
+    
+    /// Applies a capsule-shaped Liquid Glass effect (for badges, pills, etc.)
+    @ViewBuilder
+    func liquidGlassCapsule(tint: Color? = nil) -> some View {
+        if #available(macOS 26.0, *) {
+            self.glassEffect(in: .capsule)
+                .modifier(OptionalTintModifier(tint: tint))
+        } else {
+            self.background(Capsule().fill(.thinMaterial))
+        }
+    }
+    
+    /// Applies Liquid Glass with custom corner radius
+    @ViewBuilder
+    func liquidGlassRounded(cornerRadius: CGFloat = 12, tint: Color? = nil) -> some View {
+        if #available(macOS 26.0, *) {
+            self.glassEffect(in: .rect(cornerRadius: cornerRadius))
+                .modifier(OptionalTintModifier(tint: tint))
+        } else {
+            self.background(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(.regularMaterial)
+            )
+        }
+    }
+}
+
+/// Helper modifier to apply optional tint color
+private struct OptionalTintModifier: ViewModifier {
+    let tint: Color?
+    
+    func body(content: Content) -> some View {
+        if let tint = tint {
+            content.overlay(
+                Color.clear
+                    .background(tint.opacity(0.1))
+                    .allowsHitTesting(false)
+            )
+        } else {
+            content
+        }
+    }
 }
 
 // MARK: - Scroll Edge Effect Helpers
@@ -269,10 +330,27 @@ struct ScrollEdgeEffectModifier: ViewModifier {
     
     func body(content: Content) -> some View {
         if #available(macOS 26.0, *) {
-            // macOS 26+: Apply scroll edge effect
-            // When API is available:
-            // content.scrollEdgeEffect(edges, style: style == .soft ? .soft : .hard)
-            content
+            // macOS 26+: Apply native scroll edge effect
+            switch (edges, style) {
+            case (.top, .soft):
+                content.scrollEdgeEffectStyle(.soft, for: .top)
+            case (.top, .hard):
+                content.scrollEdgeEffectStyle(.hard, for: .top)
+            case (.bottom, .soft):
+                content.scrollEdgeEffectStyle(.soft, for: .bottom)
+            case (.bottom, .hard):
+                content.scrollEdgeEffectStyle(.hard, for: .bottom)
+            case ([.top, .bottom], .soft):
+                content
+                    .scrollEdgeEffectStyle(.soft, for: .top)
+                    .scrollEdgeEffectStyle(.soft, for: .bottom)
+            case ([.top, .bottom], .hard):
+                content
+                    .scrollEdgeEffectStyle(.hard, for: .top)
+                    .scrollEdgeEffectStyle(.hard, for: .bottom)
+            default:
+                content.scrollEdgeEffectStyle(.soft, for: .top)
+            }
         } else {
             // macOS 15-25: No scroll edge effect
             content

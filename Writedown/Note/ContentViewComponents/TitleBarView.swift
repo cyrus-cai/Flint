@@ -384,32 +384,7 @@ struct LinkListView: View {
                     //                    .foregroundColor(Color.purple)  修改文字颜色为紫色
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
-                    .background {
-                        // macOS 26+ Liquid Glass 适配: 使用自适应材质
-                        if #available(macOS 26.0, *) {
-                            Capsule()
-                                .fill(.ultraThinMaterial)
-                                .overlay(
-                                    Capsule()
-                                        .fill(Color.primary.opacity(0.02))  // 叠加浅紫色
-                                )
-                                .overlay(  // 添加描边
-                                    Capsule()
-                                        .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
-                                )
-                        } else {
-                            Capsule()
-                                .fill(.thinMaterial)
-                                .overlay(
-                                    Capsule()
-                                        .fill(Color.primary.opacity(0.02))  // 叠加浅紫色
-                                )
-                                .overlay(  // 添加描边
-                                    Capsule()
-                                        .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
-                                )
-                        }
-                    }
+                    .modifier(LinkCountBadgeBackgroundModifier())
                     .frame(minWidth: 12)
             }
 
@@ -436,6 +411,40 @@ struct LinkListView: View {
         }
         .frame(width: 280)
         .background(Color(NSColor.windowBackgroundColor))
+    }
+}
+
+/// Background modifier for link count badge that uses native glassEffect on macOS 26+
+private struct LinkCountBadgeBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: Use native Liquid Glass effect
+            content
+                .glassEffect(in: .capsule)
+                .overlay(
+                    Capsule()
+                        .fill(Color.primary.opacity(0.02))
+                )
+                .overlay(
+                    Capsule()
+                        .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
+                )
+        } else {
+            // macOS 15-25: Use traditional Material
+            content
+                .background {
+                    Capsule()
+                        .fill(.thinMaterial)
+                        .overlay(
+                            Capsule()
+                                .fill(Color.primary.opacity(0.02))
+                        )
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(Color.primary.opacity(0.3), lineWidth: 1)
+                        )
+                }
+        }
     }
 }
 
@@ -491,33 +500,42 @@ struct BadgeView: View {
             .foregroundColor(Color.purple)  // 修改文字颜色为紫色
             .padding(.horizontal, 3)
             .padding(.vertical, 0.5)
-            .background {
-                // macOS 26+ Liquid Glass 适配: 使用自适应材质
-                if #available(macOS 26.0, *) {
+            .modifier(BadgeBackgroundModifier())
+            .frame(minWidth: 12)
+    }
+}
+
+/// Background modifier for BadgeView that uses native glassEffect on macOS 26+
+private struct BadgeBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: Use native Liquid Glass effect
+            content
+                .glassEffect(in: .capsule)
+                .overlay(
                     Capsule()
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            Capsule()
-                                .fill(Color.purple.opacity(0.02))  // 叠加浅紫色
-                        )
-                        .overlay(  // 添加描边
-                            Capsule()
-                                .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
-                        )
-                } else {
+                        .fill(Color.purple.opacity(0.02))
+                )
+                .overlay(
+                    Capsule()
+                        .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
+                )
+        } else {
+            // macOS 15-25: Use traditional Material
+            content
+                .background {
                     Capsule()
                         .fill(.thinMaterial)
                         .overlay(
                             Capsule()
-                                .fill(Color.purple.opacity(0.02))  // 叠加浅紫色
+                                .fill(Color.purple.opacity(0.02))
                         )
-                        .overlay(  // 添加描边
+                        .overlay(
                             Capsule()
                                 .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
                         )
                 }
-            }
-            .frame(minWidth: 12)
+        }
     }
 }
 
@@ -548,10 +566,11 @@ struct TitleBarButton: View {
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(iconColor)
                     .frame(width: 26, height: 26)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(backgroundColor)
-                    )
+                    .modifier(TitleBarButtonBackgroundModifier(
+                        isHovered: isHovered,
+                        isPaperclip: icon == .paperclip,
+                        colorScheme: colorScheme
+                    ))
                     .onHover { hovering in
                         withAnimation(.easeInOut(duration: 0.1)) {
                             isHovered = hovering && !isDisabled
@@ -579,18 +598,48 @@ struct TitleBarButton: View {
         }
         return .secondary
     }
+}
 
-    // hover 颜色
+/// Background modifier for TitleBarButton that uses native glassEffect on macOS 26+
+private struct TitleBarButtonBackgroundModifier: ViewModifier {
+    let isHovered: Bool
+    let isPaperclip: Bool
+    let colorScheme: ColorScheme
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: Use native Liquid Glass effect when hovered
+            if isHovered {
+                content
+                    .glassEffect(in: .rect(cornerRadius: 6))
+                    .overlay {
+                        if isPaperclip {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.purple.opacity(0.1))
+                        }
+                    }
+            } else {
+                content
+            }
+        } else {
+            // macOS 15-25: Use traditional background
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(backgroundColor)
+                )
+        }
+    }
+    
     private var backgroundColor: Color {
         if !isHovered {
             return .clear
         }
-
-        if icon == .paperclip {
-            //           return .purple.opacity(0.1)  // 紫色半透明背景
+        
+        if isPaperclip {
             return colorScheme == .dark ? .purple.opacity(0.2) : .purple.opacity(0.1)
         }
-
+        
         return colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)
     }
 }
@@ -793,21 +842,31 @@ struct NavigationToastView: View {
                     .font(.system(size: 12))
             }
             .padding(10)
-            // macOS 26+ Liquid Glass 适配: 使用自适应材质背景
-            .background {
-                if #available(macOS 26.0, *) {
-                    // macOS 26+: 使用轻薄材质让 Liquid Glass 效果更明显
-                    RoundedRectangle(cornerRadius: adaptiveCornerRadius)
-                        .fill(.ultraThinMaterial)
-                } else {
-                    // macOS 15-25: 使用窗口背景色
-                    RoundedRectangle(cornerRadius: adaptiveCornerRadius)
-                        .fill(Color(NSColor.windowBackgroundColor))
-                }
-            }
-            .cornerRadius(adaptiveCornerRadius)
+            // macOS 26+ Liquid Glass 适配: 使用原生 glassEffect
+            .modifier(NavigationToastBackgroundModifier(cornerRadius: adaptiveCornerRadius))
             .transition(.opacity)
             .frame(maxWidth: .infinity, alignment: .bottom)
+        }
+    }
+}
+
+/// Background modifier for NavigationToastView that uses native glassEffect on macOS 26+
+private struct NavigationToastBackgroundModifier: ViewModifier {
+    let cornerRadius: CGFloat
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 使用原生 Liquid Glass 效果
+            content
+                .glassEffect(in: .rect(cornerRadius: cornerRadius))
+        } else {
+            // macOS 15-25: 使用窗口背景色
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(Color(NSColor.windowBackgroundColor))
+                )
+                .cornerRadius(cornerRadius)
         }
     }
 }

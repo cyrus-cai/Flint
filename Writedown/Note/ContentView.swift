@@ -655,27 +655,35 @@ struct ToastView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                // macOS 26+ Liquid Glass 适配: 使用自适应材质背景
-                .background {
-                    if #available(macOS 26.0, *) {
-                        // macOS 26+: 使用更轻薄的材质，让 Liquid Glass 效果更明显
-                        RoundedRectangle(cornerRadius: 40)
-                            .fill(.ultraThinMaterial)
-                    } else {
-                        // macOS 15-25: 使用传统厚材质
-                        RoundedRectangle(cornerRadius: 40)
-                            .fill(.thickMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 40)
-                                    .fill(Color.gray.opacity(0.15))
-                            )
-                    }
-                }
+                // macOS 26+ Liquid Glass 适配: 使用原生 glassEffect
+                .modifier(ToastBackgroundModifier())
                 .foregroundColor(.primary)
-                .cornerRadius(40)
                 .transition(.opacity)
                 .padding(.bottom, 28)
             }
+        }
+    }
+}
+
+/// Background modifier for ToastView that uses native glassEffect on macOS 26+
+private struct ToastBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 使用原生 Liquid Glass 效果
+            content
+                .glassEffect(in: .capsule)
+        } else {
+            // macOS 15-25: 使用传统厚材质
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: 40)
+                        .fill(.thickMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 40)
+                                .fill(Color.gray.opacity(0.15))
+                        )
+                )
+                .cornerRadius(40)
         }
     }
 }

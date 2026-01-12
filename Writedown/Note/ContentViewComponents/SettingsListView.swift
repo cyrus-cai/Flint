@@ -91,7 +91,9 @@ struct SettingsListView: View {
         }
         .padding(.vertical, 8)
         .frame(width: 220)
-        .background(Color(NSColor.windowBackgroundColor))
+        // macOS 26+: 不设置背景，让原生 popover 的 Liquid Glass 效果显示
+        // macOS 15-25: 使用窗口背景色
+        .modifier(PopoverBackgroundModifier())
     }
 
     private func handleAction(_ item: SettingsItem) {
@@ -129,13 +131,7 @@ struct SettingsListView: View {
             .buttonStyle(.plain)
             .padding(.horizontal, 4)
             .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(
-                        isHovered
-                            ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85))
-                            : Color.clear)
-            )
+            .modifier(HoverButtonBackgroundModifier(isHovered: isHovered, colorScheme: colorScheme))
             .onHover { hovering in
                 isHovered = hovering
                 if hovering {
@@ -197,6 +193,51 @@ struct SettingsListView: View {
             default:
                 return nil
             }
+        }
+    }
+}
+
+// MARK: - Popover Background Modifier
+/// On macOS 26+, removes background to let native Liquid Glass popover effect show through
+/// On earlier versions, uses window background color
+private struct PopoverBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 透明背景，让原生 Liquid Glass 效果显示
+            content
+        } else {
+            // macOS 15-25: 使用窗口背景色
+            content.background(Color(NSColor.windowBackgroundColor))
+        }
+    }
+}
+
+// MARK: - Hover Button Background Modifier
+/// On macOS 26+, uses native glassEffect for hover state
+/// On earlier versions, uses colored background
+private struct HoverButtonBackgroundModifier: ViewModifier {
+    let isHovered: Bool
+    let colorScheme: ColorScheme
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 悬停时使用原生 Liquid Glass 效果
+            if isHovered {
+                content
+                    .glassEffect(in: .rect(cornerRadius: 8))
+            } else {
+                content
+            }
+        } else {
+            // macOS 15-25: 使用传统背景
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            isHovered
+                                ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85))
+                                : Color.clear)
+                )
         }
     }
 }
