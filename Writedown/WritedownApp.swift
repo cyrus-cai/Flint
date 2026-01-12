@@ -31,61 +31,8 @@ struct WritedownApp: App {
         // Disable IP-based geolocation if needed
         Mixpanel.mainInstance().useIPAddressForGeoLocation = false
 
-        // Check pro status on app launch if user is logged in
-        if let userEmail = UserDefaults.standard.string(forKey: "userEmail") {
-            Task {
-                do {
-                    print(
-                        "Checking pro status for \(UserDefaults.standard.string(forKey: "userEmail") ?? "nil")"
-                    )
-                    let isPro = try await ProStatusChecker.shared.checkProStatus(
-                        email: UserDefaults.standard.string(forKey: "userEmail") ?? "")
-                    print("Setting isPro to \(isPro)")
-                    UserDefaults.standard.set(isPro, forKey: "isPro")
-
-                    // Set user identity and properties
-                    Mixpanel.mainInstance().identify(distinctId: userEmail)
-                    Mixpanel.mainInstance().people.set(properties: [
-                        "$email": userEmail,
-                        "isPro": isPro,
-                    ])
-                } catch {
-                    print("Pro status check failed: \(error)")
-                    UserDefaults.standard.set(false, forKey: "isPro")
-                }
-            }
-        } else {
-            // Reset Mixpanel when no user is logged in
-            Mixpanel.mainInstance().reset()
-            UserDefaults.standard.set(false, forKey: "isPro")
-        }
-
-        // Set up login observer
-        NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("UserDidLogin"),
-            object: nil,
-            queue: .main
-        ) { _ in
-            Task {
-                if let userEmail = UserDefaults.standard.string(forKey: "userEmail") {
-                    do {
-                        let isPro = try await ProStatusChecker.shared.checkProStatus(
-                            email: userEmail)
-                        UserDefaults.standard.set(isPro, forKey: "isPro")
-
-                        // Identify user and set properties after login
-                        Mixpanel.mainInstance().identify(distinctId: userEmail)
-                        Mixpanel.mainInstance().people.set(properties: [
-                            "$email": userEmail,
-                            "isPro": isPro,
-                        ])
-                    } catch {
-                        print("Pro status check failed: \(error)")
-                        UserDefaults.standard.set(false, forKey: "isPro")
-                    }
-                }
-            }
-        }
+        // Pro status check removed as login is no longer required
+        UserDefaults.standard.set(false, forKey: "isPro")
     }
 
     var body: some Scene {
@@ -386,84 +333,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("📥 Received URL: \(url)")
 
         // Check if this is a login callback
-        if url.scheme == "writedown" && url.host == "oauth" && url.path == "/callback" {
-            Mixpanel.mainInstance().track(event: "User Logged In")
-            print("✅ Valid login callback URL")
-
-            if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
-                let queryItems = components.queryItems
-            {
-                print("📋 Query items: \(queryItems)")
-
-                // Extract user information from query parameters
-                let email = queryItems.first(where: { $0.name == "email" })?.value
-                let avatar = queryItems.first(where: { $0.name == "avatar" })?.value
-                let name = queryItems.first(where: { $0.name == "name" })?.value
-
-                print("👤 Extracted user info:")
-                print("   Email: \(email ?? "nil")")
-                print("   Name: \(name ?? "nil")")
-                print("   Avatar: \(avatar ?? "nil")")
-
-                // Store user information in UserDefaults
-                let defaults = UserDefaults.standard
-                if let email = email?.removingPercentEncoding {
-                    defaults.set(email, forKey: "userEmail")
-                    defaults.synchronize()
-                }
-                if let avatar = avatar?.removingPercentEncoding {
-                    defaults.set(avatar, forKey: "userAvatar")
-                    defaults.synchronize()
-                }
-
-                // Process name first
-                let processedName =
-                    name?.removingPercentEncoding?.replacingOccurrences(
-                        of: "+", with: " ") ?? ""
-
-                if !processedName.isEmpty {
-                    defaults.set(processedName, forKey: "userName")
-                    defaults.synchronize()
-                }
-
-                print("💾 User info saved to UserDefaults")
-
-                // 主动打开设置窗口并更新状态
-                DispatchQueue.main.async {
-                    WindowManager.shared.createSettingsWindow()
-
-                    // Post notification to update UI
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("UserDidLogin"),
-                        object: nil
-                    )
-                    print("📢 Posted UserDidLogin notification")
-
-                    // Show success notification with processed name
-                    let notification = NSUserNotification()
-                    notification.title = "Login Successful"
-                    notification.informativeText =
-                        processedName.isEmpty ? "Welcome back!" : "Welcome back \(processedName)!"
-                    NSUserNotificationCenter.default.deliver(notification)
-                    print("🔔 Showed success notification")
-
-                    // Add tracking for login success
-                    if let email = email?.removingPercentEncoding {
-                        Mixpanel.mainInstance().identify(distinctId: email)
-                        Mixpanel.mainInstance().people.set(property: "email", to: email)
-                        Mixpanel.mainInstance().people.set(property: "name", to: processedName)
-                    }
-                }
-            } else {
-                print("❌ Failed to parse URL components")
-            }
-        } else if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
+        // Login logic removed as per request
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
             components.queryItems?.contains(where: { $0.name == "session_id" }) == true
         {
             // New payment callback handling
             handleStripeCallback(url: url)
         } else {
-            print("❌ Invalid URL format - Expected writedown://oauth/callback")
+             // print("❌ Invalid URL format - Expected writedown://oauth/callback")
         }
     }
 

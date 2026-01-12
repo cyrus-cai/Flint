@@ -269,123 +269,14 @@ struct SettingsView: View {
 struct GeneralSettingsView: View {
     @StateObject private var viewModel = GeneralSettingsViewModel()
     @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin = AppDefaults.launchAtLogin
-    @AppStorage(AppStorageKeys.userName) private var userName: String = AppDefaults.userName
-    @AppStorage(AppStorageKeys.userEmail) private var userEmail: String = AppDefaults.userEmail
-    @AppStorage(AppStorageKeys.userAvatar) private var userAvatar: String = AppDefaults.userAvatar
     @AppStorage(AppStorageKeys.hasRequestedLaunchPermission) private var hasRequestedPermission = AppDefaults.hasRequestedLaunchPermission
     private let loginManager = LoginManager.shared
     @Binding var isPro: Bool
-    @State private var isCheckingStatus = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Account Section
-            SettingsSectionHeader(title: "Account", icon: "person.crop.circle")
+            // Account Section removed as login is no longer required
             
-            GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    if !userEmail.isEmpty {
-                        HStack(spacing: 12) {
-                            AsyncImage(url: URL(string: userAvatar)) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 40, height: 40)
-                                    .clipShape(Circle())
-                            } placeholder: {
-                                Image(systemName: "person.crop.circle.fill")
-                                    .resizable()
-                                    .frame(width: 40, height: 40)
-                                    .foregroundColor(.secondary)
-                            }
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                if !userName.isEmpty {
-                                    Text(userName)
-                                        .fontWeight(.medium)
-                                }
-                                Text(userEmail)
-                                    .font(.callout)
-                                    .foregroundColor(.secondary)
-                            }
-
-                            Spacer()
-
-                            Button("Sign Out") {
-                                signOut()
-                            }
-                        }
-                    } else {
-                        HStack {
-                            Text("Sign in to sync your settings")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Button("Sign In") {
-                                if let url = URL(string: "https://www.writedown.space/login") {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-
-                    Divider()
-
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Plan")
-                                .fontWeight(.medium)
-                            Text(isPro ? "Enjoy premium features" : "Upgrade for more features")
-                                .font(.callout)
-                                .foregroundColor(.secondary)
-                        }
-
-                        Spacer()
-
-                        if isPro {
-                            Text("Pro")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(
-                                    LinearGradient(
-                                        colors: [.purple, .pink],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .clipShape(Capsule())
-                        } else {
-                            HStack(spacing: 8) {
-                                Button("Upgrade to Pro") {
-                                    openProUpgrade()
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.purple)
-
-                                if !userEmail.isEmpty {
-                                    Button {
-                                        checkProStatus()
-                                    } label: {
-                                        if isCheckingStatus {
-                                            ProgressView()
-                                                .controlSize(.small)
-                                        } else {
-                                            Image(systemName: "arrow.clockwise")
-                                        }
-                                    }
-                                    .disabled(isCheckingStatus)
-                                    .help("Check subscription status")
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding(12)
-            }
-
             // Preferences Section
             SettingsSectionHeader(title: "Preferences", icon: "gearshape")
             
@@ -408,33 +299,6 @@ struct GeneralSettingsView: View {
                 .padding(12)
             }
         }
-        .onAppear {
-            refreshUserState()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) { _ in
-            refreshUserState()
-        }
-    }
-
-    private func signOut() {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: AppStorageKeys.userName)
-        defaults.removeObject(forKey: AppStorageKeys.userEmail)
-        defaults.removeObject(forKey: AppStorageKeys.userAvatar)
-        defaults.removeObject(forKey: AppStorageKeys.isPro)
-        defaults.synchronize()
-
-        userName = ""
-        userEmail = ""
-        userAvatar = ""
-
-        NotificationCenter.default.post(name: NSNotification.Name("UserDidLogout"), object: nil)
-    }
-
-    private func refreshUserState() {
-        userName = UserDefaults.standard.string(forKey: AppStorageKeys.userName) ?? ""
-        userEmail = UserDefaults.standard.string(forKey: AppStorageKeys.userEmail) ?? ""
-        userAvatar = UserDefaults.standard.string(forKey: AppStorageKeys.userAvatar) ?? ""
     }
 
     private func handleLaunchAtLoginChange(_ newValue: Bool) {
@@ -450,46 +314,6 @@ struct GeneralSettingsView: View {
             }
         } else {
             loginManager.disableLaunchAtLogin()
-        }
-    }
-
-    private func openProUpgrade() {
-        Task {
-            let request = StripeCheckout.CheckoutRequest(
-                planId: "pro",
-                email: UserDefaults.standard.string(forKey: AppStorageKeys.userEmail)
-            )
-
-            let response = await StripeCheckout.createCheckoutSession(
-                request: request,
-                origin: "https://www.writedown.space/stripePayment"
-            )
-
-            if let urlString = response.url, let url = URL(string: urlString) {
-                NSWorkspace.shared.open(url)
-            }
-        }
-    }
-
-    private func checkProStatus() {
-        guard let email = UserDefaults.standard.string(forKey: AppStorageKeys.userEmail) else { return }
-
-        isCheckingStatus = true
-
-        Task {
-            do {
-                let isPro = try await ProStatusChecker.shared.checkProStatus(email: email)
-                await MainActor.run {
-                    UserDefaults.standard.set(isPro, forKey: AppStorageKeys.isPro)
-                    self.isPro = isPro
-                    isCheckingStatus = false
-                }
-            } catch {
-                print("Failed to check pro status: \(error)")
-                await MainActor.run {
-                    isCheckingStatus = false
-                }
-            }
         }
     }
 }
