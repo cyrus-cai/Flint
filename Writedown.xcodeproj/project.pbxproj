@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
-		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
 		A30F32A02D4DDAAA0028E47E /* ProStatusChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */; };
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
@@ -42,6 +41,7 @@
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 		A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */; };
 		A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */; };
+		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,7 +63,6 @@
 
 /* Begin PBXFileReference section */
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
-		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 		A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStatusChecker.swift; sourceTree = "<group>"; };
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
@@ -99,6 +98,7 @@
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 		A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeCheckout.swift; sourceTree = "<group>"; };
 		A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageManager.swift; sourceTree = "<group>"; };
+		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -621,8 +621,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.7.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 0.8.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -654,8 +654,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.7.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 0.8.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
