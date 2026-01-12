@@ -53,7 +53,8 @@ struct LimitExceededView: View {
                         do {
                             let request = StripeCheckout.CheckoutRequest(
                                 planId: "pro",
-                                email: UserDefaults.standard.string(forKey: "userEmail")
+                                email: UserDefaults.standard.string(forKey: "userEmail"),
+                                deviceId: DeviceManager.shared.getDeviceIdentifier()
                             )
 
                             let response = await StripeCheckout.createCheckoutSession(

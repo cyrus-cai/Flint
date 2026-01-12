@@ -30,9 +30,6 @@ struct WritedownApp: App {
 
         // Disable IP-based geolocation if needed
         Mixpanel.mainInstance().useIPAddressForGeoLocation = false
-
-        // Pro status check removed as login is no longer required
-        UserDefaults.standard.set(false, forKey: "isPro")
     }
 
     var body: some Scene {
@@ -154,6 +151,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Track app launch
         Mixpanel.mainInstance().track(event: "App Launched")
          UpdateManager.shared.checkAndDownloadUpdate()
+
+        // Check pro status based on device ID
+        Task {
+            if let deviceId = DeviceManager.shared.getDeviceIdentifier() {
+                do {
+                    let isPro = try await ProStatusChecker.shared.checkProStatus(deviceId: deviceId)
+                    await MainActor.run {
+                        UserDefaults.standard.set(isPro, forKey: "isPro")
+                        print("✅ Pro status updated: \(isPro)")
+                    }
+                } catch {
+                    print("❌ Failed to verify pro status: \(error)")
+                }
+            } else {
+                print("❌ Failed to retrieve device identifier")
+            }
+        }
 
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)

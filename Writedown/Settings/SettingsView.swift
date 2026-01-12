@@ -553,7 +553,8 @@ struct HotkeySettingsView: View {
         Task {
             let request = StripeCheckout.CheckoutRequest(
                 planId: "pro",
-                email: UserDefaults.standard.string(forKey: AppStorageKeys.userEmail)
+                email: UserDefaults.standard.string(forKey: AppStorageKeys.userEmail),
+                deviceId: DeviceManager.shared.getDeviceIdentifier()
             )
 
             let response = await StripeCheckout.createCheckoutSession(

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import IOKit
 
 class ProStatusChecker {
     static let shared = ProStatusChecker()
@@ -15,9 +16,9 @@ class ProStatusChecker {
         let isPro: Bool
     }
 
-    func checkProStatus(email: String) async throws -> Bool {
+    func checkProStatus(deviceId: String) async throws -> Bool {
         var urlComponents = URLComponents(string: baseURL)
-        urlComponents?.queryItems = [URLQueryItem(name: "email", value: email)]
+        urlComponents?.queryItems = [URLQueryItem(name: "device_id", value: deviceId)]
 
         guard let url = urlComponents?.url else {
             print("❌ URL configuration failed")
@@ -27,7 +28,7 @@ class ProStatusChecker {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
 
-        print("🔍 Checking pro status for email: \(email)")
+        print("🔍 Checking pro status for device: \(deviceId)")
         print("📡 Request URL: \(url.absoluteString)")
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -75,5 +76,27 @@ enum ProStatusError: Error {
         case .invalidResponse:
             return "Received an invalid response from the server"
         }
+    }
+}
+
+class DeviceManager {
+    static let shared = DeviceManager()
+    
+    /// Retrieves the hardware UUID of the Mac.
+    /// This identifier is tied to the physical logic board of the device.
+    func getDeviceIdentifier() -> String? {
+        let platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        
+        guard platformExpert > 0 else {
+            return nil
+        }
+        
+        defer { IOObjectRelease(platformExpert) }
+        
+        guard let uuid = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformUUIDKey as CFString, kCFAllocatorDefault, 0).takeRetainedValue() as? String else {
+            return nil
+        }
+        
+        return uuid
     }
 }

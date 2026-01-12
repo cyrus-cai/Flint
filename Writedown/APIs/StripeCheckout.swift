@@ -17,6 +17,7 @@ struct StripeCheckout {
     struct CheckoutRequest: Codable {
         let planId: String
         let email: String?
+        let deviceId: String?
     }
 
     struct CheckoutResponse: Codable {
@@ -72,6 +73,11 @@ struct StripeCheckout {
             // Only add email if provided
             if let email = request.email, !email.isEmpty {
                 queryItems.append(URLQueryItem(name: "customer_email", value: email))
+            }
+
+            // Add device ID as client_reference_id if available
+            if let deviceId = request.deviceId {
+                queryItems.append(URLQueryItem(name: "client_reference_id", value: deviceId))
             }
 
             bodyComponents.queryItems = queryItems
