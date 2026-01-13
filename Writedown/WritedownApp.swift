@@ -564,7 +564,7 @@ class GlobalKeyMonitor {
 
         do {
             // Get file URL for saving
-            let fileURL = FileManager.shared.fileURL(for: title)
+            let fileURL = LocalFileManager.shared.fileURL(for: title)
             guard let fileURL = fileURL else {
                 throw NSError(
                     domain: "FileError",

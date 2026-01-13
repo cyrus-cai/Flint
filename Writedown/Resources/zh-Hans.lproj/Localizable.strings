@@ -1,0 +1,47 @@
+/* No notes */
+"No notes" = "暂无笔记";
+
+/* No matching notes */
+"No matching notes" = "未找到匹配的笔记";
+
+/* Summarizing... */
+"Summarizing..." = "正在生成摘要...";
+
+/* Copy */
+"Copy" = "复制";
+
+/* Share */
+"Share" = "分享";
+
+/* Remove Star */
+"Remove Star" = "取消收藏";
+
+/* Add Star */
+"Add Star" = "添加收藏";
+
+/* Archive Note */
+"Archive Note" = "归档笔记";
+
+/* Language */
+"Language" = "语言";
+
+/* English */
+"English" = "英语";
+
+/* Font */
+"Font" = "字体";
+
+/* Appearance */
+"Appearance" = "外观";
+
+/* Check for updates */
+"Check for updates" = "检查更新";
+
+/* Latest available */
+"Latest available" = "已是最新版本";
+
+/* Version */
+"Version" = "版本";
+
+/* Build */
+"Build" = "构建版本";

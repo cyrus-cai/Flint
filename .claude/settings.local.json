@@ -4,7 +4,10 @@
       "Bash(swiftc:*)",
       "Bash(awk:*)",
       "Bash(ruby -e:*)",
-      "Bash(xcodebuild -list)"
+      "Bash(xcodebuild -list)",
+      "Bash(xcodebuild:*)",
+      "Bash(cat:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

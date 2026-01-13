@@ -404,7 +404,7 @@ struct StepContent: View {
 
                                     if openPanel.runModal() == .OK {
                                         if let selectedPath = openPanel.url {
-                                            FileManager.shared.setCustomDirectory(selectedPath)
+                                            LocalFileManager.shared.setCustomDirectory(selectedPath)
                                         }
                                     }
                                 }
@@ -412,7 +412,7 @@ struct StepContent: View {
                                 .foregroundColor(.secondary)
                             }
 
-                            Text(FileManager.shared.currentNotesPath)
+                            Text(LocalFileManager.shared.currentNotesPath)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)

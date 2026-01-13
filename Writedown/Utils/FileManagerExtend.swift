@@ -7,8 +7,20 @@ extension Notification.Name {
     static let storageLocationDidChange = Notification.Name("storageLocationDidChange")
 }
 
-class FileManager {
-    static let shared = FileManager()
+// MARK: - Recent Note Model
+struct RecentNote: Identifiable {
+    let id = UUID()
+    let title: String
+    let firstLinePreview: String  // Add this to store the first line separately
+    let content: String
+    let lastModified: Date
+    let fileURL: URL
+    let sourceApp: String?  // New field for source application
+    var isStarred: Bool = false  // 新增的星标属性
+}
+
+class LocalFileManager {
+    static let shared = LocalFileManager()
     let fm = Foundation.FileManager.default
 
     // Get current week folder name (e.g., "2024W50")
@@ -266,5 +278,69 @@ class FileManager {
         }
 
         print("Archive complete")
+    }
+
+    func getRecentNotes() -> [RecentNote] {
+        do {
+            let notes = self.getAllNotes()
+            let resourceKeys = Set([URLResourceKey.contentModificationDateKey])
+
+            var notesWithDates: [(URL, Date)] = []
+            for url in notes {
+                let resourceValues = try url.resourceValues(forKeys: resourceKeys)
+                if let modificationDate = resourceValues.contentModificationDate {
+                    notesWithDates.append((url, modificationDate))
+                }
+            }
+
+            // Sort and limit
+            notesWithDates.sort { $0.1 > $1.1 }
+            let recentURLs = notesWithDates
+
+            // Convert to RecentNote objects
+            var recentNotes: [RecentNote] = []
+            for (url, date) in recentURLs {
+                if let content = try? String(contentsOf: url, encoding: .utf8) {
+                    // Get the filename without extension to use as the custom title
+                    let filename = url.deletingPathExtension().lastPathComponent
+
+                    // Get the first line for fallback if needed
+                    let lines = content.components(separatedBy: .newlines)
+                    let firstLine = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
+
+                    // Extract source app from metadata comment if available
+                    var sourceApp: String? = nil
+                    
+                    // Check for source metadata in the first line
+                    if let firstLine = lines.first, firstLine.hasPrefix("<!-- Source:") {
+                        // Look for the closing comment tag
+                        if let endTagIndex = firstLine.range(of: "-->")?.lowerBound {
+                            let startIndex = firstLine.index(firstLine.startIndex, offsetBy: 12) // Length of "<!-- Source: "
+                            // Make sure the range is valid
+                            if startIndex < endTagIndex {
+                                sourceApp = String(firstLine[startIndex..<endTagIndex]).trimmingCharacters(in: .whitespaces)
+                            }
+                        }
+                    }
+
+                    // Use filename as the title (since that's what we set during title editing)
+                    // but display the first line preview in the details
+                    let note = RecentNote(
+                        title: filename,
+                        firstLinePreview: firstLine,
+                        content: content,
+                        lastModified: date,
+                        fileURL: url,
+                        sourceApp: sourceApp
+                    )
+                    recentNotes.append(note)
+                }
+            }
+
+            return recentNotes
+        } catch {
+            print("Error getting recent notes: \(error)")
+            return []
+        }
     }
 }

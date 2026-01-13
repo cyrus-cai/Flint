@@ -303,7 +303,7 @@ struct TitleBarToolbar: View {
 
     private func generateObsidianURI(from title: String) -> String? {
         guard !title.isEmpty else { return nil }
-        let weekFolder = FileManager.shared.currentWeekDirectory?.lastPathComponent ?? ""
+        let weekFolder = LocalFileManager.shared.currentWeekDirectory?.lastPathComponent ?? ""
         let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         return "obsidian://open?vault=obsidian&file=Float%2F\(weekFolder)%2F\(encodedTitle)"
     }
@@ -743,7 +743,7 @@ class TitleBarToolbarState: ObservableObject {
     }
 
     func refreshRecentNotes() {
-        recentNotes = FileManager.getRecentNotes()
+        recentNotes = LocalFileManager.shared.getRecentNotes()
     }
 
     func renameFile() {
