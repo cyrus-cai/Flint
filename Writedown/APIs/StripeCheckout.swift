@@ -12,7 +12,7 @@ import Foundation
 /// 注意: 不在客户端存储任何 Stripe 密钥，所有敏感操作由后端处理
 struct StripeCheckout {
     // 后端 API 端点
-    private static let createSessionEndpoint = "https://www.writedown.space/api/create-checkout-session"
+    private static let createSessionEndpoint = "https://www.writedown.space/api/checkout"
 
     // MARK: - Request/Response Types
 
