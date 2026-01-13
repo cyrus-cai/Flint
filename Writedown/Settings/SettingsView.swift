@@ -146,7 +146,7 @@ class GeneralSettingsViewModel: ObservableObject {
         let calendar = Calendar.current
         var countByDay: [Date: Int] = [:]
 
-        let notes = FileManager.shared.getAllNotes()
+        let notes = LocalFileManager.shared.getAllNotes()
 
         for noteURL in notes {
             do {
@@ -268,6 +268,7 @@ struct SettingsView: View {
 
 struct GeneralSettingsView: View {
     @StateObject private var viewModel = GeneralSettingsViewModel()
+    @ObservedObject private var localizationManager = LocalizationManager.shared
     @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin = AppDefaults.launchAtLogin
     @AppStorage(AppStorageKeys.hasRequestedLaunchPermission) private var hasRequestedPermission = AppDefaults.hasRequestedLaunchPermission
     private let loginManager = LoginManager.shared
@@ -278,7 +279,7 @@ struct GeneralSettingsView: View {
             // Account Section removed as login is no longer required
             
             // Preferences Section
-            SettingsSectionHeader(title: "Preferences", icon: "gearshape")
+            SettingsSectionHeader(title: L("Preferences"), icon: "gearshape")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
@@ -290,10 +291,15 @@ struct GeneralSettingsView: View {
                     Divider()
 
                     HStack {
-                        Text("Language")
+                        Text(L("Language"))
                         Spacer()
-                        Text("English")
-                            .foregroundColor(.secondary)
+                        Picker("", selection: $localizationManager.currentLanguage) {
+                            ForEach(LocalizationManager.supportedLanguages) { language in
+                                Text(language.name).tag(language)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 120)
                     }
                 }
                 .padding(12)
@@ -326,7 +332,7 @@ struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
     
-    @State private var customPath: String = FileManager.shared.currentNotesPath
+    @State private var customPath: String = LocalFileManager.shared.currentNotesPath
 
     private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
 
@@ -374,7 +380,7 @@ struct IntegrationSettingsView: View {
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Font")
+                    Text(L("Font"))
                         .fontWeight(.medium)
 
                     HStack(spacing: 16) {
@@ -432,7 +438,7 @@ struct IntegrationSettingsView: View {
 
         if openPanel.runModal() == .OK {
             if let selectedPath = openPanel.url {
-                FileManager.shared.setCustomDirectory(selectedPath)
+                LocalFileManager.shared.setCustomDirectory(selectedPath)
                 customPath = selectedPath.path
             }
         }
@@ -473,7 +479,7 @@ struct HotkeySettingsView: View {
                         HStack {
                             Image(systemName: "option")
                                 .foregroundColor(.secondary)
-                            Text("Double press Option key")
+                            Text(L("Double press Option key"))
                         }
                     }
                     .help("Double press Option key to toggle window")
@@ -483,14 +489,14 @@ struct HotkeySettingsView: View {
                     HStack {
                         Label("Quick save", systemImage: "square.and.arrow.down")
                         Spacer()
-                        Text("Cmd + C (double click)")
+                        Text(L("Cmd + C (double click)"))
                             .foregroundColor(.secondary)
                     }
 
                     Divider()
 
                     if isPro {
-                        Text("Unlimited quick wake-ups (Pro)")
+                        Text(L("Unlimited quick wake-ups (Pro)"))
                             .font(.callout)
                             .foregroundColor(.secondary)
                     } else {
@@ -616,7 +622,7 @@ struct AboutSettingsView: View {
                         )
                     } else {
                         HStack {
-                            Text("Check for updates")
+                            Text(L("Check for updates"))
                             Spacer()
                             Button(isCheckingUpdate ? "Checking..." : "Check Now") {
                                 checkForUpdates()
@@ -648,7 +654,7 @@ struct AboutSettingsView: View {
                         if let latest = latestVersion {
                             Divider()
                             HStack {
-                                Text("Latest available")
+                                Text(L("Latest available"))
                                 Spacer()
                                 Text(latest)
                                     .foregroundColor(.secondary)
@@ -700,7 +706,7 @@ struct AboutSettingsView: View {
             // Copyright
             HStack {
                 Spacer()
-                Text("© 2025 ProductLab. All rights reserved.")
+                Text(L("© 2025 ProductLab. All rights reserved."))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Spacer()
@@ -819,7 +825,7 @@ struct AppearanceSettingsView: View {
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Appearance")
+                    Text(L("Appearance"))
                         .fontWeight(.medium)
 
                     HStack(spacing: 20) {

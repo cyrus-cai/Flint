@@ -14,13 +14,13 @@ struct SettingsListView: View {
 
     // private func generateObsidianURI(from title: String) -> String? {
     //     guard !title.isEmpty else { return nil }
-    //     let weekFolder = FileManager.shared.currentWeekDirectory?.lastPathComponent ?? ""
+    //     let weekFolder = LocalFileManager.shared.currentWeekDirectory?.lastPathComponent ?? ""
     //     let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
     //     return "obsidian://open?vault=obsidian&file=Float%2F\(weekFolder)%2F\(encodedTitle)"
     // }
 
     private func openInFinder() {
-        guard let notesDirectory = FileManager.shared.currentWeekDirectory else {
+        guard let notesDirectory = LocalFileManager.shared.currentWeekDirectory else {
             print("Could not access notes directory")
             return
         }

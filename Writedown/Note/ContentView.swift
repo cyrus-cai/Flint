@@ -59,7 +59,7 @@ struct ContentView: View {
     @State private var showToast = false
     @State private var lastSaveDate: Date?
     @State private var saveError: Error?
-    // @State private var isStorageConfigured = FileManager.shared.isPathConfigured
+    // @State private var isStorageConfigured = LocalFileManager.shared.isPathConfigured
     @State private var fileMonitor: DispatchSourceFileSystemObject?
     @AppStorage(AppStorageKeys.autoSaveInterval) private var autoSaveInterval: TimeInterval = AppDefaults.autoSaveInterval
     @State private var autoSaveTimer: AnyCancellable?
@@ -96,7 +96,7 @@ struct ContentView: View {
         stopMonitoringFile()  // 先停止之前的监听
 
         guard let currentId = currentNoteId,
-            let fileURL = FileManager.shared.fileURL(for: currentId)
+            let fileURL = LocalFileManager.shared.fileURL(for: currentId)
         else {
             return
         }
@@ -148,7 +148,7 @@ struct ContentView: View {
         do {
             // Case 1: We have an existing note (currentNoteId exists)
             if let currentId = currentNoteId,
-               let fileURL = FileManager.shared.fileURL(for: currentId) {
+               let fileURL = LocalFileManager.shared.fileURL(for: currentId) {
 
                 // For title edit, we already handled the file renaming in saveTitleEdit()
                 if trigger == .titleEdit {
@@ -166,7 +166,7 @@ struct ContentView: View {
             else {
                 let documentTitle = title  // Calculate title for new note
 
-                guard let fileURL = FileManager.shared.fileURL(for: documentTitle) else {
+                guard let fileURL = LocalFileManager.shared.fileURL(for: documentTitle) else {
                     throw NSError(
                         domain: "FileError", code: -1,
                         userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
@@ -176,7 +176,7 @@ struct ContentView: View {
                 if Foundation.FileManager.default.fileExists(atPath: fileURL.path) {
                     // Generate a unique title by adding a timestamp
                     let uniqueTitle = "\(documentTitle)_\(Int(Date().timeIntervalSince1970))"
-                    guard let uniqueFileURL = FileManager.shared.fileURL(for: uniqueTitle) else {
+                    guard let uniqueFileURL = LocalFileManager.shared.fileURL(for: uniqueTitle) else {
                         throw NSError(
                             domain: "FileError", code: -1,
                             userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
@@ -250,7 +250,7 @@ struct ContentView: View {
         }
         // If no fileURL is provided but we have a currentNoteId, try to use that
         else if let currentId = currentNoteId,
-            let fileURL = FileManager.shared.fileURL(for: currentId)
+            let fileURL = LocalFileManager.shared.fileURL(for: currentId)
         {
             // Set the custom title to the currentNoteId
             customTitle = currentId
@@ -371,8 +371,8 @@ struct ContentView: View {
 
             // Rename the file if we have an existing note
             if let currentId = currentNoteId,
-               let oldFileURL = FileManager.shared.fileURL(for: currentId),
-               let newFileURL = FileManager.shared.fileURL(for: editedTitle) {
+               let oldFileURL = LocalFileManager.shared.fileURL(for: currentId),
+               let newFileURL = LocalFileManager.shared.fileURL(for: editedTitle) {
 
                 do {
                     // Check if a file with this title already exists
@@ -510,8 +510,8 @@ struct ContentView: View {
             toolbarState.onRenameWithTitle = { newTitle in
                 // 确保 currentNoteId 不为 nil
                 guard let currentId = currentNoteId,
-                      let oldFileURL = FileManager.shared.fileURL(for: currentId),
-                      let newFileURL = FileManager.shared.fileURL(for: newTitle) else { return }
+                      let oldFileURL = LocalFileManager.shared.fileURL(for: currentId),
+                      let newFileURL = LocalFileManager.shared.fileURL(for: newTitle) else { return }
 
                 do {
                     try Foundation.FileManager.default.moveItem(at: oldFileURL, to: newFileURL)
@@ -554,7 +554,7 @@ struct ContentView: View {
             }
         }
         // .onReceive(NotificationCenter.default.publisher(for: .storageLocationDidChange)) { _ in
-        //     isStorageConfigured = FileManager.shared.isPathConfigured
+        //     isStorageConfigured = LocalFileManager.shared.isPathConfigured
         // }
         .onDisappear {
             removeKeyboardMonitor()

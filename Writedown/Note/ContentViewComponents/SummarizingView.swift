@@ -21,7 +21,7 @@ struct SummarizingView: View {
                 .frame(width: 16, height: 16)
             
             // Summarizing status message
-            Text("Summarizing...")
+            Text(L("Summarizing..."))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.secondary)
             

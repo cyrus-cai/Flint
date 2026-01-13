@@ -270,3 +270,89 @@ struct DesignSystemHelper_Previews: PreviewProvider {
     }
 }
 #endif
+
+// MARK: - Localization Manager
+
+struct Language: Identifiable, Hashable {
+    let code: String
+    let name: String
+    var id: String { code }
+}
+
+class LocalizationManager: ObservableObject {
+    static let shared = LocalizationManager()
+    @Published var currentLanguage: Language = .en {
+        didSet {
+            UserDefaults.standard.set(currentLanguage.code, forKey: "selectedLanguage")
+            NotificationCenter.default.post(name: .languageDidChange, object: nil)
+        }
+    }
+
+    static let supportedLanguages: [Language] = [
+        .en,
+        .zh,
+    ]
+    
+    private let translations: [String: [String: String]] = [
+        "No notes": ["zh-Hans": "暂无笔记"],
+        "No matching notes": ["zh-Hans": "未找到匹配的笔记"],
+        "Summarizing...": ["zh-Hans": "正在生成摘要..."],
+        "Copy": ["zh-Hans": "复制"],
+        "Share": ["zh-Hans": "分享"],
+        "Remove Star": ["zh-Hans": "取消收藏"],
+        "Add Star": ["zh-Hans": "添加收藏"],
+        "Archive Note": ["zh-Hans": "归档笔记"],
+        "Language": ["zh-Hans": "语言"],
+        "English": ["zh-Hans": "英语"],
+        "Font": ["zh-Hans": "字体"],
+        "Appearance": ["zh-Hans": "外观"],
+        "Check for updates": ["zh-Hans": "检查更新"],
+        "Latest available": ["zh-Hans": "已是最新版本"],
+        "Version": ["zh-Hans": "版本"],
+        "Build": ["zh-Hans": "构建版本"],
+        "Double press Option key": ["zh-Hans": "双击 Option 键"],
+        "Cmd + C (double click)": ["zh-Hans": "Cmd + C (双击)"],
+        "Unlimited quick wake-ups (Pro)": ["zh-Hans": "无限快速唤醒 (Pro)"],
+        "© 2025 ProductLab. All rights reserved.": ["zh-Hans": "© 2025 ProductLab. 保留所有权利。"],
+        "Open Writedown": ["zh-Hans": "打开 Writedown"],
+        "Content Saved": ["zh-Hans": "内容已保存"],
+        "Settings": ["zh-Hans": "设置"],
+        "General": ["zh-Hans": "通用"],
+        "About": ["zh-Hans": "关于"],
+        "Quit": ["zh-Hans": "退出"],
+        "Preferences": ["zh-Hans": "偏好设置"],
+        "Shortcut": ["zh-Hans": "快捷键"],
+        "Display": ["zh-Hans": "显示"],
+        "Update": ["zh-Hans": "更新"],
+        "Cancel": ["zh-Hans": "取消"],
+        "Done": ["zh-Hans": "完成"]
+    ]
+
+    private init() {
+        let savedLangCode = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
+        currentLanguage = Language.from(code: savedLangCode) ?? .en
+    }
+
+    func localizedString(_ key: String) -> String {
+        if currentLanguage.code == "en" { return key }
+        return translations[key]?[currentLanguage.code] ?? key
+    }
+}
+
+extension Language {
+    static let en = Language(code: "en", name: "English")
+    static let zh = Language(code: "zh-Hans", name: "简体中文")
+
+    static func from(code: String) -> Language? {
+        LocalizationManager.supportedLanguages.first { $0.code == code }
+    }
+}
+
+extension Notification.Name {
+    static let languageDidChange = Notification.Name("languageDidChange")
+}
+
+func L(_ key: String) -> String {
+    return LocalizationManager.shared.localizedString(key)
+}
+
