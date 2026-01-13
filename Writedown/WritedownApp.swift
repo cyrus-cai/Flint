@@ -133,6 +133,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     private var limitExceededWindow: LimitExceededWindowController?
     var globalKeyMonitor: GlobalKeyMonitor?
 
+    /// 订阅管理器 - 集中管理订阅状态
+    private let subscriptionManager = SubscriptionManager.shared
+
     private func updateAppearance(_ mode: AppearanceMode) {
         if let window = NSApp.windows.first {
             switch mode {
@@ -150,24 +153,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Track app launch
         Mixpanel.mainInstance().track(event: "App Launched")
-         UpdateManager.shared.checkAndDownloadUpdate()
+        UpdateManager.shared.checkAndDownloadUpdate()
 
-        // Check pro status based on device ID
-        Task {
-            if let deviceId = DeviceManager.shared.getDeviceIdentifier() {
-                do {
-                    let isPro = try await ProStatusChecker.shared.checkProStatus(deviceId: deviceId)
-                    await MainActor.run {
-                        UserDefaults.standard.set(isPro, forKey: "isPro")
-                        print("✅ Pro status updated: \(isPro)")
-                    }
-                } catch {
-                    print("❌ Failed to verify pro status: \(error)")
-                }
-            } else {
-                print("❌ Failed to retrieve device identifier")
-            }
-        }
+        // 订阅状态由 SubscriptionManager 自动管理
+        // SubscriptionManager.shared 在初始化时会自动验证订阅状态
+        // 并在应用激活时自动重新验证（带缓存）
+        _ = subscriptionManager  // 触发 lazy 初始化
 
         // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)
@@ -391,7 +382,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                         Mixpanel.mainInstance().people.set(property: "isPro", to: true)
 
                         // Update subscription status in UserDefaults
-                        DispatchQueue.main.async {
+                        await MainActor.run {
                             let defaults = UserDefaults.standard
                             defaults.set(true, forKey: "isPro")
                             defaults.synchronize()
@@ -407,6 +398,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                             notification.title = "Payment Successful"
                             notification.informativeText = "Welcome to Writedown Pro!"
                             NSUserNotificationCenter.default.deliver(notification)
+                        }
+                    } else {
+                        print("❌ Payment verification failed: Invalid response")
+                    }
+                } catch {
+                    print("❌ Payment verification failed:", error)
+                }
+            }
+        }
     }
 
     // MARK: - NSUserNotificationCenterDelegate
@@ -416,7 +416,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                let filePath = userInfo["filePath"] as? String,
                let content = userInfo["content"] as? String {
                 let fileURL = URL(fileURLWithPath: filePath)
-                
+
                 // If there is no active note window, create one using the window manager.
                 if WindowManager.shared.activeWindow == nil {
                     WindowManager.shared.createNewWindow()
@@ -433,13 +433,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                         object: nil,
                         userInfo: ["content": content, "fileURL": fileURL]
                     )
-                }
-            }
-        }
-    }
-}
-                } catch {
-                    print("❌ Payment verification failed:", error)
                 }
             }
         }

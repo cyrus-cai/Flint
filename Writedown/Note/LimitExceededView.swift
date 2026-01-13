@@ -10,6 +10,7 @@ import SwiftUI
 
 struct LimitExceededView: View {
     @AppStorage("userEmail") private var userEmail: String = ""
+    @StateObject private var paymentVM = PaymentViewModel()
 
     var body: some View {
         VStack(spacing: 24) {
@@ -24,7 +25,6 @@ struct LimitExceededView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                // .shadow(color: .yellow.opacity(0.3), radius: 8)
 
                 Text("Daily Limit Reached")
                     .font(.system(size: 20, weight: .semibold))
@@ -48,45 +48,58 @@ struct LimitExceededView: View {
 
             // Action buttons
             VStack(spacing: 12) {
+                // 升级按钮
                 Button(action: {
                     Task {
-                        do {
-                            let request = StripeCheckout.CheckoutRequest(
-                                planId: "pro",
-                                email: UserDefaults.standard.string(forKey: "userEmail"),
-                                deviceId: DeviceManager.shared.getDeviceIdentifier()
-                            )
-
-                            let response = await StripeCheckout.createCheckoutSession(
-                                request: request,
-                                origin: "https://www.writedown.space/stripePayment"
-                            )
-
-                            if let urlString = response.url,
-                                let url = URL(string: urlString)
-                            {
-                                NSWorkspace.shared.open(url)
-                            }
-                        }
+                        await paymentVM.startPayment()
                     }
                 }) {
-                    Text("RMB 48 Lifetime-Pro")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 36)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(.systemPurple), Color(.systemPink)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                    HStack(spacing: 8) {
+                        if paymentVM.isProcessing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .frame(width: 16, height: 16)
+                        }
+                        Text(paymentVM.isProcessing ? "Processing..." : "RMB 48 Lifetime-Pro")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(.systemPurple), Color(.systemPink)],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .cornerRadius(8)
-                        .shadow(color: Color(.systemPurple).opacity(0.3), radius: 8)
+                    )
+                    .cornerRadius(8)
+                    .shadow(color: Color(.systemPurple).opacity(0.3), radius: 8)
                 }
                 .buttonStyle(.plain)
+                .disabled(paymentVM.isProcessing)
 
+                // 恢复购买按钮
+                Button(action: {
+                    Task {
+                        await paymentVM.restorePurchase()
+                    }
+                }) {
+                    HStack(spacing: 6) {
+                        if paymentVM.isProcessing {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .frame(width: 14, height: 14)
+                        }
+                        Text("Restore Purchase")
+                            .font(.system(size: 13))
+                    }
+                    .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .disabled(paymentVM.isProcessing)
+
+                // 登录按钮（仅未登录时显示）
                 if userEmail.isEmpty {
                     Button(action: {
                         if let url = URL(string: "https://www.writedown.space/login") {
@@ -105,6 +118,37 @@ struct LimitExceededView: View {
         .padding(20)
         .frame(width: 360)
         .background(Color.clear)
+        .alert(
+            "Error",
+            isPresented: Binding(
+                get: { paymentVM.error != nil },
+                set: { if !$0 { paymentVM.clearError() } }
+            ),
+            presenting: paymentVM.error
+        ) { error in
+            Button("Retry") {
+                Task { await paymentVM.retry() }
+            }
+            Button("Cancel", role: .cancel) {
+                paymentVM.clearError()
+            }
+        } message: { error in
+            VStack {
+                Text(error.localizedDescription)
+                if let suggestion = error.recoverySuggestion {
+                    Text(suggestion)
+                        .font(.caption)
+                }
+            }
+        }
+        .alert("Success", isPresented: $paymentVM.showSuccessAlert) {
+            Button("OK") {
+                // 关闭窗口
+                NSApp.keyWindow?.close()
+            }
+        } message: {
+            Text("Welcome to Writedown Pro! You now have unlimited quick wake-ups.")
+        }
     }
 }
 

@@ -455,6 +455,7 @@ struct HotkeySettingsView: View {
     @ObservedObject var counter: HotkeyCounter
     @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
     @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleOption = AppDefaults.enableDoubleOption
+    @StateObject private var paymentVM = PaymentViewModel()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -499,16 +500,35 @@ struct HotkeySettingsView: View {
                                 .font(.callout)
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Button("Upgrade to Pro") {
-                                openProUpgrade()
+
+                            if paymentVM.isProcessing {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                Button("Upgrade to Pro") {
+                                    openProUpgrade()
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(.purple)
+                                .controlSize(.small)
                             }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.purple)
-                            .controlSize(.small)
                         }
                     }
                 }
                 .padding(12)
+            }
+            .alert(
+                "Payment Error",
+                isPresented: Binding(
+                    get: { paymentVM.error != nil },
+                    set: { if !$0 { paymentVM.clearError() } }
+                ),
+                presenting: paymentVM.error
+            ) { _ in
+                Button("OK") { paymentVM.clearError() }
+            } message: { error in
+                Text(error.localizedDescription)
             }
 
             // Note Operations Section
@@ -551,20 +571,7 @@ struct HotkeySettingsView: View {
 
     private func openProUpgrade() {
         Task {
-            let request = StripeCheckout.CheckoutRequest(
-                planId: "pro",
-                email: UserDefaults.standard.string(forKey: AppStorageKeys.userEmail),
-                deviceId: DeviceManager.shared.getDeviceIdentifier()
-            )
-
-            let response = await StripeCheckout.createCheckoutSession(
-                request: request,
-                origin: "https://www.writedown.space/stripePayment"
-            )
-
-            if let urlString = response.url, let url = URL(string: urlString) {
-                NSWorkspace.shared.open(url)
-            }
+            await paymentVM.startPayment()
         }
     }
 }

@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(swiftc:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(ruby -e:*)",
+      "Bash(xcodebuild -list)"
     ]
   }
 }

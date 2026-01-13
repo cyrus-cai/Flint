@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
+		540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */; };
 		A30F32A02D4DDAAA0028E47E /* ProStatusChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */; };
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
@@ -42,6 +43,7 @@
 		A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */; };
 		A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */; };
 		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
+		FE9F1F51C1FD76EDF6D702B3 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +65,7 @@
 
 /* Begin PBXFileReference section */
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
+		97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PaymentViewModel.swift; sourceTree = "<group>"; };
 		A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStatusChecker.swift; sourceTree = "<group>"; };
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
@@ -98,6 +101,7 @@
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 		A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeCheckout.swift; sourceTree = "<group>"; };
 		A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageManager.swift; sourceTree = "<group>"; };
+		D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -128,6 +132,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		44E7FBEC77376A0FDCD6572D /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */,
+			);
+			name = ViewModels;
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		82949F51FCBCF2C138A5F560 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */,
+			);
+			name = Services;
+			path = Services;
+			sourceTree = "<group>";
+		};
 		A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */ = {
 			isa = PBXGroup;
 			children = (
@@ -208,6 +230,8 @@
 				A37D47382CDE6ECF00B2E727 /* Assets.xcassets */,
 				A37D473D2CDE6ECF00B2E727 /* Writedown.entitlements */,
 				A37D473A2CDE6ECF00B2E727 /* Preview Content */,
+				82949F51FCBCF2C138A5F560 /* Services */,
+				44E7FBEC77376A0FDCD6572D /* ViewModels */,
 			);
 			path = Writedown;
 			sourceTree = "<group>";
@@ -441,6 +465,8 @@
 				A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */,
 				A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */,
 				A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */,
+				FE9F1F51C1FD76EDF6D702B3 /* SubscriptionManager.swift in Sources */,
+				540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
