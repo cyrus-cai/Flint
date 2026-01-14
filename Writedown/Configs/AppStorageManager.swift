@@ -43,7 +43,7 @@ struct AppDefaults {
     static let isPro = false
 
     // Note Settings
-    static let AIModel = AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "Doubao-lite-32k"
+    static let AIModel = AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "ep-20250128221733-ldppp"
     static let enableAIRename = true
     static let editorFont = "System"
     static let autoSaveInterval: TimeInterval = 10

@@ -447,10 +447,10 @@ struct IntegrationSettingsView: View {
     private func validateAIModel() {
         if let currentModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel) {
             if !allowedModels.contains(where: { $0.modelId == currentModel }) {
-                AIModel = allowedModels.first?.modelId ?? "ep-20250208231403-7dmtb"
+                AIModel = allowedModels.first?.modelId ?? "ep-20250128221733-ldppp"
             }
         } else {
-            AIModel = allowedModels.first?.modelId ?? "ep-20250208231403-7dmtb"
+            AIModel = allowedModels.first?.modelId ?? "ep-20250128221733-ldppp"
         }
     }
 }

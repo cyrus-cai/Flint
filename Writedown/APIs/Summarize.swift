@@ -180,11 +180,11 @@ class DoubaoAPI {
 
         // Retrieve the user-selected model from UserDefaults.
         // If none is found (or if for some reason the stored value is missing),
-        // fall back to the first non-pro model.
+        // fall back to the working endpoint (ep-20250128221733-ldppp)
         let selectedModel =
             UserDefaults.standard.string(forKey: "AIModel")
             ?? AIModelConfig.availableModels.first(where: { !$0.isProOnly })?.modelId
-            ?? "ep-20250212220411-mtfqd"
+            ?? "ep-20250128221733-ldppp"
 
         // Select the appropriate prompt based on summarization type
         let systemPrompt: String
