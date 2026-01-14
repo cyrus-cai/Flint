@@ -70,16 +70,6 @@ class LocalFileManager {
         return base
     }
 
-    // Get Archive directory
-    var archiveDirectory: URL? {
-        guard let floatDir = floatDirectory else { return nil }
-        let archiveURL = floatDir.appendingPathComponent("Archived")
-        if !fm.fileExists(atPath: archiveURL.path) {
-            try? fm.createDirectory(at: archiveURL, withIntermediateDirectories: true)
-        }
-        return archiveURL
-    }
-
     // Get current week directory
     var currentWeekDirectory: URL? {
         guard let floatDir = floatDirectory else { return nil }
@@ -216,72 +206,6 @@ class LocalFileManager {
         } catch {
             print("Migration error: \(error)")
         }
-    }
-
-    // Add this method to get monthly archive folder
-    func getMonthlyArchiveFolder() -> URL? {
-        guard let archiveDir = archiveDirectory else { return nil }
-
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMM"
-        let folderName = dateFormatter.string(from: Date())
-
-        let monthFolder = archiveDir.appendingPathComponent(folderName)
-        do {
-            try fm.createDirectory(
-                at: monthFolder, withIntermediateDirectories: true, attributes: nil)
-            print("Created archive folder at: \(monthFolder.path)")
-            return monthFolder
-        } catch {
-            print("Error creating archive folder: \(error)")
-            return nil
-        }
-    }
-
-    // Add archive note method
-    func archiveNote(at sourceURL: URL) throws -> URL {
-        print("Starting archive process...")
-        print("Source file: \(sourceURL.path)")
-
-        guard let monthFolder = getMonthlyArchiveFolder() else {
-            print("Failed to create archive folders")
-            throw NSError(
-                domain: "FileManager", code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Could not create archive folders"])
-        }
-
-        let fileName = sourceURL.lastPathComponent
-        let destinationURL = monthFolder.appendingPathComponent(fileName)
-
-        // Check if source file exists
-        guard fm.fileExists(atPath: sourceURL.path) else {
-            print("Source file does not exist")
-            throw NSError(
-                domain: "FileManager", code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Source file does not exist"])
-        }
-
-        print("Moving file to: \(destinationURL.path)")
-
-        let actualDestinationURL: URL
-        if fm.fileExists(atPath: destinationURL.path) {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyyMMddHHmmss"
-            let timestamp = dateFormatter.string(from: Date())
-            let nameWithoutExtension = (fileName as NSString).deletingPathExtension
-            let newFileName = "\(nameWithoutExtension)_\(timestamp).md"
-            let newDestinationURL = monthFolder.appendingPathComponent(newFileName)
-
-            print("File exists, using new name: \(newFileName)")
-            try fm.moveItem(at: sourceURL, to: newDestinationURL)
-            actualDestinationURL = newDestinationURL
-        } else {
-            try fm.moveItem(at: sourceURL, to: destinationURL)
-            actualDestinationURL = destinationURL
-        }
-
-        print("Archive complete at: \(actualDestinationURL.path)")
-        return actualDestinationURL
     }
 
     func getRecentNotes() -> [RecentNote] {

@@ -42,21 +42,10 @@ class RecentNotesViewModel: ObservableObject {
     @Published var hoveredNoteIndex: Int? = nil
     @Published var currentNoteIndex: Int? = nil
     @Published private var isHoverEnabled = true
-    @Published var showArchiveToast = false
-    @Published var archivedNotes: [RecentNote] = []
-    @Published var showUndoArchiveToast = false
-    @Published var archivedNotesCount = 0
     @Published var showStarredOnly = false
 
     // 用于存储星标笔记的路径
     private let starredNotesKey = "StarredNotes"
-
-    // 存储原始 URL 到归档 URL 的映射
-    private var archivedURLMapping: [URL: URL] = [:]
-
-    // 定时器用于控制 toast 隐藏和映射清理
-    private var toastHideTask: DispatchWorkItem?
-    private var mappingCleanupTask: DispatchWorkItem?
 
     init() {
         notes = LocalFileManager.shared.getRecentNotes()
@@ -107,77 +96,6 @@ class RecentNotesViewModel: ObservableObject {
 
         } catch {
             print("Error deleting note: \(error)")
-            print("File path: \(note.fileURL.path)")
-            print("Error details: \(error.localizedDescription)")
-        }
-    }
-
-    func archiveNote(_ note: RecentNote) {
-        do {
-            let fileToArchive = note.fileURL
-            print("=== archiveNote called ===")
-            print("Attempting to archive file at: \(fileToArchive.path)")
-
-            // Cancel any existing timers
-            toastHideTask?.cancel()
-            mappingCleanupTask?.cancel()
-
-            // Verify file exists
-            let fileManager = LocalFileManager.shared
-            guard fileManager.fm.fileExists(atPath: fileToArchive.path) else {
-                print("❌ File does not exist at path: \(fileToArchive.path)")
-                return
-            }
-
-            // Archive the file and get the actual archived URL
-            let archivedURL = try fileManager.archiveNote(at: fileToArchive)
-            print("✅ File archived to: \(archivedURL.path)")
-
-            // Store the mapping from original URL to archived URL
-            archivedURLMapping[note.fileURL] = archivedURL
-            print("✅ Stored mapping: \(note.fileURL.path) -> \(archivedURL.path)")
-            print("Current mapping count: \(archivedURLMapping.count)")
-
-            withAnimation(.easeOut(duration: 0.0)) {
-                // Remove from memory, update selection, and refresh notes list
-                notes.removeAll { $0.fileURL == note.fileURL }
-                updateSelectionAfterDeletion()
-                notes = LocalFileManager.shared.getRecentNotes()
-            }
-
-            // Set undo support for the single note archive
-            archivedNotes = [note]
-            archivedNotesCount = 1
-            print("✅ Set archivedNotes and archivedNotesCount")
-
-            withAnimation(.easeIn(duration: 0.2)) {
-                showUndoArchiveToast = true
-            }
-            print("✅ Showing undo toast")
-
-            // Schedule toast hiding (5 seconds)
-            let hideTask = DispatchWorkItem { [weak self] in
-                withAnimation(.easeOut(duration: 0.2)) {
-                    print("⏰ Auto-hiding undo toast (mapping preserved)")
-                    self?.showUndoArchiveToast = false
-                }
-            }
-            toastHideTask = hideTask
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: hideTask)
-
-            // Schedule mapping cleanup (30 seconds)
-            let cleanupTask = DispatchWorkItem { [weak self] in
-                print("⏰ Cleaning up mapping after 30s")
-                self?.archivedNotes = []
-                self?.archivedNotesCount = 0
-                self?.archivedURLMapping.removeValue(forKey: note.fileURL)
-                print("Cleared mapping and state")
-            }
-            mappingCleanupTask = cleanupTask
-            DispatchQueue.main.asyncAfter(deadline: .now() + 30, execute: cleanupTask)
-
-        } catch {
-            print("❌ Error archiving note: \(error)")
             print("File path: \(note.fileURL.path)")
             print("Error details: \(error.localizedDescription)")
         }
@@ -366,140 +284,6 @@ class RecentNotesViewModel: ObservableObject {
         return groupsArray
     }
 
-    func archiveGroupNotes(_ notes: [RecentNote], groupTitle: String) {
-        print("=== archiveGroupNotes called ===")
-        print("Group: \(groupTitle), Count: \(notes.count)")
-
-        // Cancel any existing timers
-        toastHideTask?.cancel()
-        mappingCleanupTask?.cancel()
-
-        archivedNotes = notes
-        archivedNotesCount = notes.count
-
-        for note in notes {
-            do {
-                let fileToArchive = note.fileURL
-                guard LocalFileManager.shared.fm.fileExists(atPath: fileToArchive.path) else {
-                    print("⚠️ Skipping non-existent file: \(fileToArchive.path)")
-                    continue
-                }
-
-                // Archive the file and get the actual archived URL
-                let archivedURL = try LocalFileManager.shared.archiveNote(at: fileToArchive)
-                print("✅ Archived: \(fileToArchive.path) -> \(archivedURL.path)")
-
-                // Store the mapping from original URL to archived URL
-                archivedURLMapping[note.fileURL] = archivedURL
-
-                withAnimation(.easeOut(duration: 0.0)) {
-                    self.notes.removeAll { $0.fileURL == note.fileURL }
-                }
-            } catch {
-                print("❌ Error archiving note: \(error)")
-            }
-        }
-
-        print("✅ Total mappings stored: \(archivedURLMapping.count)")
-        print("✅ Showing undo toast")
-
-        withAnimation(.easeIn(duration: 0.2)) {
-            showUndoArchiveToast = true
-        }
-
-        // Schedule toast hiding (5 seconds)
-        let hideTask = DispatchWorkItem { [weak self] in
-            withAnimation(.easeOut(duration: 0.2)) {
-                print("⏰ Auto-hiding group undo toast (mapping preserved)")
-                self?.showUndoArchiveToast = false
-            }
-        }
-        toastHideTask = hideTask
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: hideTask)
-
-        // Schedule mapping cleanup (30 seconds)
-        let cleanupTask = DispatchWorkItem { [weak self] in
-            print("⏰ Cleaning up group mappings after 30s")
-            self?.archivedNotes = []
-            self?.archivedNotesCount = 0
-            // Clear the mappings for these notes
-            for note in notes {
-                self?.archivedURLMapping.removeValue(forKey: note.fileURL)
-            }
-            print("Cleared all mappings and state")
-        }
-        mappingCleanupTask = cleanupTask
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30, execute: cleanupTask)
-    }
-
-    func undoGroupArchive() {
-        print("=== undoGroupArchive called ===")
-        print("Archived notes count: \(archivedNotes.count)")
-        print("Mapping count: \(archivedURLMapping.count)")
-        print("Mapping contents: \(archivedURLMapping)")
-
-        // Cancel the scheduled timers since user clicked undo
-        toastHideTask?.cancel()
-        mappingCleanupTask?.cancel()
-        print("✅ Cancelled scheduled tasks")
-
-        var restoredCount = 0
-        for note in archivedNotes {
-            do {
-                print("Processing note: \(note.fileURL.path)")
-
-                // Get the actual archived URL from the mapping
-                guard let archivedURL = archivedURLMapping[note.fileURL] else {
-                    print("❌ Warning: No archived URL mapping found for \(note.fileURL.path)")
-                    continue
-                }
-
-                print("Found archived URL: \(archivedURL.path)")
-
-                // Verify the archived file exists
-                guard LocalFileManager.shared.fm.fileExists(atPath: archivedURL.path) else {
-                    print("❌ Warning: Archived file not found at \(archivedURL.path)")
-                    continue
-                }
-
-                print("Archived file exists, attempting to restore...")
-
-                // Ensure the original directory exists
-                let originalDir = note.fileURL.deletingLastPathComponent()
-                if !LocalFileManager.shared.fm.fileExists(atPath: originalDir.path) {
-                    print("Creating original directory: \(originalDir.path)")
-                    try LocalFileManager.shared.fm.createDirectory(at: originalDir, withIntermediateDirectories: true)
-                }
-
-                // Move the file back to its original location
-                try LocalFileManager.shared.fm.moveItem(at: archivedURL, to: note.fileURL)
-                print("✅ Successfully restored file to \(note.fileURL.path)")
-                restoredCount += 1
-
-                // Remove the mapping since the file has been restored
-                archivedURLMapping.removeValue(forKey: note.fileURL)
-            } catch {
-                print("❌ Error restoring note: \(error)")
-                print("Original path: \(note.fileURL.path)")
-                if let archivedURL = archivedURLMapping[note.fileURL] {
-                    print("Archived path: \(archivedURL.path)")
-                }
-            }
-        }
-
-        withAnimation {
-            showUndoArchiveToast = false
-            archivedNotes = []
-            archivedNotesCount = 0
-        }
-
-        // Refresh the notes list to ensure UI is in sync
-        print("Refreshing notes list...")
-        notes = LocalFileManager.shared.getRecentNotes()
-        print("Notes list refreshed. Count: \(notes.count)")
-        print("=== undoGroupArchive completed. Restored \(restoredCount) notes ===")
-    }
-
     // 切换笔记的星标状态
     func toggleStarred(_ note: RecentNote) {
         guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
@@ -544,9 +328,7 @@ struct RecentNotesListView: View {
     @State private var isShowAllHovered = false
     @State private var eventMonitor: Any?
     @State private var isCopyButtonHovered = false
-    @State private var isCopyArchiveButtonHovered = false
     @State private var isShareButtonHovered = false
-    @State private var isShareArchiveButtonHovered = false
 
     private func setupKeyboardMonitor() {
         removeKeyboardMonitor()
@@ -577,17 +359,6 @@ struct RecentNotesListView: View {
                     let currentNote = viewModel.filteredNotes[currentIndex]
                     onSelectNote(currentNote.content, currentNote.fileURL)
                     dismiss()
-                    return nil
-                }
-                return event
-            case 51:  // Delete key
-                if event.modifierFlags.contains(.command) {
-                    if let currentIndex = viewModel.currentNoteIndex {
-                        let currentNote = viewModel.filteredNotes[currentIndex]
-                        withAnimation {
-                            viewModel.archiveNote(currentNote)
-                        }
-                    }
                     return nil
                 }
                 return event
@@ -691,37 +462,6 @@ struct RecentNotesListView: View {
             .modifier(RecentNotesPopoverBackgroundModifier(colorScheme: colorScheme))
             .cornerRadius(8)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
-
-            // Toast View
-            if viewModel.showArchiveToast {
-                VStack {
-                    Spacer()
-                    StandardToastView(
-                        icon: "archivebox.fill",
-                        message: "Note Archived"
-                    )
-                }
-                .transition(.opacity)
-            }
-
-            // Add Undo Toast
-            if viewModel.showUndoArchiveToast {
-                VStack {
-                    Spacer()
-                    StandardToastView(
-                        icon: "archivebox.fill",
-                        message: viewModel.archivedNotesCount == 1
-                            ? "Note Archived"
-                            : "Copied summary & archived \(viewModel.archivedNotesCount) \(viewModel.archivedNotesCount == 1 ? "note" : "notes")",
-                        actionButton: ("Undo", {
-                            print("🔘 Undo button clicked!")
-                            viewModel.undoGroupArchive()
-                        })
-                    )
-                }
-                .padding(.horizontal, 12)
-                .transition(.opacity)
-            }
         }
         .onAppear {
             setupKeyboardMonitor()
@@ -745,7 +485,6 @@ struct NoteRow: View {
     let note: RecentNote
     let isHighLight: Bool
     let onTap: () -> Void
-    let onDelete: () -> Void
     let onHover: (Bool) -> Void
     let searchText: String
     var onToggleStar: () -> Void  // 新增的星标切换回调
@@ -758,11 +497,8 @@ struct NoteRow: View {
     @State private var isStarHovered = false  // 添加星标悬停状态
     @State private var isSummarizing = false
     @State private var summary: String?
-    @State private var showArchivePreview = false
-    @State private var archiveHoverWorkItem: DispatchWorkItem?
 
     @Environment(\.colorScheme) private var colorScheme
-    @State private var isDeleteHovered = false
 
     private func getRelativeTime(from date: Date) -> String {
         let now = Date()
@@ -978,19 +714,6 @@ struct NoteRow: View {
                     }
                     .padding(.vertical, 4)
                 }
-
-                Divider()
-
-                Button(action: onDelete) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "archivebox")
-                            .imageScale(.medium)
-                            .foregroundColor(.red)
-                        Text(L("Archive Note"))
-                            .font(.system(size: 13))
-                    }
-                    .padding(.vertical, 4)
-                }
             }
 
             // Always show star if the note is starred, regardless of hover state
@@ -1050,47 +773,6 @@ struct NoteRow: View {
                    .popover(isPresented: $showPreview, arrowEdge: .leading) {
                     NotePreviewView(content: note.content)
                 }
-
-
-                // Archive button
-                Button(action: onDelete) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 13))
-                            .foregroundColor(.primary)
-                        Spacer()
-                    }
-                    .frame(width: 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(
-                                isDeleteHovered
-                                    ? (colorScheme == .dark
-                                        ? Color.white.opacity(0.1)
-                                        : Color.black.opacity(0.05))
-                                    : Color.clear)
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-                .onHover { hovering in
-                    isDeleteHovered = hovering
-                    if hovering {
-                        let workItem = DispatchWorkItem {
-                            withAnimation {
-                                showArchivePreview = true
-                            }
-                        }
-                        archiveHoverWorkItem = workItem
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
-                    } else {
-                        archiveHoverWorkItem?.cancel()
-                        withAnimation {
-                            showArchivePreview = false
-                        }
-                    }
-                }
-                .help("Archive this note")
 
                 // Star button - only shown on hover if not already starred
                 Button(action: onToggleStar) {
@@ -1389,11 +1071,6 @@ struct CollapsibleGroupView: View {
                             onTap: {
                                 onSelectNote(note.content, note.fileURL)
                                 dismiss()
-                            },
-                            onDelete: {
-                                withAnimation {
-                                    viewModel.archiveNote(note)
-                                }
                             },
                             onHover: { isHovered in
                                 viewModel.setHoveredNote(isHovered ? globalIndex : nil)
