@@ -9,10 +9,31 @@ EXPORT_PATH="$BUILD_DIR/Export"
 ZIP_PATH="$BUILD_DIR/$APP_NAME.zip"
 
 # Extract Version Info
-echo "🔍 Reading version info..."
-VERSION_SETTINGS=$(xcodebuild -scheme "$SCHEME" -showBuildSettings 2>/dev/null)
-MARKETING_VERSION=$(echo "$VERSION_SETTINGS" | grep "MARKETING_VERSION =" | cut -d '=' -f 2 | xargs)
-CURRENT_PROJECT_VERSION=$(echo "$VERSION_SETTINGS" | grep "CURRENT_PROJECT_VERSION =" | cut -d '=' -f 2 | xargs)
+echo "🔍 Reading version info from Info.plist..."
+# Prioritize the known location
+PLIST_PATH="Writedown-Info.plist"
+
+if [ ! -f "$PLIST_PATH" ]; then
+    PLIST_PATH="$APP_NAME/Info.plist"
+fi
+
+# Check if Info.plist exists in standard location, if not try to find it
+if [ ! -f "$PLIST_PATH" ]; then
+    PLIST_PATH=$(find . -name "Info.plist" -not -path "*/.*" | grep "$APP_NAME-Info.plist" | head -n 1)
+    if [ -z "$PLIST_PATH" ]; then
+         PLIST_PATH=$(find . -name "Info.plist" -not -path "*/.*" | grep "$APP_NAME/Info.plist" | head -n 1)
+    fi
+fi
+
+if [ -f "$PLIST_PATH" ]; then
+    MARKETING_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST_PATH")
+    CURRENT_PROJECT_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PLIST_PATH")
+else
+    # Fallback to xcodebuild if plist not found (slower/less reliable for changed files)
+    VERSION_SETTINGS=$(xcodebuild -scheme "$SCHEME" -showBuildSettings 2>/dev/null)
+    MARKETING_VERSION=$(echo "$VERSION_SETTINGS" | grep "MARKETING_VERSION =" | cut -d '=' -f 2 | xargs)
+    CURRENT_PROJECT_VERSION=$(echo "$VERSION_SETTINGS" | grep "CURRENT_PROJECT_VERSION =" | cut -d '=' -f 2 | xargs)
+fi
 
 if [ -z "$MARKETING_VERSION" ]; then
     echo "⚠️  Could not detect version. Using default."

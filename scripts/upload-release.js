@@ -16,7 +16,8 @@ async function uploadRelease() {
     }
 
     const appName = "Writedown";
-    const zipFileName = `${appName}.app.zip`;
+    // Match the output filename from package.sh (Writedown.zip)
+    const zipFileName = `${appName}.zip`;
     const zipPath = path.join(__dirname, '..', 'build', zipFileName);
 
     try {
@@ -38,7 +39,8 @@ async function uploadRelease() {
             const { url } = await put(`${appName}-${version}.zip`, fileContent, {
                 access: 'public',
                 token: token,
-                addRandomSuffix: false
+                addRandomSuffix: false,
+                allowOverwrite: true // Allow overwriting the release zip if we rebuild
             });
             downloadUrl = url;
             console.log(`✅ Uploaded App Zip: ${downloadUrl}`);
