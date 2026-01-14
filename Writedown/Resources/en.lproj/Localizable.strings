@@ -45,3 +45,402 @@
 
 /* Build */
 "Build" = "Build";
+
+/* General */
+"General" = "General";
+
+/* Note Settings */
+"Note Settings" = "Note Settings";
+
+/* Hotkeys */
+"Hotkeys" = "Hotkeys";
+
+/* About */
+"About" = "About";
+
+/* New Version Available */
+"New Version Available" = "New Version Available";
+
+/* Restart to install */
+"Restart to install ..." = "Restart to install ...";
+
+/* Launch at login */
+"Launch at login" = "Launch at login";
+
+/* Storage */
+"Storage" = "Storage";
+
+/* Location */
+"Location" = "Location";
+
+/* Change... */
+"Change..." = "Change...";
+
+/* Auto-save interval */
+"Auto-save interval" = "Auto-save interval";
+
+/* Editor */
+"Editor" = "Editor";
+
+/* System */
+"System" = "System";
+
+/* Serif */
+"Serif" = "Serif";
+
+/* Mono */
+"Mono" = "Mono";
+
+/* Heiti */
+"Heiti" = "Heiti";
+
+/* AI */
+"AI" = "AI";
+
+/* Auto generate note titles */
+"Auto generate note titles" = "Auto generate note titles";
+
+/* Model */
+"Model" = "Model";
+
+/* Select Notes Directory */
+"Select Notes Directory" = "Select Notes Directory";
+
+/* Wake Up */
+"Wake Up" = "Wake Up";
+
+/* Quick wake-up */
+"Quick wake-up" = "Quick wake-up";
+
+/* Double press Option key to toggle window */
+"Double press Option key to toggle window" = "Double press Option key to toggle window";
+
+/* Quick save */
+"Quick save" = "Quick save";
+
+/* Today: %d/%d */
+"Today: %d/%d" = "Today: %d/%d";
+
+/* Upgrade to Pro */
+"Upgrade to Pro" = "Upgrade to Pro";
+
+/* Payment Error */
+"Payment Error" = "Payment Error";
+
+/* OK */
+"OK" = "OK";
+
+/* Note Operations */
+"Note Operations" = "Note Operations";
+
+/* New Note */
+"New Note" = "New Note";
+
+/* Copy All */
+"Copy All" = "Copy All";
+
+/* Navigation */
+"Navigation" = "Navigation";
+
+/* History */
+"History" = "History";
+
+/* Updates */
+"Updates" = "Updates";
+
+/* Downloading... %d% */
+"Downloading... %d%" = "Downloading... %d%";
+
+/* Checking... */
+"Checking..." = "Checking...";
+
+/* Check Now */
+"Check Now" = "Check Now";
+
+/* Previous attempt failed */
+"Previous attempt failed" = "Previous attempt failed";
+
+/* Retry */
+"Retry" = "Retry";
+
+/* Support */
+"Support" = "Support";
+
+/* Release Notes */
+"Release Notes" = "Release Notes";
+
+/* Send Feedback */
+"Send Feedback" = "Send Feedback";
+
+/* Writedown Feedback */
+"Writedown Feedback" = "Writedown Feedback";
+
+/* New version available */
+"New version available" = "New version available";
+
+/* Update */
+"Update" = "Update";
+
+/* Later */
+"Later" = "Later";
+
+/* Check for updates */
+"Check for updates" = "Check for updates";
+
+/* You're up to date! */
+"You're up to date!" = "You're up to date!";
+
+/* Failed to check for updates */
+"Failed to check for updates" = "Failed to check for updates";
+
+/* Update failed */
+"Update failed" = "Update failed";
+
+/* Theme */
+"Theme" = "Theme";
+
+/* Light */
+"Light" = "Light";
+
+/* Dark */
+"Dark" = "Dark";
+
+/* Designed for quick write-down */
+"Designed for quick write-down" = "Designed for quick write-down";
+
+/* Anywhere, with your custom shortcut. */
+"Anywhere, with your custom shortcut." = "Anywhere, with your custom shortcut.";
+
+/* AI, truly helpful */
+"AI, truly helpful" = "AI, truly helpful";
+
+/* Help summarize & make plans. */
+"Help summarize & make plans." = "Help summarize & make plans.";
+
+/* Get Pro */
+"Get Pro" = "Get Pro";
+
+/* Get more with Writedown Pro */
+"Get more with Writedown Pro" = "Get more with Writedown Pro";
+
+/* You're All Set! */
+"You're All Set!" = "You're All Set!";
+
+/* Ready to start your note-taking journey */
+"Ready to start your note-taking journey" = "Ready to start your note-taking journey";
+
+/* Previous */
+"Previous" = "Previous";
+
+/* Next Step */
+"Next Step" = "Next Step";
+
+/* Start Writedown */
+"Start Writedown" = "Start Writedown";
+
+/* Start at login */
+"Start at login" = "Start at login";
+
+/* Quickly access Writedown when you need it */
+"Quickly access Writedown when you need it" = "Quickly access Writedown when you need it";
+
+/* Quick wake-up shortcut */
+"Quick wake-up shortcut" = "Quick wake-up shortcut";
+
+/* Set your preferred keyboard shortcut to quickly access Writedown from anywhere */
+"Set your preferred keyboard shortcut to quickly access Writedown from anywhere" = "Set your preferred keyboard shortcut to quickly access Writedown from anywhere";
+
+/* Storage Location */
+"Storage Location" = "Storage Location";
+
+/* Change Location */
+"Change Location" = "Change Location";
+
+/* Daily Limit Reached */
+"Daily Limit Reached" = "Daily Limit Reached";
+
+/* You've reached the daily limit */
+"You've reached the daily limit of %d quick wake-ups. Upgrade to Pro for unlimited access." = "You've reached the daily limit of %d quick wake-ups. Upgrade to Pro for unlimited access.";
+
+/* You can still launch Writedown from the dock. */
+"You can still launch Writedown from the dock." = "You can still launch Writedown from the dock.";
+
+/* Processing... */
+"Processing..." = "Processing...";
+
+/* RMB 48 Lifetime-Pro */
+"RMB 48 Lifetime-Pro" = "RMB 48 Lifetime-Pro";
+
+/* Restore Purchase */
+"Restore Purchase" = "Restore Purchase";
+
+/* Already subscribed? Log in */
+"Already subscribed? Log in" = "Already subscribed? Log in";
+
+/* Error */
+"Error" = "Error";
+
+/* Cancel */
+"Cancel" = "Cancel";
+
+/* Success */
+"Success" = "Success";
+
+/* Welcome to Writedown Pro! You now have unlimited quick wake-ups. */
+"Welcome to Writedown Pro! You now have unlimited quick wake-ups." = "Welcome to Writedown Pro! You now have unlimited quick wake-ups.";
+
+/* Renaming... */
+"Renaming..." = "Renaming...";
+
+/* Attachments */
+"Attachments" = "Attachments";
+
+/* %d */
+"%d" = "%d";
+
+/* No attachments */
+"No attachments" = "No attachments";
+
+/* Enter title */
+"Enter title" = "Enter title";
+
+/* Auto Saved */
+"Auto Saved" = "Auto Saved";
+
+/* Error: %@ */
+"Error: %@" = "Error: %@";
+
+/* Unknown error */
+"Unknown error" = "Unknown error";
+
+/* Start writing... */
+"Start writing..." = "Start writing...";
+
+/* Contents Copied */
+"Contents Copied" = "Contents Copied";
+
+/* %d Character */
+"%d Character" = "%d Character";
+
+/* %d Characters */
+"%d Characters" = "%d Characters";
+
+/* Last 15 min */
+"Last 15 min" = "Last 15 min";
+
+/* Last 1 hour */
+"Last 1 hour" = "Last 1 hour";
+
+/* This morning */
+"This morning" = "This morning";
+
+/* This afternoon */
+"This afternoon" = "This afternoon";
+
+/* Yesterday */
+"Yesterday" = "Yesterday";
+
+/* This Week */
+"This Week" = "This Week";
+
+/* Earlier */
+"Earlier" = "Earlier";
+
+/* Search notes... */
+"Search notes..." = "Search notes...";
+
+/* Note Archived */
+"Note Archived" = "Note Archived";
+
+/* Copied summary & archived */
+"Copied summary & archived note to clipboard" = "Copied summary & archived note to clipboard";
+
+/* Undo */
+"Undo" = "Undo";
+
+/* < 1 min */
+"< 1 min" = "< 1 min";
+
+/* %d min */
+"%d min" = "%d min";
+
+/* %d hr %d min */
+"%d hr %d min" = "%d hr %d min";
+
+/* %d day %d hr */
+"%d day %d hr" = "%d day %d hr";
+
+/* Untitled */
+"Untitled" = "Untitled";
+
+/* %d Chars */
+"%d Chars" = "%d Chars";
+
+/* from %@ */
+"from %@" = "from %@";
+
+/* Archive this note */
+"Archive this note" = "Archive this note";
+
+/* Remove from starred */
+"Remove from starred" = "Remove from starred";
+
+/* Add to starred */
+"Add to starred" = "Add to starred";
+
+/* Copy Contents */
+"Copy Contents" = "Copy Contents";
+
+/* Share Contents */
+"Share Contents" = "Share Contents";
+
+/* Click to install Update */
+"Click to install Update" = "Click to install Update";
+
+/* Show in Finder */
+"Show in Finder" = "Show in Finder";
+
+/* Settings */
+"Settings" = "Settings";
+
+/* Settings... */
+"Settings..." = "Settings...";
+
+/* Open Writedown */
+"Open Writedown" = "Open Writedown";
+
+/* Quit */
+"Quit" = "Quit";
+
+/* Payment Successful */
+"Payment Successful" = "Payment Successful";
+
+/* Welcome to Writedown Pro! */
+"Welcome to Writedown Pro!" = "Welcome to Writedown Pro!";
+
+/* Content Saved */
+"Content Saved" = "Content Saved";
+
+/* From %@ */
+"From %@" = "From %@";
+
+/* %d chars saved */
+"%d chars saved" = "%d chars saved";
+
+/* From %@ | %d chars */
+"From %@ | %d chars" = "From %@ | %d chars";
+
+/* Preferences */
+"Preferences" = "Preferences";
+
+/* Invalid download link */
+"Invalid download link" = "Invalid download link";
+
+/* Version %@ \n%@ */
+"Version %@ \n%@" = "Version %@ \n%@";
+
+/* Version %@ (Build %@) */
+"Version %@ (Build %@)" = "Version %@ (Build %@)";
+
+/* Restart to install */
+"Restart to install" = "Restart to install";

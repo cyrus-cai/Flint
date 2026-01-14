@@ -169,11 +169,11 @@ class GeneralSettingsViewModel: ObservableObject {
 
 struct SettingsView: View {
     enum SettingsTab: String, CaseIterable {
-        case general = "General"
-        case integration = "Note Settings"
-        case appearance = "Appearance"
-        case hotkeys = "Hotkeys"
-        case about = "About"
+        case general = "通用"
+        case integration = "笔记设置"
+        case appearance = "外观"
+        case hotkeys = "快捷键"
+        case about = "关于"
 
         var icon: String {
             switch self {
@@ -216,8 +216,8 @@ struct SettingsView: View {
                     if updateManager.newVersionAvailable {
                         StandardToastView(
                             icon: "arrow.down.circle.fill",
-                            message: "New Version Available",
-                            explanatoryText: "Restart to install \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
+                            message: L("New Version Available"),
+                            explanatoryText: L("Restart to install") + " \(updateManager.remoteVersion != nil ? "v\(updateManager.remoteVersion!)" : "")"
                         )
                         .padding(.horizontal, 4)
                         .onTapGesture {
@@ -283,7 +283,7 @@ struct GeneralSettingsView: View {
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Launch at login", isOn: $launchAtLogin)
+                    Toggle(L("Launch at login"), isOn: $launchAtLogin)
                         .onChange(of: launchAtLogin) { newValue in
                             handleLaunchAtLoginChange(newValue)
                         }
@@ -345,12 +345,12 @@ struct IntegrationSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Storage Section
-            SettingsSectionHeader(title: "Storage", icon: "folder")
+            SettingsSectionHeader(title: L("Storage"), icon: "folder")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Label("Location", systemImage: "folder")
+                        Label(L("Location"), systemImage: "folder")
                         Spacer()
                         Text(customPath)
                             .font(.callout)
@@ -359,7 +359,7 @@ struct IntegrationSettingsView: View {
                             .truncationMode(.middle)
                             .frame(maxWidth: 300, alignment: .trailing)
                         
-                        Button("Change...") {
+                        Button(L("Change...")) {
                             selectCustomDirectory()
                         }
                     }
@@ -367,7 +367,7 @@ struct IntegrationSettingsView: View {
                     Divider()
 
                     HStack {
-                        Label("Auto-save interval", systemImage: "timer")
+                        Label(L("Auto-save interval"), systemImage: "timer")
                         Spacer()
                         AutoSaveIntervalSection()
                     }
@@ -376,7 +376,7 @@ struct IntegrationSettingsView: View {
             }
 
             // Editor Section
-            SettingsSectionHeader(title: "Editor", icon: "textformat")
+            SettingsSectionHeader(title: L("Editor"), icon: "textformat")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
@@ -404,12 +404,12 @@ struct IntegrationSettingsView: View {
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Auto generate note titles", isOn: $enableAIRename)
+                    Toggle(L("Auto generate note titles"), isOn: $enableAIRename)
 
                     Divider()
 
                     HStack {
-                        Label("Model", systemImage: "cpu")
+                        Label(L("Model"), systemImage: "cpu")
                         Spacer()
                         Picker("", selection: $AIModel) {
                             ForEach(allowedModels) { model in
@@ -434,7 +434,7 @@ struct IntegrationSettingsView: View {
         openPanel.canChooseDirectories = true
         openPanel.canChooseFiles = false
         openPanel.allowsMultipleSelection = false
-        openPanel.title = "Select Notes Directory"
+        openPanel.title = L("Select Notes Directory")
 
         if openPanel.runModal() == .OK {
             if let selectedPath = openPanel.url {
@@ -466,12 +466,12 @@ struct HotkeySettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Wake Up Section
-            SettingsSectionHeader(title: "Wake Up", icon: "bolt")
+            SettingsSectionHeader(title: L("Wake Up"), icon: "bolt")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Label("Quick wake-up", systemImage: "bolt.square")
+                        Label(L("Quick wake-up"), systemImage: "bolt.square")
                         Spacer()
                         KeyboardShortcuts.Recorder("", name: .quickWakeup)
                     }
@@ -483,12 +483,12 @@ struct HotkeySettingsView: View {
                             Text(L("Double press Option key"))
                         }
                     }
-                    .help("Double press Option key to toggle window")
+                    .help(L("Double press Option key to toggle window"))
 
                     Divider()
 
                     HStack {
-                        Label("Quick save", systemImage: "square.and.arrow.down")
+                        Label(L("Quick save"), systemImage: "square.and.arrow.down")
                         Spacer()
                         Text(L("Cmd + C (double click)"))
                             .foregroundColor(.secondary)
@@ -502,7 +502,7 @@ struct HotkeySettingsView: View {
                             .foregroundColor(.secondary)
                     } else {
                         HStack {
-                            Text("Today: \(counter.todayCount)/\(AppConfig.QuickWakeup.dailyLimit)")
+                            Text(String(format: L("Today: %d/%d"), counter.todayCount, AppConfig.QuickWakeup.dailyLimit))
                                 .font(.callout)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -512,7 +512,7 @@ struct HotkeySettingsView: View {
                                     .scaleEffect(0.8)
                                     .frame(width: 16, height: 16)
                             } else {
-                                Button("Upgrade to Pro") {
+                                Button(L("Upgrade to Pro")) {
                                     openProUpgrade()
                                 }
                                 .buttonStyle(.borderedProminent)
@@ -525,7 +525,7 @@ struct HotkeySettingsView: View {
                 .padding(12)
             }
             .alert(
-                "Payment Error",
+                L("Payment Error"),
                 isPresented: Binding(
                     get: { paymentVM.error != nil },
                     set: { if !$0 { paymentVM.clearError() } }
@@ -538,12 +538,12 @@ struct HotkeySettingsView: View {
             }
 
             // Note Operations Section
-            SettingsSectionHeader(title: "Note Operations", icon: "doc.text")
+            SettingsSectionHeader(title: L("Note Operations"), icon: "doc.text")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Label("New Note", systemImage: "plus")
+                        Label(L("New Note"), systemImage: "plus")
                         Spacer()
                         KeyboardShortcutBadge(keys: ["Cmd", "Return"])
                     }
@@ -551,7 +551,7 @@ struct HotkeySettingsView: View {
                     Divider()
 
                     HStack {
-                        Label("Copy All", systemImage: "doc.on.doc")
+                        Label(L("Copy All"), systemImage: "doc.on.doc")
                         Spacer()
                         KeyboardShortcutBadge(keys: ["Cmd", "Shift", "C"])
                     }
@@ -560,12 +560,12 @@ struct HotkeySettingsView: View {
             }
 
             // Navigation Section
-            SettingsSectionHeader(title: "Navigation", icon: "arrow.triangle.turn.up.right.diamond")
+            SettingsSectionHeader(title: L("Navigation"), icon: "arrow.triangle.turn.up.right.diamond")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Label("History", systemImage: "clock")
+                        Label(L("History"), systemImage: "clock")
                         Spacer()
                         KeyboardShortcutBadge(keys: ["Cmd", "Shift", "F"])
                     }
@@ -608,7 +608,7 @@ struct AboutSettingsView: View {
                         .scaledToFit()
                         .frame(height: 48)
 
-                    Text("Version \(version ?? "Unknown") (Build \(buildNumber ?? "Unknown"))")
+                    Text(String(format: L("Version %@ (Build %@)"), version ?? "Unknown", buildNumber ?? "Unknown"))
                         .font(.callout)
                         .foregroundColor(.secondary)
                 }
@@ -617,13 +617,13 @@ struct AboutSettingsView: View {
             .padding(.vertical)
 
             // Updates Section
-            SettingsSectionHeader(title: "Updates", icon: "arrow.clockwise")
+            SettingsSectionHeader(title: L("Updates"), icon: "arrow.clockwise")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     if isDownloading {
                         ProgressView(
-                            "Downloading... \(Int(downloadProgress * 100))%",
+                            String(format: L("Downloading... %d%"), Int(downloadProgress * 100)),
                             value: downloadProgress,
                             total: 1.0
                         )
@@ -631,7 +631,7 @@ struct AboutSettingsView: View {
                         HStack {
                             Text(L("Check for updates"))
                             Spacer()
-                            Button(isCheckingUpdate ? "Checking..." : "Check Now") {
+                            Button(isCheckingUpdate ? L("Checking...") : L("Check Now")) {
                                 checkForUpdates()
                             }
                             .disabled(isCheckingUpdate)
@@ -640,10 +640,10 @@ struct AboutSettingsView: View {
                         if updateFailed {
                             Divider()
                             HStack {
-                                Label("Previous attempt failed", systemImage: "exclamationmark.triangle")
+                                Label(L("Previous attempt failed"), systemImage: "exclamationmark.triangle")
                                     .foregroundColor(.orange)
                                 Spacer()
-                                Button("Retry") {
+                                Button(L("Retry")) {
                                     Task {
                                         do {
                                             try updater.deleteDownloadedUpdatePackage()
@@ -673,7 +673,7 @@ struct AboutSettingsView: View {
             }
 
             // Support Section
-            SettingsSectionHeader(title: "Support", icon: "questionmark.circle")
+            SettingsSectionHeader(title: L("Support"), icon: "questionmark.circle")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
@@ -683,7 +683,7 @@ struct AboutSettingsView: View {
                         }
                     } label: {
                         HStack {
-                            Label("Release Notes", systemImage: "doc.text")
+                            Label(L("Release Notes"), systemImage: "doc.text")
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .foregroundColor(.secondary)
@@ -698,7 +698,7 @@ struct AboutSettingsView: View {
                         sendFeedback()
                     } label: {
                         HStack {
-                            Label("Send Feedback", systemImage: "envelope")
+                            Label(L("Send Feedback"), systemImage: "envelope")
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .foregroundColor(.secondary)
@@ -725,7 +725,7 @@ struct AboutSettingsView: View {
     private func sendFeedback() {
         if let service = NSSharingService(named: .composeEmail) {
             service.recipients = ["team_productlab@outlook.com"]
-            service.subject = "Writedown Feedback"
+            service.subject = L("Writedown Feedback")
 
             let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
             let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
@@ -752,15 +752,15 @@ struct AboutSettingsView: View {
                     let alert = NSAlert()
                     if let updateInfo = updateInfo {
                         guard let downloadURL = URL(string: updateInfo.downloadURL) else {
-                            showErrorAlert(message: "Update failed", info: "Invalid download link")
+                            showErrorAlert(message: L("Update failed"), info: L("Invalid download link"))
                             return
                         }
 
-                        alert.messageText = "New version available"
-                        alert.informativeText = "Version \(updateInfo.version)\n\(updateInfo.description)"
+                        alert.messageText = L("New version available")
+                        alert.informativeText = String(format: L("Version %@ \n%@"), updateInfo.version, updateInfo.description)
                         alert.alertStyle = .informational
-                        alert.addButton(withTitle: "Update")
-                        alert.addButton(withTitle: "Later")
+                        alert.addButton(withTitle: L("Update"))
+                        alert.addButton(withTitle: L("Later"))
 
                         let response = alert.runModal()
 
@@ -770,8 +770,8 @@ struct AboutSettingsView: View {
                             }
                         }
                     } else {
-                        alert.messageText = "Check for updates"
-                        alert.informativeText = "You're up to date!"
+                        alert.messageText = L("Check for updates")
+                        alert.informativeText = L("You're up to date!")
                         alert.alertStyle = .informational
                         alert.addButton(withTitle: "OK")
                         alert.runModal()
@@ -780,7 +780,7 @@ struct AboutSettingsView: View {
             } catch {
                 await MainActor.run {
                     updateFailed = true
-                    showErrorAlert(message: "Failed to check for updates", info: error.localizedDescription)
+                    showErrorAlert(message: L("Failed to check for updates"), info: error.localizedDescription)
                 }
             }
             isCheckingUpdate = false
@@ -807,7 +807,7 @@ struct AboutSettingsView: View {
             progressSubscription?.cancel()
             isDownloading = false
             updateFailed = true
-            showErrorAlert(message: "Update failed", info: error.localizedDescription)
+            showErrorAlert(message: L("Update failed"), info: error.localizedDescription)
         }
     }
 
@@ -828,7 +828,7 @@ struct AppearanceSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            SettingsSectionHeader(title: "Theme", icon: "paintbrush")
+            SettingsSectionHeader(title: L("Theme"), icon: "paintbrush")
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
