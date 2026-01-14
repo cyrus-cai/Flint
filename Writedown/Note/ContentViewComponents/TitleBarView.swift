@@ -10,8 +10,14 @@ struct TitleBarView: View {
     let onNoteSelected: (String, URL?) -> Void
     let onCopy: () -> Void  // 复制内容的回调
     let onShare: () -> Void  // 分享内容的回调
+    // New editing bindings
+    @Binding var isEditing: Bool
+    @Binding var editableTitle: String
+    let onTitleCommit: () -> Void
+    
     @Environment(\.colorScheme) private var colorScheme
     @State private var isTitleHovered: Bool = false  // Add specific state for title hover
+    @FocusState private var isTitleFieldFocused: Bool
     @State private var isGeneratingTitle: Bool = false
     @State private var aiButtonScale: CGFloat = 1.0
     @State private var animationProgress: CGFloat = 0
@@ -125,13 +131,50 @@ struct TitleBarView: View {
 
     private var titleSection: some View {
         HStack(spacing: 4) {
-            Text(title)
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .opacity(isHovered ? 0.85 : 0.25)
+            if isEditing {
+                TextField("Enter title", text: $editableTitle, onCommit: onTitleCommit)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        Group {
+                            if #available(macOS 26.0, *) {
+                                // macOS 26 Native Liquid Glass UI
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.clear)
+                                    .glassEffect(in: .rect(cornerRadius: 6))
+                            } else {
+                                // Fallback for older macOS
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            }
+                        }
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                    )
+                    .frame(minWidth: 60, maxWidth: 300)
+                    .focused($isTitleFieldFocused)
+                    .onAppear {
+                        isTitleFieldFocused = true
+                    }
+                    .onChange(of: editableTitle) { newValue in
+                        if newValue.count > 30 {
+                            editableTitle = String(newValue.prefix(30))
+                        }
+                    }
+            } else {
+                Text(title)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .opacity(isHovered ? 0.85 : 0.25)
+            }
 
             // Edit icon that appears on hover
-            if isTitleHovered {
+            if isTitleHovered && !isEditing {
                 HStack(spacing: 6) {
                     // 编辑按钮 - 添加单独的悬停状态
                     EditButtonWithHover {
@@ -145,36 +188,70 @@ struct TitleBarView: View {
                         }
                         .scaleEffect(aiButtonScale)
                     } else if isGeneratingTitle {
-                        // 使用与 summarize 相同的光环加载效果
+                        // macOS 26+ Native AI Loading Effect
                         ZStack {
-                            Circle()
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [.secondary.opacity(0.7), .secondary.opacity(0.5)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 1.5
+                            if #available(macOS 26.0, *) {
+                                // Native Glow Effect
+                                AngularGradient(
+                                    gradient: Gradient(colors: [
+                                        Color(red: 0.2, green: 0.6, blue: 1.0), // Blue
+                                        Color(red: 0.8, green: 0.2, blue: 0.8), // Purple
+                                        Color(red: 1.0, green: 0.4, blue: 0.2), // Orange
+                                        Color(red: 0.2, green: 0.6, blue: 1.0)  // Back to Blue
+                                    ]),
+                                    center: .center
                                 )
-                                .frame(width: 16, height: 16)
+                                .mask(
+                                    Circle()
+                                        .stroke(lineWidth: 2)
+                                )
+                                .frame(width: 14, height: 14)
                                 .rotationEffect(Angle(degrees: animationProgress * 360))
-
-                            Circle()
-                                .fill(Color.secondary.opacity(0.3))
-                                .frame(width: 16, height: 16)
-                                .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
-                                .opacity(showLoadingPulse ? 0 : 0.3)
-                                .animation(
-                                    Animation.easeInOut(duration: 1.2)
-                                        .repeatForever(autoreverses: true),
-                                    value: showLoadingPulse
+                                .blur(radius: 1)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
                                 )
+                            } else {
+                                // Fallback for older macOS
+                                Circle()
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [.secondary.opacity(0.7), .secondary.opacity(0.5)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1.5
+                                    )
+                                    .frame(width: 16, height: 16)
+                                    .rotationEffect(Angle(degrees: animationProgress * 360))
+                                
+                                Circle()
+                                    .fill(Color.secondary.opacity(0.3))
+                                    .frame(width: 16, height: 16)
+                                    .scaleEffect(showLoadingPulse ? 1.5 : 1.0)
+                                    .opacity(showLoadingPulse ? 0 : 0.3)
+                                    .animation(
+                                        Animation.easeInOut(duration: 1.2)
+                                            .repeatForever(autoreverses: true),
+                                        value: showLoadingPulse
+                                    )
+                            }
                         }
 
                         if showLoadingText {
-                            Text("Renaming...")
+                            Text("")
                                 .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary.opacity(0.8))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [
+                                            .secondary,
+                                            .secondary.opacity(0.7)
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
                                 .transition(.opacity)
                         }
                     } else {

@@ -429,43 +429,22 @@ struct ContentView: View {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     // Title bar with editable title
-                    if isEditingTitle {
-                        // Editable title field
-                        HStack {
-                            Spacer()
-                            TextField("Enter title", text: $editedTitle, onCommit: saveTitleEdit)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 200)
-                                .padding(.vertical, 4)
-                                .onExitCommand {
-                                    isEditingTitle = false
-                                }
-                                .focused($isTitleFieldFocused)
-                                .onChange(of: editedTitle) { newValue in
-                                    // 限制标题最大长度为25个字符
-                                    if newValue.count > 30 {
-                                        editedTitle = String(newValue.prefix(30))
-                                    }
-                                }
-                            Spacer()
-                        }
-                        .frame(height: 32)
-                        .background(Color.clear)
-                    } else {
-                        // Regular title bar
-                        TitleBarView(
-                            title: title,
-                            isHovered: isHovered,
-                            links: links,
-                            toolbarState: toolbarState,
-                            onNoteSelected: { content, fileURL in
-                                loadNoteContent(content, fileURL: fileURL)
-                            },
-                            onCopy: copyFullContent,
-                            onShare: shareFullContent)
-                            .onTapGesture(count: 2) {
-                                handleTitleDoubleClick()
-                            }
+                    TitleBarView(
+                        title: title,
+                        isHovered: isHovered,
+                        links: links,
+                        toolbarState: toolbarState,
+                        onNoteSelected: { content, fileURL in
+                            loadNoteContent(content, fileURL: fileURL)
+                        },
+                        onCopy: copyFullContent,
+                        onShare: shareFullContent,
+                        isEditing: $isEditingTitle,
+                        editableTitle: $editedTitle,
+                        onTitleCommit: saveTitleEdit
+                    )
+                    .onTapGesture(count: 2) {
+                        handleTitleDoubleClick()
                     }
 
                     EditorView(text: $text)
