@@ -239,7 +239,7 @@ class LocalFileManager {
     }
 
     // Add archive note method
-    func archiveNote(at sourceURL: URL) throws {
+    func archiveNote(at sourceURL: URL) throws -> URL {
         print("Starting archive process...")
         print("Source file: \(sourceURL.path)")
 
@@ -263,6 +263,7 @@ class LocalFileManager {
 
         print("Moving file to: \(destinationURL.path)")
 
+        let actualDestinationURL: URL
         if fm.fileExists(atPath: destinationURL.path) {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyyMMddHHmmss"
@@ -273,11 +274,14 @@ class LocalFileManager {
 
             print("File exists, using new name: \(newFileName)")
             try fm.moveItem(at: sourceURL, to: newDestinationURL)
+            actualDestinationURL = newDestinationURL
         } else {
             try fm.moveItem(at: sourceURL, to: destinationURL)
+            actualDestinationURL = destinationURL
         }
 
-        print("Archive complete")
+        print("Archive complete at: \(actualDestinationURL.path)")
+        return actualDestinationURL
     }
 
     func getRecentNotes() -> [RecentNote] {
