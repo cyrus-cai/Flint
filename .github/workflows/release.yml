@@ -1,0 +1,45 @@
+name: Release macOS App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: 'latest-stable'
+
+    - name: Build and Archive
+      run: |
+        xcodebuild -scheme Writedown \
+          -configuration Release \
+          -archivePath build/Writedown.xcarchive \
+          -destination 'generic/platform=macOS' \
+          archive
+
+    - name: Export App
+      run: |
+        # Directly copying from archive (Unsigned/Ad-hoc)
+        # For signed builds, you need to set up certificates and profiles
+        mkdir -p build/Export
+        cp -R build/Writedown.xcarchive/Products/Applications/Writedown.app build/Export/
+
+    - name: Zip App
+      run: |
+        cd build/Export
+        zip -r Writedown.zip Writedown.app
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/Export/Writedown.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
