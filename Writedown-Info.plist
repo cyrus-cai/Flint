@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-    <dict>
-        <key>CFBundleURLTypes</key>
-        <array>
-            <dict>
-                <key>CFBundleURLName</key>
-                <string>com.kii.writedown</string>
-                <key>CFBundleURLSchemes</key>
-                <array>
-                    <string>writedown</string>
-                </array>
-                <key>NSAppTransportSecurity</key>
-                <dict>
-                    <key>NSAllowsArbitraryLoads</key>
-                    <true/>
-                </dict>
-                <key>NSAppleEventsUsageDescription</key>
-                <string>此应用需要使用 Apple 事件来自动创建 Notes 笔记。</string>
-            </dict>
-        </array>
-    </dict>
+<dict>
+	<key>CFBundleShortVersionString</key>
+	<string>0.8.2</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.kii.writedown</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>writedown</string>
+			</array>
+			<key>NSAppTransportSecurity</key>
+			<dict>
+				<key>NSAllowsArbitraryLoads</key>
+				<true/>
+			</dict>
+			<key>NSAppleEventsUsageDescription</key>
+			<string>此应用需要使用 Apple 事件来自动创建 Notes 笔记。</string>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+</dict>
 </plist>
