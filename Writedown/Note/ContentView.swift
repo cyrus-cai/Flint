@@ -139,25 +139,20 @@ struct ContentView: View {
         print("Saving document with trigger: \(trigger)")
 
         do {
-            // Case 1: We have an existing note (currentNoteId exists)
             if let currentId = currentNoteId,
                let fileURL = LocalFileManager.shared.fileURL(for: currentId) {
 
-                // For title edit, we already handled the file renaming in saveTitleEdit()
                 if trigger == .titleEdit {
-                    // Do nothing here - file was already renamed
                     return
                 } else {
-                    // Always update the existing file for the same note
                     print("Updating existing note at \(fileURL.path)")
                     try text.write(to: fileURL, atomically: true, encoding: .utf8)
                     lastSaveDate = Date()
                     startMonitoringFile()
                 }
             }
-            // Case 2: This is a new note (no currentNoteId)
             else {
-                let documentTitle = title  // Calculate title for new note
+                let documentTitle = title
 
                 guard let fileURL = LocalFileManager.shared.fileURL(for: documentTitle) else {
                     throw NSError(
@@ -165,9 +160,7 @@ struct ContentView: View {
                         userInfo: [NSLocalizedDescriptionKey: "Invalid file URL"])
                 }
 
-                // Check if a file with this title already exists
                 if Foundation.FileManager.default.fileExists(atPath: fileURL.path) {
-                    // Generate a unique title by adding a timestamp
                     let uniqueTitle = "\(documentTitle)_\(Int(Date().timeIntervalSince1970))"
                     guard let uniqueFileURL = LocalFileManager.shared.fileURL(for: uniqueTitle) else {
                         throw NSError(
@@ -199,83 +192,61 @@ struct ContentView: View {
         } catch {
             saveError = error
             print("Save failed:", error.localizedDescription)
-
-            // Show error toast for title edit failures
-            // if trigger == .titleEdit {
-            //     withAnimation {
-            //         showToast = true
-            //     }
-            //     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            //         withAnimation {
-            //             showToast = false
-            //         }
-            //     }
-            // }
         }
     }
 
     func loadNoteContent(_ content: String, fileURL: URL? = nil) {
-        // Save current content before loading new note
         if !text.isEmpty {
             saveDocument(trigger: .addNew)
         }
 
         text = content
 
-        // If a fileURL is provided (from history list), use it to set currentNoteId
         if let url = fileURL {
-            // Extract the filename without extension to use as currentNoteId
             let filename = url.deletingPathExtension().lastPathComponent
             currentNoteId = filename
 
-            // Set the custom title to the filename
             customTitle = filename
 
             do {
                 let attributes = try Foundation.FileManager.default.attributesOfItem(
                     atPath: url.path)
                 lastSaveDate = attributes[.modificationDate] as? Date
-                // Start monitoring the loaded file
                 startMonitoringFile()
             } catch {
                 print("Failed to get file modification time: \(error.localizedDescription)")
             }
         }
-        // If no fileURL is provided but we have a currentNoteId, try to use that
         else if let currentId = currentNoteId,
             let fileURL = LocalFileManager.shared.fileURL(for: currentId)
         {
-            // Set the custom title to the currentNoteId
             customTitle = currentId
 
             do {
                 let attributes = try Foundation.FileManager.default.attributesOfItem(
                     atPath: fileURL.path)
                 lastSaveDate = attributes[.modificationDate] as? Date
-                // Start monitoring the loaded file
                 startMonitoringFile()
             } catch {
                 print("Failed to get file modification time: \(error.localizedDescription)")
             }
         }
-        // If neither fileURL nor currentNoteId is available, treat as new note
         else {
             currentNoteId = nil
             customTitle = nil
         }
 
-        // Set content hash to prevent auto-renaming of existing notes
         if !content.isEmpty {
             contentHashForAIRename = content.prefix(100).hashValue
         }
     }
 
     private func createNewNote() {
-        stopMonitoringFile()  // 停止监听当前文件
+        stopMonitoringFile()
         text = ""
         currentNoteId = nil
         customTitle = nil
-        contentHashForAIRename = 0  // Reset the content hash for new notes
+        contentHashForAIRename = 0
     }
 
     private func setupAutoSaveTimer() {
@@ -289,18 +260,12 @@ struct ContentView: View {
                     saveDocument(trigger: .timer)
                     print("document saved with interval: \(autoSaveInterval)s")
 
-                    // Check if text just exceeded 20 characters and AI rename is enabled
                     if text.count >= 20 && UserDefaults.standard.bool(forKey: "enableAIRename") {
-                        // Generate a content fingerprint to track this note regardless of title changes
                         let currentContentHash = text.prefix(100).hashValue
 
-                        // Only trigger AI rename if we haven't renamed this specific content yet
-                        // AND the hash is different from our tracked hash (prevents multiple renames after editing)
                         if contentHashForAIRename == 0 {
-                            // First time seeing content over 20 chars - track this and rename
                             contentHashForAIRename = currentContentHash
 
-                            // Trigger AI rename after a short delay
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                 self.triggerAIRename(content: self.text)
                             }
