@@ -154,6 +154,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         // Track app launch
         Mixpanel.mainInstance().track(event: "App Launched")
         UpdateManager.shared.checkAndDownloadUpdate()
+        MaybeLikeService.shared.startMonitoring()
 
         // 订阅状态由 SubscriptionManager 自动管理
         // SubscriptionManager.shared 在初始化时会自动验证订阅状态

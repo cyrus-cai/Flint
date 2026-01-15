@@ -7,6 +7,7 @@
 
 import AppKit
 import Foundation
+import Combine
 
 class DeepseekAPI {
     static let shared = DeepseekAPI()
@@ -314,6 +315,51 @@ class DoubaoAPI {
         currentTask = nil
         print("⏹️ Summarization cancelled")
     }
+    struct ChatCompletionResponse: Codable {
+        struct Choice: Codable {
+            struct Message: Codable {
+                let content: String
+            }
+            let message: Message
+        }
+        let choices: [Choice]
+    }
+
+    func checkRelevance(text: String) async throws -> Bool {
+        let selectedModel = UserDefaults.standard.string(forKey: "AIModel") ?? "ep-20250128221733-ldppp"
+        
+        let systemPrompt = "You are a specialized content filter. Analyze the user's clipboard content. If it contains valuable information (technical knowledge, code, instructions, useful data) that a user might want to save for later, reply with 'SAVE'. If it is trivial (random numbers, passwords, temporary logs, system gibberish) or junk, reply with 'REJECT'. Only reply with one word: SAVE or REJECT."
+        
+        let messages = [
+            ChatMessage(role: "system", content: systemPrompt),
+            ChatMessage(role: "user", content: text)
+        ]
+        
+        let requestPayload = ChatRequest(model: selectedModel, messages: messages, stream: false)
+        
+        guard let url = URL(string: baseURL) else { throw DoubaoError.invalidConfiguration }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        
+        do {
+            urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
+            let (data, response) = try await URLSession.shared.data(for: urlRequest)
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw DoubaoError.requestFailed
+            }
+            
+            let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+            let content = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() ?? "REJECT"
+            return content.contains("SAVE")
+        } catch {
+            print("AI Check failed: \(error)")
+            throw error
+        }
+    }
 }
 
 enum DoubaoError: Error {
@@ -342,4 +388,123 @@ enum DeepseekError: Error {
 enum SummarizeType {
     case title   // For generating concise titles
     case content // For summarizing note content in structured format
+}
+
+// MARK: - MaybeLike Service
+
+class MaybeLikeService: ObservableObject {
+    static let shared = MaybeLikeService()
+    private var timer: Timer?
+    private let pasteboard = NSPasteboard.general
+    private var lastChangeCount: Int
+    
+    // Configuration
+    private let minChars = 5     // Ignore very short copies
+    private let maxContextChars = 300 // For AI context window optimization
+    
+    private init() {
+        self.lastChangeCount = pasteboard.changeCount
+    }
+    
+    func startMonitoring() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
+            self?.checkPasteboard()
+        }
+        print("MaybeLike Service started monitoring...")
+    }
+    
+    func stopMonitoring() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func checkPasteboard() {
+        guard pasteboard.changeCount != lastChangeCount else { return }
+        lastChangeCount = pasteboard.changeCount
+        
+        // 1. Privacy Check: Ignore confidential types
+        if let types = pasteboard.types {
+            let typeNames = types.map { $0.rawValue }
+            if typeNames.contains("org.nspasteboard.ConcealedType") || 
+               typeNames.contains("com.agilebits.onepassword") {
+                print("MaybeLike: Ignored concealed content")
+                return
+            }
+        }
+        
+        // 2. Content Check
+        guard let content = pasteboard.string(forType: .string), !content.isEmpty else { return }
+        
+        // Basic filters
+        if content.count < minChars { return }
+        if CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: content)) { return }
+        
+        processContent(content)
+    }
+    
+    private func processContent(_ content: String) {
+        let aiInput = prepareForAI(content)
+        
+        Task {
+            do {
+                let sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "Unknown"
+                if sourceApp == "Writedown" { return } 
+                
+                print("MaybeLike: Asking AI to check content relevance...")
+                let isRelevent = try await DoubaoAPI.shared.checkRelevance(text: aiInput)
+                
+                if isRelevent {
+                    await MainActor.run {
+                        self.saveToNotes(content, sourceApp: sourceApp)
+                    }
+                } else {
+                    print("MaybeLike: AI rejected content")
+                }
+            } catch {
+                print("MaybeLike: AI Check failed - \(error)")
+            }
+        }
+    }
+    
+    private func prepareForAI(_ content: String) -> String {
+        if content.count <= maxContextChars { return content }
+        
+        let prefix = content.prefix(100)
+        let suffix = content.suffix(100)
+        
+        let middleIndex = content.count / 2
+        let startOffset = max(0, middleIndex - 50)
+        let middleStart = content.index(content.startIndex, offsetBy: startOffset)
+        let endOffset = min(content.count, startOffset + 100)
+        let middleEnd = content.index(content.startIndex, offsetBy: endOffset)
+        
+        let middle = content[middleStart..<middleEnd]
+        
+        return "\(prefix)\n...\n\(middle)\n...\n\(suffix)"
+    }
+    
+    private func saveToNotes(_ content: String, sourceApp: String) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let title = dateFormatter.string(from: Date())
+        
+        let textWithMetadata = "<!-- Source: \(sourceApp) -->\n<!-- Type: MaybeLike -->\n\(content)"
+        
+        if let fileURL = LocalFileManager.shared.fileURL(for: title) {
+            do {
+                try textWithMetadata.write(to: fileURL, atomically: true, encoding: .utf8)
+                print("MaybeLike: Saved note to \(fileURL.path)")
+                
+                let notification = NSUserNotification()
+                notification.title = "Maybe Like Captured"
+                notification.subtitle = "From \(sourceApp)"
+                notification.informativeText = "AI captured this content."
+                notification.soundName = NSUserNotificationDefaultSoundName
+                NSUserNotificationCenter.default.deliver(notification)
+                
+            } catch {
+                print("MaybeLike: Save error - \(error)")
+            }
+        }
+    }
 }

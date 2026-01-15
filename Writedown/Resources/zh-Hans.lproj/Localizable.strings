@@ -444,3 +444,15 @@
 
 /* Restart to install */
 "Restart to install" = "重启以安装";
+
+/* Stop */
+"Stop" = "停止";
+
+/* No more notes */
+"No more notes" = "没有更多笔记了";
+
+/* Cmd + C (double click) */
+"Cmd + C (double click)" = "Cmd + C (双击)";
+
+/* Welcome to Writedown */
+"Welcome to Writedown" = "欢迎使用 Writedown";

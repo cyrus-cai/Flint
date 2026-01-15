@@ -34,7 +34,7 @@ struct SummarizingView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "stop.fill")
                         .font(.system(size: 10))
-                    Text("Stop")
+                    Text(L("Stop"))
                         .font(.system(size: 11, weight: .medium))
                 }
                 .foregroundColor(.red)

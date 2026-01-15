@@ -1,23 +1,6 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Popover Background Modifier for RecentNotesListView
-/// On macOS 26+, removes background to let native Liquid Glass popover effect show through
-/// On earlier versions, uses colored background
-private struct RecentNotesPopoverBackgroundModifier: ViewModifier {
-    let colorScheme: ColorScheme
-    
-    func body(content: Content) -> some View {
-        if #available(macOS 26.0, *) {
-            // macOS 26+: 透明背景，让原生 Liquid Glass 效果显示
-            content
-        } else {
-            // macOS 15-25: 使用传统背景色
-            content.background(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.95))
-        }
-    }
-}
-
 // MARK: - Recent Note Model has been moved to FileManagerExtend.swift
 
 enum TimeGroup: String {
@@ -28,6 +11,10 @@ enum TimeGroup: String {
     case yesterday = "Yesterday"
     case thisWeek = "This Week"
     case older = "Earlier"
+    
+    var localized: String {
+        return L(self.rawValue)
+    }
 }
 
 struct GroupedNotes {
@@ -397,7 +384,7 @@ struct RecentNotesListView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
-                    TextField("Search notes...", text: $viewModel.searchText)
+                    TextField(L("Search notes..."), text: $viewModel.searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.system(size: 14))
                         .tint(.purple)
@@ -459,7 +446,7 @@ struct RecentNotesListView: View {
             }
             .frame(width: 320)
             // macOS 26+: 不设置背景，让原生 popover 的 Liquid Glass 效果显示
-            .modifier(RecentNotesPopoverBackgroundModifier(colorScheme: colorScheme))
+//            .modifier(RecentNotesPopoverBackgroundModifier(colorScheme: colorScheme))
             .cornerRadius(8)
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
         }
@@ -1049,7 +1036,7 @@ struct CollapsibleGroupView: View {
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .padding(.leading, 8)
-                TimeGroupHeader(title: group.group.rawValue, notes: group.notes)
+                    TimeGroupHeader(title: group.group.localized, notes: group.notes)
                 .padding(.leading, -6)
             }
             .id("header-\(group.group.rawValue)")

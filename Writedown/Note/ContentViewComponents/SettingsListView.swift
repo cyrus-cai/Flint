@@ -155,15 +155,15 @@ struct SettingsListView: View {
         var title: String {
             switch self {
             case .copyContents:
-                return "Copy Contents"
+                return L("Copy Contents")
             case .shareContents:
-                return "Share Contents"
+                return L("Share Contents")
             case .newVersionAvailable:
-                return "Click to install Update"
+                return L("Click to install Update")
             case .showAll:
-                return "Show in Finder"
+                return L("Show in Finder")
             case .settings:
-                return "Settings"
+                return L("Settings")
             }
         }
 

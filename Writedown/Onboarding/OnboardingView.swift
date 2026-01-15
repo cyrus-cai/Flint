@@ -23,8 +23,8 @@ struct OnboardingView: View {
     private let steps = [
         OnboardingStep(
             icon: "bolt",
-            title: "Designed for quick write-down",
-            description: "Anywhere, with your custom shortcut.",
+            title: L("Designed for quick write-down"),
+            description: L("Anywhere, with your custom shortcut."),
             detail: "",
             hasAction: true,
             imageName: "quick-wake-demo",
@@ -50,23 +50,23 @@ struct OnboardingView: View {
         // ),
         OnboardingStep(
             icon: "brain.head.profile",
-            title: "AI, truly helpful",
-            description: "Help summarize & make plans.",
+            title: L("AI, truly helpful"),
+            description: L("Help summarize & make plans."),
             detail: "",
             hasAction: true,
             imageName: "local-private-demo"
         ),
         OnboardingStep(
             icon: "star",
-            title: "Get Pro",
-            description: "Get more with Writedown Pro",
+            title: L("Get Pro"),
+            description: L("Get more with Writedown Pro"),
             detail: "",
             imageName: "pro-features-demo"
         ),
         OnboardingStep(
             icon: "checkmark.circle",
-            title: "You're All Set!",
-            description: "Ready to start your note-taking journey",
+            title: L("You're All Set!"),
+            description: L("Ready to start your note-taking journey"),
             detail: "",
             imageName: nil
         ),
@@ -232,7 +232,7 @@ struct OnboardingView: View {
 
                             isFirstLaunch = false
                             if let window = NSApplication.shared.windows.first(where: {
-                                $0.title == "Welcome to Writedown"
+                                $0.title == L("Welcome to Writedown")
                             }) {
                                 window.close()
                             }
@@ -329,7 +329,7 @@ struct StepContent: View {
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Label("Start at login", systemImage: "power")
+                            Label(L("Start at login"), systemImage: "power")
                                 .font(.system(size: 14, weight: .medium))
                             Spacer()
                             Toggle("", isOn: $launchAtLogin)
@@ -351,7 +351,7 @@ struct StepContent: View {
                                 .toggleStyle(.switch)
                         }
 
-                        Text("Quickly access Writedown when you need it")
+                        Text(L("Quickly access Writedown when you need it"))
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                     }
@@ -369,12 +369,12 @@ struct StepContent: View {
                     if step.showShortcutConfig {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Label("Quick wake-up shortcut", systemImage: "bolt.square")
+                                Label(L("Quick wake-up shortcut"), systemImage: "bolt.square")
                                     .font(.system(size: 14, weight: .medium))
                                 Spacer()
                                 KeyboardShortcuts.Recorder("", name: .quickWakeup)
                             }
-                            Text("Set your preferred keyboard shortcut to quickly access Writedown from anywhere")
+                            Text(L("Set your preferred keyboard shortcut to quickly access Writedown from anywhere"))
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                         }

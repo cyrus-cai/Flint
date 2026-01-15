@@ -444,3 +444,15 @@
 
 /* Restart to install */
 "Restart to install" = "Restart to install";
+
+/* Stop */
+"Stop" = "Stop";
+
+/* No more notes */
+"No more notes" = "No more notes";
+
+/* Cmd + C (double click) */
+"Cmd + C (double click)" = "Cmd + C (double click)";
+
+/* Welcome to Writedown */
+"Welcome to Writedown" = "Welcome to Writedown";

@@ -17,7 +17,7 @@ class OnboardingWindowController: NSWindowController {
             defer: false
         )
 
-        window.title = "Welcome to Writedown"
+        window.title = L("Welcome to Writedown")
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true

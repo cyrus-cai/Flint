@@ -132,7 +132,7 @@ struct TitleBarView: View {
     private var titleSection: some View {
         HStack(spacing: 4) {
             if isEditing {
-                TextField("Enter title", text: $editableTitle, onCommit: onTitleCommit)
+                TextField(L("Enter title"), text: $editableTitle, onCommit: onTitleCommit)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .multilineTextAlignment(.center)
@@ -852,7 +852,7 @@ class TitleBarToolbarState: ObservableObject {
             currentNoteIndex -= 1
             onNoteSelected?(recentNotes[currentNoteIndex].content, recentNotes[currentNoteIndex].fileURL)
         } else {
-            showNavigationToast(message: "No more notes")
+            showNavigationToast(message: L("No more notes"))
         }
     }
 
@@ -863,7 +863,7 @@ class TitleBarToolbarState: ObservableObject {
             currentNoteIndex += 1
             onNoteSelected?(recentNotes[currentNoteIndex].content, recentNotes[currentNoteIndex].fileURL)
         } else {
-            showNavigationToast(message: "No more notes")
+            showNavigationToast(message: L("No more notes"))
         }
     }
 
