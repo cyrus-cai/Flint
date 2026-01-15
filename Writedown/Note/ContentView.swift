@@ -1,5 +1,4 @@
 import Combine
-//import SwiftDown
 import SwiftUI
 
 struct ContentHeightPreferenceKey: PreferenceKey {
@@ -14,7 +13,6 @@ struct ContentHeightPreferenceKey: PreferenceKey {
 struct LinkDetector {
     static func findLinks(in text: String) -> [String] {
         let patterns = [
-            // 匹配完整的 URL（包含或不包含 www.）
             "(?:@)?(?:https?://)?(?:www\\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[^\\s]{2,}"
         ]
 
@@ -59,7 +57,6 @@ struct ContentView: View {
     @State private var showToast = false
     @State private var lastSaveDate: Date?
     @State private var saveError: Error?
-    // @State private var isStorageConfigured = LocalFileManager.shared.isPathConfigured
     @State private var fileMonitor: DispatchSourceFileSystemObject?
     @AppStorage(AppStorageKeys.autoSaveInterval) private var autoSaveInterval: TimeInterval = AppDefaults.autoSaveInterval
     @State private var autoSaveTimer: AnyCancellable?
@@ -69,17 +66,13 @@ struct ContentView: View {
 
     static let loadNoteNotification = Notification.Name("LoadNoteNotification")
 
-    // New states for title editing
     @State private var isEditingTitle = false
     @State private var editedTitle = ""
 
-    // Add a new state variable to track the custom title
     @State private var customTitle: String?
 
-    // Add a focus state to track and control text field focus
     @FocusState private var isTitleFieldFocused: Bool
 
-    // Add this property to track content hash
     @State private var contentHashForAIRename: Int = 0
 
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
@@ -93,7 +86,7 @@ struct ContentView: View {
     }
 
     private func startMonitoringFile() {
-        stopMonitoringFile()  // 先停止之前的监听
+        stopMonitoringFile()
 
         guard let currentId = currentNoteId,
             let fileURL = LocalFileManager.shared.fileURL(for: currentId)

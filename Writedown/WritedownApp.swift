@@ -1,6 +1,5 @@
 import AppKit
 import Carbon
-//import ClerkSDK
 import Cocoa
 import KeyboardShortcuts
 import Mixpanel
@@ -16,24 +15,17 @@ struct WritedownApp: App {
         // Initialize Mixpanel with proper configuration
         Mixpanel.initialize(
             token: "f7863b6d43e142d2a35285b4d7764792",
-            //            trackAutomaticEvents: false,  // Disable automatic event tracking
-            flushInterval: 60  // Set flush interval to 60 seconds
+            flushInterval: 60
         )
 
-        // Enable debug logging in development
         #if DEBUG
             Mixpanel.mainInstance().loggingEnabled = true
         #endif
 
-        // Set EU data residency if needed
-        // Mixpanel.mainInstance().serverURL = "https://api-eu.mixpanel.com"
-
-        // Disable IP-based geolocation if needed
         Mixpanel.mainInstance().useIPAddressForGeoLocation = false
     }
 
     var body: some Scene {
-        // 使用 Settings scene，这样窗口只会在用户主动打开设置时显示
         Settings {
             SettingsView()
         }
@@ -76,10 +68,8 @@ class HotkeyCounter: ObservableObject {
     }
 
     private func scheduleMidnightCheck() {
-        // 取消现有的定时器
         midnightTimer?.invalidate()
 
-        // 计算下一个午夜的时间
         let calendar = Calendar.current
         guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()),
             let nextMidnight = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow)
@@ -87,14 +77,12 @@ class HotkeyCounter: ObservableObject {
             return
         }
 
-        // 设置新的定时器
         midnightTimer = Timer(fire: nextMidnight, interval: 86400, repeats: true) { [weak self] _ in
             DispatchQueue.main.async {
                 self?.resetCount()
             }
         }
 
-        // 将定时器添加到 RunLoop
         RunLoop.main.add(midnightTimer!, forMode: .common)
     }
 
@@ -111,7 +99,6 @@ class HotkeyCounter: ObservableObject {
             todayCount += 1
         }
 
-        // 保存到 UserDefaults
         UserDefaults.standard.set(todayCount, forKey: "hotkeyCount")
         UserDefaults.standard.set(Date(), forKey: "lastHotkeyDate")
     }
@@ -121,19 +108,16 @@ class HotkeyCounter: ObservableObject {
     }
 
     var underLimit: Bool {
-        return true  // Pro users have unlimited access
+        return true
     }
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
-    //    let updater = AutoUpdater()
-    // private var windowController: MainWindowController? // Removed to use WindowManager
     private var statusItem: NSStatusItem?
     private var hotKey: HotKey?
     private var limitExceededWindow: LimitExceededWindowController?
     var globalKeyMonitor: GlobalKeyMonitor?
 
-    /// 订阅管理器 - 集中管理订阅状态
     private let subscriptionManager = SubscriptionManager.shared
 
     private func updateAppearance(_ mode: AppearanceMode) {
@@ -148,8 +132,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
         }
     }
-    //    let hotkeyCounter = HotkeyCounter()
-
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
         Mixpanel.mainInstance().track(event: "App Launched")
         UpdateManager.shared.checkAndDownloadUpdate()
@@ -218,7 +201,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc func toggleWindow() {
         WindowManager.shared.activeWindow?.toggleWindow()
-        // Track window toggle
         Mixpanel.mainInstance().track(event: "Window Toggled")
     }
 
@@ -227,15 +209,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
                 && !UserDefaults.standard.bool(forKey: "isPro")
             {
-                // Check if limit exceeded window is already shown
                 if self?.limitExceededWindow == nil {
-                    // Create and show limit exceeded window
                     let window = LimitExceededWindowController()
                     window.showWindow(nil)
                     NSApp.activate(ignoringOtherApps: true)
                     self?.limitExceededWindow = window
 
-                    // Add window close observer
                     NotificationCenter.default.addObserver(
                         self as Any,
                         selector: #selector(self?.limitExceededWindowDidClose),
@@ -264,7 +243,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     private func setupStatusBarItem() {
-        // Create status bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem?.button {
@@ -279,10 +257,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let event = NSApp.currentEvent!
 
         if event.type == .rightMouseUp {
-            // Show context menu
             let menu = NSMenu()
 
-            // macOS 26+ 新设计: 菜单项添加 SF Symbols 图标
             let openAppItem = NSMenuItem(
                 title: "Open Writedown", action: #selector(toggleWindow), keyEquivalent: "")
             openAppItem.target = self
@@ -306,7 +282,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             statusItem?.button?.performClick(nil)
             statusItem?.menu = nil
         } else {
-            // Left click - Quick wake up
             if HotkeyCounter.shared.underLimit || UserDefaults.standard.bool(forKey: "isPro") {
                 toggleWindow()
                 HotkeyCounter.shared.increment()
@@ -334,19 +309,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             return
         }
 
-        // Remove the Mixpanel initialization from here since it's now in WritedownApp.init()
-
         print("📥 Received URL: \(url)")
 
-        // Check if this is a login callback
-        // Login logic removed as per request
         if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
             components.queryItems?.contains(where: { $0.name == "session_id" }) == true
         {
-            // New payment callback handling
             handleStripeCallback(url: url)
         } else {
-             // print("❌ Invalid URL format - Expected writedown://oauth/callback")
+             
         }
     }
 
@@ -356,7 +326,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         {
             print("💳 Received Stripe session ID:", sessionId)
 
-            // Verify the payment status with your backend
             Task {
                 do {
                     let verifyURL = URL(
@@ -370,23 +339,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                         let status = json["status"] as? String,
                         status == "success"
                     {
-                        // Track successful payment
                         Mixpanel.mainInstance().track(event: "Payment Successful")
                         Mixpanel.mainInstance().people.set(property: "isPro", to: true)
 
-                        // Update subscription status in UserDefaults
                         await MainActor.run {
                             let defaults = UserDefaults.standard
                             defaults.set(true, forKey: "isPro")
                             defaults.synchronize()
 
-                            // Post notification to update UI
                             NotificationCenter.default.post(
                                 name: NSNotification.Name("SubscriptionDidUpdate"),
                                 object: nil
                             )
 
-                            // Show success notification
                             let notification = NSUserNotification()
                             notification.title = "Payment Successful"
                             notification.informativeText = "Welcome to Writedown Pro!"
@@ -402,7 +367,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
 
-    // MARK: - NSUserNotificationCenterDelegate
     func userNotificationCenter(_ center: NSUserNotificationCenter, didActivate notification: NSUserNotification) {
         if notification.activationType == .contentsClicked {
             if let userInfo = notification.userInfo,
@@ -410,17 +374,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                let content = userInfo["content"] as? String {
                 let fileURL = URL(fileURLWithPath: filePath)
 
-                // If there is no active note window, create one using the window manager.
                 if WindowManager.shared.activeWindow == nil {
                     WindowManager.shared.createNewWindow()
                 }
 
-                // Bring the main note window to the front.
                 if let noteWindowController = WindowManager.shared.activeWindow as? MainWindowController {
                     noteWindowController.showWindow(nil)
                     NSApp.activate(ignoringOtherApps: true)
 
-                    // Post notification to update ContentView
                     NotificationCenter.default.post(
                         name: Notification.Name("LoadNoteNotification"),
                         object: nil,
@@ -432,7 +393,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 }
 
-// MARK: - HotKey Implementation
 class HotKey {
     private var hotKeyRef: EventHotKeyRef?
     private var handler: () -> Void
