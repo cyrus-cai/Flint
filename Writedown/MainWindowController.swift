@@ -180,10 +180,9 @@ class MainWindowController: NSWindowController {
 
         // macOS 26+ Liquid Glass 适配
         if #available(macOS 26.0, *) {
-            // macOS 26+: 让系统处理 Liquid Glass 效果
-            // 不需要手动设置透明背景，系统会自动应用玻璃效果
+            // macOS 26+: 设置透明背景以启用 Liquid Glass 效果
             window.isOpaque = false
-            // 注意: 不设置 backgroundColor = .clear，让玻璃材质自然显示
+            window.backgroundColor = .clear
         } else {
             // macOS 15-25: 传统透明窗口设置
             window.isOpaque = false
@@ -332,17 +331,46 @@ class MainWindowController: NSWindowController {
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.wantsLayer = true
         
-        // macOS 26+ 适配: 使用更大的圆角配合 Liquid Glass
         if #available(macOS 26.0, *) {
             hostingView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+            hostingView.layer?.masksToBounds = true
+            
+            let containerView = NSView()
+            containerView.wantsLayer = true
+            containerView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+            containerView.layer?.masksToBounds = true
+            
+            let visualEffectView = NSVisualEffectView()
+            visualEffectView.material = .hudWindow
+            visualEffectView.blendingMode = .behindWindow
+            visualEffectView.state = .active
+            visualEffectView.wantsLayer = true
+            
+            containerView.addSubview(visualEffectView)
+            containerView.addSubview(hostingView)
+            
+            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+            hostingView.translatesAutoresizingMaskIntoConstraints = false
+            
+            NSLayoutConstraint.activate([
+                visualEffectView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                visualEffectView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                visualEffectView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                visualEffectView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+                
+                hostingView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                hostingView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                hostingView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                hostingView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+            ])
+            
+            window?.contentView = containerView
         } else {
             hostingView.layer?.cornerRadius = 12
+            hostingView.layer?.masksToBounds = true
+            window?.contentView = hostingView
         }
-        hostingView.layer?.masksToBounds = true
 
-        window?.contentView = hostingView
-
-        // 监听视图 frame 的变化
         heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
             let contentHeight = view.frame.height
             self?.updateWindowHeight(contentHeight)
