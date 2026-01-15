@@ -415,7 +415,7 @@ struct ContentView: View {
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
             }
-            .background(Color.clear) // 确保内部视图背景透明
+            .background(colorScheme == .light ? Color.white.opacity(0.5) : Color.clear)
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
