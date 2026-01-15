@@ -407,6 +407,13 @@ class MaybeLikeService: ObservableObject {
     }
     
     func startMonitoring() {
+        guard UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") else {
+            print("MaybeLike Service: Monitoring disabled by user settings")
+            return
+        }
+        
+        stopMonitoring()
+        
         timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             self?.checkPasteboard()
         }
@@ -416,6 +423,7 @@ class MaybeLikeService: ObservableObject {
     func stopMonitoring() {
         timer?.invalidate()
         timer = nil
+        print("MaybeLike Service stopped monitoring...")
     }
     
     private func checkPasteboard() {

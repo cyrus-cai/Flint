@@ -21,6 +21,7 @@ enum AppStorageKeys {
     // Note Settings
     static let AIModel = "AIModel"
     static let enableAIRename = "enableAIRename"
+    static let enableAutoSaveClipboard = "enableAutoSaveClipboard"
     static let editorFont = "editorFont"
     static let autoSaveInterval = "autoSaveInterval"
     static let notionIntegration = "notionIntegration"
@@ -45,6 +46,7 @@ struct AppDefaults {
     // Note Settings
     static let AIModel = AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "ep-20250128221733-ldppp"
     static let enableAIRename = true
+    static let enableAutoSaveClipboard = true
     static let editorFont = "System"
     static let autoSaveInterval: TimeInterval = 10
     static let notionIntegration = false

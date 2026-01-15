@@ -151,36 +151,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     //    let hotkeyCounter = HotkeyCounter()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Track app launch
         Mixpanel.mainInstance().track(event: "App Launched")
         UpdateManager.shared.checkAndDownloadUpdate()
-        MaybeLikeService.shared.startMonitoring()
+        
+        if UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") {
+            MaybeLikeService.shared.startMonitoring()
+        }
 
-        // 订阅状态由 SubscriptionManager 自动管理
-        // SubscriptionManager.shared 在初始化时会自动验证订阅状态
-        // 并在应用激活时自动重新验证（带缓存）
-        _ = subscriptionManager  // 触发 lazy 初始化
+        _ = subscriptionManager
 
-        // 设置为普通应用
         NSApp.setActivationPolicy(.accessory)
         NSUserNotificationCenter.default.delegate = self
         globalKeyMonitor = GlobalKeyMonitor()
 
-        // 检查是否需要显示引导页
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
         if hasCompletedOnboarding {
-            // 如果已完成引导，正常初始化
             setupMainWindow()
         } else {
-            // 如果未完成引导，只显示引导页
             WindowManager.shared.showOnboardingIfNeeded()
         }
 
-        // 设置快捷键
         setupGlobalHotkey()
 
-        // Check if we should request launch permission
         if UserDefaults.standard.bool(forKey: "launchAtLogin")
             && !UserDefaults.standard.bool(forKey: "hasRequestedPermission")
         {
@@ -194,7 +187,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         setupStatusBarItem()
 
-        // Apply saved appearance setting
         if let appearanceMode = AppearanceMode(
             rawValue: UserDefaults.standard.string(forKey: "appearanceMode") ?? "System")
         {

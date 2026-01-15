@@ -333,6 +333,9 @@ struct StepContent: View {
                                 .font(.system(size: 14, weight: .medium))
                             Spacer()
                             Toggle("", isOn: $launchAtLogin)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
                                 .onChange(of: launchAtLogin) { newValue in
                                     if newValue {
                                         loginManager.requestLaunchPermission { granted in
@@ -348,7 +351,6 @@ struct StepContent: View {
                                         loginManager.disableLaunchAtLogin()
                                     }
                                 }
-                                .toggleStyle(.switch)
                         }
 
                         Text(L("Quickly access Writedown when you need it"))

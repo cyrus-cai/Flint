@@ -283,10 +283,17 @@ struct GeneralSettingsView: View {
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    Toggle(L("Launch at login"), isOn: $launchAtLogin)
-                        .onChange(of: launchAtLogin) { newValue in
-                            handleLaunchAtLoginChange(newValue)
-                        }
+                    HStack {
+                        Text(L("Launch at login"))
+                        Spacer()
+                        Toggle("", isOn: $launchAtLogin)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .onChange(of: launchAtLogin) { newValue in
+                                handleLaunchAtLoginChange(newValue)
+                            }
+                    }
 
                     Divider()
 
@@ -328,6 +335,7 @@ struct GeneralSettingsView: View {
 
 struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
+    @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
     @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
@@ -404,7 +412,32 @@ struct IntegrationSettingsView: View {
             
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    Toggle(L("Auto generate note titles"), isOn: $enableAIRename)
+                    HStack {
+                        Text(L("Auto generate note titles"))
+                        Spacer()
+                        Toggle("", isOn: $enableAIRename)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text(L("Auto save important clipboard content"))
+                        Spacer()
+                        Toggle("", isOn: $enableAutoSaveClipboard)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .onChange(of: enableAutoSaveClipboard) { newValue in
+                                if newValue {
+                                    MaybeLikeService.shared.startMonitoring()
+                                } else {
+                                    MaybeLikeService.shared.stopMonitoring()
+                                }
+                            }
+                    }
 
                     Divider()
 
@@ -476,14 +509,19 @@ struct HotkeySettingsView: View {
                         KeyboardShortcuts.Recorder("", name: .quickWakeup)
                     }
 
-                    Toggle(isOn: $enableDoubleOption) {
+                    HStack {
                         HStack {
                             Image(systemName: "option")
                                 .foregroundColor(.secondary)
                             Text(L("Double press Option key"))
                         }
+                        Spacer()
+                        Toggle("", isOn: $enableDoubleOption)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .help(L("Double press Option key to toggle window"))
                     }
-                    .help(L("Double press Option key to toggle window"))
 
                     Divider()
 
