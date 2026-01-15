@@ -7,26 +7,36 @@ if [ -f .env ]; then
 fi
 
 VERSION=$1
+PLIST_PATH="Writedown-Info.plist"
 
+if [ ! -f "$PLIST_PATH" ]; then
+    echo "❌ Error: $PLIST_PATH not found."
+    exit 1
+fi
+
+CURRENT_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST_PATH")
+
+if [ -z "$VERSION" ]; then
+    echo "❌ Error: Version argument is required."
+    echo "Usage: ./scripts/publish.sh <version>"
+    echo "Current Version: $CURRENT_VERSION"
+    exit 1
+fi
 
 echo "🚀 Starting release process for version $VERSION..."
 
-# 1. Bump Version (Optional)
-if [ ! -z "$VERSION" ]; then
-    echo "📈 Bumping version to $VERSION..."
+if [ "$VERSION" != "$CURRENT_VERSION" ]; then
+    echo "📈 Bumping version: $CURRENT_VERSION -> $VERSION"
     
-    # Update Info.plist directly first
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "Writedown-Info.plist"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST_PATH"
     
-    # Update project.pbxproj MARKETING_VERSION to ensure xcodebuild picks it up
-    # This is crucial because xcodebuild prioritizes Build Settings over Info.plist
     echo "🔧 Updating MARKETING_VERSION in project file..."
     sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $VERSION;/g" Writedown.xcodeproj/project.pbxproj
     
-    # Set build number to 1
+    echo "Resetting build number to 1..."
     xcrun agvtool new-version -all 1
 else
-    echo "ℹ️  No version argument provided. Using current project version."
+    echo "ℹ️  Version matches current ($VERSION). Using existing build number."
 fi
 
 # 2. Package (Build & Zip)
