@@ -360,6 +360,46 @@ class DoubaoAPI {
             throw error
         }
     }
+
+    func generateTitle(text: String) async throws -> String {
+        let selectedModel = UserDefaults.standard.string(forKey: "AIModel") ?? "ep-20250128221733-ldppp"
+        
+        let systemPrompt = "Please summarize the text content as a title, according to the most commonly used language in the user's text, as concisely & short as possible, less than 4 English words or 8 chinese words."
+        
+        let messages = [
+            ChatMessage(role: "system", content: systemPrompt),
+            ChatMessage(role: "user", content: text)
+        ]
+        
+        let requestPayload = ChatRequest(model: selectedModel, messages: messages, stream: false)
+        
+        guard let url = URL(string: baseURL) else { throw DoubaoError.invalidConfiguration }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        
+        do {
+            urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
+            let (data, response) = try await URLSession.shared.data(for: urlRequest)
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw DoubaoError.requestFailed
+            }
+            
+            let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+            let title = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            
+            // Remove any quotes that AI might add
+            return title.replacingOccurrences(of: "\"", with: "")
+                       .replacingOccurrences(of: "“", with: "")
+                       .replacingOccurrences(of: "”", with: "")
+        } catch {
+            print("AI Title Generation failed: \(error)")
+            throw error
+        }
+    }
 }
 
 enum DoubaoError: Error {
@@ -462,8 +502,12 @@ class MaybeLikeService: ObservableObject {
                 let isRelevent = try await DoubaoAPI.shared.checkRelevance(text: aiInput)
                 
                 if isRelevent {
+                    print("MaybeLike: AI accepted content, generating title...")
+                    let aiTitle = try await DoubaoAPI.shared.generateTitle(text: aiInput)
+                    print("MaybeLike: Generated title: \(aiTitle)")
+                    
                     await MainActor.run {
-                        self.saveToNotes(content, sourceApp: sourceApp)
+                        self.saveToNotes(content, sourceApp: sourceApp, title: aiTitle)
                     }
                 } else {
                     print("MaybeLike: AI rejected content")
@@ -491,14 +535,31 @@ class MaybeLikeService: ObservableObject {
         return "\(prefix)\n...\n\(middle)\n...\n\(suffix)"
     }
     
-    private func saveToNotes(_ content: String, sourceApp: String) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        let title = dateFormatter.string(from: Date())
+    private func saveToNotes(_ content: String, sourceApp: String, title: String) {
+        let safeTitle = title.map { $0 == "/" || $0 == ":" ? "-" : $0 }
+        let finalTitle: String
+        
+        if String(safeTitle).trimmingCharacters(in: .whitespaces).isEmpty {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            finalTitle = dateFormatter.string(from: Date())
+        } else {
+            finalTitle = String(safeTitle)
+        }
         
         let textWithMetadata = "<!-- Source: \(sourceApp) -->\n<!-- Type: MaybeLike -->\n\(content)"
         
-        if let fileURL = LocalFileManager.shared.fileURL(for: title) {
+        if var fileURL = LocalFileManager.shared.fileURL(for: finalTitle) {
+            if FileManager.default.fileExists(atPath: fileURL.path) {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "HH-mm-ss"
+                let uniqueSuffix = dateFormatter.string(from: Date())
+                let uniqueTitle = "\(finalTitle) \(uniqueSuffix)"
+                if let uniqueURL = LocalFileManager.shared.fileURL(for: uniqueTitle) {
+                    fileURL = uniqueURL
+                }
+            }
+            
             do {
                 try textWithMetadata.write(to: fileURL, atomically: true, encoding: .utf8)
                 print("MaybeLike: Saved note to \(fileURL.path)")
@@ -506,7 +567,7 @@ class MaybeLikeService: ObservableObject {
                 let notification = NSUserNotification()
                 notification.title = "Maybe Like Captured"
                 notification.subtitle = "From \(sourceApp)"
-                notification.informativeText = "AI captured this content."
+                notification.informativeText = "AI captured: \(finalTitle)"
                 notification.soundName = NSUserNotificationDefaultSoundName
                 NSUserNotificationCenter.default.deliver(notification)
                 
