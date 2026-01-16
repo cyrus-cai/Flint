@@ -400,6 +400,23 @@ class DoubaoAPI {
             throw error
         }
     }
+    
+    static func prepareForAI(_ content: String, maxChars: Int = 300) -> String {
+        if content.count <= maxChars { return content }
+        
+        let prefix = content.prefix(100)
+        let suffix = content.suffix(100)
+        
+        let middleIndex = content.count / 2
+        let startOffset = max(0, middleIndex - 50)
+        let middleStart = content.index(content.startIndex, offsetBy: startOffset)
+        let endOffset = min(content.count, startOffset + 100)
+        let middleEnd = content.index(content.startIndex, offsetBy: endOffset)
+        
+        let middle = content[middleStart..<middleEnd]
+        
+        return "\(prefix)\n...\n\(middle)\n...\n\(suffix)"
+    }
 }
 
 enum DoubaoError: Error {
@@ -491,7 +508,7 @@ class MaybeLikeService: ObservableObject {
     }
     
     private func processContent(_ content: String) {
-        let aiInput = prepareForAI(content)
+        let aiInput = DoubaoAPI.prepareForAI(content, maxChars: maxContextChars)
         
         Task {
             do {
@@ -518,22 +535,7 @@ class MaybeLikeService: ObservableObject {
         }
     }
     
-    private func prepareForAI(_ content: String) -> String {
-        if content.count <= maxContextChars { return content }
-        
-        let prefix = content.prefix(100)
-        let suffix = content.suffix(100)
-        
-        let middleIndex = content.count / 2
-        let startOffset = max(0, middleIndex - 50)
-        let middleStart = content.index(content.startIndex, offsetBy: startOffset)
-        let endOffset = min(content.count, startOffset + 100)
-        let middleEnd = content.index(content.startIndex, offsetBy: endOffset)
-        
-        let middle = content[middleStart..<middleEnd]
-        
-        return "\(prefix)\n...\n\(middle)\n...\n\(suffix)"
-    }
+    // Private method removed as it is now in DoubaoAPI
     
     private func saveToNotes(_ content: String, sourceApp: String, title: String) {
         let safeTitle = title.map { $0 == "/" || $0 == ":" ? "-" : $0 }

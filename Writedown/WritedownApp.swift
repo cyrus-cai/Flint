@@ -547,15 +547,37 @@ class GlobalKeyMonitor {
             // 增加使用次数统计
             HotkeyCounter.shared.increment()
 
-            // Create and deliver system notification
-            let notification = NSUserNotification()
-            notification.title = "Content Saved"
-            notification.subtitle = "From \(sourceApp)"
-            notification.informativeText = "\(clipboardContent.count) chars saved"
-            notification.soundName = NSUserNotificationDefaultSoundName
-            notification.userInfo = ["filePath": fileURL.path, "content": textWithMetadata]
-            
-            NSUserNotificationCenter.default.deliver(notification)
+            Task {
+                var summaryText = "\(clipboardContent.count) chars saved"
+                
+                // Try to get AI summary
+                let aiInput = DoubaoAPI.prepareForAI(clipboardContent)
+                do {
+                    let title = try await DoubaoAPI.shared.generateTitle(text: aiInput)
+                    if !title.isEmpty {
+                        summaryText = title
+                    }
+                } catch {
+                    print("AI Summary failed for manual capture: \(error)")
+                }
+                
+                let finalSummary = summaryText
+                let finalFileURL = fileURL
+                let finalTextWithMetadata = textWithMetadata
+                let finalSourceApp = sourceApp
+                
+                await MainActor.run {
+                    // Create and deliver system notification
+                    let notification = NSUserNotification()
+                    notification.title = "Content Saved"
+                    notification.subtitle = "From \(finalSourceApp)"
+                    notification.informativeText = finalSummary
+                    notification.soundName = NSUserNotificationDefaultSoundName
+                    notification.userInfo = ["filePath": finalFileURL.path, "content": finalTextWithMetadata]
+                    
+                    NSUserNotificationCenter.default.deliver(notification)
+                }
+            }
         } catch {
             print("Save failed: \(error.localizedDescription)")
         }
