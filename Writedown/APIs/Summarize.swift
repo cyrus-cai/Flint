@@ -567,7 +567,7 @@ class MaybeLikeService: ObservableObject {
                 let notification = NSUserNotification()
                 notification.title = "Maybe Like Captured"
                 notification.subtitle = "From \(sourceApp)"
-                notification.informativeText = "AI captured: \(finalTitle)"
+                notification.informativeText = "\(finalTitle)"
                 notification.soundName = NSUserNotificationDefaultSoundName
                 NSUserNotificationCenter.default.deliver(notification)
                 

@@ -417,6 +417,7 @@ struct TitleBarToolbar: View {
                     onSettings: state.openSettings,
                     onCopy: onCopy,  // Pass onCopy callback
                     onShare: onShare,  // Pass onShare callback
+                    onDelete: state.deleteFile,
                     title: title
                 )
             }

@@ -10,6 +10,7 @@ struct SettingsListView: View {
     let onSettings: () -> Void
     let onCopy: () -> Void
     let onShare: () -> Void
+    let onDelete: () -> Void
     let title: String?
 
     // private func generateObsidianURI(from title: String) -> String? {
@@ -57,6 +58,7 @@ struct SettingsListView: View {
                             Text(item.title)
                                 .foregroundColor(.primary)
                                 .padding(.leading, 2)
+                                .fixedSize()
 
                             Spacer()
 
@@ -72,15 +74,19 @@ struct SettingsListView: View {
                                             )
                                     }
                                 }
+                            } else {
+                                Spacer()
+                                    .frame(height: 18)
                             }
                         }
                         .foregroundColor(.primary)
+                        .frame(height: 18)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 )
                 .padding(.horizontal, 8)
 
-                if item == .shareContents || item == .showAll {
+                if item == .shareContents || item == .deleteNote {
                     Rectangle()
                         .fill(Color(NSColor.separatorColor))
                         .frame(height: 1)
@@ -109,6 +115,8 @@ struct SettingsListView: View {
             openInFinder()
         case .settings:
             onSettings()
+        case .deleteNote:
+            onDelete()
         }
     }
 
@@ -146,6 +154,7 @@ struct SettingsListView: View {
     enum SettingsItem: Int, CaseIterable, Identifiable {
         case copyContents
         case shareContents
+        case deleteNote
         case showAll
         case newVersionAvailable
         case settings
@@ -162,6 +171,8 @@ struct SettingsListView: View {
                 return L("Click to install Update")
             case .showAll:
                 return L("Show in Finder")
+            case .deleteNote:
+                return L("Delete Note")
             case .settings:
                 return L("Settings")
             }
@@ -173,6 +184,8 @@ struct SettingsListView: View {
                 return "gear"
             case .showAll:
                 return "folder"
+            case .deleteNote:
+                return "trash"
             case .copyContents:
                 return "doc.on.doc"
             case .shareContents:
@@ -188,6 +201,8 @@ struct SettingsListView: View {
                 return "⌘⇧C"
             case .shareContents:
                 return "⌘⇧S"
+            case .deleteNote:
+                return nil
             case .settings:
                 return nil
             default:

@@ -475,6 +475,7 @@ struct NoteRow: View {
     let onHover: (Bool) -> Void
     let searchText: String
     var onToggleStar: () -> Void  // 新增的星标切换回调
+    var onDelete: () -> Void // 删除回调
     @State private var isCopied = false
     @State private var isHoveringCopy = false
     @State private var isHoveringShare = false
@@ -697,6 +698,17 @@ struct NoteRow: View {
                             .imageScale(.medium)
                             .foregroundColor(.yellow)
                         Text(note.isStarred ? L("Remove Star") : L("Add Star"))
+                            .font(.system(size: 13))
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                Button(action: onDelete) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "trash")
+                            .imageScale(.medium)
+                            .foregroundColor(.red)
+                        Text(L("Delete"))
                             .font(.system(size: 13))
                     }
                     .padding(.vertical, 4)
@@ -1067,6 +1079,9 @@ struct CollapsibleGroupView: View {
                                 withAnimation {
                                     viewModel.toggleStarred(note)
                                 }
+                            },
+                            onDelete: {
+                                viewModel.deleteNote(note)
                             }
                         )
                         .transition(.opacity.combined(with: .move(edge: .top)))

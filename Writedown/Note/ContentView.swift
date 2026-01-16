@@ -311,6 +311,28 @@ struct ContentView: View {
         return firstLine.count > 12 ? firstLine.prefix(12) + "..." : firstLine
     }
 
+    private func deleteCurrentNote() {
+        guard let currentId = currentNoteId,
+              let fileURL = LocalFileManager.shared.fileURL(for: currentId) else {
+            return
+        }
+
+        do {
+            stopMonitoringFile()
+            
+            try Foundation.FileManager.default.removeItem(at: fileURL)
+            print("Deleted note at \(fileURL.path)")
+            
+            createNewNote()
+            
+        } catch {
+            print("Error deleting note: \(error)")
+            if currentNoteId == currentId {
+                startMonitoringFile()
+            }
+        }
+    }
+
     // Function to handle title double-click
     private func handleTitleDoubleClick() {
         // Start with the current title (custom or derived)
@@ -444,6 +466,9 @@ struct ContentView: View {
             }
             toolbarState.onRename = {
                 handleTitleDoubleClick()
+            }
+            toolbarState.onDelete = {
+                deleteCurrentNote()
             }
             toolbarState.onRenameWithTitle = { newTitle in
                 // 确保 currentNoteId 不为 nil
