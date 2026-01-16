@@ -482,6 +482,14 @@ class MaybeLikeService: ObservableObject {
         timer = nil
         print("MaybeLike Service stopped monitoring...")
     }
+
+    func ignoreCurrentClipboardChange() {
+        let currentCount = pasteboard.changeCount
+        if lastChangeCount != currentCount {
+            lastChangeCount = currentCount
+            print("MaybeLike Service: Ignoring current clipboard change (manually handled)")
+        }
+    }
     
     private func checkPasteboard() {
         guard pasteboard.changeCount != lastChangeCount else { return }

@@ -497,6 +497,8 @@ class GlobalKeyMonitor {
     }
 
     private func handle(event: NSEvent) {
+        if event.isARepeat { return }
+
         // 判断是否按下了 Command 键以及字符是否为 "c"
         if event.modifierFlags.contains(.command),
             let characters = event.charactersIgnoringModifiers,
@@ -508,8 +510,10 @@ class GlobalKeyMonitor {
             {
                 // 检测到双击 Command+C 事件
                 saveClipboardContent()
+                lastCommandCPress = nil
+            } else {
+                lastCommandCPress = now
             }
-            lastCommandCPress = now
         }
     }
 
@@ -517,6 +521,8 @@ class GlobalKeyMonitor {
         guard let clipboardContent = NSPasteboard.general.string(forType: .string) else {
             return
         }
+
+        MaybeLikeService.shared.ignoreCurrentClipboardChange()
 
         // Get the frontmost application name
         let sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "Unknown"
