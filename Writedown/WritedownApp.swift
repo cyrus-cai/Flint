@@ -231,6 +231,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 }
             }
         }
+        
+        KeyboardShortcuts.onKeyUp(for: .showRecentNotes) {
+            WindowManager.shared.createOrShowMainWindow()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                NotificationCenter.default.post(
+                    name: Notification.Name("ShowRecentNotesNotification"),
+                    object: nil
+                )
+            }
+        }
     }
 
     @objc private func limitExceededWindowDidClose(_ notification: Notification) {

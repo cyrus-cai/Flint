@@ -65,6 +65,7 @@ struct ContentView: View {
     @State private var showCopiedStatus = false
 
     static let loadNoteNotification = Notification.Name("LoadNoteNotification")
+    static let showRecentNotesNotification = Notification.Name("ShowRecentNotesNotification")
 
     @State private var isEditingTitle = false
     @State private var editedTitle = ""
@@ -477,6 +478,9 @@ struct ContentView: View {
                let fileURL = userInfo["fileURL"] as? URL {
                 loadNoteContent(content, fileURL: fileURL)
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ContentView.showRecentNotesNotification)) { _ in
+            toolbarState.openFileDictionary()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) {
             _ in

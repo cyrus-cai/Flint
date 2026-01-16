@@ -139,6 +139,7 @@ class MainWindowController: NSWindowController {
     private var trackingArea: NSTrackingArea?
     private var isResizing: Bool = false
     private var lastOptionKeyTapDate: Date?
+    private var optionKeyTapCount: Int = 0  // 用于记录 Option 键点击次数
     private var optionKeyTapMonitor: Any?
     private var globalOptionKeyTapMonitor: Any?
 
@@ -165,6 +166,46 @@ class MainWindowController: NSWindowController {
         setupContentView()
         setupInitialPosition()
         setupOptionKeyMonitor()
+    }
+
+    // ... (existing code)
+
+    private func checkTripleOptionKey(_ event: NSEvent) {
+        let onlyOptionPressed = event.modifierFlags.contains(.option) &&
+            !event.modifierFlags.contains(.command) &&
+            !event.modifierFlags.contains(.control) &&
+            !event.modifierFlags.contains(.shift) &&
+            !event.modifierFlags.contains(.function)
+
+        if onlyOptionPressed {
+            let now = Date()
+            
+            if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
+                optionKeyTapCount += 1
+            } else {
+                optionKeyTapCount = 1
+            }
+            
+            self.lastOptionKeyTapDate = now
+            
+            if optionKeyTapCount >= 3 {
+                WindowManager.shared.createOrShowMainWindow()
+                NotificationCenter.default.post(
+                    name: Notification.Name("ShowRecentNotesNotification"),
+                    object: nil
+                )
+                
+                optionKeyTapCount = 0
+                self.lastOptionKeyTapDate = nil
+                return
+            }
+            
+            if optionKeyTapCount == 2 && UserDefaults.standard.bool(forKey: "enableDoubleOption") {
+                self.performQuickWakeup()
+            }
+            
+        } else if event.modifierFlags.isEmpty {
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -587,29 +628,7 @@ class MainWindowController: NSWindowController {
     }
 
     private func checkDoubleOptionKey(_ event: NSEvent) {
-        // 仅当启用双击 Option 快捷键时处理
-        guard UserDefaults.standard.bool(forKey: "enableDoubleOption") else { return }
-
-        // 我们需要检查是否只有 Option 键被按下，而没有其他修饰键
-        let onlyOptionPressed = event.modifierFlags.contains(.option) &&
-            !event.modifierFlags.contains(.command) &&
-            !event.modifierFlags.contains(.control) &&
-            !event.modifierFlags.contains(.shift) &&
-            !event.modifierFlags.contains(.function)
-
-        if onlyOptionPressed {
-            let now = Date()
-            if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
-                print("Double tap Option detected")
-                self.performQuickWakeup()
-                self.lastOptionKeyTapDate = nil
-            } else {
-                self.lastOptionKeyTapDate = now
-            }
-        } else if event.modifierFlags.isEmpty {
-            // 当所有修饰键都释放时，重置上次点击时间
-            // 这样用户必须完全释放 Option 键后再次按下才能触发双击
-            self.lastOptionKeyTapDate = nil
-        }
+        checkTripleOptionKey(event)
     }
 }
+
