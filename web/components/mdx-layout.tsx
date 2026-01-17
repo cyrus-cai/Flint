@@ -26,7 +26,7 @@ import { Contributors } from './core/contributors';
 import type { MDXComponents } from "mdx/types";
 const components: MDXComponents = {
   h1: (props) => <Heading as="h1" fontSize={["2xl", "2xl", "32px"]} color="#000" {...props} />,
-  h2: (props) => <Text fontWeight="bold" fontSize="xl" mt={12} mb={6} {...props} />,
+  h2: (props) => <Text fontWeight="bold" fontSize="lg" mt={2} mb={2} {...props} />,
   p: (props) => <Text my={6} color="#495057" fontSize="16px" lineHeight="24px" {...props} />,
   a: (props) => (
     <Text as="a" href={props.href} rel="noopener noreferrer" color="#6868F7" fontWeight="bold">
@@ -39,7 +39,7 @@ const components: MDXComponents = {
     <ListItem
       color="#495057"
       lineHeight="32px"
-      fontSize="16px"
+      fontSize="17px"
       _before={{ content: "unset" }}
       {...props}
     />
@@ -274,7 +274,7 @@ export const MdxLayout = (props: MdxLayoutProps) => {
             animate={{ opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.2 } }}
           >
             <div
-              className="pb-16 pt-6 text-lg leading-8 text-gray-700 font-hero"
+              className="pb-16 pt-4 text-lg leading-8 text-gray-700 font-hero"
             >
               {props.children}
             </div>
