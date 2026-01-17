@@ -719,32 +719,49 @@ struct AboutSettingsView: View {
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Label(L("Status"), systemImage: isPro ? "checkmark.seal.fill" : "xmark.seal")
-                            .foregroundColor(isPro ? .green : .secondary)
+                        Label(L("Status"), systemImage: isPro ? "checkmark.seal.fill" : "person")
                         Spacer()
-                        Text(isPro ? "Pro" : L("Free"))
-                            .foregroundColor(isPro ? .green : .secondary)
+                        if isPro {
+                            Text("Pro")
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(
+                                    LinearGradient(
+                                        colors: [.purple, .pink],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .clipShape(Capsule())
+                        } else {
+                            Text(L("Free"))
+                                .foregroundColor(.secondary)
+                        }
                     }
 
-                    Divider()
+                    if !isPro {
+                        Divider()
 
-                    HStack {
-                        Label(L("Restore Purchase"), systemImage: "arrow.clockwise")
-                        Spacer()
-                        Button {
-                            Task {
-                                await paymentVM.restorePurchase()
+                        HStack {
+                            Label(L("Restore Purchase"), systemImage: "arrow.clockwise")
+                            Spacer()
+                            Button {
+                                Task {
+                                    await paymentVM.restorePurchase()
+                                }
+                            } label: {
+                                if paymentVM.isProcessing {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .frame(width: 16, height: 16)
+                                } else {
+                                    Text(L("Restore"))
+                                }
                             }
-                        } label: {
-                            if paymentVM.isProcessing {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                    .frame(width: 16, height: 16)
-                            } else {
-                                Text(L("Restore"))
-                            }
+                            .disabled(paymentVM.isProcessing)
                         }
-                        .disabled(paymentVM.isProcessing)
                     }
                 }
                 .padding(12)
