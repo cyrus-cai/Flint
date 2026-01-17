@@ -456,3 +456,33 @@
 
 /* Welcome to Writedown */
 "Welcome to Writedown" = "欢迎使用 Writedown";
+
+/* Subscription */
+"Subscription" = "订阅";
+
+/* Status */
+"Status" = "状态";
+
+/* Free */
+"Free" = "免费版";
+
+/* Restore */
+"Restore" = "恢复";
+
+/* Restore Result */
+"Restore Result" = "恢复结果";
+
+/* Your Pro subscription has been restored. */
+"Your Pro subscription has been restored." = "您的专业版订阅已恢复。";
+
+/* Restore Failed */
+"Restore Failed" = "恢复失败";
+
+/* Unlimited quick wake-ups (Pro) */
+"Unlimited quick wake-ups (Pro)" = "无限次快速唤醒（专业版）";
+
+/* Double press Option key */
+"Double press Option key" = "双击 Option 键";
+
+/* Auto save important clipboard content */
+"Auto save important clipboard content" = "自动保存重要剪贴板内容";
