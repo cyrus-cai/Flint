@@ -1,0 +1,27 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.8.8-release",
+  publishedAt: "2026-01-16T00:18:00.000Z",
+  title: "HyperNote v0.8.8: Enhanced UI Responsiveness",
+  headerImage: "https://hypernote.app/images/changelog/v0.8.8-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+**HyperNote v0.8.8** focuses on improving UI responsiveness and visual polish.
+
+## 🎨 UI Improvements
+
+- **ContentView Update**: Updated `ContentView` background handling for improved UI responsiveness and smoother visual transitions.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);

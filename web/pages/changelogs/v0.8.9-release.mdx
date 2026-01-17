@@ -1,0 +1,27 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.8.9-release",
+  publishedAt: "2026-01-16T23:00:00.000Z",
+  title: "HyperNote v0.8.9: Quick Access to Recent Notes",
+  headerImage: "https://hypernote.app/images/changelog/v0.8.9-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+**HyperNote v0.8.9** introduces a powerful new keyboard shortcut for accessing your recent notes.
+
+## ⚡ Quick Access
+
+- **Triple Option Tap**: Added functionality to access recent notes by triple-tapping the `Option` key - a fast way to jump to your most recent work.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);

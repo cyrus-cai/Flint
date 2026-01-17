@@ -1,0 +1,39 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.9.1-release",
+  publishedAt: "2026-01-17T18:00:00.000Z",
+  title: "HyperNote v0.9.1: Enhanced Subscription Display",
+  headerImage: "https://hypernote.app/images/changelog/v0.9.1-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+**HyperNote v0.9.1** brings improved subscription status visibility and better visual feedback.
+
+## 🌟 Subscription Display
+
+- **Enhanced About View**: Updated `AboutSettingsView` with improved subscription status display for better transparency.
+
+## 🌐 Localization
+
+- **Chinese Support**: Added Chinese localization for subscription-related features.
+
+## 🎨 Visual Feedback
+
+- **Destructive Action Colors**: Updated `SettingsListView` to conditionally change text and icon color for destructive items (like note deletion) to red for better user awareness.
+
+## 🛠️ Subscription Logic
+
+- **Refactored Validation**: Improved subscription validation logic for more accurate status checking.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);

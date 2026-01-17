@@ -1,0 +1,28 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.8.4-release",
+  publishedAt: "2026-01-15T00:01:00.000Z",
+  title: "HyperNote v0.8.4: Improved Auto-Updater",
+  headerImage: "https://hypernote.app/images/changelog/v0.8.4-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+**HyperNote v0.8.4** focuses on improving the auto-update experience.
+
+## 🔄 Auto-Update Improvements
+
+- **Refactored AutoUpdater**: Completely refactored the `AutoUpdater` for improved update handling and reliability.
+- **Enhanced Packaging**: Improved packaging script for better distribution.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);

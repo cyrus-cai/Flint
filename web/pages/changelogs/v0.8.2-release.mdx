@@ -1,0 +1,41 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.8.2-release",
+  publishedAt: "2026-01-14T15:10:00.000Z",
+  title: "HyperNote v0.8.2: Automated Releases and CI Improvements",
+  headerImage: "https://hypernote.app/images/changelog/v0.8.2-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+**HyperNote v0.8.2** brings important infrastructure improvements for faster and more reliable releases.
+
+## 🚀 Automated Releases
+
+- **Release Scripts**: Added automated release scripts and workflows for streamlined distribution.
+- **CI Improvements**: Fixed CI build permissions and disabled code signing for automated releases.
+- **Build Artifacts**: Added `.gitignore` to stop tracking build artifacts, keeping the repository clean.
+
+## 🤖 AI Configuration
+
+- **Updated Endpoint**: Updated AI model configuration to use a more reliable working endpoint.
+
+## 🌐 Localization
+
+- **Enhanced Support**: Improved localization support for settings and user interface elements.
+
+## 🧹 Code Cleanup
+
+- **Archive Removal**: Refactored `RecentNotesViewModel` by removing archive-related functionality for better code clarity.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);

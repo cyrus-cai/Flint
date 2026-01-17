@@ -1,0 +1,29 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.8.7-release",
+  publishedAt: "2026-01-16T00:05:00.000Z",
+  title: "HyperNote v0.8.7: macOS 26+ Liquid Glass Support",
+  headerImage: "https://hypernote.app/images/changelog/v0.8.7-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+**HyperNote v0.8.7** brings full support for the stunning new Liquid Glass effects in macOS 26+.
+
+## 🎨 macOS 26+ Liquid Glass
+
+- **UI Overhaul**: Implemented macOS 26+ Liquid Glass support across various views for a modern, beautiful interface.
+- **Component Refactoring**: Enhanced multiple UI components to fully embrace the new Liquid Glass visual effects.
+- **Improved Compatibility**: Refactored UI components for better macOS 26+ support and visual consistency.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);

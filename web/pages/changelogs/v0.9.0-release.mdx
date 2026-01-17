@@ -1,0 +1,38 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.9.0-release",
+  publishedAt: "2026-01-16T23:30:00.000Z",
+  title: "HyperNote v0.9.0: AI Summaries, Note Deletion, and Enhanced Notifications",
+  headerImage: "https://hypernote.app/images/changelog/v0.9.0-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+**HyperNote v0.9.0** is a major release bringing powerful AI features and important workflow enhancements.
+
+## 🤖 AI Enhancements
+
+- **AI-Generated Summaries**: Enhanced notification system now includes AI-generated summaries, giving you quick insights into your notes at a glance.
+- **Refactored AI Input**: Improved AI input preparation for better, more accurate results.
+
+## 🗑️ Note Management
+
+- **Note Deletion**: Implemented full note deletion functionality - you can now delete notes directly from the interface.
+- **Updated Notifications**: Updated notification text to better reflect note actions.
+
+## ⚡ System Improvements
+
+- **Enhanced Clipboard Handling**: Improved clipboard handling and event monitoring in `GlobalKeyMonitor` for more reliable operation.
+- **macOS Compatibility**: Refactored `MainWindowController` for better compatibility with upcoming macOS releases.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);
