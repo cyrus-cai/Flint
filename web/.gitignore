@@ -121,3 +121,4 @@ out/*
 changelog-images/
 TODO
 .aider*
+.vercel
