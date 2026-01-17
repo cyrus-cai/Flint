@@ -5,23 +5,23 @@ import { Feed } from "feed";
 const MDX_DIR = "changelogs";
 
 export const generateRssFeed = async () => {
-  const siteURL = "https://changelog.june.so";
+  const siteURL = "https://hypernote.app";
   const date = new Date();
   const author = {
-    name: "June",
-    link: "https://twitter.com/JuneDotSo",
+    name: "HyperNote",
+    link: "https://hypernote.app",
   };
 
   const feed = new Feed({
-    title: "June Changelog",
-    description: "How June gets better every week",
+    title: "HyperNote Changelog",
+    description: "What's new in HyperNote",
     id: siteURL,
     link: siteURL,
     image: `${siteURL}/favicon.ico`,
     favicon: `${siteURL}/favicon.ico`,
-    copyright: `All rights reserved ${date.getFullYear()}, June`,
-    updated: date, // today's date
-    generator: "Feed for June changelog",
+    copyright: `All rights reserved ${date.getFullYear()}, HyperNote`,
+    updated: date,
+    generator: "Feed for HyperNote changelog",
     feedLinks: {
       rss2: `${siteURL}/rss/feed.xml`, // xml format
       json: `${siteURL}/rss/feed.json`, // json fromat

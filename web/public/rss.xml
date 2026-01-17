@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0">
     <channel>
-        <title>June Changelog</title>
-        <link>https://changelog.june.so</link>
-        <description>How June gets better every week</description>
-        <lastBuildDate>Sat, 17 Jan 2026 14:38:07 GMT</lastBuildDate>
+        <title>HyperNote Changelog</title>
+        <link>https://hypernote.app</link>
+        <description>What's new in HyperNote</description>
+        <lastBuildDate>Sat, 17 Jan 2026 14:42:25 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
-        <generator>Feed for June changelog</generator>
+        <generator>Feed for HyperNote changelog</generator>
         <image>
-            <title>June Changelog</title>
-            <url>https://changelog.june.so/favicon.ico</url>
-            <link>https://changelog.june.so</link>
+            <title>HyperNote Changelog</title>
+            <url>https://hypernote.app/favicon.ico</url>
+            <link>https://hypernote.app</link>
         </image>
-        <copyright>All rights reserved 2026, June</copyright>
+        <copyright>All rights reserved 2026, HyperNote</copyright>
         <item>
             <title><![CDATA[HyperNote v0.9: Subscriptions, AI Summaries, and More]]></title>
-            <link>https://changelog.june.so/changelogs/v0.9-release</link>
-            <guid>https://changelog.june.so/changelogs/v0.9-release</guid>
+            <link>https://hypernote.app/changelogs/v0.9-release</link>
+            <guid>https://hypernote.app/changelogs/v0.9-release</guid>
             <pubDate>Sat, 17 Jan 2026 10:00:00 GMT</pubDate>
             <enclosure url="https://hypernote.app/images/changelog/v0.9-header.png" length="0" type="image/png"/>
         </item>
