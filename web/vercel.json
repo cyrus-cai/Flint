@@ -1,4 +1,22 @@
 {
+  "rewrites": [
+    {
+      "source": "/install",
+      "destination": "/install.sh"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/download",
+      "destination": "https://wfcpsam37fc4yuvn.public.blob.vercel-storage.com/Writedown-0.8.6.zip",
+      "permanent": false
+    },
+    {
+      "source": "/latest",
+      "destination": "https://wfcpsam37fc4yuvn.public.blob.vercel-storage.com/Writedown-0.8.6.zip",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/install.sh",
