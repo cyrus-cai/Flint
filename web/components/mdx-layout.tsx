@@ -33,8 +33,8 @@ const components: MDXComponents = {
       {props.children}
     </Text>
   ),
-  ul: (props) => <UnorderedList spacing={4} {...props} />,
-  ol: (props) => <OrderedList spacing={4} {...props} />,
+  ul: (props) => <UnorderedList spacing={1} {...props} />,
+  ol: (props) => <OrderedList spacing={1} {...props} />,
   li: (props) => (
     <ListItem
       color="#495057"
@@ -274,7 +274,7 @@ export const MdxLayout = (props: MdxLayoutProps) => {
             animate={{ opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.2 } }}
           >
             <div
-              className="pb-16 text-lg leading-8 text-gray-700 font-hero"
+              className="pb-16 pt-6 text-lg leading-8 text-gray-700 font-hero"
             >
               {props.children}
             </div>

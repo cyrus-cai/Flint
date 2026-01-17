@@ -3,7 +3,7 @@ import { MdxLayout } from "components/mdx-layout.tsx";
 export const meta = {
   slug: "v0.8.1-release",
   publishedAt: "2026-01-12T15:00:00.000Z",
-  title: "HyperNote v0.8.1: Enhanced Configuration and Settings",
+  title: "HyperNote v0.8.1",
   headerImage: "https://hypernote.app/images/changelog/v0.8.1-header.png",
   authors: [
     {
@@ -14,22 +14,12 @@ export const meta = {
   ],
 };
 
-Welcome to **HyperNote v0.8.1**! This release focuses on improving configuration management and user experience.
+- Redesigned Settings
+- More secure subscription verification
+- Faster recent notes loading
 
-## ⚙️ Configuration Management
 
-- **Refactored AppConfig**: Improved `AppConfig` and `AIModel` structures for better maintainability and flexibility.
-- **Streamlined Settings**: Enhanced settings command access for easier user configuration.
 
-## 🔒 Subscription System
-
-- **Device-Based Verification**: Implemented device-based subscription verification using Hardware UUID for better security.
-
-## 🎨 UI Improvements
-
-- **Settings Overhaul**: Completely refactored `SettingsView` and related components for improved UI consistency and functionality.
-- **Recent Notes**: Streamlined summarization logic in `RecentNotesListView` for better UI responsiveness.
-- **Simplified Authentication**: Removed legacy user login and pro status check functionality for a cleaner experience.
 
 export default ({ children, ...rest }) => (
   <MdxLayout meta={meta} {...rest}>

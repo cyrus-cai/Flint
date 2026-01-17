@@ -3,7 +3,7 @@ import { MdxLayout } from "components/mdx-layout.tsx";
 export const meta = {
   slug: "v0.8.6-release",
   publishedAt: "2026-01-15T23:18:00.000Z",
-  title: "HyperNote v0.8.6: Clipboard Monitoring & Title Generation",
+  title: "HyperNote v0.8.6: Smart Clipboard",
   headerImage: "https://hypernote.app/images/changelog/v0.8.6-header.png",
   authors: [
     {
@@ -14,20 +14,12 @@ export const meta = {
   ],
 };
 
-**HyperNote v0.8.6** introduces intelligent clipboard monitoring and AI-powered title generation.
+- Smart clipboard monitoring - detects content worth saving
+- Auto-generated note titles
+- Toggle clipboard monitoring in Settings
 
-## 📋 Clipboard Monitoring
 
-- **MaybeLike Service**: Added new service for clipboard monitoring and relevance checking - intelligently detects when clipboard content might be worth saving.
-- **User Settings**: Enhanced clipboard monitoring feature with customizable user settings.
 
-## 🤖 AI Title Generation
-
-- **Auto Titles**: Added automatic title generation feature to `DoubaoAPI` and updated note saving logic to support it.
-
-## 🛠️ Technical Improvements
-
-- **Code Cleanup**: Removed unused Feishu API files for a cleaner codebase.
 
 export default ({ children, ...rest }) => (
   <MdxLayout meta={meta} {...rest}>
