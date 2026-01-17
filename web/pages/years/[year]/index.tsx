@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { IPageProps } from 'pages';
 import { IAggregatedChangelogs, IImagePreviewMeta } from 'lib/models/view';
 import { getArticleSlugs } from 'lib/get-articles-slugs';
 import Months from 'components/layout/months';
@@ -8,7 +7,16 @@ import { MainLayout } from 'components/layout/main-layout';
 const ITEMS_PER_PAGE = 4;
 const MONTHS_PER_RENDER = 12;
 
-const Page = ({ changelogsMap }: IPageProps) => {
+interface IYearPageProps {
+  slugs: string[];
+  changelogsMap: { months: IAggregatedChangelogs };
+  totalItems: {
+    weeks: number;
+    months: number;
+  };
+}
+
+const Page = ({ changelogsMap }: IYearPageProps) => {
   const [renderedMonths, setRenderedMonths] = useState(0);
 
   useEffect(() => {

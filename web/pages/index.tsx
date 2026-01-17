@@ -14,35 +14,71 @@ import { TabPanel, TabPanels, Tabs } from "@chakra-ui/react";
 const ITEMS_PER_PAGE = 4;
 
 export interface IPageProps {
-  slugs: string[];
-  changelogsMap: { months: IAggregatedChangelogs; years: IAggregatedChangelogs };
+  allSlugs: string[];
+  allChangelogsMap: { months: IAggregatedChangelogs; years: IAggregatedChangelogs };
   totalItems: { weeks: number; months: number; years: number };
 }
 
-const Page = ({ slugs, changelogsMap, totalItems }: IPageProps) => {
+const Page = ({ allSlugs, allChangelogsMap, totalItems }: IPageProps) => {
   const timeline = useTimelineStore();
-  const router = useRouter();
-  const page = parseInt((router.query?.page || "0") as string);
+  
+  const [displayedItems, setDisplayedItems] = React.useState(ITEMS_PER_PAGE);
+
+  const loadMore = () => {
+    setDisplayedItems((prev) => prev + ITEMS_PER_PAGE);
+  };
+
+  const hasMore = displayedItems < totalItems[timeline.view];
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      // window.scrollTo(0, 0);
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       });
     }
+    setDisplayedItems(ITEMS_PER_PAGE);
   }, [timeline.view]);
+
+  const displayedSlugs = allSlugs.slice(0, displayedItems);
+  
+  const displayedMonthsMap = React.useMemo(() => {
+    const keys = Object.keys(allChangelogsMap.months).slice(0, displayedItems);
+    return keys.reduce((acc, key) => {
+      acc[key] = allChangelogsMap.months[key];
+      return acc;
+    }, {} as IAggregatedChangelogs);
+  }, [allChangelogsMap.months, displayedItems]);
+
+  const displayedYearsMap = React.useMemo(() => {
+    const keys = Object.keys(allChangelogsMap.years).slice(0, displayedItems);
+    return keys.reduce((acc, key) => {
+      acc[key] = allChangelogsMap.years[key];
+      return acc;
+    }, {} as IAggregatedChangelogs);
+  }, [allChangelogsMap.years, displayedItems]);
+
+  const currentDataLength = React.useMemo(() => {
+    if (timeline.view === "weeks") {
+      return displayedSlugs.length;
+    } else if (timeline.view === "months") {
+      return Object.keys(displayedMonthsMap).length;
+    } else {
+      return Object.keys(displayedYearsMap).length;
+    }
+  }, [timeline.view, displayedSlugs.length, displayedMonthsMap, displayedYearsMap]);
 
   return (
     <MainLayout
-      page={page}
       itemsPerPage={ITEMS_PER_PAGE}
       totalItems={{
         weeks: totalItems.weeks,
         months: totalItems.months,
         years: totalItems.years,
       }}
+      hasMore={hasMore}
+      loadMore={loadMore}
+      currentDataLength={currentDataLength}
     >
       <Tabs
         isLazy
@@ -61,13 +97,13 @@ const Page = ({ slugs, changelogsMap, totalItems }: IPageProps) => {
       >
         <TabPanels>
           <TabPanel padding={0}>
-            <Weeks slugs={slugs} />
+            <Weeks slugs={displayedSlugs} />
           </TabPanel>
           <TabPanel padding={0}>
-            <Months monthChangelogsMap={changelogsMap.months} />
+            <Months monthChangelogsMap={displayedMonthsMap} />
           </TabPanel>
           <TabPanel padding={0}>
-            <Years yearChangelogsMap={changelogsMap.years} />
+            <Years yearChangelogsMap={displayedYearsMap} />
           </TabPanel>
         </TabPanels>
       </Tabs>
@@ -92,11 +128,6 @@ export async function getStaticProps({ params }) {
     return dateB.getTime() - dateA.getTime();
   });
 
-  const start = parseInt(params?.page ?? 0) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
-  const recents = meta.slice(start, end).map((item) => item.slug);
-
-  // aggregate images for monthly changelogs
   const monthChangelogsMap: IAggregatedChangelogs = meta.reduce((acc, item, index) => {
     const date = new Date(item.publishedAt);
     const year = date.getFullYear();
@@ -113,13 +144,6 @@ export async function getStaticProps({ params }) {
     } as IImagePreviewMeta);
     return acc;
   }, {});
-
-  const recentMonthChangelogsMap: IAggregatedChangelogs = Object.keys(monthChangelogsMap)
-    .slice(start, end)
-    .reduce((acc, key) => {
-      acc[key] = monthChangelogsMap[key];
-      return acc;
-    }, {});
 
   const yearsChangelogsMap: IAggregatedChangelogs = meta.reduce((acc, item, index) => {
     const date = new Date(item.publishedAt);
@@ -144,17 +168,10 @@ export async function getStaticProps({ params }) {
     return acc;
   }, {});
 
-  const recentYearsChangelogsMap: IAggregatedChangelogs = Object.keys(yearsChangelogsMap)
-    .slice(start, end)
-    .reduce((acc, key) => {
-      acc[key] = yearsChangelogsMap[key];
-      return acc;
-    }, {});
-
   return {
     props: {
-      slugs: recents,
-      changelogsMap: { months: recentMonthChangelogsMap, years: recentYearsChangelogsMap },
+      allSlugs: meta.map((item) => item.slug),
+      allChangelogsMap: { months: monthChangelogsMap, years: yearsChangelogsMap },
       totalItems: {
         weeks: slugs.length,
         months: Object.keys(monthChangelogsMap).length,

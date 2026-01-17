@@ -10,8 +10,9 @@ import { motion } from 'framer-motion';
 import TryBanner from 'components/core/try-banner';
 import Navbar from 'components/core/navbar';
 import { Footer } from 'components/core/footer';
-import { Box, Button, Container, HStack, VStack } from '@chakra-ui/react';
+import { Box, Button, Container, HStack, VStack, Spinner, Text } from '@chakra-ui/react';
 import TimeSelectionTabs from '../core/time-selection-tabs';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 export interface MainLayoutProps {
   page?: number;
@@ -23,6 +24,9 @@ export interface MainLayoutProps {
     years: number;
   };
   infiniteScrollingView?: "year" | "month";
+  hasMore?: boolean;
+  loadMore?: () => void;
+  currentDataLength?: number;
 }
 
 export const MainLayout = ({
@@ -31,6 +35,9 @@ export const MainLayout = ({
   itemsPerPage,
   totalItems,
   infiniteScrollingView,
+  hasMore,
+  loadMore,
+  currentDataLength,
 }: MainLayoutProps) => {
   const metaTitle = `${
     infiniteScrollingView ? "" : page > 0 ? `Page ${page} -` : ""
@@ -82,6 +89,8 @@ export const MainLayout = ({
     page < (Math.floor(totalItems[timeline.view] / itemsPerPage) - 1);
 
   const isInBlogPage = router.pathname.startsWith("/changelogs/");
+
+  const useInfiniteScroll = page === undefined && hasMore !== undefined && loadMore !== undefined;
 
   return (
     <>
@@ -177,45 +186,73 @@ export const MainLayout = ({
                       </p>
                     </div>
                   )}
-                  <div className="flex flex-col justify-center">
-                    {children}
-                  </div>
-                </VStack>
-              </motion.div>
-              <motion.div
-                hidden={!!infiniteScrollingView}
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.3 } },
-                }}
-              >
-                <VStack align={["stretch", "stretch", "center"]}>
-                  {page === 0 && hasMorePage ? (
-                    <Link href={`/page/1#${timeline.view}`}>
-                      <Button variant="landingOutline" size="landingLg">
-                        Load more
-                      </Button>
-                    </Link>
+                  {useInfiniteScroll ? (
+                    <InfiniteScroll
+                      dataLength={currentDataLength || 0}
+                      next={loadMore}
+                      hasMore={hasMore}
+                      loader={
+                        <Box display="flex" justifyContent="center" py={8}>
+                          <VStack spacing={2}>
+                            <Spinner size="lg" color="gray.500" />
+                            <Text fontSize="sm" color="gray.500">Loading more...</Text>
+                          </VStack>
+                        </Box>
+                      }
+                      endMessage={
+                        <Box display="flex" justifyContent="center" py={8}>
+                          <Text fontSize="sm" color="gray.500">You've reached the end</Text>
+                        </Box>
+                      }
+                      style={{ overflow: 'visible' }}
+                    >
+                      <div className="flex flex-col justify-center">
+                        {children}
+                      </div>
+                    </InfiniteScroll>
                   ) : (
-                    <HStack justifyContent="center" spacing={4}>
-                      {page > 0 && (
-                        <Link href={`/page/${page - 1}${"#" + timeline.view}`}>
-                          <Button variant="landingOutline" size="landingLg">
-                            Previous page
-                          </Button>
-                        </Link>
-                      )}
-                      {hasMorePage && (
-                        <Link href={`/page/${page + 1}${"#" + timeline.view}`}>
-                          <Button variant="landingOutline" size="landingLg">
-                            Next page
-                          </Button>
-                        </Link>
-                      )}
-                    </HStack>
+                    <div className="flex flex-col justify-center">
+                      {children}
+                    </div>
                   )}
                 </VStack>
               </motion.div>
+              {!useInfiniteScroll && (
+                <motion.div
+                  hidden={!!infiniteScrollingView}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.3 } },
+                  }}
+                >
+                  <VStack align={["stretch", "stretch", "center"]}>
+                    {page === 0 && hasMorePage ? (
+                      <Link href={`/page/1#${timeline.view}`}>
+                        <Button variant="landingOutline" size="landingLg">
+                          Load more
+                        </Button>
+                      </Link>
+                    ) : (
+                      <HStack justifyContent="center" spacing={4}>
+                        {page > 0 && (
+                          <Link href={`/page/${page - 1}${"#" + timeline.view}`}>
+                            <Button variant="landingOutline" size="landingLg">
+                              Previous page
+                            </Button>
+                          </Link>
+                        )}
+                        {hasMorePage && (
+                          <Link href={`/page/${page + 1}${"#" + timeline.view}`}>
+                            <Button variant="landingOutline" size="landingLg">
+                              Next page
+                            </Button>
+                          </Link>
+                        )}
+                      </HStack>
+                    )}
+                  </VStack>
+                </motion.div>
+              )}
             </VStack>
           </Container>
         </Box>

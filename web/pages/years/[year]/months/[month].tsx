@@ -1,11 +1,17 @@
 import React from 'react';
-import { IPageProps } from 'pages';
 import dynamic from 'next/dynamic';
 import { getArticleSlugs } from 'lib/get-articles-slugs';
 import dayjs from 'dayjs';
 import { MainLayout } from 'components/layout/main-layout';
 
-const Page = ({ slugs }: IPageProps) => {
+interface IMonthPageProps {
+  slugs: string[];
+  totalItems: {
+    weeks: number;
+  };
+}
+
+const Page = ({ slugs }: IMonthPageProps) => {
   const Articles = React.useMemo(() => {
     return slugs.map((slug) => dynamic(() => import(`../../../../pages/changelogs/${slug}.mdx`)));
   }, [slugs]);
