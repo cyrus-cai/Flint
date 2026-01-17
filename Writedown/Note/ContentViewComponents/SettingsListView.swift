@@ -52,11 +52,11 @@ struct SettingsListView: View {
                         HStack(spacing: 6) {
                             Image(systemName: item.icon)
                                 .font(.system(size: 13))
-                                .foregroundColor(.primary)
+                                .foregroundColor(item == .deleteNote ? .red : .primary)
                                 .frame(width: 14)
 
                             Text(item.title)
-                                .foregroundColor(.primary)
+                                .foregroundColor(item == .deleteNote ? .red : .primary)
                                 .padding(.leading, 2)
                                 .fixedSize()
 
