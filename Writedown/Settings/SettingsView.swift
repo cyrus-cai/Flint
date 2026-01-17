@@ -626,7 +626,7 @@ struct AboutSettingsView: View {
     let version: String?
     let buildNumber: String?
     let updater: AutoUpdater
-    
+
     @Environment(\.colorScheme) var colorScheme
     @State private var isCheckingUpdate = false
     @State private var isDownloading = false
@@ -634,6 +634,9 @@ struct AboutSettingsView: View {
     @State private var updateFailed = false
     @State private var latestVersion: String?
     @State private var progressSubscription: AnyCancellable?
+
+    @StateObject private var paymentVM = PaymentViewModel()
+    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -710,9 +713,66 @@ struct AboutSettingsView: View {
                 .padding(12)
             }
 
+            // Subscription Section
+            SettingsSectionHeader(title: L("Subscription"), icon: "creditcard")
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Label(L("Status"), systemImage: isPro ? "checkmark.seal.fill" : "xmark.seal")
+                            .foregroundColor(isPro ? .green : .secondary)
+                        Spacer()
+                        Text(isPro ? "Pro" : L("Free"))
+                            .foregroundColor(isPro ? .green : .secondary)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Label(L("Restore Purchase"), systemImage: "arrow.clockwise")
+                        Spacer()
+                        Button {
+                            Task {
+                                await paymentVM.restorePurchase()
+                            }
+                        } label: {
+                            if paymentVM.isProcessing {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                Text(L("Restore"))
+                            }
+                        }
+                        .disabled(paymentVM.isProcessing)
+                    }
+                }
+                .padding(12)
+            }
+            .alert(
+                L("Restore Result"),
+                isPresented: $paymentVM.showSuccessAlert
+            ) {
+                Button("OK") {}
+            } message: {
+                Text(L("Your Pro subscription has been restored."))
+            }
+            .alert(
+                L("Restore Failed"),
+                isPresented: Binding(
+                    get: { paymentVM.error != nil },
+                    set: { if !$0 { paymentVM.clearError() } }
+                ),
+                presenting: paymentVM.error
+            ) { _ in
+                Button("OK") { paymentVM.clearError() }
+            } message: { error in
+                Text(error.localizedDescription)
+            }
+
             // Support Section
             SettingsSectionHeader(title: L("Support"), icon: "questionmark.circle")
-            
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     Button {

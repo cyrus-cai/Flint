@@ -42,11 +42,7 @@ final class SubscriptionManager: ObservableObject {
     private let deviceManager = DeviceManager.shared
     private var cancellables = Set<AnyCancellable>()
 
-    /// 缓存有效期 (1小时)
-    private let cacheValidityDuration: TimeInterval = 3600
-
     /// UserDefaults keys
-    private let lastValidationKey = "lastProStatusValidation"
     private let cachedProStatusKey = "cachedProStatus"
 
     // MARK: - Initialization
@@ -55,11 +51,13 @@ final class SubscriptionManager: ObservableObject {
         // 从缓存加载初始状态
         isPro = UserDefaults.standard.bool(forKey: AppStorageKeys.isPro)
 
-        // 监听应用激活事件
+        // 监听应用激活事件，每次激活都验证订阅状态
         NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
-            .debounce(for: .seconds(1), scheduler: RunLoop.main) // 防抖
+            .debounce(for: .seconds(1), scheduler: RunLoop.main) // 防抖避免重复触发
             .sink { [weak self] _ in
-                self?.validateIfNeeded()
+                Task {
+                    await self?.validateSubscriptionStatus()
+                }
             }
             .store(in: &cancellables)
 
@@ -77,18 +75,6 @@ final class SubscriptionManager: ObservableObject {
         await validateSubscriptionStatus(force: true)
     }
 
-    /// 检查是否需要验证并执行
-    func validateIfNeeded() {
-        let lastValidation = UserDefaults.standard.double(forKey: lastValidationKey)
-        let now = Date().timeIntervalSince1970
-
-        // 如果缓存过期，执行验证
-        if now - lastValidation > cacheValidityDuration {
-            Task {
-                await validateSubscriptionStatus()
-            }
-        }
-    }
 
     /// 恢复购买
     /// - Returns: 成功返回 isPro 状态，失败返回错误
@@ -122,8 +108,6 @@ final class SubscriptionManager: ObservableObject {
     @MainActor
     func setProStatus(_ isPro: Bool) {
         updateProStatus(isPro)
-        // 重置验证时间戳
-        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: lastValidationKey)
     }
 
     // MARK: - Private Methods
@@ -145,9 +129,6 @@ final class SubscriptionManager: ObservableObject {
             let newProStatus = try await proStatusChecker.checkProStatus(deviceId: deviceId)
             updateProStatus(newProStatus)
             lastValidationError = nil
-
-            // 更新验证时间戳
-            UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: lastValidationKey)
 
             print("✅ Subscription status validated: isPro = \(newProStatus)")
         } catch {
