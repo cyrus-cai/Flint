@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+    <channel>
+        <title>June Changelog</title>
+        <link>https://changelog.june.so</link>
+        <description>How June gets better every week</description>
+        <lastBuildDate>Sat, 17 Jan 2026 14:34:25 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>Feed for June changelog</generator>
+        <image>
+            <title>June Changelog</title>
+            <url>https://changelog.june.so/favicon.ico</url>
+            <link>https://changelog.june.so</link>
+        </image>
+        <copyright>All rights reserved 2026, June</copyright>
+        <item>
+            <title><![CDATA[HyperNote v0.9: Subscriptions, AI Summaries, and More]]></title>
+            <link>https://changelog.june.so/changelogs/v0.9-release</link>
+            <guid>https://changelog.june.so/changelogs/v0.9-release</guid>
+            <pubDate>Sat, 17 Jan 2026 10:00:00 GMT</pubDate>
+            <enclosure url="https://hypernote.app/images/changelog/v0.9-header.png" length="0" type="image/png"/>
+        </item>
+    </channel>
+</rss>
