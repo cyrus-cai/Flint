@@ -45,13 +45,19 @@ export const generateRssFeed = async () => {
   changelogsMeta.forEach((changelog) => {
     const { title, description, content, publishedAt, slug, headerImage } = changelog;
     const url = `${siteURL}/changelogs/${slug}`;
+    
+    // Convert relative paths to absolute URLs for RSS feed
+    const absoluteHeaderImage = headerImage?.startsWith('/') 
+      ? `${siteURL}${headerImage}` 
+      : headerImage;
+    
     feed.addItem({
       title: title,
       id: url,
       link: url,
       description: description,
       content: content,
-      image: headerImage,
+      image: absoluteHeaderImage,
       date: new Date(publishedAt),
     });
   });
