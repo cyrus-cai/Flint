@@ -982,14 +982,47 @@ struct SummarizeButtonWithHover: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: "wand.and.stars")
-                .font(.system(size: 10))
-                .foregroundColor(isHovered ? .primary : .secondary)
-                .opacity(isHovered ? 1.0 : 0.8)
-                .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
-                .scaleEffect(isHovered ? 1.1 : 1.0)
-                .transition(.opacity.combined(with: .scale))
-                .padding(2) // 添加内边距来扩大点击区域
+            ZStack {
+                if #available(macOS 26.0, *) {
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.2, green: 0.6, blue: 1.0),
+                            Color(red: 0.8, green: 0.2, blue: 0.8),
+                            Color(red: 1.0, green: 0.4, blue: 0.2),
+                            Color(red: 0.2, green: 0.6, blue: 1.0)
+                        ]),
+                        center: .center
+                    )
+                    .mask(
+                        Circle()
+                            .stroke(lineWidth: 1.5)
+                    )
+                    .frame(width: 12, height: 12)
+                    .blur(radius: isHovered ? 0.5 : 1)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                    )
+                } else {
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    isHovered ? .primary.opacity(0.8) : .secondary.opacity(0.7),
+                                    isHovered ? .primary.opacity(0.6) : .secondary.opacity(0.5)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
+                        .frame(width: 12, height: 12)
+                }
+            }
+            .scaleEffect(isHovered ? 1.1 : 1.0)
+            .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
+            .transition(.opacity.combined(with: .scale))
+            .padding(2)
         }
         .buttonStyle(PlainButtonStyle()) // 使用PlainButtonStyle避免按钮默认样式
         .onHover { hovering in

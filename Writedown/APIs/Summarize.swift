@@ -364,7 +364,24 @@ class DoubaoAPI {
     func generateTitle(text: String) async throws -> String {
         let selectedModel = UserDefaults.standard.string(forKey: "AIModel") ?? "ep-20250128221733-ldppp"
         
-        let systemPrompt = "Please summarize the text content as a title, according to the most commonly used language in the user's text, as concisely & short as possible, less than 4 English words or 8 chinese words."
+        let systemPrompt = """
+You are a professional title generator. Generate a concise, professional title based on the text content.
+
+STRICT RULES:
+1. Output ONLY the title - no explanations, no quotes, no extra text
+2. Maximum length: 4 English words OR 8 Chinese characters
+3. Use the same language as the input text
+4. If you cannot generate a suitable title, output exactly: CANNOT_GENERATE
+5. Never output phrases like "无法生成", "不适合", or multi-line content
+6. Never include line breaks, quotes, or formatting
+
+Examples:
+Input: "Today I learned about Swift concurrency..."
+Output: Swift Concurrency Notes
+
+Input: "今天研究了 SwiftUI 的新特性..."
+Output: SwiftUI 新特性研究
+"""
         
         let messages = [
             ChatMessage(role: "system", content: systemPrompt),
@@ -389,12 +406,26 @@ class DoubaoAPI {
             }
             
             let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-            let title = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let rawTitle = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             
-            // Remove any quotes that AI might add
-            return title.replacingOccurrences(of: "\"", with: "")
-                       .replacingOccurrences(of: "“", with: "")
-                       .replacingOccurrences(of: "”", with: "")
+            if rawTitle == "CANNOT_GENERATE" || rawTitle.isEmpty {
+                let timestamp = Date().timeIntervalSince1970
+                return "Note \(Int(timestamp))"
+            }
+            
+            let cleanTitle = rawTitle
+                .replacingOccurrences(of: "\"", with: "")
+                .replacingOccurrences(of: String(UnicodeScalar(0x201C)!), with: "")
+                .replacingOccurrences(of: String(UnicodeScalar(0x201D)!), with: "")
+                .replacingOccurrences(of: "\n", with: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            if cleanTitle.contains("\n") || cleanTitle.count > 100 {
+                let timestamp = Date().timeIntervalSince1970
+                return "Note \(Int(timestamp))"
+            }
+            
+            return cleanTitle
         } catch {
             print("AI Title Generation failed: \(error)")
             throw error
