@@ -271,13 +271,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             let menu = NSMenu()
 
             let openAppItem = NSMenuItem(
-                title: "Open Writedown", action: #selector(toggleWindow), keyEquivalent: "")
+                title: L("Open Writedown"), action: #selector(toggleWindow), keyEquivalent: "")
             openAppItem.target = self
             openAppItem.image = NSImage(systemSymbolName: "doc.text", accessibilityDescription: "Open")
             menu.addItem(openAppItem)
 
             let settingsItem = NSMenuItem(
-                title: "Settings", action: #selector(openSettings), keyEquivalent: ",")
+                title: L("Settings"), action: #selector(openSettings), keyEquivalent: ",")
             settingsItem.target = self
             settingsItem.image = NSImage(systemSymbolName: "gear", accessibilityDescription: "Settings")
             menu.addItem(settingsItem)
@@ -285,7 +285,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             menu.addItem(NSMenuItem.separator())
 
             let quitItem = NSMenuItem(
-                title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+                title: L("Quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
             quitItem.image = NSImage(systemSymbolName: "power", accessibilityDescription: "Quit")
             menu.addItem(quitItem)
 
@@ -364,8 +364,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                             )
 
                             let notification = NSUserNotification()
-                            notification.title = "Payment Successful"
-                            notification.informativeText = "Welcome to Writedown Pro!"
+                            notification.title = L("Payment Successful")
+                            notification.informativeText = L("Welcome to Writedown Pro!")
                             NSUserNotificationCenter.default.deliver(notification)
                         }
                     } else {
@@ -575,8 +575,8 @@ class GlobalKeyMonitor {
                 await MainActor.run {
                     // Create and deliver system notification
                     let notification = NSUserNotification()
-                    notification.title = "Content Saved"
-                    notification.subtitle = "From \(finalSourceApp)"
+                    notification.title = L("Content Saved")
+                    notification.subtitle = String(format: L("From %@"), finalSourceApp)
                     notification.informativeText = finalSummary
                     notification.soundName = NSUserNotificationDefaultSoundName
                     notification.userInfo = ["filePath": finalFileURL.path, "content": finalTextWithMetadata]
@@ -709,11 +709,11 @@ class ContentSavedWindowController: NSWindowController {
         textStackView.spacing = 2
         textStackView.alignment = .leading
 
-        let titleLabel = NSTextField(labelWithString: "Content Saved")
+        let titleLabel = NSTextField(labelWithString: L("Content Saved"))
         titleLabel.textColor = .labelColor  // 使用系统标签颜色
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
 
-        let displayText = "From \(sourceApp) | \(charCount) chars"
+        let displayText = String(format: L("From %@ | %d chars"), sourceApp, charCount)
 
         let subtitleLabel = NSTextField(labelWithString: displayText)
         subtitleLabel.textColor = .secondaryLabelColor  // 使用系统次要标签颜色

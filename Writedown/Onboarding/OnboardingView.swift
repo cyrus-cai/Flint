@@ -170,7 +170,7 @@ struct OnboardingView: View {
                             currentStep -= 1
                         }
                     } label: {
-                        Label("Previous", systemImage: "chevron.left")
+                        Label(L("Previous"), systemImage: "chevron.left")
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundColor(.secondary)
                             .padding(8)
@@ -193,7 +193,7 @@ struct OnboardingView: View {
 
                 // Show Skip and Configure Vault buttons only for the Select folder step
                 if currentStep == 0 {  // First step
-                    Button("Next Step") {
+                    Button(L("Next Step")) {
                         slideDirection = .right
                         withAnimation {
                             currentStep += 1
@@ -204,7 +204,7 @@ struct OnboardingView: View {
                     .controlSize(.large)
                 } else if currentStep == 2 {  // Get Pro step
 
-                    Button("Get Pro") {
+                    Button(L("Get Pro")) {
                         if let url = URL(string: "https://google.com") {
                             NSWorkspace.shared.open(url)
                         }
@@ -213,7 +213,7 @@ struct OnboardingView: View {
                     .controlSize(.large)
                     .padding(.trailing, 8)
 
-                    Button("Next Step") {
+                    Button(L("Next Step")) {
                         slideDirection = .right
                         withAnimation {
                             currentStep += 1
@@ -225,7 +225,7 @@ struct OnboardingView: View {
 
                 } else {
                     // For other steps, show the regular Next/Start button
-                    Button(currentStep == steps.count - 1 ? "Start Writedown" : "Next Step") {
+                    Button(currentStep == steps.count - 1 ? L("Start Writedown") : L("Next Step")) {
                         if currentStep == steps.count - 1 {
                             // Set hasCompletedOnboarding to true
                             UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
@@ -395,14 +395,14 @@ struct StepContent: View {
                     if step.showStorageConfig {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Label("Storage Location", systemImage: "folder")
+                                Label(L("Storage Location"), systemImage: "folder")
                                     .font(.system(size: 14, weight: .medium))
                                 Spacer()
-                                Button("Change Location") {
+                                Button(L("Change Location")) {
                                     let openPanel = NSOpenPanel()
                                     openPanel.canChooseDirectories = true
                                     openPanel.canChooseFiles = false
-                                    openPanel.title = "Select Notes Directory"
+                                    openPanel.title = L("Select Notes Directory")
 
                                     if openPanel.runModal() == .OK {
                                         if let selectedPath = openPanel.url {

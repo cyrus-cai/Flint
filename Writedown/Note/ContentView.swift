@@ -774,7 +774,7 @@ struct EditorView: View {
                     )
 
                 if text.isEmpty {
-                    Text("Start writing...")
+                    Text(L("Start writing..."))
                         .font(getEditorFont())
                         .padding(.horizontal, 20)
                         .padding(.top, 8)

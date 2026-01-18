@@ -570,7 +570,7 @@ struct HotkeySettingsView: View {
                 ),
                 presenting: paymentVM.error
             ) { _ in
-                Button("OK") { paymentVM.clearError() }
+                Button(L("OK")) { paymentVM.clearError() }
             } message: { error in
                 Text(error.localizedDescription)
             }
@@ -770,7 +770,7 @@ struct AboutSettingsView: View {
                 L("Restore Result"),
                 isPresented: $paymentVM.showSuccessAlert
             ) {
-                Button("OK") {}
+                Button(L("OK")) {}
             } message: {
                 Text(L("Your Pro subscription has been restored."))
             }
@@ -782,7 +782,7 @@ struct AboutSettingsView: View {
                 ),
                 presenting: paymentVM.error
             ) { _ in
-                Button("OK") { paymentVM.clearError() }
+                Button(L("OK")) { paymentVM.clearError() }
             } message: { error in
                 Text(error.localizedDescription)
             }

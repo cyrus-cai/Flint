@@ -606,8 +606,8 @@ class MaybeLikeService: ObservableObject {
                 print("MaybeLike: Saved note to \(fileURL.path)")
                 
                 let notification = NSUserNotification()
-                notification.title = "Maybe Like Captured"
-                notification.subtitle = "From \(sourceApp)"
+                notification.title = L("Maybe Like Captured")
+                notification.subtitle = String(format: L("From %@"), sourceApp)
                 notification.informativeText = "\(finalTitle)"
                 notification.soundName = NSUserNotificationDefaultSoundName
                 NSUserNotificationCenter.default.deliver(notification)

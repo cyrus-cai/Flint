@@ -453,7 +453,7 @@ struct LinkListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 4) {
-                Text("Attachments")
+                Text(L("Attachments"))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.secondary)
                     .padding(.leading, 12)
@@ -470,7 +470,7 @@ struct LinkListView: View {
             Divider()
 
             if links.isEmpty {
-                Text("No attachments")
+                Text(L("No attachments"))
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
                     .padding(12)

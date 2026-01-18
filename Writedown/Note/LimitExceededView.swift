@@ -26,7 +26,7 @@ struct LimitExceededView: View {
                         )
                     )
 
-                Text("Daily Limit Reached")
+                Text(L("Daily Limit Reached"))
                     .font(.system(size: 20, weight: .semibold))
             }
             .frame(maxWidth: .infinity)
@@ -35,12 +35,12 @@ struct LimitExceededView: View {
             // Message content
             VStack(spacing: 12) {
                 Text(
-                    "You've reached the daily limit of \(AppConfig.QuickWakeup.dailyLimit) quick wake-ups."
+                    String(format: L("You've reached the daily limit of %d quick wake-ups."), AppConfig.QuickWakeup.dailyLimit)
                 )
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
 
-                Text("You can still launch Writedown from the dock.")
+                Text(L("You can still launch Writedown from the dock."))
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
             }
@@ -60,7 +60,7 @@ struct LimitExceededView: View {
                                 .scaleEffect(0.8)
                                 .frame(width: 16, height: 16)
                         }
-                        Text(paymentVM.isProcessing ? "Processing..." : "RMB 48 Lifetime-Pro")
+                        Text(paymentVM.isProcessing ? L("Processing...") : L("RMB 48 Lifetime-Pro"))
                             .font(.system(size: 14, weight: .medium))
                     }
                     .foregroundColor(.white)
@@ -91,7 +91,7 @@ struct LimitExceededView: View {
                                 .scaleEffect(0.7)
                                 .frame(width: 14, height: 14)
                         }
-                        Text("Restore Purchase")
+                        Text(L("Restore Purchase"))
                             .font(.system(size: 13))
                     }
                     .foregroundColor(.secondary)
@@ -106,7 +106,7 @@ struct LimitExceededView: View {
                             NSWorkspace.shared.open(url)
                         }
                     }) {
-                        Text("Already subscribed? Log in")
+                        Text(L("Already subscribed? Log in"))
                             .font(.system(size: 13))
                             .foregroundColor(.secondary)
                     }
@@ -119,17 +119,17 @@ struct LimitExceededView: View {
         .frame(width: 360)
         .background(Color.clear)
         .alert(
-            "Error",
+            L("Error"),
             isPresented: Binding(
                 get: { paymentVM.error != nil },
                 set: { if !$0 { paymentVM.clearError() } }
             ),
             presenting: paymentVM.error
         ) { error in
-            Button("Retry") {
+            Button(L("Retry")) {
                 Task { await paymentVM.retry() }
             }
-            Button("Cancel", role: .cancel) {
+            Button(L("Cancel"), role: .cancel) {
                 paymentVM.clearError()
             }
         } message: { error in
@@ -141,13 +141,13 @@ struct LimitExceededView: View {
                 }
             }
         }
-        .alert("Success", isPresented: $paymentVM.showSuccessAlert) {
-            Button("OK") {
+        .alert(L("Success"), isPresented: $paymentVM.showSuccessAlert) {
+            Button(L("OK")) {
                 // 关闭窗口
                 NSApp.keyWindow?.close()
             }
         } message: {
-            Text("Welcome to Writedown Pro! You now have unlimited quick wake-ups.")
+            Text(L("Welcome to Writedown Pro! You now have unlimited quick wake-ups."))
         }
     }
 }
@@ -168,7 +168,7 @@ class LimitExceededWindowController: NSWindowController {
             defer: false
         )
 
-        window.title = "Daily Limit Reached"
+        window.title = L("Daily Limit Reached")
         window.isReleasedWhenClosed = false
         window.level = .floating
 
