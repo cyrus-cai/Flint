@@ -20,6 +20,7 @@ public class LocalizationManager: ObservableObject {
     static let supportedLanguages: [Language] = [
         .en,
         .zh,
+        .zhHant,
     ]
 
     private init() {
@@ -37,6 +38,7 @@ public class LocalizationManager: ObservableObject {
 extension Language {
     static let en = Language(code: "en", name: "English")
     static let zh = Language(code: "zh-Hans", name: "简体中文")
+    static let zhHant = Language(code: "zh-Hant", name: "繁體中文")
 
     static func from(code: String) -> Language? {
         LocalizationManager.supportedLanguages.first { $0.code == code }  // 添加 LocalizationManager 前缀

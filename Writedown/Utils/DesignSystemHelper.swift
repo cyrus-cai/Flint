@@ -291,44 +291,45 @@ class LocalizationManager: ObservableObject {
     static let supportedLanguages: [Language] = [
         .en,
         .zh,
+        .zhHant,
     ]
     
     private let translations: [String: [String: String]] = [
-        "No notes": ["zh-Hans": "暂无笔记"],
-        "No matching notes": ["zh-Hans": "未找到匹配的笔记"],
-        "Summarizing...": ["zh-Hans": "正在生成摘要..."],
-        "Copy": ["zh-Hans": "复制"],
-        "Share": ["zh-Hans": "分享"],
-        "Remove Star": ["zh-Hans": "取消收藏"],
-        "Add Star": ["zh-Hans": "添加收藏"],
-        "Archive Note": ["zh-Hans": "归档笔记"],
-        "Language": ["zh-Hans": "语言"],
-        "English": ["zh-Hans": "英语"],
-        "Font": ["zh-Hans": "字体"],
-        "Appearance": ["zh-Hans": "外观"],
-        "Check for updates": ["zh-Hans": "检查更新"],
-        "Latest available": ["zh-Hans": "已是最新版本"],
-        "Version": ["zh-Hans": "版本"],
-        "Build": ["zh-Hans": "构建版本"],
-        "Double press Option key": ["zh-Hans": "双击 Option 键"],
-        "Cmd + C (double click)": ["zh-Hans": "Cmd + C (双击)"],
-        "Unlimited quick wake-ups (Pro)": ["zh-Hans": "无限快速唤醒 (Pro)"],
-        "Stop": ["zh-Hans": "停止"],
-        "No more notes": ["zh-Hans": "没有更多笔记了"],
-        "Welcome to Writedown": ["zh-Hans": "欢迎使用 Writedown"],
-        "© 2025 ProductLab. All rights reserved.": ["zh-Hans": "© 2025 ProductLab. 保留所有权利。"],
-        "Open Writedown": ["zh-Hans": "打开 Writedown"],
-        "Content Saved": ["zh-Hans": "内容已保存"],
-        "Settings": ["zh-Hans": "设置"],
-        "General": ["zh-Hans": "通用"],
-        "About": ["zh-Hans": "关于"],
-        "Quit": ["zh-Hans": "退出"],
-        "Preferences": ["zh-Hans": "偏好设置"],
-        "Shortcut": ["zh-Hans": "快捷键"],
-        "Display": ["zh-Hans": "显示"],
-        "Update": ["zh-Hans": "更新"],
-        "Cancel": ["zh-Hans": "取消"],
-        "Done": ["zh-Hans": "完成"]
+        "No notes": ["zh-Hans": "暂无笔记", "zh-Hant": "暫無筆記"],
+        "No matching notes": ["zh-Hans": "未找到匹配的笔记", "zh-Hant": "未找到匹配的筆記"],
+        "Summarizing...": ["zh-Hans": "正在生成摘要...", "zh-Hant": "正在生成摘要..."],
+        "Copy": ["zh-Hans": "复制", "zh-Hant": "複製"],
+        "Share": ["zh-Hans": "分享", "zh-Hant": "分享"],
+        "Remove Star": ["zh-Hans": "取消收藏", "zh-Hant": "取消收藏"],
+        "Add Star": ["zh-Hans": "添加收藏", "zh-Hant": "新增收藏"],
+        "Archive Note": ["zh-Hans": "归档笔记", "zh-Hant": "封存筆記"],
+        "Language": ["zh-Hans": "语言", "zh-Hant": "語言"],
+        "English": ["zh-Hans": "英语", "zh-Hant": "英語"],
+        "Font": ["zh-Hans": "字体", "zh-Hant": "字型"],
+        "Appearance": ["zh-Hans": "外观", "zh-Hant": "外觀"],
+        "Check for updates": ["zh-Hans": "检查更新", "zh-Hant": "檢查更新"],
+        "Latest available": ["zh-Hans": "已是最新版本", "zh-Hant": "已是最新版本"],
+        "Version": ["zh-Hans": "版本", "zh-Hant": "版本"],
+        "Build": ["zh-Hans": "构建版本", "zh-Hant": "建置版本"],
+        "Double press Option key": ["zh-Hans": "双击 Option 键", "zh-Hant": "雙擊 Option 鍵"],
+        "Cmd + C (double click)": ["zh-Hans": "Cmd + C (双击)", "zh-Hant": "Cmd + C (雙擊)"],
+        "Unlimited quick wake-ups (Pro)": ["zh-Hans": "无限快速唤醒 (Pro)", "zh-Hant": "無限快速喚醒 (Pro)"],
+        "Stop": ["zh-Hans": "停止", "zh-Hant": "停止"],
+        "No more notes": ["zh-Hans": "没有更多笔记了", "zh-Hant": "沒有更多筆記了"],
+        "Welcome to Writedown": ["zh-Hans": "欢迎使用 Writedown", "zh-Hant": "歡迎使用 Writedown"],
+        "© 2025 ProductLab. All rights reserved.": ["zh-Hans": "© 2025 ProductLab. 保留所有权利。", "zh-Hant": "© 2025 ProductLab. 保留所有權利。"],
+        "Open Writedown": ["zh-Hans": "打开 Writedown", "zh-Hant": "開啟 Writedown"],
+        "Content Saved": ["zh-Hans": "内容已保存", "zh-Hant": "內容已儲存"],
+        "Settings": ["zh-Hans": "设置", "zh-Hant": "設定"],
+        "General": ["zh-Hans": "通用", "zh-Hant": "一般"],
+        "About": ["zh-Hans": "关于", "zh-Hant": "關於"],
+        "Quit": ["zh-Hans": "退出", "zh-Hant": "結束"],
+        "Preferences": ["zh-Hans": "偏好设置", "zh-Hant": "偏好設定"],
+        "Shortcut": ["zh-Hans": "快捷键", "zh-Hant": "快捷鍵"],
+        "Display": ["zh-Hans": "显示", "zh-Hant": "顯示"],
+        "Update": ["zh-Hans": "更新", "zh-Hant": "更新"],
+        "Cancel": ["zh-Hans": "取消", "zh-Hant": "取消"],
+        "Done": ["zh-Hans": "完成", "zh-Hant": "完成"]
     ]
 
     private init() {
@@ -345,6 +346,7 @@ class LocalizationManager: ObservableObject {
 extension Language {
     static let en = Language(code: "en", name: "English")
     static let zh = Language(code: "zh-Hans", name: "简体中文")
+    static let zhHant = Language(code: "zh-Hant", name: "繁體中文")
 
     static func from(code: String) -> Language? {
         LocalizationManager.supportedLanguages.first { $0.code == code }
