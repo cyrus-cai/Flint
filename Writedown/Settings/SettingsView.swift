@@ -793,7 +793,7 @@ struct AboutSettingsView: View {
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     Button {
-                        if let url = URL(string: "https://xiikii.notion.site/Release-Note-18e84c8dbdaa807ba02ee18cd3895149?pvs=4") {
+                        if let url = URL(string: "https://figmatrackjs-changelog.vercel.app/") {
                             NSWorkspace.shared.open(url)
                         }
                     } label: {
