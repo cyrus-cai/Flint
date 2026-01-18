@@ -4,7 +4,7 @@
         <title>HyperNote Changelog</title>
         <link>https://hypernote.app</link>
         <description>What's new in HyperNote</description>
-        <lastBuildDate>Sun, 18 Jan 2026 02:35:57 GMT</lastBuildDate>
+        <lastBuildDate>Sun, 18 Jan 2026 14:18:11 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>Feed for HyperNote changelog</generator>
         <image>
@@ -13,6 +13,13 @@
             <link>https://hypernote.app</link>
         </image>
         <copyright>All rights reserved 2026, HyperNote</copyright>
+        <item>
+            <title><![CDATA[HyperNote v0.9.2]]></title>
+            <link>https://hypernote.app/changelogs/v0.9.2-release</link>
+            <guid>https://hypernote.app/changelogs/v0.9.2-release</guid>
+            <pubDate>Sun, 18 Jan 2026 03:32:00 GMT</pubDate>
+            <enclosure url="https://hypernote.app/images/changelog/v0.9.2-header.png" length="0" type="image/png"/>
+        </item>
         <item>
             <title><![CDATA[HyperNote v0.9.1]]></title>
             <link>https://hypernote.app/changelogs/v0.9.1-release</link>
