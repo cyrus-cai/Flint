@@ -376,8 +376,8 @@
 /* %d Chars */
 "%d Chars" = "%d Chars";
 
-/* from %@ */
-"from %@" = "from %@";
+/* Application name (source app) */
+"%@" = "%@";
 
 /* Archive this note */
 "Archive this note" = "Archive this note";
