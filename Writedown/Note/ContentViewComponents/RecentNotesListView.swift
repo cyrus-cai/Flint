@@ -445,10 +445,7 @@ struct RecentNotesListView: View {
                 }
             }
             .frame(width: 320)
-            // macOS 26+: 不设置背景，让原生 popover 的 Liquid Glass 效果显示
-//            .modifier(RecentNotesPopoverBackgroundModifier(colorScheme: colorScheme))
             .cornerRadius(8)
-            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
         }
         .onAppear {
             setupKeyboardMonitor()
@@ -800,9 +797,10 @@ struct NoteRow: View {
                 .help(note.isStarred ? "Remove from starred" : "Add to starred")
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 6)
         .padding(.vertical, 4)
         .modifier(HoverButtonBackgroundModifier(isHovered: isHighLight, colorScheme: colorScheme))
+        .padding(.horizontal, 6)
         .onHover(perform: onHover)
     }
 }
