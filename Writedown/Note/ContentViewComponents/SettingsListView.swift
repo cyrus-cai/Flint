@@ -12,6 +12,7 @@ struct SettingsListView: View {
     let onShare: () -> Void
     let onDelete: () -> Void
     let title: String?
+    let isEmpty: Bool
 
     // private func generateObsidianURI(from title: String) -> String? {
     //     guard !title.isEmpty else { return nil }
@@ -42,7 +43,17 @@ struct SettingsListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(SettingsItem.allCases.filter { $0 != .newVersionAvailable || updateManager.newVersionAvailable }) { item in
+            ForEach(SettingsItem.allCases.filter { item in
+                // Filter out new version item if not available
+                if item == .newVersionAvailable && !updateManager.newVersionAvailable {
+                    return false
+                }
+                // Filter out delete note if content is empty
+                if item == .deleteNote && isEmpty {
+                    return false
+                }
+                return true
+            }) { item in
                 HoverButton(
                     action: {
                         handleAction(item)
