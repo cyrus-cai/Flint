@@ -1,0 +1,31 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.9.2-release",
+  publishedAt: "2026-01-18T03:32:00.000Z",
+  title: "HyperNote v0.9.2",
+  headerImage: "https://hypernote.app/images/changelog/v0.9.2-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+## What's New
+
+- Traditional Chinese localization support
+
+## Fixes
+
+- Cleaner source app display in Recent Notes view
+
+
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);
