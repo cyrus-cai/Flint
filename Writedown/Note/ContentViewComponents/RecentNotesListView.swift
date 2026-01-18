@@ -802,16 +802,7 @@ struct NoteRow: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(
-                    isHighLight
-                        ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85))
-                        : Color.clear
-                )
-                .opacity(0.5)
-                .padding(.horizontal, 6)
-        )
+        .modifier(HoverButtonBackgroundModifier(isHovered: isHighLight, colorScheme: colorScheme))
         .onHover(perform: onHover)
     }
 }
@@ -1017,6 +1008,36 @@ private struct StandardToastBackgroundModifier: ViewModifier {
 }
 
 // New view: CollapsibleGroupView
+// MARK: - Hover Background Modifier (matching SettingsListView)
+/// On macOS 26+, uses native glassEffect for hover state
+/// On earlier versions, uses colored background
+private struct HoverButtonBackgroundModifier: ViewModifier {
+    let isHovered: Bool
+    let colorScheme: ColorScheme
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            // macOS 26+: 悬停时使用原生 Liquid Glass 效果
+            if isHovered {
+                content
+                    .glassEffect(in: .rect(cornerRadius: 8))
+            } else {
+                content
+            }
+        } else {
+            // macOS 15-25: 使用传统背景
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            isHovered
+                                ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85))
+                                : Color.clear)
+                )
+        }
+    }
+}
+
 struct CollapsibleGroupView: View {
     let group: GroupedNotes
     @ObservedObject var viewModel: RecentNotesViewModel
