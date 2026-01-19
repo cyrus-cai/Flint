@@ -807,6 +807,8 @@ struct DownFunctionView: View {
                 .foregroundColor(.secondary)
                 .padding(.vertical, 8)
                 .opacity(0.5)
+                .contentTransition(.numericText())
+                .animation(.snappy(duration: 0.3), value: showWordCount)
                 .animation(.easeInOut(duration: 0.3), value: showCopied)
         }
         .padding(.horizontal, 12)
@@ -814,7 +816,9 @@ struct DownFunctionView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             if !showCopied {
-                showWordCount.toggle()
+                withAnimation(.snappy(duration: 0.3)) {
+                    showWordCount.toggle()
+                }
             }
         }
     }

@@ -1055,7 +1055,6 @@ struct AutoSaveIntervalSection: View {
 
     private let intervals: [(TimeInterval, String)] = [
         (10, "10s"),
-        (15, "15s"),
         (30, "30s"),
         (60, "1min"),
     ]
