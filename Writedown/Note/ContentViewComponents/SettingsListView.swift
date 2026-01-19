@@ -32,6 +32,143 @@ struct SettingsListView: View {
             inFileViewerRootedAtPath: notesDirectory.path
         )
     }
+    
+    private func installHyperNoteSkill() {
+        // Defer to next runloop to avoid "Publishing changes from within view updates" warning
+        DispatchQueue.main.async {
+            let notesPath = LocalFileManager.shared.baseDirectory?.path ?? "~/Documents/Writedown"
+
+            DispatchQueue.global(qos: .userInitiated).async {
+            // Get current week folder
+            let calendar = Calendar(identifier: .iso8601)
+            let weekOfYear = calendar.component(.weekOfYear, from: Date())
+            let yearForWeek = calendar.component(.yearForWeekOfYear, from: Date())
+            let currentWeek = String(format: "%dW%02d", yearForWeek, weekOfYear)
+            let currentWeekPath = "\(notesPath)/\(currentWeek)"
+
+            let skillContent = """
+---
+name: hypernote-manage-notes
+description: Guide Claude to operate HyperNote notes - create, read, update, delete, search, AI operations
+---
+
+# hypernote-manage-notes
+
+## Notes Directory
+
+**Notes path:** `\(notesPath)`
+
+**Current week folder:** `\(currentWeekPath)`
+
+### Directory Structure
+
+```
+\(notesPath)/
+├── 2026W03/
+│   ├── Note Title.md
+│   └── Another Note.md
+├── \(currentWeek)/      <-- current week
+└── ...
+```
+
+## Note Format
+
+Notes may have optional metadata at the top:
+
+```markdown
+<!-- Source: AppName -->
+<!-- Type: MaybeLike -->
+Actual note content here...
+```
+
+When creating notes, you can omit metadata - just write plain markdown content.
+
+## Common Operations
+
+### 1. List Recent Notes
+
+```bash
+# 10 most recent notes
+find "\(notesPath)" -name "*.md" -type f -exec stat -f "%m %N" {} \\; | sort -rn | head -10 | cut -d' ' -f2-
+```
+
+### 2. Search Notes
+
+```bash
+# By content
+grep -r "keyword" "\(notesPath)"
+
+# By filename
+find "\(notesPath)" -iname "*keyword*.md"
+```
+
+### 3. Create Note
+
+Use Write tool directly:
+```
+\(currentWeekPath)/Note Title.md
+```
+
+### 4. Read Note
+
+Use Read tool with full path.
+
+### 5. Update Note
+
+Use Edit tool with full path.
+
+### 6. Delete Note
+
+```bash
+rm "\(notesPath)/\(currentWeek)/unwanted-note.md"
+```
+
+### 7. Merge Multiple Notes
+
+When user asks to organize/merge notes:
+1. Read all target notes
+2. Create a new consolidated note with organized content
+3. Delete the original fragmented notes
+
+## Rules
+
+- Notes are organized by ISO week folders (e.g., \(currentWeek))
+- Only delete individual .md files, never delete week folders
+- Note filenames should be descriptive (used as title)
+"""
+
+            let fileManager = FileManager.default
+            let homeDir = fileManager.homeDirectoryForCurrentUser
+            let claudeSkillsDir = homeDir.appendingPathComponent(".claude/skills/hypernote-manage-notes")
+
+            do {
+                try fileManager.createDirectory(at: claudeSkillsDir, withIntermediateDirectories: true)
+
+                let skillFilePath = claudeSkillsDir.appendingPathComponent("SKILL.md")
+                try skillContent.write(to: skillFilePath, atomically: true, encoding: .utf8)
+
+                DispatchQueue.main.async {
+                    let notification = NSUserNotification()
+                    notification.title = "Skill Installed"
+                    notification.informativeText = "HyperNote Manage Notes skill has been installed to ~/.claude/skills/"
+                    notification.soundName = NSUserNotificationDefaultSoundName
+                    NSUserNotificationCenter.default.deliver(notification)
+                }
+
+                print("✅ Skill installed successfully at: \(skillFilePath.path)")
+            } catch {
+                print("❌ Failed to install skill: \(error)")
+
+                DispatchQueue.main.async {
+                    let notification = NSUserNotification()
+                    notification.title = "Skill Installation Failed"
+                    notification.informativeText = error.localizedDescription
+                    NSUserNotificationCenter.default.deliver(notification)
+                }
+            }
+            }
+        }
+    }
 
     //    private func generateFeishuURL(from title: String) -> String? {
     //        guard !title.isEmpty else { return nil }
@@ -120,10 +257,11 @@ struct SettingsListView: View {
         case .shareContents:
             onShare()
         case .newVersionAvailable:
-            // 点击新版本条目后调用更新安装方法
             UpdateManager.shared.installUpdatePackage()
         case .showAll:
             openInFinder()
+        case .addSkill:
+            installHyperNoteSkill()
         case .settings:
             onSettings()
         case .deleteNote:
@@ -167,6 +305,7 @@ struct SettingsListView: View {
         case shareContents
         case deleteNote
         case showAll
+        case addSkill
         case newVersionAvailable
         case settings
 
@@ -184,6 +323,8 @@ struct SettingsListView: View {
                 return L("Show in Finder")
             case .deleteNote:
                 return L("Delete Note")
+            case .addSkill:
+                return L("Add Skill")
             case .settings:
                 return L("Settings")
             }
@@ -203,6 +344,8 @@ struct SettingsListView: View {
                 return "square.and.arrow.up"
             case .newVersionAvailable:
                 return "arrow.up.circle.fill"
+            case .addSkill:
+                return "puzzlepiece.extension"
             }
         }
 
@@ -215,6 +358,8 @@ struct SettingsListView: View {
             case .deleteNote:
                 return nil
             case .settings:
+                return nil
+            case .addSkill:
                 return nil
             default:
                 return nil
