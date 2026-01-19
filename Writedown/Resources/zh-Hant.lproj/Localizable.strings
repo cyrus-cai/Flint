@@ -484,3 +484,15 @@
 /* Auto save important clipboard content */
 "Auto save important clipboard content" = "自動儲存重要剪貼簿內容";
 
+/* Show Word Count */
+"Show Word Count" = "顯示字數統計";
+
+/* %d Word */
+"%d Word" = "%d 字";
+
+/* %d Words */
+"%d Words" = "%d 字";
+
+/* Delete */
+"Delete" = "刪除";
+

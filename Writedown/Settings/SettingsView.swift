@@ -339,6 +339,7 @@ struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
+    @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
     
     @State private var customPath: String = LocalFileManager.shared.currentNotesPath
 
@@ -402,6 +403,17 @@ struct IntegrationSettingsView: View {
                             }
                         }
                         Spacer()
+                    }
+                    
+                    Divider()
+                    
+                    HStack {
+                        Text(L("Show Word Count"))
+                        Spacer()
+                        Toggle("", isOn: $showWordCount)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
                     }
                 }
                 .padding(12)

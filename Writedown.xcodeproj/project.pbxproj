@@ -41,6 +41,7 @@
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 		A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */; };
 		A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */; };
+		A3TEXTM3TR1C52D93A1B00001 /* TextMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */; };
 		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
 		FE9F1F51C1FD76EDF6D702B3 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */; };
 /* End PBXBuildFile section */
@@ -99,6 +100,7 @@
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 		A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeCheckout.swift; sourceTree = "<group>"; };
 		A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageManager.swift; sourceTree = "<group>"; };
+		A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMetrics.swift; sourceTree = "<group>"; };
 		D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -177,6 +179,7 @@
 				A35E117D2CF9F65400EF949D /* AutoUpdate.swift */,
 				A31138162D22D9A400E72E99 /* LoginManager.swift */,
 				A32036C02D56440D00803BE8 /* AppleScriptManager.swift */,
+				A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -460,6 +463,7 @@
 				A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */,
 				FE9F1F51C1FD76EDF6D702B3 /* SubscriptionManager.swift in Sources */,
 				540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */,
+				A3TEXTM3TR1C52D93A1B00001 /* TextMetrics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

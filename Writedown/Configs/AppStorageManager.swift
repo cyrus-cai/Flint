@@ -25,6 +25,7 @@ enum AppStorageKeys {
     static let editorFont = "editorFont"
     static let autoSaveInterval = "autoSaveInterval"
     static let notionIntegration = "notionIntegration"
+    static let showWordCount = "showWordCount"
 
     // Appearance Settings
     static let appearanceMode = "appearanceMode"
@@ -50,6 +51,7 @@ struct AppDefaults {
     static let editorFont = "System"
     static let autoSaveInterval: TimeInterval = 10
     static let notionIntegration = false
+    static let showWordCount = false
 
     // Appearance Settings
     static let appearanceMode = AppearanceMode.system

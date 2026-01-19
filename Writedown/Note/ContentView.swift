@@ -135,7 +135,7 @@ struct ContentView: View {
     }
 
     private func saveDocument(trigger: SaveTrigger) {
-        guard !text.isEmpty else { return }
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
         print("Saving document with trigger: \(trigger)")
 
@@ -197,7 +197,7 @@ struct ContentView: View {
     }
 
     func loadNoteContent(_ content: String, fileURL: URL? = nil) {
-        if !text.isEmpty {
+        if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             saveDocument(trigger: .addNew)
         }
 
@@ -257,7 +257,7 @@ struct ContentView: View {
         autoSaveTimer = Timer.publish(every: autoSaveInterval, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
-                if !text.isEmpty {
+                if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     saveDocument(trigger: .timer)
                     print("document saved with interval: \(autoSaveInterval)s")
 
@@ -429,7 +429,7 @@ struct ContentView: View {
                     }
 
                     EditorView(text: $text)
-                    DownFunctionView(count: text.count, links: links, showCopied: showCopiedStatus)
+                    DownFunctionView(text: text, showCopied: showCopiedStatus)
                 }
 
                 if showToast {
@@ -449,14 +449,14 @@ struct ContentView: View {
             setupAutoSaveTimer()
             setupKeyboardMonitor()
             toolbarState.onAddNew = {
-                if !text.isEmpty {
+                if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     saveDocument(trigger: .addNew)
                 }
                 createNewNote()
             }
             toolbarState.isEmpty = text.isEmpty
             toolbarState.onSave = {
-                if !text.isEmpty {
+                if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     saveDocument(trigger: .addNew)
                     print("document saved before adding new")
                 }
@@ -509,7 +509,7 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) {
             _ in
-            if !text.isEmpty {
+            if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 saveDocument(trigger: .focusLost)
                 print("document saved by losing focus")
             }
@@ -786,24 +786,37 @@ struct EditorView: View {
 }
 
 struct DownFunctionView: View {
-    let count: Int
-    let links: [String]
+    let text: String
     let showCopied: Bool
+    @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
+
+    private var displayText: String {
+        if showCopied {
+            return L("Contents Copied")
+        } else {
+            let count = showWordCount ? TextMetrics.countWords(in: text) : text.count
+            let unitKey = showWordCount ? (count != 1 ? "%d Words" : "%d Word") : (count != 0 && count != 1 ? "%d Characters" : "%d Character")
+            return String(format: L(unitKey), count)
+        }
+    }
 
     var body: some View {
         HStack(spacing: 4) {
-            Text(
-                showCopied
-                    ? "Contents Copied" : "\(count) Character\(count != 0 && count != 1 ? "s" : "")"
-            )
-            .font(.system(size: 12))
-            .foregroundColor(.secondary)
-            .padding(.vertical, 8)
-            .opacity(0.5)
-            .animation(.easeInOut(duration: 0.3), value: showCopied)
+            Text(displayText)
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+                .padding(.vertical, 8)
+                .opacity(0.5)
+                .animation(.easeInOut(duration: 0.3), value: showCopied)
         }
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, alignment: .center)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if !showCopied {
+                showWordCount.toggle()
+            }
+        }
     }
 }
 

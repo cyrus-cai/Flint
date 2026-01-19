@@ -486,3 +486,15 @@
 
 /* Auto save important clipboard content */
 "Auto save important clipboard content" = "自动保存重要剪贴板内容";
+
+/* Show Word Count */
+"Show Word Count" = "显示字数统计";
+
+/* %d Word */
+"%d Word" = "%d 字";
+
+/* %d Words */
+"%d Words" = "%d 字";
+
+/* Delete */
+"Delete" = "删除";

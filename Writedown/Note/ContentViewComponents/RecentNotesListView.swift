@@ -471,17 +471,18 @@ struct NoteRow: View {
     let onTap: () -> Void
     let onHover: (Bool) -> Void
     let searchText: String
-    var onToggleStar: () -> Void  // 新增的星标切换回调
-    var onDelete: () -> Void // 删除回调
+    var onToggleStar: () -> Void
+    var onDelete: () -> Void
     @State private var isCopied = false
     @State private var isHoveringCopy = false
     @State private var isHoveringShare = false
     @State private var showPreview = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var isInfoHovered = false
-    @State private var isStarHovered = false  // 添加星标悬停状态
+    @State private var isStarHovered = false
     @State private var isSummarizing = false
     @State private var summary: String?
+    @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -638,9 +639,16 @@ struct NoteRow: View {
                         Text("·")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
-                        Text("\(note.content.count) Chars")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
+                        if showWordCount {
+                            let wordCount = TextMetrics.countWords(in: note.content)
+                            Text(String(format: L(wordCount != 1 ? "%d Words" : "%d Word"), wordCount))
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text(String(format: L("%d Chars"), note.content.count))
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
 
                         // Display source app if available
                         if let sourceApp = note.sourceApp {
