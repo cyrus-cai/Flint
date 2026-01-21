@@ -431,7 +431,177 @@ Output: SwiftUI 新特性研究
             throw error
         }
     }
-    
+
+    // MARK: - AI Agent Intent Analysis
+
+    /// Analyze user input to determine intent (reminder, calendar event, etc.)
+    /// - Parameter text: The user's natural language input
+    /// - Returns: An IntentResponse with parsed intent, time, and suggestions
+    func analyzeIntent(text: String) async throws -> IntentResponse {
+        let selectedModel = UserDefaults.standard.string(forKey: "AIModel") ?? "ep-20250128221733-ldppp"
+
+        let currentDate = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss EEEE"
+        let currentDateString = dateFormatter.string(from: currentDate)
+
+        let systemPrompt = """
+You are an AI assistant that analyzes user input to understand their intent. The current date and time is: \(currentDateString).
+
+Analyze the user's input and respond with a JSON object containing:
+1. "intent": One of "scheduleReminder", "createCalendarEvent", "textEditing", "quickNote", "unknown"
+2. "title": The extracted title/subject (what to remind or event name)
+3. "dateTime": ISO 8601 formatted date-time string if time information is found (e.g., "2026-01-23T15:00:00")
+4. "isAllDay": Boolean, true if it's an all-day event/reminder
+5. "confidence": A number between 0 and 1 indicating confidence
+6. "notes": Any additional notes or context
+7. "suggestions": Array of helpful suggestions for the user
+8. "rawInterpretation": Human-readable interpretation of the intent
+
+Chinese time expressions to recognize:
+- 明天 = tomorrow
+- 后天 = day after tomorrow
+- 下周X = next week's day X (周一=Monday, 周日=Sunday)
+- X点 = X o'clock
+- 上午 = AM (morning)
+- 下午 = PM (afternoon)
+- 晚上 = evening (typically after 6 PM)
+- X分钟后 = in X minutes
+- X小时后 = in X hours
+
+Examples:
+- "明天下午3点提醒我开会" -> scheduleReminder, title: "开会", dateTime: tomorrow 15:00
+- "下周一上午10点开会" -> createCalendarEvent, title: "开会", dateTime: next Monday 10:00
+- "提醒我买菜" -> scheduleReminder (no specific time, set to tomorrow 9:00 by default)
+- "今天记得写日报" -> scheduleReminder, title: "写日报", dateTime: today (soon)
+
+IMPORTANT: Only output valid JSON, no other text. The response must be parseable as JSON.
+"""
+
+        let messages = [
+            ChatMessage(role: "system", content: systemPrompt),
+            ChatMessage(role: "user", content: text)
+        ]
+
+        let requestPayload = ChatRequest(model: selectedModel, messages: messages, stream: false)
+
+        guard let url = URL(string: baseURL) else { throw DoubaoError.invalidConfiguration }
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        do {
+            urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
+            let (data, response) = try await URLSession.shared.data(for: urlRequest)
+
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw DoubaoError.requestFailed
+            }
+
+            let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+            let content = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? "{}"
+
+            // Parse the JSON response
+            return try parseIntentResponse(from: content, originalText: text)
+        } catch {
+            print("AI Intent Analysis failed: \(error)")
+            throw error
+        }
+    }
+
+    /// Parse the AI response into an IntentResponse
+    private func parseIntentResponse(from jsonString: String, originalText: String) throws -> IntentResponse {
+        // Clean up the JSON string (remove markdown code blocks if present)
+        var cleanJson = jsonString
+        if cleanJson.hasPrefix("```json") {
+            cleanJson = String(cleanJson.dropFirst(7))
+        }
+        if cleanJson.hasPrefix("```") {
+            cleanJson = String(cleanJson.dropFirst(3))
+        }
+        if cleanJson.hasSuffix("```") {
+            cleanJson = String(cleanJson.dropLast(3))
+        }
+        cleanJson = cleanJson.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let jsonData = cleanJson.data(using: .utf8) else {
+            throw DoubaoError.requestFailed
+        }
+
+        let decoder = JSONDecoder()
+        let rawResponse = try decoder.decode(RawIntentResponse.self, from: jsonData)
+
+        // Parse the date-time
+        var parsedDateTime: ParsedDateTime? = nil
+        if let dateTimeString = rawResponse.dateTime, !dateTimeString.isEmpty {
+            let isoFormatter = ISO8601DateFormatter()
+            isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+            // Try different ISO 8601 formats
+            var parsedDate: Date? = isoFormatter.date(from: dateTimeString)
+
+            if parsedDate == nil {
+                isoFormatter.formatOptions = [.withInternetDateTime]
+                parsedDate = isoFormatter.date(from: dateTimeString)
+            }
+
+            if parsedDate == nil {
+                // Try a simpler format
+                let simpleFormatter = DateFormatter()
+                simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                parsedDate = simpleFormatter.date(from: dateTimeString)
+            }
+
+            if let date = parsedDate {
+                parsedDateTime = ParsedDateTime(
+                    date: date,
+                    isAllDay: rawResponse.isAllDay ?? false,
+                    confidence: rawResponse.confidence ?? 0.8,
+                    originalText: dateTimeString
+                )
+            }
+        }
+
+        // Map the intent type
+        let intentType: IntentType
+        switch rawResponse.intent.lowercased() {
+        case "schedulereminder":
+            intentType = .scheduleReminder
+        case "createcalendarevent":
+            intentType = .createCalendarEvent
+        case "textediting":
+            intentType = .textEditing
+        case "quicknote":
+            intentType = .quickNote
+        default:
+            intentType = .unknown
+        }
+
+        return IntentResponse(
+            intent: intentType,
+            title: rawResponse.title,
+            parsedDateTime: parsedDateTime,
+            notes: rawResponse.notes,
+            confidence: rawResponse.confidence ?? 0.5,
+            suggestions: rawResponse.suggestions,
+            rawInterpretation: rawResponse.rawInterpretation ?? originalText
+        )
+    }
+
+    /// Raw response structure from AI
+    private struct RawIntentResponse: Codable {
+        let intent: String
+        let title: String?
+        let dateTime: String?
+        let isAllDay: Bool?
+        let confidence: Double?
+        let notes: String?
+        let suggestions: [String]?
+        let rawInterpretation: String?
+    }
+
     static func prepareForAI(_ content: String, maxChars: Int = 300) -> String {
         if content.count <= maxChars { return content }
         

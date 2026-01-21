@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
 		540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */; };
+		A3INTENT2D910A0100000001 /* IntentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3INTENT2D910A0100000002 /* IntentModels.swift */; };
+		A3REMIND2D910A0100000001 /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3REMIND2D910A0100000002 /* ReminderService.swift */; };
+		A3NOTIFS2D910A0100000001 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3NOTIFS2D910A0100000002 /* NotificationService.swift */; };
+		A3AICONF2D910A0100000001 /* AIConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AICONF2D910A0100000002 /* AIConfirmationView.swift */; };
 		A30F32A02D4DDAAA0028E47E /* ProStatusChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */; };
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
@@ -66,6 +70,10 @@
 /* Begin PBXFileReference section */
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
 		97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PaymentViewModel.swift; sourceTree = "<group>"; };
+		A3INTENT2D910A0100000002 /* IntentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentModels.swift; sourceTree = "<group>"; };
+		A3REMIND2D910A0100000002 /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
+		A3NOTIFS2D910A0100000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		A3AICONF2D910A0100000002 /* AIConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfirmationView.swift; sourceTree = "<group>"; };
 		A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStatusChecker.swift; sourceTree = "<group>"; };
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
@@ -145,9 +153,21 @@
 			isa = PBXGroup;
 			children = (
 				D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */,
+				A3INTENT2D910A0100000002 /* IntentModels.swift */,
+				A3REMIND2D910A0100000002 /* ReminderService.swift */,
+				A3NOTIFS2D910A0100000002 /* NotificationService.swift */,
 			);
 			name = Services;
 			path = Services;
+			sourceTree = "<group>";
+		};
+		A3VIEWS2D910A0100000003 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A3AICONF2D910A0100000002 /* AIConfirmationView.swift */,
+			);
+			name = Views;
+			path = Views;
 			sourceTree = "<group>";
 		};
 		A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */ = {
@@ -230,6 +250,7 @@
 				A37D473A2CDE6ECF00B2E727 /* Preview Content */,
 				82949F51FCBCF2C138A5F560 /* Services */,
 				44E7FBEC77376A0FDCD6572D /* ViewModels */,
+				A3VIEWS2D910A0100000003 /* Views */,
 			);
 			path = Writedown;
 			sourceTree = "<group>";
@@ -464,6 +485,10 @@
 				FE9F1F51C1FD76EDF6D702B3 /* SubscriptionManager.swift in Sources */,
 				540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */,
 				A3TEXTM3TR1C52D93A1B00001 /* TextMetrics.swift in Sources */,
+				A3INTENT2D910A0100000001 /* IntentModels.swift in Sources */,
+				A3REMIND2D910A0100000001 /* ReminderService.swift in Sources */,
+				A3NOTIFS2D910A0100000001 /* NotificationService.swift in Sources */,
+				A3AICONF2D910A0100000001 /* AIConfirmationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

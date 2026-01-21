@@ -437,8 +437,31 @@ struct ContentView: View {
                         .padding(.bottom, 12)
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
+
+                // AI Processing Indicator
+                if toolbarState.aiAgentState.isProcessing {
+                    AIProcessingIndicator()
+                        .padding(.top, 50)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        .transition(.opacity.combined(with: .scale))
+                        .animation(.easeInOut(duration: 0.3), value: toolbarState.aiAgentState.isProcessing)
+                }
             }
             .background(colorScheme == .light ? Color.white.opacity(0.5) : Color.clear)
+            // AI Confirmation Dialog
+            .sheet(isPresented: $toolbarState.showAIConfirmation) {
+                if let response = toolbarState.currentIntentResponse {
+                    AIConfirmationView(
+                        intentResponse: response,
+                        onConfirm: {
+                            toolbarState.confirmAIIntent()
+                        },
+                        onCancel: {
+                            toolbarState.cancelAIIntent()
+                        }
+                    )
+                }
+            }
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -484,6 +507,10 @@ struct ContentView: View {
                 } catch {
                     print("Error renaming file: \(error)")
                 }
+            }
+            // AI Agent completion callback - clear note after successful action
+            toolbarState.onAIAgentComplete = {
+                createNewNote()
             }
         }
         .ignoresSafeArea()

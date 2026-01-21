@@ -11,7 +11,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(open:*)",
       "Bash(./scripts/publish.sh:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(plutil:*)"
     ]
   },
   "spinnerTipsEnabled": false

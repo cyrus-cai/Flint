@@ -136,7 +136,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func applicationDidFinishLaunching(_ notification: Notification) {
         Mixpanel.mainInstance().track(event: "App Launched")
         UpdateManager.shared.checkAndDownloadUpdate()
-        
+
         if UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") {
             MaybeLikeService.shared.startMonitoring()
         }
@@ -146,6 +146,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         NSApp.setActivationPolicy(.accessory)
         NSUserNotificationCenter.default.delegate = self
         globalKeyMonitor = GlobalKeyMonitor()
+
+        // Initialize NotificationService for UserNotifications
+        setupNotificationService()
 
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
@@ -312,6 +315,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc private func openSettings() {
         WindowManager.shared.createSettingsWindow()
+    }
+
+    /// Setup UserNotifications service
+    private func setupNotificationService() {
+        Task {
+            do {
+                let granted = try await NotificationService.shared.requestAuthorization()
+                if granted {
+                    print("Notification permission granted")
+                } else {
+                    print("Notification permission denied")
+                }
+            } catch {
+                print("Failed to request notification permission: \(error)")
+            }
+        }
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {

@@ -98,7 +98,21 @@ struct TitleBarView: View {
                         }
 
                         switch key {
-                        case "n", "k", "\r":
+                        case "\r":  // Command+Enter or Command+Shift+Enter
+                            if event.modifierFlags.contains(.shift) {
+                                // Command+Shift+Enter: 新建笔记
+                                if !toolbarState.isEmpty {
+                                    toolbarState.addNew()
+                                    return nil
+                                }
+                            } else {
+                                // Command+Enter: AI 代理
+                                if let content = toolbarState.currentNoteContent, !content.isEmpty {
+                                    toolbarState.handleAIAgent(content: content)
+                                    return nil
+                                }
+                            }
+                        case "n", "k":
                             if !toolbarState.isEmpty {
                                 toolbarState.addNew()
                                 return nil
@@ -808,6 +822,9 @@ class TitleBarToolbarState: ObservableObject {
     @Published var recentNotes: [RecentNote] = []
     @Published var isEmpty: Bool = true
     @Published var currentNoteContent: String? = nil  // 添加当前笔记内容
+    @Published var aiAgentState: AIAgentState = .idle  // AI 代理状态
+    @Published var showAIConfirmation: Bool = false  // 是否显示 AI 确认弹窗
+    @Published var currentIntentResponse: IntentResponse? = nil  // 当前意图响应
     private var currentNoteIndex: Int = 0
 
     var onRename: (() -> Void)?
@@ -816,6 +833,7 @@ class TitleBarToolbarState: ObservableObject {
     var onSave: (() -> Void)?
     var onAddNew: (() -> Void)?
     var onNoteSelected: ((String, URL?) -> Void)?
+    var onAIAgentComplete: (() -> Void)?  // AI 代理完成后的回调（如清空笔记）
 
     init() {
         refreshRecentNotes()
@@ -878,6 +896,138 @@ class TitleBarToolbarState: ObservableObject {
                 self.showToast = false
             }
         }
+    }
+
+    // MARK: - AI Agent Methods
+
+    /// Handle Command+Shift+Enter to trigger AI agent
+    func handleAIAgent(content: String) {
+        guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            showNavigationToast(message: L("No content to analyze"))
+            return
+        }
+
+        // Set analyzing state
+        aiAgentState = .analyzing
+
+        Task {
+            do {
+                // Analyze intent using AI
+                let response = try await DoubaoAPI.shared.analyzeIntent(text: content)
+
+                await MainActor.run {
+                    self.currentIntentResponse = response
+                    self.aiAgentState = .confirming(response)
+                    self.showAIConfirmation = true
+                }
+            } catch {
+                await MainActor.run {
+                    self.aiAgentState = .failed(error.localizedDescription)
+                    self.showNavigationToast(message: L("AI analysis failed"))
+
+                    // Reset after delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        self.aiAgentState = .idle
+                    }
+                }
+            }
+        }
+    }
+
+    /// Confirm and execute the AI intent
+    func confirmAIIntent() {
+        guard let response = currentIntentResponse else { return }
+
+        showAIConfirmation = false
+        aiAgentState = .executing
+
+        Task {
+            do {
+                switch response.intent {
+                case .scheduleReminder:
+                    try await executeReminderIntent(response)
+                case .createCalendarEvent:
+                    try await executeCalendarIntent(response)
+                default:
+                    await MainActor.run {
+                        self.aiAgentState = .completed(success: false, message: L("Intent not supported"))
+                    }
+                    return
+                }
+
+                await MainActor.run {
+                    self.aiAgentState = .completed(success: true, message: L("Action completed"))
+                    self.onAIAgentComplete?()
+
+                    // Reset after delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        self.aiAgentState = .idle
+                        self.currentIntentResponse = nil
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.aiAgentState = .failed(error.localizedDescription)
+                    self.showNavigationToast(message: L("Action failed"))
+
+                    // Reset after delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        self.aiAgentState = .idle
+                    }
+                }
+            }
+        }
+    }
+
+    /// Cancel AI intent
+    func cancelAIIntent() {
+        showAIConfirmation = false
+        aiAgentState = .idle
+        currentIntentResponse = nil
+    }
+
+    /// Execute reminder intent
+    private func executeReminderIntent(_ response: IntentResponse) async throws {
+        guard let title = response.title,
+              let dateTime = response.parsedDateTime else {
+            throw ReminderServiceError.saveFailed
+        }
+
+        let reminderId = try await ReminderService.shared.createReminder(
+            title: title,
+            dueDate: dateTime.date,
+            notes: response.notes
+        )
+
+        // Send notification
+        await NotificationService.shared.sendReminderCreated(
+            title: title,
+            dueDate: dateTime.date
+        )
+
+        print("Created reminder with ID: \(reminderId)")
+    }
+
+    /// Execute calendar event intent
+    private func executeCalendarIntent(_ response: IntentResponse) async throws {
+        guard let title = response.title,
+              let dateTime = response.parsedDateTime else {
+            throw ReminderServiceError.saveFailed
+        }
+
+        let eventId = try await ReminderService.shared.createCalendarEvent(
+            title: title,
+            startDate: dateTime.date,
+            notes: response.notes
+        )
+
+        // Send notification
+        await NotificationService.shared.sendCalendarEventCreated(
+            title: title,
+            startDate: dateTime.date
+        )
+
+        print("Created calendar event with ID: \(eventId)")
     }
 }
 

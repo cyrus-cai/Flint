@@ -4,6 +4,12 @@
 <dict>
 	<key>CFBundleShortVersionString</key>
 	<string>0.9.4</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>HyperNote needs access to Reminders to create scheduled reminders for you.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>HyperNote needs access to Calendar to create scheduled events for you.</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>HyperNote needs to send notifications to alert you of reminders and important events.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
