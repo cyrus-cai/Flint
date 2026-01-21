@@ -10,7 +10,8 @@
       "Bash(git checkout:*)",
       "mcp__ide__getDiagnostics",
       "Bash(open:*)",
-      "Bash(./scripts/publish.sh:*)"
+      "Bash(./scripts/publish.sh:*)",
+      "Bash(tree:*)"
     ]
   },
   "spinnerTipsEnabled": false
