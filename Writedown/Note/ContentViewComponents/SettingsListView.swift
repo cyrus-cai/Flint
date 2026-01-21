@@ -324,7 +324,7 @@ When user asks to organize/merge notes:
             case .deleteNote:
                 return L("Delete Note")
             case .addSkill:
-                return L("Add Skill")
+                return L("Add as Claude Code skill")
             case .settings:
                 return L("Settings")
             }

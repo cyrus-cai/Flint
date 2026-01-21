@@ -935,19 +935,38 @@ class TitleBarToolbarState: ObservableObject {
     }
 
     /// Confirm and execute the AI intent
-    func confirmAIIntent() {
+    func confirmAIIntent(updatedDate: Date? = nil) {
         guard let response = currentIntentResponse else { return }
+
+        // If date was updated, create a new response with the updated date
+        var finalResponse = response
+        if let newDate = updatedDate, let oldParsedDateTime = response.parsedDateTime {
+            let newParsedDateTime = ParsedDateTime(
+                date: newDate,
+                isAllDay: oldParsedDateTime.isAllDay,
+                confidence: oldParsedDateTime.confidence,
+                originalText: oldParsedDateTime.originalText
+            )
+            finalResponse = IntentResponse(
+                intent: response.intent,
+                title: response.title,
+                parsedDateTime: newParsedDateTime,
+                notes: response.notes,
+                confidence: response.confidence,
+                rawInterpretation: response.rawInterpretation
+            )
+        }
 
         showAIConfirmation = false
         aiAgentState = .executing
 
         Task {
             do {
-                switch response.intent {
+                switch finalResponse.intent {
                 case .scheduleReminder:
-                    try await executeReminderIntent(response)
+                    try await executeReminderIntent(finalResponse)
                 case .createCalendarEvent:
-                    try await executeCalendarIntent(response)
+                    try await executeCalendarIntent(finalResponse)
                 default:
                     await MainActor.run {
                         self.aiAgentState = .completed(success: false, message: L("Intent not supported"))

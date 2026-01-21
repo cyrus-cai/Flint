@@ -455,8 +455,7 @@ Analyze the user's input and respond with a JSON object containing:
 4. "isAllDay": Boolean, true if it's an all-day event/reminder
 5. "confidence": A number between 0 and 1 indicating confidence
 6. "notes": Any additional notes or context
-7. "suggestions": Array of helpful suggestions for the user
-8. "rawInterpretation": Human-readable interpretation of the intent
+7. "rawInterpretation": Human-readable interpretation of the intent
 
 Chinese time expressions to recognize:
 - 明天 = tomorrow
@@ -585,7 +584,6 @@ IMPORTANT: Only output valid JSON, no other text. The response must be parseable
             parsedDateTime: parsedDateTime,
             notes: rawResponse.notes,
             confidence: rawResponse.confidence ?? 0.5,
-            suggestions: rawResponse.suggestions,
             rawInterpretation: rawResponse.rawInterpretation ?? originalText
         )
     }
@@ -598,7 +596,6 @@ IMPORTANT: Only output valid JSON, no other text. The response must be parseable
         let isAllDay: Bool?
         let confidence: Double?
         let notes: String?
-        let suggestions: [String]?
         let rawInterpretation: String?
     }
 

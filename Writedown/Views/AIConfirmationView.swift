@@ -10,8 +10,17 @@ import SwiftUI
 /// A confirmation dialog for AI agent actions
 struct AIConfirmationView: View {
     let intentResponse: IntentResponse
-    let onConfirm: () -> Void
+    let onConfirm: (Date?) -> Void
     let onCancel: () -> Void
+    
+    @State private var selectedDate: Date
+    
+    init(intentResponse: IntentResponse, onConfirm: @escaping (Date?) -> Void, onCancel: @escaping () -> Void) {
+        self.intentResponse = intentResponse
+        self.onConfirm = onConfirm
+        self.onCancel = onCancel
+        _selectedDate = State(initialValue: intentResponse.parsedDateTime?.date ?? Date())
+    }
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -25,11 +34,6 @@ struct AIConfirmationView: View {
 
             // Intent Details
             intentDetailsSection
-
-            // Suggestions (if any)
-            if let suggestions = intentResponse.suggestions, !suggestions.isEmpty {
-                suggestionsSection(suggestions)
-            }
 
             Divider()
                 .opacity(0.5)
@@ -46,26 +50,14 @@ struct AIConfirmationView: View {
 
     private var headerSection: some View {
         HStack(spacing: 12) {
-            // Intent icon with gradient background
-            ZStack {
-                Circle()
-                    .fill(intentGradient)
-                    .frame(width: 36, height: 36)
-
-                Image(systemName: intentResponse.intent.iconName)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-            }
+            Image(systemName: intentResponse.intent.iconName)
+                .font(.system(size: 24, weight: .regular))
+                .foregroundColor(.accentColor)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(headerTitle)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.primary)
-
-                Text(intentResponse.rawInterpretation)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
+                    .font(.title3)
+                    .fontWeight(.bold)
             }
 
             Spacer()
@@ -87,28 +79,8 @@ struct AIConfirmationView: View {
         }
     }
 
-    private var intentGradient: LinearGradient {
-        switch intentResponse.intent {
-        case .scheduleReminder:
-            return LinearGradient(
-                colors: [Color.orange, Color.red],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        case .createCalendarEvent:
-            return LinearGradient(
-                colors: [Color.blue, Color.purple],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        default:
-            return LinearGradient(
-                colors: [Color.purple, Color.pink],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-    }
+    // Removed intentGradient
+
 
     // MARK: - Intent Details Section
 
@@ -124,12 +96,27 @@ struct AIConfirmationView: View {
             }
 
             // Date/Time
-            if let dateTime = intentResponse.parsedDateTime {
-                detailRow(
-                    icon: "calendar.badge.clock",
-                    label: L("Time"),
-                    value: dateTime.relativeDescription
-                )
+            if intentResponse.parsedDateTime != nil {
+                HStack(spacing: 10) {
+                    Image(systemName: "calendar.badge.clock")
+                        .foregroundColor(.secondary)
+                        .frame(width: 20)
+
+                    Text(L("Time"))
+                        .foregroundColor(.secondary)
+                        .frame(width: 40, alignment: .leading)
+
+                    DatePicker("", selection: $selectedDate, displayedComponents: [.date])
+                        .labelsHidden()
+                        .fixedSize()
+                    
+                    DatePicker("", selection: $selectedDate, displayedComponents: [.hourAndMinute])
+                        .labelsHidden()
+                        .fixedSize()
+                        
+                    Spacer()
+                }
+                .font(.callout)
             }
 
             // Confidence
@@ -140,56 +127,48 @@ struct AIConfirmationView: View {
     private func detailRow(icon: String, label: String, value: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .frame(width: 20)
 
             Text(label)
-                .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .frame(width: 40, alignment: .leading)
 
             Text(value)
-                .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.primary)
                 .lineLimit(2)
 
             Spacer()
         }
+        .font(.callout)
     }
 
     private var confidenceRow: some View {
         HStack(spacing: 10) {
             Image(systemName: "waveform.path.ecg")
-                .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .frame(width: 20)
 
             Text(L("Confidence"))
-                .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .frame(width: 40, alignment: .leading)
 
-            // Confidence indicator
-            HStack(spacing: 4) {
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color.secondary.opacity(0.2))
-
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(confidenceColor)
-                            .frame(width: geometry.size.width * intentResponse.confidence)
-                    }
-                }
-                .frame(width: 60, height: 6)
-
-                Text("\(Int(intentResponse.confidence * 100))%")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(confidenceColor)
-            }
+            Text(confidenceText)
+                .fontWeight(.medium)
+                .foregroundColor(confidenceColor)
 
             Spacer()
+        }
+        .font(.callout)
+    }
+
+    private var confidenceText: String {
+        if intentResponse.confidence >= 0.8 {
+            return L("High")
+        } else if intentResponse.confidence >= 0.5 {
+            return L("Medium")
+        } else {
+            return L("Low")
         }
     }
 
@@ -203,76 +182,34 @@ struct AIConfirmationView: View {
         }
     }
 
-    // MARK: - Suggestions Section
-
-    private func suggestionsSection(_ suggestions: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 4) {
-                Image(systemName: "lightbulb.fill")
-                    .font(.system(size: 10))
-                    .foregroundColor(.yellow)
-
-                Text(L("Suggestions"))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.secondary)
-            }
-
-            ForEach(suggestions.prefix(3), id: \.self) { suggestion in
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(Color.secondary.opacity(0.5))
-                        .frame(width: 4, height: 4)
-
-                    Text(suggestion)
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-            }
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.yellow.opacity(0.1))
-        )
-    }
-
     // MARK: - Action Buttons Section
 
     private var actionButtonsSection: some View {
         HStack(spacing: 12) {
             // Cancel Button
-            Button(action: onCancel) {
+            Button(role: .cancel, action: onCancel) {
                 Text(L("Cancel"))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.secondary.opacity(0.1))
-                    )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.bordered)
+            .controlSize(.large)
 
             // Confirm Button
-            Button(action: onConfirm) {
+            Button(action: {
+                if intentResponse.hasTimeInfo {
+                    onConfirm(selectedDate)
+                } else {
+                    onConfirm(nil)
+                }
+            }) {
                 HStack(spacing: 6) {
                     Text(confirmButtonText)
-                        .font(.system(size: 13, weight: .semibold))
-
                     Image(systemName: "checkmark")
-                        .font(.system(size: 11, weight: .bold))
                 }
-                .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(intentGradient)
-                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
     }
 
@@ -394,26 +331,26 @@ private struct AIProcessingBackgroundModifier: ViewModifier {
 
 // MARK: - Preview
 
-#Preview {
-    let mockResponse = IntentResponse(
-        intent: .scheduleReminder,
-        title: "Team Meeting",
-        parsedDateTime: ParsedDateTime(
-            date: Date().addingTimeInterval(86400),
-            isAllDay: false,
-            confidence: 0.95,
-            originalText: "tomorrow 3pm"
-        ),
-        notes: nil,
-        confidence: 0.92,
-        suggestions: ["Add meeting location", "Set 15-minute early reminder"],
-        rawInterpretation: "I understand you want to be reminded about 'Team Meeting' tomorrow at 3:00 PM"
-    )
-
-    AIConfirmationView(
-        intentResponse: mockResponse,
-        onConfirm: { print("Confirmed") },
-        onCancel: { print("Cancelled") }
-    )
-    .padding()
-}
+//#Preview {
+//    let mockResponse = IntentResponse(
+//        intent: .scheduleReminder,
+//        title: "Team Meeting",
+//        parsedDateTime: ParsedDateTime(
+//            date: Date().addingTimeInterval(86400),
+//            isAllDay: false,
+//            confidence: 0.95,
+//            originalText: "tomorrow 3pm"
+//        ),
+//        notes: nil,
+//        confidence: 0.92,
+//        suggestions: ["Add meeting location", "Set 15-minute early reminder"],
+//        rawInterpretation: "I understand you want to be reminded about 'Team Meeting' tomorrow at 3:00 PM"
+//    )
+//
+//    AIConfirmationView(
+//        intentResponse: mockResponse,
+//        onConfirm: { date in print("Confirmed with date: \(String(describing: date))") },
+//        onCancel: { print("Cancelled") }
+//    )
+//    .padding()
+//}

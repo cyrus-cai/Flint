@@ -453,8 +453,8 @@ struct ContentView: View {
                 if let response = toolbarState.currentIntentResponse {
                     AIConfirmationView(
                         intentResponse: response,
-                        onConfirm: {
-                            toolbarState.confirmAIIntent()
+                        onConfirm: { date in
+                            toolbarState.confirmAIIntent(updatedDate: date)
                         },
                         onCancel: {
                             toolbarState.cancelAIIntent()

@@ -105,7 +105,6 @@ struct IntentResponse: Codable {
     let parsedDateTime: ParsedDateTime?
     let notes: String?
     let confidence: Double
-    let suggestions: [String]?
     let rawInterpretation: String
 
     /// Whether the intent has high enough confidence to proceed
