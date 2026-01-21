@@ -1,0 +1,36 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.9.5-release",
+  publishedAt: "2026-01-21T17:00:59Z",
+  title: "HyperNote v0.9.5",
+  headerImage: "https://hypernote.app/images/changelog/v0.9.5-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+## What's New
+
+- AI Intent Analysis & Notifications: HyperNote now intelligently analyzes your intent and provides helpful notifications.
+
+## Features
+
+- **Skill Installation**: You can now install HyperNote skills directly from the Settings.
+- **Improved Word Count**: The word count display has been enhanced with a new toggle animation.
+- **Tree Command**: Added support for the tree command in settings.
+
+## Fixes
+
+- **Text Validation**: Improved text validation logic for better stability.
+- **UI Enhancements**: Various UI polishes including word count display.
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);
