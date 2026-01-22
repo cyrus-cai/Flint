@@ -448,6 +448,43 @@ Output: SwiftUI 新特性研究
         let systemPrompt = """
 You are an AI assistant that analyzes user input to understand their intent. The current date and time is: \(currentDateString).
 
+IMPORTANT: Recognize forwarded chat message formats
+Users often paste messages copied from chat apps (DingTalk, Feishu, WeChat, Slack, etc.). These have varied formats but share common patterns:
+
+How to identify forwarded chat messages:
+1. Look for a TIMESTAMP pattern in the first few lines, such as:
+   - "X/XX 上午/下午 X:XX" (e.g., "1/22 下午 9:40")
+   - "XX:XX" (e.g., "9:40")
+   - "YYYY-MM-DD HH:MM"
+2. May contain a username/ID in parentheses like （xxx.yyy） or (username)
+3. The sender's name usually appears BEFORE the timestamp
+4. The actual message content appears AFTER the timestamp line
+5. There may be empty lines between sections
+
+When you detect a forwarded chat message:
+- Extract the "title" from the MESSAGE CONTENT (after the timestamp), NOT from sender name
+- The timestamp in the message shows when it was SENT - this is NOT the reminder time
+- If the message content contains relative time words like "明天", "后天", "下周", calculate relative to TODAY (\(currentDateString)), not the message's sent date
+- Put sender info in "notes" for context
+
+Example input (with empty lines):
+王经理
+
+（wang.pm） 1/22 下午 9:40
+
+@ 开发组 版本修复已上线明天帮忙验证下
+
+Expected output:
+{
+  "intent": "scheduleReminder",
+  "title": "版本修复验证",
+  "dateTime": "(tomorrow from today)T09:00:00",
+  "isAllDay": false,
+  "confidence": 0.85,
+  "notes": "来自 王经理 的消息：版本修复已上线，需要验证",
+  "rawInterpretation": "王经理 请求明天帮忙验证版本修复"
+}
+
 Analyze the user's input and respond with a JSON object containing:
 1. "intent": One of "scheduleReminder", "createCalendarEvent", "textEditing", "quickNote", "unknown"
 2. "title": The extracted title/subject (what to remind or event name)
@@ -457,7 +494,7 @@ Analyze the user's input and respond with a JSON object containing:
 6. "notes": Any additional notes or context
 7. "rawInterpretation": Human-readable interpretation of the intent
 
-Chinese time expressions to recognize:
+Chinese time expressions to recognize (calculate from current date \(currentDateString)):
 - 明天 = tomorrow
 - 后天 = day after tomorrow
 - 下周X = next week's day X (周一=Monday, 周日=Sunday)
@@ -468,7 +505,7 @@ Chinese time expressions to recognize:
 - X分钟后 = in X minutes
 - X小时后 = in X hours
 
-Examples:
+Examples for direct user input:
 - "明天下午3点提醒我开会" -> scheduleReminder, title: "开会", dateTime: tomorrow 15:00
 - "下周一上午10点开会" -> createCalendarEvent, title: "开会", dateTime: next Monday 10:00
 - "提醒我买菜" -> scheduleReminder (no specific time, set to tomorrow 9:00 by default)
