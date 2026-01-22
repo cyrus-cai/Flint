@@ -12,11 +12,48 @@ struct RecentNote: Identifiable {
     let id = UUID()
     let title: String
     let firstLinePreview: String  // Add this to store the first line separately
-    let content: String
     let lastModified: Date
     let fileURL: URL
     let sourceApp: String?  // New field for source application
     var isStarred: Bool = false  // 新增的星标属性
+
+    // 懒加载内容 - 只在需要时读取文件
+    var content: String {
+        (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
+    }
+
+    // 用于初始化时快速读取的元数据（只读取文件前几行）
+    static func loadMetadata(from url: URL, modificationDate: Date) -> RecentNote? {
+        // 只读取文件的前 1KB 来提取元数据
+        guard let fileHandle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? fileHandle.close() }
+
+        let headerData = fileHandle.readData(ofLength: 1024)
+        guard let headerString = String(data: headerData, encoding: .utf8) else { return nil }
+
+        let filename = url.deletingPathExtension().lastPathComponent
+        let lines = headerString.components(separatedBy: .newlines)
+        let firstLine = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
+
+        // Extract source app from metadata comment if available
+        var sourceApp: String? = nil
+        if let firstLine = lines.first, firstLine.hasPrefix("<!-- Source:") {
+            if let endTagIndex = firstLine.range(of: "-->")?.lowerBound {
+                let startIndex = firstLine.index(firstLine.startIndex, offsetBy: 12)
+                if startIndex < endTagIndex {
+                    sourceApp = String(firstLine[startIndex..<endTagIndex]).trimmingCharacters(in: .whitespaces)
+                }
+            }
+        }
+
+        return RecentNote(
+            title: filename,
+            firstLinePreview: firstLine,
+            lastModified: modificationDate,
+            fileURL: url,
+            sourceApp: sourceApp
+        )
+    }
 }
 
 class LocalFileManager {
@@ -221,48 +258,12 @@ class LocalFileManager {
                 }
             }
 
-            // Sort and limit
+            // Sort by modification date
             notesWithDates.sort { $0.1 > $1.1 }
-            let recentURLs = notesWithDates
 
-            // Convert to RecentNote objects
-            var recentNotes: [RecentNote] = []
-            for (url, date) in recentURLs {
-                if let content = try? String(contentsOf: url, encoding: .utf8) {
-                    // Get the filename without extension to use as the custom title
-                    let filename = url.deletingPathExtension().lastPathComponent
-
-                    // Get the first line for fallback if needed
-                    let lines = content.components(separatedBy: .newlines)
-                    let firstLine = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
-
-                    // Extract source app from metadata comment if available
-                    var sourceApp: String? = nil
-                    
-                    // Check for source metadata in the first line
-                    if let firstLine = lines.first, firstLine.hasPrefix("<!-- Source:") {
-                        // Look for the closing comment tag
-                        if let endTagIndex = firstLine.range(of: "-->")?.lowerBound {
-                            let startIndex = firstLine.index(firstLine.startIndex, offsetBy: 12) // Length of "<!-- Source: "
-                            // Make sure the range is valid
-                            if startIndex < endTagIndex {
-                                sourceApp = String(firstLine[startIndex..<endTagIndex]).trimmingCharacters(in: .whitespaces)
-                            }
-                        }
-                    }
-
-                    // Use filename as the title (since that's what we set during title editing)
-                    // but display the first line preview in the details
-                    let note = RecentNote(
-                        title: filename,
-                        firstLinePreview: firstLine,
-                        content: content,
-                        lastModified: date,
-                        fileURL: url,
-                        sourceApp: sourceApp
-                    )
-                    recentNotes.append(note)
-                }
+            // 使用懒加载方式创建 RecentNote，只读取元数据
+            let recentNotes = notesWithDates.compactMap { (url, date) in
+                RecentNote.loadMetadata(from: url, modificationDate: date)
             }
 
             return recentNotes

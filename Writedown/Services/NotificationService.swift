@@ -264,20 +264,16 @@ extension NotificationService: UNUserNotificationCenterDelegate {
 
             // Post notification to open the note
             DispatchQueue.main.async {
-                if WindowManager.shared.activeWindow == nil {
-                    WindowManager.shared.createNewWindow()
-                }
+                // Use createOrShowMainWindow which handles both cases:
+                // - If window exists, it shows it
+                // - If window doesn't exist, it creates one
+                WindowManager.shared.createOrShowMainWindow()
 
-                if let noteWindowController = WindowManager.shared.activeWindow as? MainWindowController {
-                    noteWindowController.showWindow(nil)
-                    NSApp.activate(ignoringOtherApps: true)
-
-                    NotificationCenter.default.post(
-                        name: Notification.Name("LoadNoteNotification"),
-                        object: nil,
-                        userInfo: ["content": content, "fileURL": fileURL]
-                    )
-                }
+                NotificationCenter.default.post(
+                    name: Notification.Name("LoadNoteNotification"),
+                    object: nil,
+                    userInfo: ["content": content, "fileURL": fileURL]
+                )
             }
         }
 

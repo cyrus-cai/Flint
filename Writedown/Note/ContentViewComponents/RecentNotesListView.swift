@@ -523,11 +523,6 @@ struct NoteRow: View {
             return (title, nil)
         }
 
-        // 调试打印
-        print("Searching for: \(searchText)")
-        print("Title: \(title)")
-        print("Content length: \(note.content.count)")
-
         var matchingContexts: [AttributedString] = []
 
         // 查找包含搜索词的段落和位置
@@ -1086,9 +1081,9 @@ struct CollapsibleGroupView: View {
                 }
             }
 
-            // Only show the note rows when expanded
+            // Only show the note rows when expanded - 使用 LazyVStack 实现懒加载
             if isExpanded {
-                VStack(spacing: 2) {
+                LazyVStack(spacing: 2) {
                     ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
                         let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
                         NoteRow(

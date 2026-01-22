@@ -591,17 +591,13 @@ class GlobalKeyMonitor {
                 let finalTextWithMetadata = textWithMetadata
                 let finalSourceApp = sourceApp
                 
-                await MainActor.run {
-                    // Create and deliver system notification
-                    let notification = NSUserNotification()
-                    notification.title = L("Content Saved")
-                    notification.subtitle = String(format: L("From %@"), finalSourceApp)
-                    notification.informativeText = finalSummary
-                    notification.soundName = NSUserNotificationDefaultSoundName
-                    notification.userInfo = ["filePath": finalFileURL.path, "content": finalTextWithMetadata]
-                    
-                    NSUserNotificationCenter.default.deliver(notification)
-                }
+                // Send notification using NotificationService
+                await NotificationService.shared.sendAIActionSuccess(
+                    title: L("Content Saved"),
+                    message: "\(finalSourceApp) | \(finalSummary)",
+                    filePath: finalFileURL.path,
+                    content: finalTextWithMetadata
+                )
             }
         } catch {
             print("Save failed: \(error.localizedDescription)")
