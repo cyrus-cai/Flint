@@ -187,8 +187,8 @@ struct TitleBarView: View {
                     .opacity(isHovered ? 0.85 : 0.25)
             }
 
-            // Edit icon that appears on hover
-            if isTitleHovered && !isEditing {
+            // Edit icon that appears on hover (not shown for Untitled notes)
+            if isTitleHovered && !isEditing && title != "Untitled" {
                 HStack(spacing: 6) {
                     // 编辑按钮 - 添加单独的悬停状态
                     EditButtonWithHover {
