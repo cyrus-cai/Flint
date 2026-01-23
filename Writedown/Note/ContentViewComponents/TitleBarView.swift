@@ -380,6 +380,7 @@ struct TitleBarView: View {
 
 struct TitleBarToolbar: View {
     @ObservedObject var state: TitleBarToolbarState
+    @ObservedObject private var claudeService = ClaudeCodeService.shared
     let isVisible: Bool
     let onNoteSelected: (String, URL?) -> Void
     let links: [String]  // Add links parameter
@@ -426,8 +427,34 @@ struct TitleBarToolbar: View {
             // Claude Code terminal button
             TitleBarButton(
                 icon: .terminal,
-                action: { state.triggerClaudeCode() }
+                action: {
+                    if claudeService.state == .running || claudeService.state == .preparing {
+                        state.openClaudeCodeWindow()
+                    } else {
+                        state.triggerClaudeCode()
+                    }
+                }
             )
+            .contextMenu {
+                Button("Show Output Window") {
+                    state.openClaudeCodeWindow()
+                }
+                Button("Run Claude Code") {
+                    state.triggerClaudeCode()
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if claudeService.state == .running || claudeService.state == .preparing {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 2, y: -2)
+                        .overlay(
+                            Circle()
+                                .stroke(Color(NSColor.windowBackgroundColor), lineWidth: 1.5)
+                        )
+                }
+            }
 
             TitleBarButton(
                 icon: .command,
@@ -1062,6 +1089,10 @@ class TitleBarToolbarState: ObservableObject {
 
     // MARK: - Claude Code Methods
 
+    func openClaudeCodeWindow() {
+        onShowClaudeCodeOutput?()
+    }
+
     func triggerClaudeCode(content: String? = nil) {
         guard let workingDir = LocalFileManager.shared.currentWeekDirectory else {
             Task {
@@ -1075,6 +1106,8 @@ class TitleBarToolbarState: ObservableObject {
 
         let noteContent = content ?? currentNoteContent
 
+        showNavigationToast(message: "Claude Code started in background 🚀")
+
         Task {
             do {
                 try await ClaudeCodeService.shared.execute(
@@ -1082,10 +1115,6 @@ class TitleBarToolbarState: ObservableObject {
                     noteTitle: nil,
                     workingDirectory: workingDir
                 )
-
-                await MainActor.run {
-                    onShowClaudeCodeOutput?()
-                }
             } catch {
                 await NotificationService.shared.sendError(
                     title: "Claude Code Failed",

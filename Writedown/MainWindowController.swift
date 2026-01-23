@@ -362,11 +362,18 @@ class MainWindowController: NSWindowController {
     }
 
     private var heightObserver: NSKeyValueObservation?
+    private var editorContentHeight: CGFloat = 106
+    private var claudeCodePanelHeight: CGFloat = 0
 
     private func setupContentView() {
         let contentView = ContentView()
             .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
-                self?.updateWindowHeight(height)
+                self?.editorContentHeight = height
+                self?.updateWindowHeight((self?.editorContentHeight ?? 106) + (self?.claudeCodePanelHeight ?? 0))
+            }
+            .onPreferenceChange(ClaudeCodePanelHeightPreferenceKey.self) { [weak self] height in
+                self?.claudeCodePanelHeight = height
+                self?.updateWindowHeight((self?.editorContentHeight ?? 106) + (self?.claudeCodePanelHeight ?? 0))
             }
 
         let hostingView = NSHostingView(rootView: contentView)

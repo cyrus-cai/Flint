@@ -172,27 +172,9 @@ class ClaudeCodeService: ObservableObject {
             throw ClaudeCodeError.launchFailed(error.localizedDescription)
         }
 
-        // Wait for process to exit in background
-        Task {
+        Task.detached(priority: .userInitiated) { [process] in
             process.waitUntilExit()
-
-            // Wait for output tasks to complete
-            await self.outputTask?.value
-            await self.errorTask?.value
-
-            let exitCode = process.terminationStatus
-
-            if exitCode == 0 {
-                self.state = .completed
-                await self.addSystemMessage("✓ Claude Code completed successfully")
-            } else {
-                self.state = .failed("Exit code: \(exitCode)")
-                await self.addSystemMessage("❌ Claude Code exited with code: \(exitCode)")
-            }
-
-            self.currentProcess = nil
-            self.outputTask = nil
-            self.errorTask = nil
+            await self.finishProcess(process)
         }
     }
 
@@ -318,6 +300,27 @@ class ClaudeCodeService: ObservableObject {
             type: .system,
             timestamp: Date()
         ))
+    }
+
+    private func finishProcess(_ process: Process) async {
+        await outputTask?.value
+        await errorTask?.value
+
+        guard currentProcess == process else { return }
+
+        let exitCode = process.terminationStatus
+
+        if exitCode == 0 {
+            state = .completed
+            addSystemMessage("✓ Claude Code completed successfully")
+        } else {
+            state = .failed("Exit code: \(exitCode)")
+            addSystemMessage("❌ Claude Code exited with code: \(exitCode)")
+        }
+
+        currentProcess = nil
+        outputTask = nil
+        errorTask = nil
     }
 }
 

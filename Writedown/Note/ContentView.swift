@@ -10,6 +10,14 @@ struct ContentHeightPreferenceKey: PreferenceKey {
     }
 }
 
+/// Claude Code 面板额外高度的 Preference Key
+struct ClaudeCodePanelHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 struct LinkDetector {
     static func findLinks(in text: String) -> [String] {
         let patterns = [
@@ -63,7 +71,8 @@ struct ContentView: View {
     @State private var keyboardMonitor: Any?
     @State private var showCopyToast = false
     @State private var showCopiedStatus = false
-    @State private var showClaudeCodeOutput = false
+    @State private var showClaudeCodePanel = false
+    @ObservedObject private var claudeService = ClaudeCodeService.shared
 
     static let loadNoteNotification = Notification.Name("LoadNoteNotification")
     static let showRecentNotesNotification = Notification.Name("ShowRecentNotesNotification")
@@ -408,47 +417,65 @@ struct ContentView: View {
             }
 
             // 你笔记窗口的主要内容
-            ZStack(alignment: .top) {
-                VStack(spacing: 0) {
-                    // Title bar with editable title
-                    TitleBarView(
-                        title: title,
-                        isHovered: isHovered,
-                        links: links,
-                        toolbarState: toolbarState,
-                        onNoteSelected: { content, fileURL in
-                            loadNoteContent(content, fileURL: fileURL)
-                        },
-                        onCopy: copyFullContent,
-                        onShare: shareFullContent,
-                        isEditing: $isEditingTitle,
-                        editableTitle: $editedTitle,
-                        onTitleCommit: saveTitleEdit
-                    )
-                    .onTapGesture(count: 2) {
-                        handleTitleDoubleClick()
+            VStack(spacing: 0) {
+                ZStack(alignment: .top) {
+                    VStack(spacing: 0) {
+                        // Title bar with editable title
+                        TitleBarView(
+                            title: title,
+                            isHovered: isHovered,
+                            links: links,
+                            toolbarState: toolbarState,
+                            onNoteSelected: { content, fileURL in
+                                loadNoteContent(content, fileURL: fileURL)
+                            },
+                            onCopy: copyFullContent,
+                            onShare: shareFullContent,
+                            isEditing: $isEditingTitle,
+                            editableTitle: $editedTitle,
+                            onTitleCommit: saveTitleEdit
+                        )
+                        .onTapGesture(count: 2) {
+                            handleTitleDoubleClick()
+                        }
+
+                        EditorView(text: $text)
+                        DownFunctionView(text: text, showCopied: showCopiedStatus)
                     }
 
-                    EditorView(text: $text)
-                    DownFunctionView(text: text, showCopied: showCopiedStatus)
-                }
+                    if showToast {
+                        ToastView(message: saveError == nil ? "Auto Saved" : "Error: \(saveError?.localizedDescription ?? "Unknown error")", isShowing: $showToast)
+                            .padding(.bottom, 12)
+                            .frame(maxHeight: .infinity, alignment: .bottom)
+                    }
 
-                if showToast {
-                    ToastView(message: saveError == nil ? "Auto Saved" : "Error: \(saveError?.localizedDescription ?? "Unknown error")", isShowing: $showToast)
-                        .padding(.bottom, 12)
-                        .frame(maxHeight: .infinity, alignment: .bottom)
+                    // AI Processing Indicator
+                    if toolbarState.aiAgentState.isProcessing {
+                        AIProcessingIndicator()
+                            .padding(.top, 50)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                            .transition(.opacity.combined(with: .scale))
+                            .animation(.easeInOut(duration: 0.3), value: toolbarState.aiAgentState.isProcessing)
+                    }
                 }
+                .background(colorScheme == .light ? Color.white.opacity(0.5) : Color.clear)
 
-                // AI Processing Indicator
-                if toolbarState.aiAgentState.isProcessing {
-                    AIProcessingIndicator()
-                        .padding(.top, 50)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                        .transition(.opacity.combined(with: .scale))
-                        .animation(.easeInOut(duration: 0.3), value: toolbarState.aiAgentState.isProcessing)
+                // Claude Code 嵌入式输出面板
+                if showClaudeCodePanel {
+                    Divider()
+                    EmbeddedClaudeCodePanel(
+                        isExpanded: $showClaudeCodePanel
+                    )
+                    .frame(height: 200)
+                    .preference(key: ClaudeCodePanelHeightPreferenceKey.self, value: 201) // 200 + 1 for divider
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else {
+                    Color.clear
+                        .frame(height: 0)
+                        .preference(key: ClaudeCodePanelHeightPreferenceKey.self, value: 0)
                 }
             }
-            .background(colorScheme == .light ? Color.white.opacity(0.5) : Color.clear)
+            .animation(.easeInOut(duration: 0.25), value: showClaudeCodePanel)
             // AI Confirmation Dialog
             .sheet(isPresented: $toolbarState.showAIConfirmation) {
                 if let response = toolbarState.currentIntentResponse {
@@ -462,10 +489,6 @@ struct ContentView: View {
                         }
                     )
                 }
-            }
-            // Claude Code Output Dialog
-            .sheet(isPresented: $showClaudeCodeOutput) {
-                ClaudeCodeOutputView()
             }
         }
         .onChange(of: text) {
@@ -519,7 +542,9 @@ struct ContentView: View {
             }
             // Claude Code output window callback
             toolbarState.onShowClaudeCodeOutput = {
-                showClaudeCodeOutput = true
+                withAnimation {
+                    showClaudeCodePanel = true
+                }
             }
         }
         .ignoresSafeArea()
@@ -573,6 +598,14 @@ struct ContentView: View {
             if newValue == false {
                 NotificationCenter.default.post(
                     name: Notification.Name("RestoreFocusNotification"), object: nil)
+            }
+        }
+        // 当 Claude Code 开始运行时自动显示面板
+        .onChange(of: claudeService.state) { newState in
+            if case .running = newState {
+                withAnimation {
+                    showClaudeCodePanel = true
+                }
             }
         }
     }
@@ -902,6 +935,267 @@ struct LinksPopoverView: View {
 //         nsView.state = state
 //     }
 // }
+
+// MARK: - Embedded Claude Code Panel
+
+/// 嵌入式 Claude Code 输出面板，显示在主窗口下方
+struct EmbeddedClaudeCodePanel: View {
+    @Binding var isExpanded: Bool
+    @ObservedObject var service = ClaudeCodeService.shared
+    @State private var showCopiedToast = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header bar with collapse/expand button
+            panelHeader
+
+            // Output area
+            outputArea
+        }
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.95))
+    }
+
+    // MARK: - Panel Header
+
+    private var panelHeader: some View {
+        HStack(spacing: 8) {
+            // Terminal icon and title
+            Image(systemName: "terminal")
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+
+            Text("Claude Code")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.primary)
+
+            // State indicator
+            stateIndicator
+
+            Spacer()
+
+            // Action buttons
+            HStack(spacing: 4) {
+                // Copy button
+                Button {
+                    copyAllOutput()
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 10))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+                .disabled(service.outputLines.isEmpty)
+                .help("Copy output")
+
+                // Clear button
+                Button {
+                    service.clearOutput()
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 10))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+                .disabled(service.outputLines.isEmpty || service.state == .running)
+                .help("Clear output")
+
+                // Cancel button (only when running)
+                if service.state == .running {
+                    Button {
+                        service.cancel()
+                    } label: {
+                        Image(systemName: "stop.circle")
+                            .font(.system(size: 10))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.orange)
+                    .help("Cancel execution")
+                }
+
+                // Close button
+                Button {
+                    withAnimation {
+                        isExpanded = false
+                    }
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+                .help("Close panel")
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+        .overlay(
+            Group {
+                if showCopiedToast {
+                    Text("Copied")
+                        .font(.system(size: 10))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(4)
+                        .transition(.opacity)
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                withAnimation {
+                                    showCopiedToast = false
+                                }
+                            }
+                        }
+                }
+            }
+        )
+    }
+
+    // MARK: - State Indicator
+
+    @ViewBuilder
+    private var stateIndicator: some View {
+        switch service.state {
+        case .idle:
+            EmptyView()
+
+        case .preparing:
+            HStack(spacing: 4) {
+                ProgressView()
+                    .scaleEffect(0.5)
+                    .frame(width: 10, height: 10)
+                Text("Preparing...")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+
+        case .running:
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 6, height: 6)
+                Text("Running")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+
+        case .completed:
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                    .font(.system(size: 10))
+                Text("Done")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+
+        case .failed(let reason):
+            HStack(spacing: 4) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                    .font(.system(size: 10))
+                Text(reason.prefix(20) + (reason.count > 20 ? "..." : ""))
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    // MARK: - Output Area
+
+    private var outputArea: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 1) {
+                    if service.outputLines.isEmpty {
+                        emptyStateView
+                    } else {
+                        ForEach(service.outputLines) { line in
+                            CompactOutputLineView(line: line)
+                                .id(line.id)
+                        }
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+            }
+            .background(Color(NSColor.textBackgroundColor).opacity(0.8))
+            .onChange(of: service.outputLines.count) { _ in
+                if let last = service.outputLines.last {
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
+                }
+            }
+        }
+    }
+
+    private var emptyStateView: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "terminal")
+                .font(.system(size: 16))
+                .foregroundColor(.secondary.opacity(0.4))
+
+            Text("Output will appear here")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(20)
+    }
+
+    // MARK: - Actions
+
+    private func copyAllOutput() {
+        let fullOutput = service.outputLines
+            .map { $0.content }
+            .joined(separator: "\n")
+
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(fullOutput, forType: .string)
+
+        withAnimation {
+            showCopiedToast = true
+        }
+    }
+}
+
+// MARK: - Compact Output Line View
+
+/// 紧凑版输出行视图，适合嵌入式面板
+struct CompactOutputLineView: View {
+    let line: ClaudeCodeService.OutputLine
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 4) {
+            // Type indicator dot
+            Circle()
+                .fill(colorForType(line.type).opacity(0.7))
+                .frame(width: 4, height: 4)
+                .padding(.top, 4)
+
+            // Content
+            Text(line.content)
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundColor(colorForType(line.type))
+                .textSelection(.enabled)
+                .lineLimit(nil)
+        }
+        .padding(.vertical, 1)
+    }
+
+    private func colorForType(_ type: ClaudeCodeService.StreamType) -> Color {
+        switch type {
+        case .stdout:
+            return Color.primary
+        case .stderr:
+            return Color.orange
+        case .system:
+            return Color.purple
+        }
+    }
+}
 
 #Preview {
     ContentView()
