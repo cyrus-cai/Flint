@@ -106,9 +106,10 @@ struct TitleBarView: View {
                                     return nil
                                 }
                             } else {
-                                // Command+Enter: AI 代理
+                                // Command+Enter: 触发 Claude Code
                                 if let content = toolbarState.currentNoteContent, !content.isEmpty {
-                                    toolbarState.handleAIAgent(content: content)
+                                    toolbarState.triggerClaudeCode(content: content)
+                                    toolbarState.onAIAgentComplete?()
                                     return nil
                                 }
                             }
@@ -421,6 +422,12 @@ struct TitleBarToolbar: View {
             //         }
             //     }
             // }
+
+            // Claude Code terminal button
+            TitleBarButton(
+                icon: .terminal,
+                action: { state.triggerClaudeCode() }
+            )
 
             TitleBarButton(
                 icon: .command,
@@ -743,6 +750,7 @@ enum TitleBarIcon {
     case command
     case note
     case plus
+    case terminal
 
     var systemName: String {
         switch self {
@@ -754,6 +762,8 @@ enum TitleBarIcon {
             return "clock"
         case .plus:
             return "plus"
+        case .terminal:
+            return "terminal"
         }
     }
 }
@@ -834,6 +844,7 @@ class TitleBarToolbarState: ObservableObject {
     var onAddNew: (() -> Void)?
     var onNoteSelected: ((String, URL?) -> Void)?
     var onAIAgentComplete: (() -> Void)?  // AI 代理完成后的回调（如清空笔记）
+    var onShowClaudeCodeOutput: (() -> Void)?  // 显示 Claude Code 输出窗口的回调
 
     init() {
         refreshRecentNotes()
@@ -1047,6 +1058,41 @@ class TitleBarToolbarState: ObservableObject {
         )
 
         print("Created calendar event with ID: \(eventId)")
+    }
+
+    // MARK: - Claude Code Methods
+
+    func triggerClaudeCode(content: String? = nil) {
+        guard let workingDir = LocalFileManager.shared.currentWeekDirectory else {
+            Task {
+                await NotificationService.shared.sendError(
+                    title: "Claude Code Error",
+                    message: "Unable to determine notes directory"
+                )
+            }
+            return
+        }
+
+        let noteContent = content ?? currentNoteContent
+
+        Task {
+            do {
+                try await ClaudeCodeService.shared.execute(
+                    noteContent: noteContent,
+                    noteTitle: nil,
+                    workingDirectory: workingDir
+                )
+
+                await MainActor.run {
+                    onShowClaudeCodeOutput?()
+                }
+            } catch {
+                await NotificationService.shared.sendError(
+                    title: "Claude Code Failed",
+                    message: error.localizedDescription
+                )
+            }
+        }
     }
 }
 

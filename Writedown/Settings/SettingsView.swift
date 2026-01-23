@@ -311,6 +311,74 @@ struct GeneralSettingsView: View {
                 }
                 .padding(12)
             }
+
+            // Claude Code Section
+            SettingsSectionHeader(title: "Claude Code CLI", icon: "terminal")
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    // CLI Path Display
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(L("CLI Path"))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        HStack {
+                            if let path = ClaudeCodeService.shared.detectedCLIPath {
+                                Text(path)
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundColor(.primary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                            } else {
+                                Text(L("Not found"))
+                                    .foregroundColor(.orange)
+                            }
+
+                            Spacer()
+
+                            Button(L("Choose...")) {
+                                let panel = NSOpenPanel()
+                                panel.allowsMultipleSelection = false
+                                panel.canChooseDirectories = false
+                                panel.canChooseFiles = true
+                                panel.message = L("Select Claude Code CLI executable")
+
+                                if panel.runModal() == .OK {
+                                    if let url = panel.url {
+                                        UserDefaults.standard.set(url.path, forKey: "claudeCodeCLIPath")
+                                        // Force service to reload the path
+                                        _ = ClaudeCodeService.shared.detectedCLIPath
+                                    }
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+
+                    Divider()
+
+                    // Include note content toggle
+                    HStack {
+                        Text(L("Include note content as context"))
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { UserDefaults.standard.bool(forKey: "claudeCodeIncludeContext") },
+                            set: { UserDefaults.standard.set($0, forKey: "claudeCodeIncludeContext") }
+                        ))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                    }
+
+                    // Help text
+                    Text(L("When enabled, the current note content will be passed to Claude Code as context via environment variables"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(12)
+            }
         }
     }
 

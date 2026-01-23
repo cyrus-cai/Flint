@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A3CLAUDEOUTPUT00000001 /* ClaudeCodeOutputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDEOUTPUT00000002 /* ClaudeCodeOutputView.swift */; };
+		A3CLAUDE2D910A0100000001 /* ClaudeCodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDE2D910A0100000002 /* ClaudeCodeService.swift */; };
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
 		540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */; };
 		A3INTENT2D910A0100000001 /* IntentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3INTENT2D910A0100000002 /* IntentModels.swift */; };
@@ -68,6 +70,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A3CLAUDEOUTPUT00000002 /* ClaudeCodeOutputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeOutputView.swift; sourceTree = "<group>"; };
+		A3CLAUDE2D910A0100000002 /* ClaudeCodeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeService.swift; sourceTree = "<group>"; };
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
 		97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PaymentViewModel.swift; sourceTree = "<group>"; };
 		A3INTENT2D910A0100000002 /* IntentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentModels.swift; sourceTree = "<group>"; };
@@ -156,6 +160,7 @@
 				A3INTENT2D910A0100000002 /* IntentModels.swift */,
 				A3REMIND2D910A0100000002 /* ReminderService.swift */,
 				A3NOTIFS2D910A0100000002 /* NotificationService.swift */,
+				A3CLAUDE2D910A0100000002 /* ClaudeCodeService.swift */,
 			);
 			name = Services;
 			path = Services;
@@ -168,6 +173,15 @@
 			);
 			name = Views;
 			path = Views;
+			sourceTree = "<group>";
+		};
+		A3CLAUDECODE00000003 /* ClaudeCode */ = {
+			isa = PBXGroup;
+			children = (
+				A3CLAUDEOUTPUT00000002 /* ClaudeCodeOutputView.swift */,
+			);
+			name = ClaudeCode;
+			path = ClaudeCode;
 			sourceTree = "<group>";
 		};
 		A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */ = {
@@ -251,6 +265,7 @@
 				82949F51FCBCF2C138A5F560 /* Services */,
 				44E7FBEC77376A0FDCD6572D /* ViewModels */,
 				A3VIEWS2D910A0100000003 /* Views */,
+				A3CLAUDECODE00000003 /* ClaudeCode */,
 			);
 			path = Writedown;
 			sourceTree = "<group>";
@@ -489,6 +504,8 @@
 				A3REMIND2D910A0100000001 /* ReminderService.swift in Sources */,
 				A3NOTIFS2D910A0100000001 /* NotificationService.swift in Sources */,
 				A3AICONF2D910A0100000001 /* AIConfirmationView.swift in Sources */,
+				A3CLAUDE2D910A0100000001 /* ClaudeCodeService.swift in Sources */,
+				A3CLAUDEOUTPUT00000001 /* ClaudeCodeOutputView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

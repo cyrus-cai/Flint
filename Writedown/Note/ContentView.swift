@@ -63,6 +63,7 @@ struct ContentView: View {
     @State private var keyboardMonitor: Any?
     @State private var showCopyToast = false
     @State private var showCopiedStatus = false
+    @State private var showClaudeCodeOutput = false
 
     static let loadNoteNotification = Notification.Name("LoadNoteNotification")
     static let showRecentNotesNotification = Notification.Name("ShowRecentNotesNotification")
@@ -462,6 +463,10 @@ struct ContentView: View {
                     )
                 }
             }
+            // Claude Code Output Dialog
+            .sheet(isPresented: $showClaudeCodeOutput) {
+                ClaudeCodeOutputView()
+            }
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -511,6 +516,10 @@ struct ContentView: View {
             // AI Agent completion callback - clear note after successful action
             toolbarState.onAIAgentComplete = {
                 createNewNote()
+            }
+            // Claude Code output window callback
+            toolbarState.onShowClaudeCodeOutput = {
+                showClaudeCodeOutput = true
             }
         }
         .ignoresSafeArea()
