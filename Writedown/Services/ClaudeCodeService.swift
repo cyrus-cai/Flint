@@ -81,7 +81,7 @@ class ClaudeCodeService: ObservableObject {
         state = .preparing
 
         // Add system message
-        addSystemMessage("🔍 Detecting Claude Code CLI...")
+        addSystemMessage("Detecting Claude Code CLI...")
 
         // Resolve CLI path
         guard let cliPath = resolveClaudeCodePath() else {
@@ -89,8 +89,8 @@ class ClaudeCodeService: ObservableObject {
             throw ClaudeCodeError.cliNotFound
         }
 
-        addSystemMessage("✓ Found CLI at: \(cliPath)")
-        addSystemMessage("📂 Working directory: \(workingDirectory.path)")
+        addSystemMessage("Found CLI at: \(cliPath)")
+        addSystemMessage("Working directory: \(workingDirectory.path)")
 
         // Check if working directory exists
         guard FileManager.default.fileExists(atPath: workingDirectory.path) else {
@@ -102,7 +102,7 @@ class ClaudeCodeService: ObservableObject {
         // Set state to running
         state = .running
 
-        addSystemMessage("▶️  Starting Claude Code...")
+        addSystemMessage("Starting Claude Code...")
 
         // Create and configure process
         let process = Process()
@@ -111,9 +111,6 @@ class ClaudeCodeService: ObservableObject {
 
         // Configure environment variables
         var env = ProcessInfo.processInfo.environment
-        if let content = noteContent, UserDefaults.standard.bool(forKey: "claudeCodeIncludeContext") {
-            env["HYPERNOTE_CONTENT"] = content
-        }
         if let title = noteTitle {
             env["HYPERNOTE_TITLE"] = title
         }

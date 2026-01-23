@@ -371,12 +371,16 @@ class MainWindowController: NSWindowController {
                 self?.editorContentHeight = height
                 self?.updateWindowHeight((self?.editorContentHeight ?? 106) + (self?.claudeCodePanelHeight ?? 0))
             }
-            .onPreferenceChange(ClaudeCodePanelHeightPreferenceKey.self) { [weak self] height in
-                self?.claudeCodePanelHeight = height
-                self?.updateWindowHeight((self?.editorContentHeight ?? 106) + (self?.claudeCodePanelHeight ?? 0))
-            }
 
         let hostingView = NSHostingView(rootView: contentView)
+
+        // 监听 Claude Code 面板高度变化
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(claudeCodePanelHeightDidChange(_:)),
+            name: Notification.Name("ClaudeCodePanelHeightDidChange"),
+            object: nil
+        )
         hostingView.wantsLayer = true
         
         if #available(macOS 26.0, *) {
@@ -449,6 +453,13 @@ class MainWindowController: NSWindowController {
 
     @objc private func contentViewFrameDidChange(_ notification: Notification) {
         setupTrackingArea()
+    }
+
+    @objc private func claudeCodePanelHeightDidChange(_ notification: Notification) {
+        if let height = notification.userInfo?["height"] as? CGFloat {
+            claudeCodePanelHeight = height
+            updateWindowHeight(editorContentHeight + claudeCodePanelHeight)
+        }
     }
 
     private func setupInitialPosition() {

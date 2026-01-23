@@ -357,25 +357,6 @@ struct GeneralSettingsView: View {
                         }
                     }
 
-                    Divider()
-
-                    // Include note content toggle
-                    HStack {
-                        Text(L("Include note content as context"))
-                        Spacer()
-                        Toggle("", isOn: Binding(
-                            get: { UserDefaults.standard.bool(forKey: "claudeCodeIncludeContext") },
-                            set: { UserDefaults.standard.set($0, forKey: "claudeCodeIncludeContext") }
-                        ))
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .controlSize(.small)
-                    }
-
-                    // Help text
-                    Text(L("When enabled, the current note content will be passed to Claude Code as context via environment variables"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
                 .padding(12)
             }

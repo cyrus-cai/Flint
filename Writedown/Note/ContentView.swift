@@ -10,14 +10,6 @@ struct ContentHeightPreferenceKey: PreferenceKey {
     }
 }
 
-/// Claude Code 面板额外高度的 Preference Key
-struct ClaudeCodePanelHeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
 struct LinkDetector {
     static func findLinks(in text: String) -> [String] {
         let patterns = [
@@ -72,7 +64,6 @@ struct ContentView: View {
     @State private var showCopyToast = false
     @State private var showCopiedStatus = false
     @State private var showClaudeCodePanel = false
-    @ObservedObject private var claudeService = ClaudeCodeService.shared
 
     static let loadNoteNotification = Notification.Name("LoadNoteNotification")
     static let showRecentNotesNotification = Notification.Name("ShowRecentNotesNotification")
@@ -467,12 +458,7 @@ struct ContentView: View {
                         isExpanded: $showClaudeCodePanel
                     )
                     .frame(height: 200)
-                    .preference(key: ClaudeCodePanelHeightPreferenceKey.self, value: 201) // 200 + 1 for divider
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                } else {
-                    Color.clear
-                        .frame(height: 0)
-                        .preference(key: ClaudeCodePanelHeightPreferenceKey.self, value: 0)
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: showClaudeCodePanel)
@@ -600,13 +586,14 @@ struct ContentView: View {
                     name: Notification.Name("RestoreFocusNotification"), object: nil)
             }
         }
-        // 当 Claude Code 开始运行时自动显示面板
-        .onChange(of: claudeService.state) { newState in
-            if case .running = newState {
-                withAnimation {
-                    showClaudeCodePanel = true
-                }
-            }
+        .onChange(of: showClaudeCodePanel) { newValue in
+            // 通知窗口控制器更新高度
+            let panelHeight: CGFloat = newValue ? 201 : 0
+            NotificationCenter.default.post(
+                name: Notification.Name("ClaudeCodePanelHeightDidChange"),
+                object: nil,
+                userInfo: ["height": panelHeight]
+            )
         }
     }
 
