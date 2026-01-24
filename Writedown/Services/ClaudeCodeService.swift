@@ -153,17 +153,11 @@ class ClaudeCodeService: ObservableObject {
         sessionInfo = nil
         state = .preparing
 
-        // Add system message
-        addSystemMessage("Detecting Claude Code CLI...")
-
         // Resolve CLI path
         guard let cliPath = resolveClaudeCodePath() else {
             handleCLINotFound()
             throw ClaudeCodeError.cliNotFound
         }
-
-        addSystemMessage("Found CLI at: \(cliPath)")
-        addSystemMessage("Working directory: \(workingDirectory.path)")
 
         // Check if working directory exists
         guard FileManager.default.fileExists(atPath: workingDirectory.path) else {
@@ -175,7 +169,7 @@ class ClaudeCodeService: ObservableObject {
         // Set state to running
         state = .running
 
-        addSystemMessage("Starting Claude Code with stream-json output...")
+        addSystemMessage("Starting Claude Code (\(cliPath)) in \(workingDirectory.path)...")
 
         // Create and configure process
         let process = Process()

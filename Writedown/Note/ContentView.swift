@@ -431,7 +431,15 @@ struct ContentView: View {
                         }
 
                         EditorView(text: $text)
-                        DownFunctionView(text: text, showCopied: showCopiedStatus)
+                        DownFunctionView(
+                            text: text,
+                            showCopied: showCopiedStatus,
+                            onToggleClaudePanel: {
+                                withAnimation {
+                                    showClaudeCodePanel.toggle()
+                                }
+                            }
+                        )
                     }
 
                     if showToast {
@@ -476,14 +484,6 @@ struct ContentView: View {
                     )
                 }
             }
-            
-            // Floating Claude Code Status
-            ClaudeCodeFloatingStatusView(onTap: {
-                withAnimation {
-                    showClaudeCodePanel = true
-                }
-            })
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -638,6 +638,15 @@ struct ContentView: View {
                     default:
                         break
                     }
+                }
+            }
+
+            if event.modifierFlags.contains(.control) {
+                if let key = event.charactersIgnoringModifiers?.lowercased(), key == "b" {
+                    withAnimation {
+                        showClaudeCodePanel.toggle()
+                    }
+                    return nil
                 }
             }
 
@@ -852,7 +861,9 @@ struct EditorView: View {
 struct DownFunctionView: View {
     let text: String
     let showCopied: Bool
+    let onToggleClaudePanel: () -> Void
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
+    @ObservedObject private var claudeService = ClaudeCodeService.shared
 
     private var displayText: String {
         if showCopied {
@@ -864,27 +875,67 @@ struct DownFunctionView: View {
         }
     }
 
-    var body: some View {
-        HStack(spacing: 4) {
-            Text(displayText)
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .padding(.vertical, 8)
-                .opacity(0.5)
-                .contentTransition(.numericText())
-                .animation(.snappy(duration: 0.3), value: showWordCount)
-                .animation(.easeInOut(duration: 0.3), value: showCopied)
+    private var bgTaskText: String? {
+        switch claudeService.state {
+        case .running, .preparing:
+            return "1 bg-task running..."
+        case .waitingForPermission:
+            return "1 bg-task waiting..."
+        default:
+            return nil
         }
-        .padding(.horizontal, 12)
-        .frame(maxWidth: .infinity, alignment: .center)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if !showCopied {
-                withAnimation(.snappy(duration: 0.3)) {
-                    showWordCount.toggle()
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 4) {
+                Text(displayText)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 8)
+                    .opacity(0.5)
+                    .contentTransition(.numericText())
+                    .animation(.snappy(duration: 0.3), value: showWordCount)
+                    .animation(.easeInOut(duration: 0.3), value: showCopied)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if !showCopied {
+                    withAnimation(.snappy(duration: 0.3)) {
+                        showWordCount.toggle()
+                    }
                 }
             }
+
+            if let taskText = bgTaskText {
+                Button(action: onToggleClaudePanel) {
+                    HStack(spacing: 4) {
+                        if claudeService.state == .waitingForPermission {
+                            Image(systemName: "hand.raised.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.yellow)
+                        } else {
+                            ProgressView()
+                                .scaleEffect(0.5)
+                                .frame(width: 8, height: 8)
+                        }
+                        
+                        Text(taskText)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .opacity(0.8)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(4)
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity)
+            }
         }
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, alignment: .center) 
     }
 }
 
