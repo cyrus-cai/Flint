@@ -24,7 +24,6 @@ class ClaudeCodeService: ObservableObject {
     // MARK: - Private Properties
 
     private var currentProcess: Process?
-    private var stdinPipe: Pipe?
     private var outputTask: Task<Void, Never>?
     private var errorTask: Task<Void, Never>?
 
@@ -198,29 +197,25 @@ class ClaudeCodeService: ObservableObject {
         }
 
         // Use stream-json format for rich output
-        // --verbose: show full turn-by-turn output
-        // --output-format stream-json: structured JSON output
-        // --input-format stream-json: allows sending permission responses
-        // --permission-prompt-tool stdio: handle permissions via stdin/stdout
+        // --verbose: required for stream-json and shows full turn-by-turn output
+        // --output-format stream-json: structured JSON output with thinking, tool use, etc.
+        // --include-partial-messages: stream partial message chunks as they arrive
         process.arguments = [
             "-p", content,
             "--verbose",
             "--output-format", "stream-json",
-            "--input-format", "stream-json",
-            "--permission-prompt-tool", "stdio"
+            "--include-partial-messages"
         ]
 
         // Configure I/O pipes
         let outPipe = Pipe()
         let errPipe = Pipe()
-        let inPipe = Pipe()
         process.standardOutput = outPipe
         process.standardError = errPipe
-        process.standardInput = inPipe
+        process.standardInput = nil  // No stdin needed for -p mode
 
-        // Store references
+        // Store reference
         currentProcess = process
-        stdinPipe = inPipe
 
         // Start async output reading task for stream-json
         outputTask = Task {
@@ -261,45 +256,20 @@ class ClaudeCodeService: ObservableObject {
     }
 
     /// Respond to a pending permission request
-    /// - Parameters:
-    ///   - allow: Whether to allow the tool use
-    ///   - message: Optional message (used when denying)
+    /// Note: In -p (print) mode, Claude Code doesn't support interactive permission prompts.
+    /// Permissions are handled via --permission-mode flag instead.
     func respondToPermission(allow: Bool, message: String? = nil) {
-        guard let request = pendingPermission, let pipe = stdinPipe else {
+        guard let request = pendingPermission else {
             addSystemMessage("⚠️ No pending permission request")
             return
         }
 
-        let response: [String: Any]
+        // In non-interactive mode, we can only log the action
+        // The actual permission handling is done by Claude Code based on --permission-mode
         if allow {
-            response = [
-                "jsonrpc": "2.0",
-                "id": request.toolUseId,
-                "result": [
-                    "behavior": "allow",
-                    "updatedInput": request.input
-                ]
-            ]
-            addSystemMessage("✓ Allowed: \(request.toolName)")
+            addSystemMessage("✓ Permission noted: \(request.toolName)")
         } else {
-            response = [
-                "jsonrpc": "2.0",
-                "id": request.toolUseId,
-                "result": [
-                    "behavior": "deny",
-                    "message": message ?? "User denied this action"
-                ]
-            ]
-            addSystemMessage("✗ Denied: \(request.toolName)")
-        }
-
-        // Send response via stdin
-        if let jsonData = try? JSONSerialization.data(withJSONObject: response),
-           var jsonString = String(data: jsonData, encoding: .utf8) {
-            jsonString += "\n"
-            if let data = jsonString.data(using: .utf8) {
-                pipe.fileHandleForWriting.write(data)
-            }
+            addSystemMessage("✗ Permission denied (note: may not affect execution): \(request.toolName)")
         }
 
         pendingPermission = nil
@@ -320,7 +290,6 @@ class ClaudeCodeService: ObservableObject {
         errorTask?.cancel()
 
         currentProcess = nil
-        stdinPipe = nil
         outputTask = nil
         errorTask = nil
         pendingPermission = nil
@@ -416,35 +385,17 @@ class ClaudeCodeService: ObservableObject {
             return
         }
 
+        // Note: With --include-partial-messages, text and thinking content
+        // are already shown via stream_event deltas. We skip them here to
+        // avoid duplication. Only tool_use blocks need to be processed.
         for block in content {
             guard let blockType = block["type"] as? String else { continue }
 
             switch blockType {
-            case "text":
-                if let text = block["text"] as? String, !text.isEmpty {
-                    addOutputLine(content: text, type: .assistant)
-                }
-
-            case "thinking":
-                if let thinking = block["thinking"] as? String, !thinking.isEmpty {
-                    addOutputLine(
-                        content: thinking,
-                        type: .thinking,
-                        metadata: OutputMetadata(toolName: nil, toolUseId: nil, isThinking: true, isToolResult: false)
-                    )
-                }
-
-            case "tool_use":
-                if let toolName = block["name"] as? String,
-                   let toolId = block["id"] as? String {
-                    let input = block["input"] as? [String: Any] ?? [:]
-                    let inputStr = formatToolInput(toolName: toolName, input: input)
-                    addOutputLine(
-                        content: "🔧 \(toolName): \(inputStr)",
-                        type: .toolUse,
-                        metadata: OutputMetadata(toolName: toolName, toolUseId: toolId, isThinking: false, isToolResult: false)
-                    )
-                }
+            case "text", "thinking", "tool_use":
+                // Skip - text/thinking shown via streaming deltas
+                // tool_use shown via handleToolUseMessage or stream_event
+                break
 
             default:
                 break
@@ -498,15 +449,12 @@ class ClaudeCodeService: ObservableObject {
     }
 
     private func handleResultMessage(_ json: [String: Any]) {
-        let subtype = json["subtype"] as? String ?? "unknown"
         let isError = json["is_error"] as? Bool ?? false
 
-        if let result = json["result"] as? String {
-            if isError {
-                addOutputLine(content: "❌ \(result)", type: .error)
-            } else {
-                addOutputLine(content: "✓ \(result)", type: .assistant)
-            }
+        // Only show result text if it's an error (errors may not be streamed)
+        // Success result text is already shown via streaming deltas
+        if isError, let result = json["result"] as? String {
+            addOutputLine(content: "❌ \(result)", type: .error)
         }
 
         // Show usage stats if available
@@ -549,10 +497,8 @@ class ClaudeCodeService: ObservableObject {
                let blockType = contentBlock["type"] as? String {
                 if blockType == "thinking" {
                     addOutputLine(content: "💭 Thinking...", type: .thinking)
-                } else if blockType == "tool_use",
-                          let toolName = contentBlock["name"] as? String {
-                    addOutputLine(content: "🔧 Calling \(toolName)...", type: .toolUse)
                 }
+                // Skip tool_use here - handleToolUseMessage shows complete info
             }
 
         default:
@@ -738,7 +684,6 @@ class ClaudeCodeService: ObservableObject {
         }
 
         currentProcess = nil
-        stdinPipe = nil
         outputTask = nil
         errorTask = nil
         pendingPermission = nil
