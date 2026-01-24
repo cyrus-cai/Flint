@@ -424,37 +424,9 @@ struct TitleBarToolbar: View {
             //     }
             // }
 
-            // Claude Code terminal button
-            TitleBarButton(
-                icon: .terminal,
-                action: {
-                    if claudeService.state == .running || claudeService.state == .preparing {
-                        state.openClaudeCodeWindow()
-                    } else {
-                        state.triggerClaudeCode()
-                    }
-                }
-            )
-            .contextMenu {
-                Button("Show Output Window") {
-                    state.openClaudeCodeWindow()
-                }
-                Button("Run Claude Code") {
-                    state.triggerClaudeCode()
-                }
-            }
-            .overlay(alignment: .topTrailing) {
-                if claudeService.state == .running || claudeService.state == .preparing {
-                    Circle()
-                        .fill(Color.green)
-                        .frame(width: 8, height: 8)
-                        .offset(x: 2, y: -2)
-                        .overlay(
-                            Circle()
-                                .stroke(Color(NSColor.windowBackgroundColor), lineWidth: 1.5)
-                        )
-                }
-            }
+
+            // Claude Code terminal button removed
+
 
             TitleBarButton(
                 icon: .command,
@@ -1106,7 +1078,11 @@ class TitleBarToolbarState: ObservableObject {
 
         let noteContent = content ?? currentNoteContent
 
-        showNavigationToast(message: "Claude Code started in background 🚀")
+        guard let validContent = noteContent, !validContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
+
+        // Toast removed: showNavigationToast(message: "Claude Code started in background 🚀")
 
         Task {
             do {

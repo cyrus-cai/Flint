@@ -476,6 +476,14 @@ struct ContentView: View {
                     )
                 }
             }
+            
+            // Floating Claude Code Status
+            ClaudeCodeFloatingStatusView(onTap: {
+                withAnimation {
+                    showClaudeCodePanel = true
+                }
+            })
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -1186,4 +1194,53 @@ struct CompactOutputLineView: View {
 
 #Preview {
     ContentView()
+}
+
+// MARK: - Claude Code Floating Status View
+struct ClaudeCodeFloatingStatusView: View {
+    @ObservedObject var service = ClaudeCodeService.shared
+    let onTap: () -> Void
+    
+    var body: some View {
+        if service.state == .running || service.state == .preparing {
+            Button(action: onTap) {
+                HStack(spacing: 8) {
+                    if service.state == .preparing {
+                        ProgressView()
+                            .scaleEffect(0.5)
+                            .frame(width: 10, height: 10)
+                    } else {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 8, height: 8)
+                            .shadow(color: .green.opacity(0.5), radius: 2)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Claude Code")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(service.state == .preparing ? "Preparing..." : "Running...")
+                            .font(.system(size: 10))
+                            .opacity(0.8)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(.thinMaterial)
+                .cornerRadius(20)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+            }
+            .buttonStyle(.plain)
+            .padding(20)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
 }
