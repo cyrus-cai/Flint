@@ -12,7 +12,13 @@
       "Bash(open:*)",
       "Bash(./scripts/publish.sh:*)",
       "Bash(tree:*)",
-      "Bash(plutil:*)"
+      "Bash(plutil:*)",
+      "Bash(claude:*)",
+      "Bash(tee:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.claude.com)",
+      "Bash(gtimeout 30 claude:*)"
     ]
   },
   "spinnerTipsEnabled": false

@@ -92,6 +92,16 @@ struct ClaudeCodeOutputView: View {
                     .foregroundColor(.secondary)
             }
 
+        case .waitingForPermission:
+            HStack(spacing: 6) {
+                Image(systemName: "hand.raised.fill")
+                    .foregroundColor(.yellow)
+                    .font(.system(size: 12))
+                Text("Waiting for approval")
+                    .font(.caption)
+                    .foregroundColor(.yellow)
+            }
+
         case .completed:
             HStack(spacing: 6) {
                 Image(systemName: "checkmark.circle.fill")
@@ -117,29 +127,95 @@ struct ClaudeCodeOutputView: View {
     // MARK: - Output Area
 
     private var outputArea: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 2) {
-                    if service.outputLines.isEmpty {
-                        emptyStateView
-                    } else {
-                        ForEach(service.outputLines) { line in
-                            OutputLineView(line: line)
-                                .id(line.id)
+        VStack(spacing: 0) {
+            // Permission request banner
+            if let permission = service.pendingPermission {
+                permissionBanner(for: permission)
+            }
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 2) {
+                        if service.outputLines.isEmpty {
+                            emptyStateView
+                        } else {
+                            ForEach(service.outputLines) { line in
+                                OutputLineView(line: line)
+                                    .id(line.id)
+                            }
                         }
                     }
+                    .padding(12)
                 }
-                .padding(12)
-            }
-            .background(Color(NSColor.textBackgroundColor))
-            .onChange(of: service.outputLines.count) { _ in
-                if let last = service.outputLines.last {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        proxy.scrollTo(last.id, anchor: .bottom)
+                .background(Color(NSColor.textBackgroundColor))
+                .onChange(of: service.outputLines.count) { _ in
+                    if let last = service.outputLines.last {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            proxy.scrollTo(last.id, anchor: .bottom)
+                        }
                     }
                 }
             }
         }
+    }
+
+    // MARK: - Permission Banner
+
+    private func permissionBanner(for request: ClaudeCodeService.PermissionRequest) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "hand.raised.fill")
+                .foregroundColor(.yellow)
+                .font(.system(size: 20))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Permission Required")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.primary)
+
+                Text(request.displayDescription)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(.secondary)
+                    .lineLimit(3)
+            }
+
+            Spacer()
+
+            // Deny button
+            Button {
+                service.respondToPermission(allow: false, message: "User denied")
+            } label: {
+                Text("Deny")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(6)
+            }
+            .buttonStyle(.plain)
+
+            // Allow button
+            Button {
+                service.respondToPermission(allow: true)
+            } label: {
+                Text("Allow")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.green)
+                    .cornerRadius(6)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .background(Color.yellow.opacity(0.15))
+        .overlay(
+            Rectangle()
+                .fill(Color.yellow)
+                .frame(width: 4),
+            alignment: .leading
+        )
     }
 
     private var emptyStateView: some View {
@@ -274,6 +350,7 @@ struct OutputLineView: View {
 
             // Type indicator
             typeIndicator
+                .frame(width: 16)
 
             // Content
             Text(line.content)
@@ -281,7 +358,10 @@ struct OutputLineView: View {
                 .foregroundColor(colorForType(line.type))
                 .textSelection(.enabled)
         }
-        .padding(.vertical, 1)
+        .padding(.vertical, 2)
+        .padding(.horizontal, 4)
+        .background(backgroundForType(line.type))
+        .cornerRadius(4)
     }
 
     @ViewBuilder
@@ -290,17 +370,42 @@ struct OutputLineView: View {
         case .stdout:
             Circle()
                 .fill(Color.blue.opacity(0.6))
-                .frame(width: 4, height: 4)
+                .frame(width: 6, height: 6)
 
         case .stderr:
             Circle()
                 .fill(Color.orange.opacity(0.6))
-                .frame(width: 4, height: 4)
+                .frame(width: 6, height: 6)
 
         case .system:
-            Circle()
-                .fill(Color.purple.opacity(0.6))
-                .frame(width: 4, height: 4)
+            Image(systemName: "info.circle.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.purple.opacity(0.7))
+
+        case .thinking:
+            Image(systemName: "brain")
+                .font(.system(size: 10))
+                .foregroundColor(.cyan.opacity(0.8))
+
+        case .toolUse:
+            Image(systemName: "wrench.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.orange.opacity(0.8))
+
+        case .toolResult:
+            Image(systemName: "doc.text.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.green.opacity(0.8))
+
+        case .assistant:
+            Image(systemName: "bubble.left.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.blue.opacity(0.8))
+
+        case .error:
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.red.opacity(0.8))
         }
     }
 
@@ -312,6 +417,31 @@ struct OutputLineView: View {
             return Color.orange
         case .system:
             return Color.purple
+        case .thinking:
+            return Color.cyan.opacity(0.9)
+        case .toolUse:
+            return Color.orange
+        case .toolResult:
+            return Color.green.opacity(0.9)
+        case .assistant:
+            return Color.primary
+        case .error:
+            return Color.red
+        }
+    }
+
+    private func backgroundForType(_ type: ClaudeCodeService.StreamType) -> Color {
+        switch type {
+        case .thinking:
+            return Color.cyan.opacity(0.05)
+        case .toolUse:
+            return Color.orange.opacity(0.05)
+        case .toolResult:
+            return Color.green.opacity(0.05)
+        case .error:
+            return Color.red.opacity(0.08)
+        default:
+            return Color.clear
         }
     }
 }
