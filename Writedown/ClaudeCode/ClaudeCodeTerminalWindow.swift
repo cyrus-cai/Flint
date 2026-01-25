@@ -19,11 +19,7 @@ struct ClaudeCodeTerminalWindow: View {
     @State private var selectedTheme: TerminalTheme = .vscode
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            headerBar
-
-            // Terminal View
+        ZStack {
             SwiftTerminalView_Themed(
                 noteContent: noteContent,
                 noteTitle: noteTitle,
@@ -31,26 +27,27 @@ struct ClaudeCodeTerminalWindow: View {
                 theme: selectedTheme
             )
 
-            // Footer
-            footerBar
+            VStack {
+                HStack {
+                    Spacer()
+                    headerOverlay
+                }
+                
+                Spacer()
+                
+                HStack {
+                    footerOverlay
+                    Spacer()
+                }
+            }
         }
         .frame(minWidth: 700, minHeight: 500)
     }
 
-    // MARK: - Header Bar
+    // MARK: - Header Overlay
 
-    private var headerBar: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "terminal.fill")
-                .foregroundColor(.blue)
-                .font(.system(size: 16))
-
-            Text("Claude Code Terminal")
-                .font(.headline)
-
-            Spacer()
-
-            // Theme selector
+    private var headerOverlay: some View {
+        HStack(spacing: 8) {
             Menu {
                 Button("VS Code Dark") {
                     selectedTheme = .vscode
@@ -63,37 +60,28 @@ struct ClaudeCodeTerminalWindow: View {
                 }
             } label: {
                 Image(systemName: "paintpalette")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.7))
             }
             .menuStyle(.borderlessButton)
-            .frame(width: 24, height: 24)
+            .frame(width: 20, height: 20)
 
-            // Running indicator
             if service.isRunning {
-                HStack(spacing: 6) {
-                    ProgressView()
-                        .scaleEffect(0.7)
-                        .frame(width: 16, height: 16)
-                    Text("Running")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                ProgressView()
+                    .scaleEffect(0.6)
+                    .frame(width: 14, height: 14)
             }
 
-            // Close button
             Button(action: {
                 service.cancel()
                 presentationMode.wrappedValue.dismiss()
             }) {
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 16))
+                    .foregroundColor(.white.opacity(0.7))
+                    .font(.system(size: 14))
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color(NSColor.windowBackgroundColor))
+        .padding(8)
     }
 
     // MARK: - Footer Bar
