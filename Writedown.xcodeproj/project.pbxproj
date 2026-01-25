@@ -10,6 +10,7 @@
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
 		4A2D398727A6383107023B5F /* ClaudeCodeTerminalWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9037D7F628EEA3888036055 /* ClaudeCodeTerminalWindowController.swift */; };
 		540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */; };
+		8905ABAB6929FD1A29D23F24 /* OpenCodeTerminalWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF5BC9B06B6CB24609F0E3B /* OpenCodeTerminalWindow.swift */; };
 		A30F32A02D4DDAAA0028E47E /* ProStatusChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */; };
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
@@ -53,6 +54,9 @@
 		A3SWIFTTERMSERVICE01 /* SwiftTermService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3SWIFTTERMSERVICE02 /* SwiftTermService.swift */; };
 		A3SWIFTTERMVIEW00001 /* SwiftTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3SWIFTTERMVIEW00002 /* SwiftTerminalView.swift */; };
 		A3TEXTM3TR1C52D93A1B00001 /* TextMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */; };
+		A5171B5C705DD7E0830165C3 /* OpenCodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BCD7A42E7783F186D93950 /* OpenCodeService.swift */; };
+		CD46E6CBC1060D252CB1D017 /* OpenCodeTerminalWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D6D6C04E3C99FD2508A7CB /* OpenCodeTerminalWindowController.swift */; };
+		F426E9C335F14083D733E1E4 /* OpenCodeOutputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1050AD8325D08AC995F42D /* OpenCodeOutputView.swift */; };
 		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
 		FE9F1F51C1FD76EDF6D702B3 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */; };
 /* End PBXBuildFile section */
@@ -76,6 +80,9 @@
 
 /* Begin PBXFileReference section */
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
+		25D6D6C04E3C99FD2508A7CB /* OpenCodeTerminalWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenCodeTerminalWindowController.swift; sourceTree = "<group>"; };
+		2CF5BC9B06B6CB24609F0E3B /* OpenCodeTerminalWindow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenCodeTerminalWindow.swift; sourceTree = "<group>"; };
+		4A1050AD8325D08AC995F42D /* OpenCodeOutputView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenCodeOutputView.swift; sourceTree = "<group>"; };
 		97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PaymentViewModel.swift; sourceTree = "<group>"; };
 		A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStatusChecker.swift; sourceTree = "<group>"; };
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
@@ -122,6 +129,7 @@
 		A3SWIFTTERMVIEW00002 /* SwiftTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftTerminalView.swift; sourceTree = "<group>"; };
 		A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMetrics.swift; sourceTree = "<group>"; };
 		D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		D4BCD7A42E7783F186D93950 /* OpenCodeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenCodeService.swift; sourceTree = "<group>"; };
 		E9037D7F628EEA3888036055 /* ClaudeCodeTerminalWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeTerminalWindowController.swift; sourceTree = "<group>"; };
 		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -171,6 +179,7 @@
 				A3NOTIFS2D910A0100000002 /* NotificationService.swift */,
 				A3CLAUDE2D910A0100000002 /* ClaudeCodeService.swift */,
 				A3SWIFTTERMSERVICE02 /* SwiftTermService.swift */,
+				D4BCD7A42E7783F186D93950 /* OpenCodeService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -257,6 +266,7 @@
 				44E7FBEC77376A0FDCD6572D /* ViewModels */,
 				A3VIEWS2D910A0100000003 /* Views */,
 				A3CLAUDECODE00000003 /* ClaudeCode */,
+				C32DA7ACD30B23F08D9CC454 /* OpenCode */,
 			);
 			path = Writedown;
 			sourceTree = "<group>";
@@ -343,6 +353,17 @@
 				A3AICONF2D910A0100000002 /* AIConfirmationView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		C32DA7ACD30B23F08D9CC454 /* OpenCode */ = {
+			isa = PBXGroup;
+			children = (
+				25D6D6C04E3C99FD2508A7CB /* OpenCodeTerminalWindowController.swift */,
+				2CF5BC9B06B6CB24609F0E3B /* OpenCodeTerminalWindow.swift */,
+				4A1050AD8325D08AC995F42D /* OpenCodeOutputView.swift */,
+			);
+			name = OpenCode;
+			path = OpenCode;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -526,6 +547,10 @@
 				A3SWIFTTERMVIEW00001 /* SwiftTerminalView.swift in Sources */,
 				A3SWIFTTERMSERVICE01 /* SwiftTermService.swift in Sources */,
 				4A2D398727A6383107023B5F /* ClaudeCodeTerminalWindowController.swift in Sources */,
+				A5171B5C705DD7E0830165C3 /* OpenCodeService.swift in Sources */,
+				CD46E6CBC1060D252CB1D017 /* OpenCodeTerminalWindowController.swift in Sources */,
+				8905ABAB6929FD1A29D23F24 /* OpenCodeTerminalWindow.swift in Sources */,
+				F426E9C335F14083D733E1E4 /* OpenCodeOutputView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

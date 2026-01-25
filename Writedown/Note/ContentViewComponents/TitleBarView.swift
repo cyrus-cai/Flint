@@ -442,6 +442,7 @@ struct TitleBarToolbar: View {
                     onShare: onShare,  // Pass onShare callback
                     onDelete: state.deleteFile,
                     onTestSwiftTerm: onTestSwiftTerm,  // 🧪 Pass SwiftTerm test callback
+                    onTestOpenCode: { state.openOpenCodeWindow() }, // 🧪 Pass OpenCode test callback
                     title: title,
                     isEmpty: state.isEmpty
                 )
@@ -1067,6 +1068,22 @@ class TitleBarToolbarState: ObservableObject {
 
     func openClaudeCodeWindow() {
         onShowClaudeCodeOutput?()
+    }
+
+    func openOpenCodeWindow() {
+        guard let workingDir = LocalFileManager.shared.currentWeekDirectory else {
+            print("❌ OpenCode Error: Unable to determine notes directory")
+            return
+        }
+
+        let content = currentNoteContent
+        
+        // Launch OpenCode Terminal Window
+        OpenCodeTerminalWindowController.show(
+            noteContent: content,
+            noteTitle: nil,
+            workingDirectory: workingDir
+        )
     }
 
     func triggerClaudeCode(content: String? = nil) {
