@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-/// Updated ClaudeCodeOutputView using SwiftTerm
 struct ClaudeCodeTerminalWindow: View {
 
     let noteContent: String?
@@ -50,7 +49,7 @@ struct ClaudeCodeTerminalWindow: View {
     // MARK: - Header Overlay
 
     private var headerOverlay: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Menu {
                 Button("VS Code Dark") {
                     selectedTheme = .vscode
@@ -62,48 +61,73 @@ struct ClaudeCodeTerminalWindow: View {
                     selectedTheme = .oneDark
                 }
             } label: {
-                Image(systemName: "paintpalette")
-                    .foregroundColor(.white.opacity(0.7))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.gray.opacity(0.4))
+                    Image(systemName: "paintpalette.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 28, height: 28)
             }
-            .menuStyle(.borderlessButton)
-            .frame(width: 20, height: 20)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
 
             if service.isRunning {
-                ProgressView()
-                    .scaleEffect(0.6)
-                    .frame(width: 14, height: 14)
+                HStack(spacing: 4) {
+                    ProgressView()
+                        .scaleEffect(0.5)
+                        .frame(width: 12, height: 12)
+                    Text("Running")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.gray.opacity(0.4))
+                .clipShape(RoundedRectangle(cornerRadius: 4))
             }
         }
-        .padding(8)
+        .padding(12)
     }
 
     // MARK: - Footer Overlay
 
     private var footerOverlay: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             if let session = service.sessionInfo {
-                HStack(spacing: 6) {
+                HStack(spacing: 5) {
                     Image(systemName: "cpu")
-                        .font(.caption2)
+                        .font(.system(size: 10))
                     Text(session.model)
-                        .font(.caption2)
+                        .font(.system(size: 10))
                 }
-                .foregroundColor(.white.opacity(0.6))
+                .foregroundStyle(.white.opacity(0.8))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.gray.opacity(0.4))
+                .clipShape(RoundedRectangle(cornerRadius: 4))
             }
 
             if service.isRunning {
-                Button("Cancel") {
+                Button(action: {
                     service.cancel()
+                }) {
+                    Text("Cancel")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.red.opacity(0.7))
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .buttonStyle(.plain)
             }
         }
-        .padding(8)
+        .padding(12)
     }
 }
-
-// MARK: - Preview
 
 #if DEBUG
 struct ClaudeCodeTerminalWindow_Previews: PreviewProvider {

@@ -27,7 +27,9 @@ class ClaudeTerminalView: TerminalView {
         let terminal = getTerminal()
         terminal.resize(cols: 120, rows: 40)
 
-        font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        // Use Menlo which has proper CJK fallback support
+        // SF Mono (monospacedSystemFont) lacks Chinese glyphs and shows white boxes
+        font = NSFont(name: "Menlo", size: 12) ?? NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
 
         allowMouseReporting = true
 

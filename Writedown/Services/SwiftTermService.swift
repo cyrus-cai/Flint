@@ -53,7 +53,7 @@ class SwiftTermService: ObservableObject {
         terminalView.nativeBackgroundColor = NSColor(hex: "#1E1E1E") ?? .black
         terminalView.nativeForegroundColor = NSColor(hex: "#CCCCCC") ?? .white
         terminalView.caretColor = NSColor(hex: "#AEAFAD") ?? .white
-        terminalView.font = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+        // Font with CJK cascade is set in ClaudeTerminalView.setupTerminal()
 
         // Create and set delegate
         let delegate = ClaudeTerminalDelegate(terminalView: terminalView)
@@ -129,10 +129,11 @@ class SwiftTermService: ObservableObject {
         env["TERM"] = "xterm-256color"
         process.environment = env
 
-        // Configure arguments - use stream-json for clean output without terminal control codes
+        // Configure arguments - use text format for proper terminal output with ANSI codes
+        // stream-json causes CJK rendering issues due to wcwidth calculations
         process.arguments = [
             "-p", content,
-            "--output-format", "stream-json",
+            "--output-format", "text",
             "--verbose"
         ]
 
@@ -274,7 +275,8 @@ class SwiftTermService: ObservableObject {
 
     // MARK: - Raw Byte Reading
 
-    /// Read JSON stream from file handle and feed parsed content to terminal
+    /// Read raw output from file handle and feed directly to terminal
+    /// This preserves ANSI escape codes and handles CJK characters properly
     private nonisolated func readAndFeedOutput(
         from fileHandle: FileHandle,
         to terminalView: ClaudeTerminalView,
@@ -288,7 +290,6 @@ class SwiftTermService: ObservableObject {
             DispatchQueue.global(qos: .userInitiated).async {
                 var totalBytes = 0
                 var readCount = 0
-                var lineBuffer = ""
 
                 while true {
                     // Read available data - blocks until data or EOF
@@ -303,38 +304,11 @@ class SwiftTermService: ObservableObject {
                     readCount += 1
                     totalBytes += data.count
 
-                    // Convert to string
-                    guard let text = String(data: data, encoding: .utf8) else {
-                        continue
-                    }
-
-                    // Buffer and process line by line (JSON is newline-delimited)
-                    lineBuffer += text
-                    let lines = lineBuffer.components(separatedBy: "\n")
-
-                    // Process complete lines, keep incomplete line in buffer
-                    for i in 0..<lines.count - 1 {
-                        let line = lines[i].trimmingCharacters(in: .whitespaces)
-                        if line.isEmpty { continue }
-
-                        // Parse JSON and extract content
-                        if let displayText = self.parseStreamJSON(line) {
-                            DispatchQueue.main.async {
-                                terminalView.feed(text: displayText)
-                            }
-                        }
-                    }
-
-                    lineBuffer = lines.last ?? ""
-                }
-
-                // Process any remaining content in buffer
-                if !lineBuffer.isEmpty {
-                    let line = lineBuffer.trimmingCharacters(in: .whitespaces)
-                    if let displayText = self.parseStreamJSON(line) {
-                        DispatchQueue.main.async {
-                            terminalView.feed(text: displayText)
-                        }
+                    // Feed raw data directly to terminal - this preserves ANSI codes
+                    // and lets SwiftTerm handle UTF-8 decoding properly
+                    let bytes = Array(data)
+                    DispatchQueue.main.async {
+                        terminalView.feed(byteArray: bytes[...])
                     }
                 }
 

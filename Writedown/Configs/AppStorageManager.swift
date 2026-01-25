@@ -29,6 +29,7 @@ enum AppStorageKeys {
 
     // Appearance Settings
     static let appearanceMode = "appearanceMode"
+    static let terminalTheme = "terminalTheme"
 
     // Hotkey Settings
     static let enableDoubleOption = "enableDoubleOption"

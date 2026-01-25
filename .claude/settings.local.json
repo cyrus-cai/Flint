@@ -23,7 +23,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:migueldeicaza.github.io)",
       "Bash(pkill:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(fc-list:*)",
+      "Bash(system_profiler:*)"
     ]
   },
   "spinnerTipsEnabled": false
