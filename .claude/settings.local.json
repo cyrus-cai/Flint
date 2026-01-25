@@ -19,7 +19,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.claude.com)",
       "Bash(gtimeout 30 claude:*)",
-      "Bash(~/.local/bin/claude:*)"
+      "Bash(~/.local/bin/claude:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:migueldeicaza.github.io)"
     ]
   },
   "spinnerTipsEnabled": false

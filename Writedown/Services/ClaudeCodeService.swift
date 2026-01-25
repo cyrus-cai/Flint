@@ -406,7 +406,7 @@ class ClaudeCodeService: ObservableObject {
         // User messages are usually echoes, we can skip or show them
         if let message = json["message"] as? [String: Any],
            let content = message["content"] as? String {
-            addOutputLine(content: "User: \(content.prefix(100))...", type: .system)
+            addOutputLine(content: "User: \(content.prefix(500))...", type: .system)
         }
     }
 
@@ -434,7 +434,8 @@ class ClaudeCodeService: ObservableObject {
         }
 
         // Truncate long results
-        let displayText = resultText.count > 500 ? String(resultText.prefix(500)) + "..." : resultText
+        let limit = 5000
+        let displayText = resultText.count > limit ? String(resultText.prefix(limit)) + "...\n(truncated \(resultText.count - limit) chars)" : resultText
         addOutputLine(
             content: "📋 Result: \(displayText)",
             type: .toolResult,
@@ -532,7 +533,17 @@ class ClaudeCodeService: ObservableObject {
         switch toolName {
         case "Bash":
             return input["command"] as? String ?? ""
-        case "Write", "Edit", "Read":
+        case "Write":
+            let path = input["file_path"] as? String ?? "unknown"
+            let content = input["content"] as? String ?? ""
+            return "\(path) (\(content.count) chars)"
+        case "Edit":
+            let path = input["file_path"] as? String ?? "unknown"
+            let oldStr = input["oldString"] as? String ?? (input["old_string"] as? String ?? "")
+            let newStr = input["newString"] as? String ?? (input["new_string"] as? String ?? "")
+            let summary = "Replace \"\(oldStr.prefix(30))...\" with \"\(newStr.prefix(30))...\""
+            return "\(path) | \(summary)"
+        case "Read":
             return input["file_path"] as? String ?? ""
         case "Glob":
             return input["pattern"] as? String ?? ""
@@ -541,7 +552,7 @@ class ClaudeCodeService: ObservableObject {
         default:
             if let data = try? JSONSerialization.data(withJSONObject: input, options: []),
                let str = String(data: data, encoding: .utf8) {
-                return str.count > 100 ? String(str.prefix(100)) + "..." : str
+                return str.count > 1000 ? String(str.prefix(1000)) + "..." : str
             }
             return ""
         }
