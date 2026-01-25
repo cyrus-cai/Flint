@@ -710,7 +710,9 @@ struct ToastView: View {
     var body: some View {
         if isShowing {
             VStack {
-                Spacer()
+            Spacer()
+
+
                 HStack {
                     // 绿色发光点
                     Circle()
@@ -1033,6 +1035,14 @@ struct EmbeddedClaudeCodePanel: View {
 
             Spacer()
 
+            if self.service.state == .running {
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 6, height: 6)
+                    .shadow(color: .green.opacity(0.5), radius: 2)
+                    .padding(.trailing, 4)
+            }
+
             // Action buttons
             HStack(spacing: 4) {
                 // Copy button
@@ -1131,14 +1141,7 @@ struct EmbeddedClaudeCodePanel: View {
             }
 
         case .running:
-            HStack(spacing: 4) {
-                Circle()
-                    .fill(Color.green)
-                    .frame(width: 6, height: 6)
-                Text("Running")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
-            }
+            EmptyView()
 
         case .waitingForPermission:
             HStack(spacing: 4) {
