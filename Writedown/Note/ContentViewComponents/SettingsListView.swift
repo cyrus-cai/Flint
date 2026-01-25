@@ -330,7 +330,7 @@ When user asks to organize/merge notes:
             case .addSkill:
                 return L("Add as Claude Code skill")
             case .testSwiftTerm:
-                return "Test SwiftTerm"
+                return "Test Claude Code"
             case .settings:
                 return L("Settings")
             }

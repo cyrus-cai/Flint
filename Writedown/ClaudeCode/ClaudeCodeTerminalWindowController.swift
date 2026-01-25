@@ -49,6 +49,10 @@ class ClaudeCodeTerminalWindowController: NSWindowController {
         window.backgroundColor = NSColor.windowBackgroundColor
         window.hasShadow = true
 
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
+
         // 设置窗口最小和最大尺寸
         window.minSize = NSSize(width: 700, height: 500)
         window.maxSize = NSSize(width: 1600, height: 1200)

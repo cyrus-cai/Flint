@@ -91,7 +91,8 @@ struct ClaudeCodeTerminalWindow: View {
             }
             .buttonStyle(.plain)
         }
-        .padding()
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
         .background(Color(NSColor.windowBackgroundColor))
     }
 
@@ -125,23 +126,15 @@ struct ClaudeCodeTerminalWindow: View {
 
             Spacer()
 
-            // Action buttons
-            HStack(spacing: 8) {
-                if service.isRunning {
-                    Button("Cancel") {
-                        service.cancel()
-                    }
-                    .buttonStyle(.bordered)
-                } else {
-                    Button("Close") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    .buttonStyle(.borderedProminent)
+            if service.isRunning {
+                Button("Cancel") {
+                    service.cancel()
                 }
+                .buttonStyle(.bordered)
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
         .background(Color(NSColor.windowBackgroundColor))
     }
 }
