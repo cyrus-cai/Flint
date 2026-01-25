@@ -11,8 +11,6 @@ import AppKit
 /// Custom TerminalView configured for Claude Code output
 class ClaudeTerminalView: TerminalView {
 
-    weak var terminalDelegate: ClaudeTerminalDelegate?
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupTerminal()
@@ -73,16 +71,8 @@ class ClaudeTerminalView: TerminalView {
     /// Scroll to bottom
     func scrollToBottom() {
         let terminal = getTerminal()
-        let buffer = terminal.buffer
+        _ = terminal.buffer
         scroll(toPosition: 1.0)
-    }
-
-    // MARK: - Keyboard Input Override
-
-    override func keyDown(with event: NSEvent) {
-        // For now, pass through to default behavior
-        // In future, we can add custom key handling for shortcuts
-        super.keyDown(with: event)
     }
 }
 
@@ -139,27 +129,53 @@ extension ClaudeTerminalView {
         nativeForegroundColor = theme.foreground
         caretColor = theme.cursor
 
-        // Install ANSI color palette
+        // Install ANSI color palette - convert NSColor to SwiftTerm Color
         let ansiColors: [Color] = [
-            Color(theme.black),
-            Color(theme.red),
-            Color(theme.green),
-            Color(theme.yellow),
-            Color(theme.blue),
-            Color(theme.magenta),
-            Color(theme.cyan),
-            Color(theme.white),
-            Color(theme.brightBlack),
-            Color(theme.brightRed),
-            Color(theme.brightGreen),
-            Color(theme.brightYellow),
-            Color(theme.brightBlue),
-            Color(theme.brightMagenta),
-            Color(theme.brightCyan),
-            Color(theme.brightWhite)
+            theme.black.toSwiftTermColor(),
+            theme.red.toSwiftTermColor(),
+            theme.green.toSwiftTermColor(),
+            theme.yellow.toSwiftTermColor(),
+            theme.blue.toSwiftTermColor(),
+            theme.magenta.toSwiftTermColor(),
+            theme.cyan.toSwiftTermColor(),
+            theme.white.toSwiftTermColor(),
+            theme.brightBlack.toSwiftTermColor(),
+            theme.brightRed.toSwiftTermColor(),
+            theme.brightGreen.toSwiftTermColor(),
+            theme.brightYellow.toSwiftTermColor(),
+            theme.brightBlue.toSwiftTermColor(),
+            theme.brightMagenta.toSwiftTermColor(),
+            theme.brightCyan.toSwiftTermColor(),
+            theme.brightWhite.toSwiftTermColor()
         ]
 
         installColors(ansiColors)
+    }
+}
+
+// MARK: - NSColor to SwiftTerm Color Conversion
+
+extension NSColor {
+    /// Convert NSColor to SwiftTerm Color (16-bit RGB)
+    func toSwiftTermColor() -> Color {
+        // Convert to sRGB colorspace to get accurate RGB values
+        guard let rgbColor = self.usingColorSpace(.sRGB) else {
+            // Fallback to black if conversion fails
+            return Color(red: 0, green: 0, blue: 0)
+        }
+        
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        rgbColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        
+        // SwiftTerm Color uses 16-bit values (0-65535)
+        let red16 = UInt16(min(max(r * 65535, 0), 65535))
+        let green16 = UInt16(min(max(g * 65535, 0), 65535))
+        let blue16 = UInt16(min(max(b * 65535, 0), 65535))
+        
+        return Color(red: red16, green: green16, blue: blue16)
     }
 }
 

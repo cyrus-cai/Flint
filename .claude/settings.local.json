@@ -21,7 +21,8 @@
       "Bash(gtimeout 30 claude:*)",
       "Bash(~/.local/bin/claude:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:migueldeicaza.github.io)"
+      "WebFetch(domain:migueldeicaza.github.io)",
+      "Bash(pkill:*)"
     ]
   },
   "spinnerTipsEnabled": false

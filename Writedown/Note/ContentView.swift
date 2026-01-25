@@ -2,11 +2,13 @@ import Combine
 import SwiftUI
 
 struct ContentHeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 106
+    static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-        // print("window height changed", value)
-
+        let next = nextValue()
+        // 只接受有效的计算值（大于默认最小高度）
+        if next > 100 {
+            value = next
+        }
     }
 }
 
@@ -64,6 +66,9 @@ struct ContentView: View {
     @State private var showCopyToast = false
     @State private var showCopiedStatus = false
     @State private var showClaudeCodePanel = false
+
+    // 🧪 SwiftTerm 测试
+    @State private var showSwiftTermTest = false
 
     static let loadNoteNotification = Notification.Name("LoadNoteNotification")
     static let showRecentNotesNotification = Notification.Name("ShowRecentNotesNotification")
@@ -422,6 +427,7 @@ struct ContentView: View {
                             },
                             onCopy: copyFullContent,
                             onShare: shareFullContent,
+                            onTestSwiftTerm: { showSwiftTermTest = true },
                             isEditing: $isEditingTitle,
                             editableTitle: $editedTitle,
                             onTitleCommit: saveTitleEdit
@@ -431,6 +437,7 @@ struct ContentView: View {
                         }
 
                         EditorView(text: $text)
+
                         DownFunctionView(
                             text: text,
                             showCopied: showCopiedStatus,
@@ -483,6 +490,15 @@ struct ContentView: View {
                         }
                     )
                 }
+            }
+            // 🧪 SwiftTerm 测试窗口
+            .sheet(isPresented: $showSwiftTermTest) {
+                ClaudeCodeTerminalWindow(
+                    noteContent: text.isEmpty ? "帮我分析这个项目的结构" : text,
+                    noteTitle: title,
+                    workingDirectory: URL(fileURLWithPath: NSHomeDirectory())
+                )
+                .frame(width: 900, height: 700)
             }
         }
         .onChange(of: text) {

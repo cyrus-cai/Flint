@@ -11,6 +11,7 @@ struct SettingsListView: View {
     let onCopy: () -> Void
     let onShare: () -> Void
     let onDelete: () -> Void
+    let onTestSwiftTerm: () -> Void  // 🧪 SwiftTerm 测试回调
     let title: String?
     let isEmpty: Bool
 
@@ -262,6 +263,8 @@ When user asks to organize/merge notes:
             openInFinder()
         case .addSkill:
             installHyperNoteSkill()
+        case .testSwiftTerm:
+            onTestSwiftTerm()
         case .settings:
             onSettings()
         case .deleteNote:
@@ -306,6 +309,7 @@ When user asks to organize/merge notes:
         case deleteNote
         case showAll
         case addSkill
+        case testSwiftTerm  // 🧪 SwiftTerm 测试
         case newVersionAvailable
         case settings
 
@@ -325,6 +329,8 @@ When user asks to organize/merge notes:
                 return L("Delete Note")
             case .addSkill:
                 return L("Add as Claude Code skill")
+            case .testSwiftTerm:
+                return "🧪 Test SwiftTerm"
             case .settings:
                 return L("Settings")
             }
@@ -346,6 +352,8 @@ When user asks to organize/merge notes:
                 return "arrow.up.circle.fill"
             case .addSkill:
                 return "puzzlepiece.extension"
+            case .testSwiftTerm:
+                return "terminal.fill"
             }
         }
 
@@ -360,6 +368,8 @@ When user asks to organize/merge notes:
             case .settings:
                 return nil
             case .addSkill:
+                return nil
+            case .testSwiftTerm:
                 return nil
             default:
                 return nil

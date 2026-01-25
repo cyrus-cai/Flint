@@ -361,13 +361,14 @@ class MainWindowController: NSWindowController {
         }
     }
 
-    private var heightObserver: NSKeyValueObservation?
     private var editorContentHeight: CGFloat = 106
     private var claudeCodePanelHeight: CGFloat = 0
 
     private func setupContentView() {
         let contentView = ContentView()
             .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
+                // 忽略无效的高度值（默认值 0 或过小的值）
+                guard height > 100 else { return }
                 self?.editorContentHeight = height
                 self?.updateWindowHeight((self?.editorContentHeight ?? 106) + (self?.claudeCodePanelHeight ?? 0))
             }
@@ -423,10 +424,8 @@ class MainWindowController: NSWindowController {
             window?.contentView = hostingView
         }
 
-        heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
-            let contentHeight = view.frame.height
-            self?.updateWindowHeight(contentHeight)
-        }
+        // 注意：不再使用 heightObserver 观察 frame，因为它会与 PreferenceKey 机制冲突
+        // 高度更新完全依赖 ContentHeightPreferenceKey 的 onPreferenceChange
     }
 
     private func updateWindowHeight(_ contentHeight: CGFloat) {

@@ -47,7 +47,7 @@ class SwiftTermService: ObservableObject {
         noteTitle: String?,
         workingDirectory: URL
     ) -> ClaudeTerminalView {
-        let terminalView = ClaudeTerminalView()
+        let terminalView = ClaudeTerminalView(frame: .zero)
 
         // Configure appearance
         terminalView.nativeBackgroundColor = NSColor(hex: "#1E1E1E") ?? .black
@@ -145,30 +145,21 @@ class SwiftTermService: ObservableObject {
 
         currentProcess = process
 
-        // Start async output reading
+        // Start async output reading - use raw bytes to preserve ANSI codes
         let outputTask = Task {
-            do {
-                let bytes = outPipe.fileHandleForReading.bytes
-                for try await line in bytes.lines {
-                    // Feed line to terminal with CRLF
-                    await terminalView.feed(text: line + "\r\n")
-                }
-            } catch {
-                // Stream closed - expected when process terminates
-            }
+            await self.readAndFeedOutput(
+                from: outPipe.fileHandleForReading,
+                to: terminalView,
+                isError: false
+            )
         }
 
         let errorTask = Task {
-            do {
-                let bytes = errPipe.fileHandleForReading.bytes
-                for try await line in bytes.lines {
-                    // Feed error lines with color
-                    await terminalView.feedColored(text: line, color: .red)
-                    await terminalView.feed(text: "\r\n")
-                }
-            } catch {
-                // Stream closed - expected when process terminates
-            }
+            await self.readAndFeedOutput(
+                from: errPipe.fileHandleForReading,
+                to: terminalView,
+                isError: true
+            )
         }
 
         // Launch process
@@ -276,11 +267,48 @@ class SwiftTermService: ObservableObject {
         return nil
     }
 
-    // MARK: - Cleanup
+    // MARK: - Raw Byte Reading
 
-    deinit {
-        cancel()
+    /// Read raw bytes from file handle and feed to terminal
+    /// This preserves ANSI escape sequences for proper color rendering
+    private nonisolated func readAndFeedOutput(
+        from fileHandle: FileHandle,
+        to terminalView: ClaudeTerminalView,
+        isError: Bool
+    ) async {
+        // Read on background thread to avoid blocking
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                while true {
+                    // Read available data - blocks until data or EOF
+                    let data = fileHandle.availableData
+
+                    // Empty data means EOF
+                    if data.isEmpty {
+                        break
+                    }
+
+                    // Convert to string, handling potential partial UTF-8 sequences
+                    let text: String
+                    if let utf8Text = String(data: data, encoding: .utf8) {
+                        text = utf8Text
+                    } else {
+                        // If UTF-8 decoding fails, use lossy decoding
+                        text = String(decoding: data, as: UTF8.self)
+                    }
+
+                    // Feed raw text to terminal on main thread
+                    DispatchQueue.main.async {
+                        terminalView.feed(text: text)
+                    }
+                }
+
+                continuation.resume()
+            }
+        }
     }
+
+    // MARK: - Cleanup
 }
 
 // MARK: - NSColor Extension

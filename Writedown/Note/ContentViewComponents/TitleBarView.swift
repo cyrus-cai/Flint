@@ -10,6 +10,7 @@ struct TitleBarView: View {
     let onNoteSelected: (String, URL?) -> Void
     let onCopy: () -> Void  // 复制内容的回调
     let onShare: () -> Void  // 分享内容的回调
+    let onTestSwiftTerm: () -> Void  // 🧪 SwiftTerm 测试回调
     // New editing bindings
     @Binding var isEditing: Bool
     @Binding var editableTitle: String
@@ -67,7 +68,8 @@ struct TitleBarView: View {
                     links: links,  // Pass links to toolbar
                     title: title,
                     onCopy: onCopy,
-                    onShare: onShare
+                    onShare: onShare,
+                    onTestSwiftTerm: onTestSwiftTerm
                 )
             }
 
@@ -387,6 +389,7 @@ struct TitleBarToolbar: View {
     let title: String
     let onCopy: () -> Void  // Add onCopy parameter
     let onShare: () -> Void  // 新增 onShare 参数
+    let onTestSwiftTerm: () -> Void  // 🧪 SwiftTerm 测试回调
 
     private func openSingleLink() {
         if let url = URL(string: links[0]) {
@@ -438,6 +441,7 @@ struct TitleBarToolbar: View {
                     onCopy: onCopy,  // Pass onCopy callback
                     onShare: onShare,  // Pass onShare callback
                     onDelete: state.deleteFile,
+                    onTestSwiftTerm: onTestSwiftTerm,  // 🧪 Pass SwiftTerm test callback
                     title: title,
                     isEmpty: state.isEmpty
                 )
