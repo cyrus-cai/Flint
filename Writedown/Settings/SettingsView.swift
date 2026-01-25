@@ -1001,6 +1001,7 @@ struct AboutSettingsView: View {
 
 struct AppearanceSettingsView: View {
     @AppStorage(AppStorageKeys.appearanceMode) private var appearanceMode: AppearanceMode = AppDefaults.appearanceMode
+    @AppStorage(AppStorageKeys.terminalTheme) private var terminalThemeName: String = AppDefaults.terminalTheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -1036,6 +1037,23 @@ struct AppearanceSettingsView: View {
                             appearanceMode = .dark
                         }
 
+                        Spacer()
+                    }
+                    
+                    Divider()
+                    
+                    Text("Claude Code Theme")
+                        .fontWeight(.medium)
+                        
+                    HStack(spacing: 16) {
+                        ForEach(TerminalTheme.allThemes, id: \.name) { theme in
+                            ThemeOptionView(
+                                theme: theme,
+                                isSelected: terminalThemeName == theme.name
+                            ) {
+                                terminalThemeName = theme.name
+                            }
+                        }
                         Spacer()
                     }
                 }
@@ -1186,6 +1204,42 @@ struct FontOptionView: View {
                     )
 
                 Text(title)
+                    .font(.caption)
+                    .foregroundColor(isSelected ? .primary : .secondary)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct ThemeOptionView: View {
+    let theme: TerminalTheme
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                // Preview
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(nsColor: theme.background))
+                        .frame(width: 80, height: 50)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                    
+                    Text(">_")
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .foregroundColor(Color(nsColor: theme.foreground))
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
+
+                Text(theme.name)
                     .font(.caption)
                     .foregroundColor(isSelected ? .primary : .secondary)
             }

@@ -15,7 +15,11 @@ struct ClaudeCodeTerminalWindow: View {
 
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var service = SwiftTermService.shared
-    @State private var selectedTheme: TerminalTheme = .vscode
+    @AppStorage(AppStorageKeys.terminalTheme) private var themeName: String = AppDefaults.terminalTheme
+
+    private var selectedTheme: TerminalTheme {
+        TerminalTheme.withName(themeName)
+    }
 
     var body: some View {
         ZStack {
@@ -50,30 +54,6 @@ struct ClaudeCodeTerminalWindow: View {
 
     private var headerOverlay: some View {
         HStack(spacing: 10) {
-            Menu {
-                Button("VS Code Dark") {
-                    selectedTheme = .vscode
-                }
-                Button("Dracula") {
-                    selectedTheme = .dracula
-                }
-                Button("One Dark") {
-                    selectedTheme = .oneDark
-                }
-            } label: {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.gray.opacity(0.4))
-                    Image(systemName: "paintpalette.fill")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 28, height: 28)
-            }
-            .menuStyle(.button)
-            .buttonStyle(.plain)
-            .menuIndicator(.hidden)
-
             if service.isRunning {
                 HStack(spacing: 4) {
                     ProgressView()
@@ -91,6 +71,7 @@ struct ClaudeCodeTerminalWindow: View {
         }
         .padding(12)
     }
+
 
     // MARK: - Footer Overlay
 
@@ -114,13 +95,17 @@ struct ClaudeCodeTerminalWindow: View {
                 Button(action: {
                     service.cancel()
                 }) {
-                    Text("Cancel")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.red.opacity(0.7))
-                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                    HStack(spacing: 4) {
+                        Image(systemName: "stop.fill")
+                            .font(.system(size: 8))
+                        Text("Cancel")
+                    }
+                    .font(.system(size: 10))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.gray.opacity(0.3))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
                 .buttonStyle(.plain)
             }

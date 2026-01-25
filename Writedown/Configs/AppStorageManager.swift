@@ -56,6 +56,7 @@ struct AppDefaults {
 
     // Appearance Settings
     static let appearanceMode = AppearanceMode.system
+    static let terminalTheme = "VS Code Dark"
 
     // Hotkey Settings
     static let enableDoubleOption = true

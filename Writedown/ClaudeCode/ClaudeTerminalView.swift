@@ -281,4 +281,16 @@ struct TerminalTheme {
         brightCyan: NSColor(hex: "#56B6C2")!,
         brightWhite: NSColor(hex: "#FFFFFF")!
     )
+
+    static let allThemes: [TerminalTheme] = [.vscode, .dracula, .oneDark]
+
+    static func withName(_ name: String) -> TerminalTheme {
+        return allThemes.first { $0.name == name } ?? .vscode
+    }
+}
+
+extension TerminalTheme: Equatable {
+    static func == (lhs: TerminalTheme, rhs: TerminalTheme) -> Bool {
+        return lhs.name == rhs.name
+    }
 }
