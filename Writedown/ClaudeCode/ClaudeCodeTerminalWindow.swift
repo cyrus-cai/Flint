@@ -84,46 +84,29 @@ struct ClaudeCodeTerminalWindow: View {
         .padding(8)
     }
 
-    // MARK: - Footer Bar
+    // MARK: - Footer Overlay
 
-    private var footerBar: some View {
-        HStack {
-            // Session info
+    private var footerOverlay: some View {
+        HStack(spacing: 8) {
             if let session = service.sessionInfo {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image(systemName: "cpu")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                    Text("Model: \(session.model)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
-                    Divider()
-                        .frame(height: 12)
-
-                    Image(systemName: "folder")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                    Text(session.cwd)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
+                        .font(.caption2)
+                    Text(session.model)
+                        .font(.caption2)
                 }
+                .foregroundColor(.white.opacity(0.6))
             }
-
-            Spacer()
 
             if service.isRunning {
                 Button("Cancel") {
                     service.cancel()
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .background(Color(NSColor.windowBackgroundColor))
+        .padding(8)
     }
 }
 
