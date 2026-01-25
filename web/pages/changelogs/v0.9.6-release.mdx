@@ -1,0 +1,39 @@
+import { MdxLayout } from "components/mdx-layout.tsx";
+
+export const meta = {
+  slug: "v0.9.6-release",
+  publishedAt: "2026-01-26T10:00:00Z",
+  title: "HyperNote v0.9.6",
+  headerImage: "https://hypernote.app/images/changelog/v0.9.6-header.png",
+  authors: [
+    {
+      name: "HyperNote Team",
+      description: "Product Team",
+      avatarUrl: "https://hypernote.app/favicon.ico",
+    },
+  ],
+};
+
+## What's New
+
+- Claude Code Integration & SwiftTerm: HyperNote now features a built-in terminal powered by SwiftTerm, enabling seamless integration with Claude Code for AI-driven development.
+
+## Features
+
+- **SwiftTerm Integration**: A high-performance terminal emulator integrated directly into the app.
+- **Claude Code Terminal UI**: Optimized interface for interacting with Claude Code.
+- **Persistent Terminal Theme**: Terminal colors and styles now persist across sessions.
+- **Claude Code Permission System**: Granular control over Claude Code's access to your files and system.
+
+## Fixes
+
+- **Service Running Indicator**: Relocated the indicator for better visibility and less UI clutter.
+- **UI Polishes**: Various refinements to the terminal and main interface.
+
+
+
+export default ({ children, ...rest }) => (
+  <MdxLayout meta={meta} {...rest}>
+    {children}
+  </MdxLayout>
+);
