@@ -204,17 +204,17 @@ class SwiftTermService: ObservableObject {
     // MARK: - Helper Methods
 
     private func feedErrorMessage(to terminalView: ClaudeTerminalView, message: String) async {
-        terminalView.feedColored(text: "❌ \(message)", color: .red)
+        terminalView.feedColored(text: "\(message)", color: .red)
         terminalView.feed(text: "\r\n")
     }
 
     private func feedSuccessMessage(to terminalView: ClaudeTerminalView, message: String) async {
-        terminalView.feedColored(text: "✓ \(message)", color: .green)
+        terminalView.feedColored(text: "\(message)", color: .green)
         terminalView.feed(text: "\r\n")
     }
 
     private func feedInfoMessage(to terminalView: ClaudeTerminalView, message: String) async {
-        terminalView.feedColored(text: "ℹ️ \(message)", color: .cyan)
+        terminalView.feedColored(text: "\(message)", color: .cyan)
         terminalView.feed(text: "\r\n")
     }
 
@@ -296,7 +296,7 @@ class SwiftTermService: ObservableObject {
 
                     // Empty data means EOF
                     if data.isEmpty {
-                        print("📥 [\(streamLabel)] EOF reached. Total: \(totalBytes) bytes in \(readCount) reads")
+                        print("[\(streamLabel)] EOF reached. Total: \(totalBytes) bytes in \(readCount) reads")
                         break
                     }
 
@@ -402,7 +402,7 @@ class SwiftTermService: ObservableObject {
                 switch subtype {
                 case "init":
                     if let sessionId = json["session_id"] as? String {
-                        return "📍 Session: \(sessionId)\r\n"
+                        return "Session: \(sessionId)\r\n"
                     }
                 case "result":
                     if let result = json["result"] as? String {
@@ -417,7 +417,7 @@ class SwiftTermService: ObservableObject {
             // Error message
             if let error = json["error"] as? [String: Any],
                let message = error["message"] as? String {
-                return "\r\n❌ Error: \(message)\r\n"
+                return "\r\n Error: \(message)\r\n"
             }
 
         case "user":
@@ -425,7 +425,7 @@ class SwiftTermService: ObservableObject {
             // Handle tool_use_result directly on json
             if let toolResult = json["tool_use_result"] as? [String: Any] {
                 if let content = toolResult["content"] as? String, !content.isEmpty {
-                    return "📄 \(content)\r\n"
+                    return " \(content)\r\n"
                 } else if let items = toolResult["content"] as? [[String: Any]] {
                     var result = ""
                     for item in items {
@@ -434,7 +434,7 @@ class SwiftTermService: ObservableObject {
                         }
                     }
                     if !result.isEmpty {
-                        return "📄 \(result)\r\n"
+                        return " \(result)\r\n"
                     }
                 }
             }
@@ -447,7 +447,7 @@ class SwiftTermService: ObservableObject {
                     if let itemType = item["type"] as? String {
                         if itemType == "tool_result", let toolContent = item["content"] as? String {
                             // Tool result content
-                            result += "📄 \(toolContent)\r\n"
+                            result += "\(toolContent)\r\n"
                         } else if let text = item["text"] as? String {
                             result += text
                         }
@@ -464,12 +464,12 @@ class SwiftTermService: ObservableObject {
             // Handle message.content as string
             if let message = json["message"] as? [String: Any],
                let content = message["content"] as? String, !content.isEmpty {
-                return "📄 \(content)\r\n"
+                return "\(content)\r\n"
             }
             
             // Handle message as string directly
             if let message = json["message"] as? String, !message.isEmpty {
-                return "📄 \(message)\r\n"
+                return "\(message)\r\n"
             }
             
             // Silently ignore other user messages (they're often just acknowledgments)
@@ -479,7 +479,7 @@ class SwiftTermService: ObservableObject {
             // For debugging - show unknown message types with sample content
             let jsonStr = String(data: (try? JSONSerialization.data(withJSONObject: json, options: [])) ?? Data(), encoding: .utf8) ?? ""
             let preview = String(jsonStr.prefix(500))
-            print("📥 Unknown message type: \(messageType)")
+            print("Unknown message type: \(messageType)")
             print("   JSON preview: \(preview)")
         }
 

@@ -28,7 +28,7 @@ struct ClaudeCodeTerminalWindow: View {
                 workingDirectory: workingDirectory,
                 theme: selectedTheme
             )
-            .padding(8)
+            .padding(16)
 
             VStack {
                 HStack {
@@ -73,16 +73,6 @@ struct ClaudeCodeTerminalWindow: View {
                     .scaleEffect(0.6)
                     .frame(width: 14, height: 14)
             }
-
-            Button(action: {
-                service.cancel()
-                presentationMode.wrappedValue.dismiss()
-            }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.white.opacity(0.7))
-                    .font(.system(size: 14))
-            }
-            .buttonStyle(.plain)
         }
         .padding(8)
     }
