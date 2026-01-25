@@ -23,7 +23,7 @@ class ClaudeCodeTerminalWindowController: NSWindowController {
         self.workingDirectory = workingDirectory
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 480),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -45,8 +45,8 @@ class ClaudeCodeTerminalWindowController: NSWindowController {
         window.title = "Claude Code Terminal"
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
-        window.isOpaque = false
-        window.backgroundColor = NSColor.windowBackgroundColor
+        window.isOpaque = true
+        window.backgroundColor = NSColor(red: 0x1E/255.0, green: 0x1E/255.0, blue: 0x1E/255.0, alpha: 1.0)
         window.hasShadow = true
 
         window.standardWindowButton(.closeButton)?.isHidden = true
@@ -54,7 +54,7 @@ class ClaudeCodeTerminalWindowController: NSWindowController {
         window.standardWindowButton(.zoomButton)?.isHidden = true
 
         // 设置窗口最小和最大尺寸
-        window.minSize = NSSize(width: 700, height: 500)
+        window.minSize = NSSize(width: 500, height: 350)
         window.maxSize = NSSize(width: 1600, height: 1200)
 
         // 居中显示

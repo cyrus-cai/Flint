@@ -20,12 +20,15 @@ struct ClaudeCodeTerminalWindow: View {
 
     var body: some View {
         ZStack {
+            Color(nsColor: selectedTheme.background).ignoresSafeArea()
+            
             SwiftTerminalView_Themed(
                 noteContent: noteContent,
                 noteTitle: noteTitle,
                 workingDirectory: workingDirectory,
                 theme: selectedTheme
             )
+            .padding(8)
 
             VStack {
                 HStack {
@@ -41,7 +44,7 @@ struct ClaudeCodeTerminalWindow: View {
                 }
             }
         }
-        .frame(minWidth: 700, minHeight: 500)
+        .frame(minWidth: 500, minHeight: 350)
     }
 
     // MARK: - Header Overlay

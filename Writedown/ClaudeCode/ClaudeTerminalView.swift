@@ -24,14 +24,13 @@ class ClaudeTerminalView: TerminalView {
     // MARK: - Setup
 
     private func setupTerminal() {
-        // Configure terminal size (will be adjusted by container)
         let terminal = getTerminal()
         terminal.resize(cols: 120, rows: 40)
 
-        // Enable mouse reporting for selection
+        font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+
         allowMouseReporting = true
 
-        // Configure scrolling
         if let scrollView = enclosingScrollView {
             scrollView.hasVerticalScroller = true
             scrollView.autohidesScrollers = true
