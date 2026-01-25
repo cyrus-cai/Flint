@@ -129,12 +129,14 @@ class SwiftTermService: ObservableObject {
         env["TERM"] = "xterm-256color"
         process.environment = env
 
-        // Configure arguments - use verbose mode without stream-json
-        // This allows native terminal output with colors and formatting
+        // Configure arguments - use stream-json for clean output without terminal control codes
         process.arguments = [
             "-p", content,
+            "--output-format", "stream-json",
             "--verbose"
         ]
+
+        print("🚀 Starting Claude process with arguments: \(process.arguments ?? [])")
 
         // Configure I/O pipes
         let outPipe = Pipe()
@@ -164,7 +166,10 @@ class SwiftTermService: ObservableObject {
 
         // Launch process
         do {
+            print("🚀 Launching Claude process...")
+            let launchStart = Date()
             try process.run()
+            print("🚀 Process launched in \(String(format: "%.2f", Date().timeIntervalSince(launchStart) * 1000))ms, PID: \(process.processIdentifier)")
         } catch {
             await feedErrorMessage(to: terminalView, message: "Failed to launch: \(error.localizedDescription)")
             isRunning = false
@@ -269,43 +274,216 @@ class SwiftTermService: ObservableObject {
 
     // MARK: - Raw Byte Reading
 
-    /// Read raw bytes from file handle and feed to terminal
-    /// This preserves ANSI escape sequences for proper color rendering
+    /// Read JSON stream from file handle and feed parsed content to terminal
     private nonisolated func readAndFeedOutput(
         from fileHandle: FileHandle,
         to terminalView: ClaudeTerminalView,
         isError: Bool
     ) async {
+        let streamLabel = isError ? "STDERR" : "STDOUT"
+        print("📥 [\(streamLabel)] Starting output reader...")
+
         // Read on background thread to avoid blocking
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             DispatchQueue.global(qos: .userInitiated).async {
+                var totalBytes = 0
+                var readCount = 0
+                var lineBuffer = ""
+
                 while true {
                     // Read available data - blocks until data or EOF
                     let data = fileHandle.availableData
 
                     // Empty data means EOF
                     if data.isEmpty {
+                        print("📥 [\(streamLabel)] EOF reached. Total: \(totalBytes) bytes in \(readCount) reads")
                         break
                     }
 
-                    // Convert to string, handling potential partial UTF-8 sequences
-                    let text: String
-                    if let utf8Text = String(data: data, encoding: .utf8) {
-                        text = utf8Text
-                    } else {
-                        // If UTF-8 decoding fails, use lossy decoding
-                        text = String(decoding: data, as: UTF8.self)
+                    readCount += 1
+                    totalBytes += data.count
+
+                    // Convert to string
+                    guard let text = String(data: data, encoding: .utf8) else {
+                        continue
                     }
 
-                    // Feed raw text to terminal on main thread
-                    DispatchQueue.main.async {
-                        terminalView.feed(text: text)
+                    // Buffer and process line by line (JSON is newline-delimited)
+                    lineBuffer += text
+                    let lines = lineBuffer.components(separatedBy: "\n")
+
+                    // Process complete lines, keep incomplete line in buffer
+                    for i in 0..<lines.count - 1 {
+                        let line = lines[i].trimmingCharacters(in: .whitespaces)
+                        if line.isEmpty { continue }
+
+                        // Parse JSON and extract content
+                        if let displayText = self.parseStreamJSON(line) {
+                            DispatchQueue.main.async {
+                                terminalView.feed(text: displayText)
+                            }
+                        }
+                    }
+
+                    lineBuffer = lines.last ?? ""
+                }
+
+                // Process any remaining content in buffer
+                if !lineBuffer.isEmpty {
+                    let line = lineBuffer.trimmingCharacters(in: .whitespaces)
+                    if let displayText = self.parseStreamJSON(line) {
+                        DispatchQueue.main.async {
+                            terminalView.feed(text: displayText)
+                        }
                     }
                 }
 
                 continuation.resume()
             }
         }
+    }
+
+    /// Parse stream-json format and extract displayable text
+    private nonisolated func parseStreamJSON(_ jsonLine: String) -> String? {
+        guard let data = jsonLine.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            // Not valid JSON, might be plain text error
+            if !jsonLine.isEmpty {
+                return jsonLine + "\r\n"
+            }
+            return nil
+        }
+
+        let messageType = json["type"] as? String ?? ""
+
+        switch messageType {
+        case "assistant":
+            // Assistant message with content
+            if let message = json["message"] as? [String: Any],
+               let content = message["content"] as? [[String: Any]] {
+                var result = ""
+                for item in content {
+                    if let text = item["text"] as? String {
+                        result += text
+                    }
+                }
+                if !result.isEmpty {
+                    return result
+                }
+            }
+
+        case "content_block_delta":
+            // Streaming content delta
+            if let delta = json["delta"] as? [String: Any],
+               let text = delta["text"] as? String {
+                return text
+            }
+
+        case "content_block_start":
+            // Content block starting - might have initial text
+            if let contentBlock = json["content_block"] as? [String: Any],
+               let text = contentBlock["text"] as? String,
+               !text.isEmpty {
+                return text
+            }
+
+        case "result":
+            // Final result
+            if let result = json["result"] as? String {
+                return "\r\n\(result)\r\n"
+            }
+
+        case "system":
+            // System message
+            if let message = json["message"] as? String {
+                return "\r\n💡 \(message)\r\n"
+            }
+            if let subtype = json["subtype"] as? String {
+                switch subtype {
+                case "init":
+                    if let sessionId = json["session_id"] as? String {
+                        return "📍 Session: \(sessionId)\r\n"
+                    }
+                case "result":
+                    if let result = json["result"] as? String {
+                        return "\r\n✅ \(result)\r\n"
+                    }
+                default:
+                    break
+                }
+            }
+
+        case "error":
+            // Error message
+            if let error = json["error"] as? [String: Any],
+               let message = error["message"] as? String {
+                return "\r\n❌ Error: \(message)\r\n"
+            }
+
+        case "user":
+            // User message (tool results, subagent messages, etc.)
+            // Handle tool_use_result directly on json
+            if let toolResult = json["tool_use_result"] as? [String: Any] {
+                if let content = toolResult["content"] as? String, !content.isEmpty {
+                    return "📄 \(content)\r\n"
+                } else if let items = toolResult["content"] as? [[String: Any]] {
+                    var result = ""
+                    for item in items {
+                        if let text = item["text"] as? String {
+                            result += text
+                        }
+                    }
+                    if !result.isEmpty {
+                        return "📄 \(result)\r\n"
+                    }
+                }
+            }
+            
+            // Handle message.content as array
+            if let message = json["message"] as? [String: Any],
+               let content = message["content"] as? [[String: Any]] {
+                var result = ""
+                for item in content {
+                    if let itemType = item["type"] as? String {
+                        if itemType == "tool_result", let toolContent = item["content"] as? String {
+                            // Tool result content
+                            result += "📄 \(toolContent)\r\n"
+                        } else if let text = item["text"] as? String {
+                            result += text
+                        }
+                    } else if let text = item["text"] as? String {
+                        // Fallback: item without type but has text
+                        result += text
+                    }
+                }
+                if !result.isEmpty {
+                    return result
+                }
+            }
+            
+            // Handle message.content as string
+            if let message = json["message"] as? [String: Any],
+               let content = message["content"] as? String, !content.isEmpty {
+                return "📄 \(content)\r\n"
+            }
+            
+            // Handle message as string directly
+            if let message = json["message"] as? String, !message.isEmpty {
+                return "📄 \(message)\r\n"
+            }
+            
+            // Silently ignore other user messages (they're often just acknowledgments)
+            return nil
+
+        default:
+            // For debugging - show unknown message types with sample content
+            let jsonStr = String(data: (try? JSONSerialization.data(withJSONObject: json, options: [])) ?? Data(), encoding: .utf8) ?? ""
+            let preview = String(jsonStr.prefix(500))
+            print("📥 Unknown message type: \(messageType)")
+            print("   JSON preview: \(preview)")
+        }
+
+        return nil
     }
 
     // MARK: - Cleanup

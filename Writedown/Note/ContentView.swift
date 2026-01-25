@@ -67,9 +67,6 @@ struct ContentView: View {
     @State private var showCopiedStatus = false
     @State private var showClaudeCodePanel = false
 
-    // 🧪 SwiftTerm 测试
-    @State private var showSwiftTermTest = false
-
     static let loadNoteNotification = Notification.Name("LoadNoteNotification")
     static let showRecentNotesNotification = Notification.Name("ShowRecentNotesNotification")
 
@@ -427,7 +424,17 @@ struct ContentView: View {
                             },
                             onCopy: copyFullContent,
                             onShare: shareFullContent,
-                            onTestSwiftTerm: { showSwiftTermTest = true },
+                            onTestSwiftTerm: {
+                                // 使用独立窗口控制器，居中显示 Terminal
+                                // Working directory 设为当前笔记文件夹
+                                let workingDir = LocalFileManager.shared.notesDirectory
+                                    ?? URL(fileURLWithPath: NSHomeDirectory())
+                                ClaudeCodeTerminalWindowController.show(
+                                    noteContent: text.isEmpty ? "帮我分析这个项目的结构" : text,
+                                    noteTitle: title,
+                                    workingDirectory: workingDir
+                                )
+                            },
                             isEditing: $isEditingTitle,
                             editableTitle: $editedTitle,
                             onTitleCommit: saveTitleEdit
@@ -490,15 +497,6 @@ struct ContentView: View {
                         }
                     )
                 }
-            }
-            // 🧪 SwiftTerm 测试窗口
-            .sheet(isPresented: $showSwiftTermTest) {
-                ClaudeCodeTerminalWindow(
-                    noteContent: text.isEmpty ? "帮我分析这个项目的结构" : text,
-                    noteTitle: title,
-                    workingDirectory: URL(fileURLWithPath: NSHomeDirectory())
-                )
-                .frame(width: 900, height: 700)
             }
         }
         .onChange(of: text) {

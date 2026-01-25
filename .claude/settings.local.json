@@ -22,7 +22,8 @@
       "Bash(~/.local/bin/claude:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:migueldeicaza.github.io)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(grep:*)"
     ]
   },
   "spinnerTipsEnabled": false

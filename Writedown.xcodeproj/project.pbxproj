@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
+		4A2D398727A6383107023B5F /* ClaudeCodeTerminalWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9037D7F628EEA3888036055 /* ClaudeCodeTerminalWindowController.swift */; };
 		540F2D4C3AAF63138A3AD24A /* PaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7AA5748CB737BB3F4D54E /* PaymentViewModel.swift */; };
 		A30F32A02D4DDAAA0028E47E /* ProStatusChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F329F2D4DDAAA0028E47E /* ProStatusChecker.swift */; };
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
@@ -40,20 +41,20 @@
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 		A3CLAUDE2D910A0100000001 /* ClaudeCodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDE2D910A0100000002 /* ClaudeCodeService.swift */; };
 		A3CLAUDEOUTPUT00000001 /* ClaudeCodeOutputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDEOUTPUT00000002 /* ClaudeCodeOutputView.swift */; };
-		A3CLAUDETERMWIN000001 /* ClaudeCodeTerminalWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDETERMWIN000002 /* ClaudeCodeTerminalWindow.swift */; };
 		A3CLAUDETERMDELEGATE1 /* ClaudeTerminalDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDETERMDELEGATE2 /* ClaudeTerminalDelegate.swift */; };
 		A3CLAUDETERMVIEW0001 /* ClaudeTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDETERMVIEW0002 /* ClaudeTerminalView.swift */; };
-		A3SWIFTTERMVIEW00001 /* SwiftTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3SWIFTTERMVIEW00002 /* SwiftTerminalView.swift */; };
-		A3SWIFTTERMSERVICE01 /* SwiftTermService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3SWIFTTERMSERVICE02 /* SwiftTermService.swift */; };
+		A3CLAUDETERMWIN000001 /* ClaudeCodeTerminalWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CLAUDETERMWIN000002 /* ClaudeCodeTerminalWindow.swift */; };
 		A3F6B1432D4A6800006FD834 /* StripeCheckout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */; };
 		A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */; };
 		A3INTENT2D910A0100000001 /* IntentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3INTENT2D910A0100000002 /* IntentModels.swift */; };
 		A3NOTIFS2D910A0100000001 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3NOTIFS2D910A0100000002 /* NotificationService.swift */; };
 		A3REMIND2D910A0100000001 /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3REMIND2D910A0100000002 /* ReminderService.swift */; };
+		A3SWIFTTERMBUILD000001 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = A3SWIFTTERMDEP00000001 /* SwiftTerm */; };
+		A3SWIFTTERMSERVICE01 /* SwiftTermService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3SWIFTTERMSERVICE02 /* SwiftTermService.swift */; };
+		A3SWIFTTERMVIEW00001 /* SwiftTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3SWIFTTERMVIEW00002 /* SwiftTerminalView.swift */; };
 		A3TEXTM3TR1C52D93A1B00001 /* TextMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */; };
 		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
 		FE9F1F51C1FD76EDF6D702B3 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */; };
-		A3SWIFTTERMBUILD000001 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = A3SWIFTTERMDEP00000001 /* SwiftTerm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -109,18 +110,19 @@
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 		A3CLAUDE2D910A0100000002 /* ClaudeCodeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeService.swift; sourceTree = "<group>"; };
 		A3CLAUDEOUTPUT00000002 /* ClaudeCodeOutputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeOutputView.swift; sourceTree = "<group>"; };
-		A3CLAUDETERMWIN000002 /* ClaudeCodeTerminalWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeTerminalWindow.swift; sourceTree = "<group>"; };
 		A3CLAUDETERMDELEGATE2 /* ClaudeTerminalDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeTerminalDelegate.swift; sourceTree = "<group>"; };
 		A3CLAUDETERMVIEW0002 /* ClaudeTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeTerminalView.swift; sourceTree = "<group>"; };
-		A3SWIFTTERMVIEW00002 /* SwiftTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftTerminalView.swift; sourceTree = "<group>"; };
-		A3SWIFTTERMSERVICE02 /* SwiftTermService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftTermService.swift; sourceTree = "<group>"; };
+		A3CLAUDETERMWIN000002 /* ClaudeCodeTerminalWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeTerminalWindow.swift; sourceTree = "<group>"; };
 		A3F6B1422D4A6800006FD834 /* StripeCheckout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripeCheckout.swift; sourceTree = "<group>"; };
 		A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageManager.swift; sourceTree = "<group>"; };
 		A3INTENT2D910A0100000002 /* IntentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentModels.swift; sourceTree = "<group>"; };
 		A3NOTIFS2D910A0100000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		A3REMIND2D910A0100000002 /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
+		A3SWIFTTERMSERVICE02 /* SwiftTermService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftTermService.swift; sourceTree = "<group>"; };
+		A3SWIFTTERMVIEW00002 /* SwiftTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftTerminalView.swift; sourceTree = "<group>"; };
 		A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMetrics.swift; sourceTree = "<group>"; };
 		D2B8ED099870629FCC4A1EC4 /* SubscriptionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		E9037D7F628EEA3888036055 /* ClaudeCodeTerminalWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeTerminalWindowController.swift; sourceTree = "<group>"; };
 		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -330,6 +332,7 @@
 				A3CLAUDETERMDELEGATE2 /* ClaudeTerminalDelegate.swift */,
 				A3CLAUDETERMVIEW0002 /* ClaudeTerminalView.swift */,
 				A3SWIFTTERMVIEW00002 /* SwiftTerminalView.swift */,
+				E9037D7F628EEA3888036055 /* ClaudeCodeTerminalWindowController.swift */,
 			);
 			path = ClaudeCode;
 			sourceTree = "<group>";
@@ -522,6 +525,7 @@
 				A3CLAUDETERMVIEW0001 /* ClaudeTerminalView.swift in Sources */,
 				A3SWIFTTERMVIEW00001 /* SwiftTerminalView.swift in Sources */,
 				A3SWIFTTERMSERVICE01 /* SwiftTermService.swift in Sources */,
+				4A2D398727A6383107023B5F /* ClaudeCodeTerminalWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
