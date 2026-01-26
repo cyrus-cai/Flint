@@ -1,0 +1,1 @@
+- Created changelog entry for v0.9.6 with Claude Code and SwiftTerm integration details.
