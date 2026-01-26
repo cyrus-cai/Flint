@@ -195,7 +195,7 @@ class ClaudeCodeService: ObservableObject {
         // --output-format stream-json: structured JSON output with thinking, tool use, etc.
         // --include-partial-messages: stream partial message chunks as they arrive
         process.arguments = [
-            "-p", "Please respond in English. " + content,
+            "-p", content,
             "--verbose",
             "--output-format", "stream-json",
             "--include-partial-messages"
