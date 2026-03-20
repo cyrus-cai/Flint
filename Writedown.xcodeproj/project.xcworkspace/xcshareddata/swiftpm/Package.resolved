@@ -1,5 +1,5 @@
 {
-  "originHash" : "a9c4c2feca99d77246b9b22404b41fdbfaca3af88a12ad58018a668fd11cc821",
+  "originHash" : "69c39523ac0471922b625cc56b8722155cfd2afd660bdd4f5ff67335b5b87714",
   "pins" : [
     {
       "identity" : "keyboardshortcuts",
@@ -8,15 +8,6 @@
       "state" : {
         "revision" : "7ecc38bb6edf7d087d30e737057b8d8a9b7f51eb",
         "version" : "2.2.4"
-      }
-    },
-    {
-      "identity" : "mixpanel-swift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mixpanel/mixpanel-swift",
-      "state" : {
-        "branch" : "master",
-        "revision" : "773dd92248e8aca005b29912043526511a5ce4d2"
       }
     }
   ],

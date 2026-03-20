@@ -57,13 +57,6 @@ struct OnboardingView: View {
             imageName: "local-private-demo"
         ),
         OnboardingStep(
-            icon: "star",
-            title: L("Get Pro"),
-            description: L("Get more with Writedown Pro"),
-            detail: "",
-            imageName: "pro-features-demo"
-        ),
-        OnboardingStep(
             icon: "checkmark.circle",
             title: L("You're All Set!"),
             description: L("Ready to start your note-taking journey"),
@@ -191,62 +184,27 @@ struct OnboardingView: View {
 
                 Spacer()
 
-                // Show Skip and Configure Vault buttons only for the Select folder step
-                if currentStep == 0 {  // First step
-                    Button(L("Next Step")) {
+                Button(currentStep == steps.count - 1 ? L("Start Writedown") : L("Next Step")) {
+                    if currentStep == steps.count - 1 {
+                        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+
+                        isFirstLaunch = false
+                        if let window = NSApplication.shared.windows.first(where: {
+                            $0.title == L("Welcome to Writedown")
+                        }) {
+                            window.close()
+                        }
+                        WindowManager.shared.createNewWindow()
+                    } else {
                         slideDirection = .right
                         withAnimation {
                             currentStep += 1
                         }
                     }
-                    .padding(.vertical, 8)
-                    .buttonStyle(GradientButtonStyle())
-                    .controlSize(.large)
-                } else if currentStep == 2 {  // Get Pro step
-
-                    Button(L("Get Pro")) {
-                        if let url = URL(string: "https://google.com") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                    .buttonStyle(BorderedGradientButtonStyle())
-                    .controlSize(.large)
-                    .padding(.trailing, 8)
-
-                    Button(L("Next Step")) {
-                        slideDirection = .right
-                        withAnimation {
-                            currentStep += 1
-                        }
-                    }
-                    .buttonStyle(GradientButtonStyle())
-                    .controlSize(.large)
-                    .padding(.trailing, 8)
-
-                } else {
-                    // For other steps, show the regular Next/Start button
-                    Button(currentStep == steps.count - 1 ? L("Start Writedown") : L("Next Step")) {
-                        if currentStep == steps.count - 1 {
-                            // Set hasCompletedOnboarding to true
-                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-
-                            isFirstLaunch = false
-                            if let window = NSApplication.shared.windows.first(where: {
-                                $0.title == L("Welcome to Writedown")
-                            }) {
-                                window.close()
-                            }
-                            WindowManager.shared.createNewWindow()
-                        } else {
-                            slideDirection = .right
-                            withAnimation {
-                                currentStep += 1
-                            }
-                        }
-                    }
-                    .buttonStyle(GradientButtonStyle())
-                    .controlSize(.large)
                 }
+                .padding(.vertical, 8)
+                .buttonStyle(GradientButtonStyle())
+                .controlSize(.large)
             }
             .padding(48)
         }

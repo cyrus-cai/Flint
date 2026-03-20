@@ -7,22 +7,10 @@
 
 import Foundation
 
-/// Application configuration settings
-enum AppConfig {
-    enum QuickWakeup {
-        static let dailyLimit = 100
-    }
-
-    // 未来可以在这里添加其他配置类别
-    // enum OtherFeature { ... }
-}
-
 struct AIModel: Identifiable, Equatable {
     var id: String { modelId }
     let modelId: String
     let displayName: String
-    /// If true, the model is only available for Pro users.
-    let isProOnly: Bool
 }
 
 struct AIModelConfig {
@@ -30,16 +18,12 @@ struct AIModelConfig {
     static let availableModels: [AIModel] = [
         // ✅ Working endpoint - set as default
         AIModel(
-            modelId: "ep-20250128221733-ldppp", displayName: "Doubao-1.5-pro-32k",
-            isProOnly: false),
+            modelId: "ep-20250128221733-ldppp", displayName: "Doubao-1.5-pro-32k"),
         // ❌ Deprecated endpoints (closed/unavailable)
         // AIModel(
-        //     modelId: "ep-20250212220411-mtfqd", displayName: "Doubao-lite-32k [CLOSED]",
-        //     isProOnly: false),
-        // AIModel(
-        //     modelId: "ep-20250208231403-7dmtb", displayName: "DeepSeek-V3 [CLOSED]", isProOnly: true),
-        // AIModel(
-        //     modelId: "ep-20250213001714-xxx2w", displayName: "DeepSeek-R1-7B", isProOnly: true),
+        //     modelId: "ep-20250212220411-mtfqd", displayName: "Doubao-lite-32k [CLOSED]"),
+        // AIModel(modelId: "ep-20250208231403-7dmtb", displayName: "DeepSeek-V3 [CLOSED]"),
+        // AIModel(modelId: "ep-20250213001714-xxx2w", displayName: "DeepSeek-R1-7B"),
     ]
 }
 

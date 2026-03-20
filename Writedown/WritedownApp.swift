@@ -2,7 +2,6 @@ import AppKit
 import Carbon
 import Cocoa
 import KeyboardShortcuts
-import Mixpanel
 import ServiceManagement
 import SwiftUI
 
@@ -12,17 +11,6 @@ struct WritedownApp: App {
 
     init() {
         registerDefaultSettings()
-        // Initialize Mixpanel with proper configuration
-        Mixpanel.initialize(
-            token: "f7863b6d43e142d2a35285b4d7764792",
-            flushInterval: 60
-        )
-
-        #if DEBUG
-            Mixpanel.mainInstance().loggingEnabled = true
-        #endif
-
-        Mixpanel.mainInstance().useIPAddressForGeoLocation = false
     }
 
     var body: some Scene {
@@ -106,19 +94,11 @@ class HotkeyCounter: ObservableObject {
     deinit {
         midnightTimer?.invalidate()
     }
-
-    var underLimit: Bool {
-        return true
-    }
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
     private var statusItem: NSStatusItem?
-    private var hotKey: HotKey?
-    private var limitExceededWindow: LimitExceededWindowController?
     var globalKeyMonitor: GlobalKeyMonitor?
-
-    private let subscriptionManager = SubscriptionManager.shared
 
     private func updateAppearance(_ mode: AppearanceMode) {
         if let window = NSApp.windows.first {
@@ -134,14 +114,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Mixpanel.mainInstance().track(event: "App Launched")
         UpdateManager.shared.checkAndDownloadUpdate()
 
         if UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") {
             MaybeLikeService.shared.startMonitoring()
         }
-
-        _ = subscriptionManager
 
         NSApp.setActivationPolicy(.accessory)
         NSUserNotificationCenter.default.delegate = self
@@ -204,34 +181,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc func toggleWindow() {
         WindowManager.shared.activeWindow?.toggleWindow()
-        Mixpanel.mainInstance().track(event: "Window Toggled")
     }
 
     private func setupGlobalHotkey() {
         KeyboardShortcuts.onKeyUp(for: .quickWakeup) { [weak self] in
-            if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit
-                && !UserDefaults.standard.bool(forKey: "isPro")
-            {
-                if self?.limitExceededWindow == nil {
-                    let window = LimitExceededWindowController()
-                    window.showWindow(nil)
-                    NSApp.activate(ignoringOtherApps: true)
-                    self?.limitExceededWindow = window
-
-                    NotificationCenter.default.addObserver(
-                        self as Any,
-                        selector: #selector(self?.limitExceededWindowDidClose),
-                        name: NSWindow.willCloseNotification,
-                        object: window.window
-                    )
-                }
-            } else {
-                let wasHidden = WindowManager.shared.activeWindow?.window?.isVisible == false
-                self?.toggleWindow()
-                if wasHidden {
-                    HotkeyCounter.shared.increment()
-                    print("Shortcut count increased - window was hidden")
-                }
+            let wasHidden = WindowManager.shared.activeWindow?.window?.isVisible == false
+            self?.toggleWindow()
+            if wasHidden {
+                HotkeyCounter.shared.increment()
             }
         }
         
@@ -245,15 +202,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 )
             }
         }
-    }
-
-    @objc private func limitExceededWindowDidClose(_ notification: Notification) {
-        limitExceededWindow = nil
-        NotificationCenter.default.removeObserver(
-            self,
-            name: NSWindow.willCloseNotification,
-            object: notification.object
-        )
     }
 
     private func setupStatusBarItem() {
@@ -296,12 +244,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             statusItem?.button?.performClick(nil)
             statusItem?.menu = nil
         } else {
-            if HotkeyCounter.shared.underLimit || UserDefaults.standard.bool(forKey: "isPro") {
-                toggleWindow()
-                HotkeyCounter.shared.increment()
-            } else {
-                WindowManager.shared.createLimitExceededWindow()
-            }
+            toggleWindow()
+            HotkeyCounter.shared.increment()
         }
     }
 
@@ -329,70 +273,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 }
             } catch {
                 print("Failed to request notification permission: \(error)")
-            }
-        }
-    }
-
-    func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first else {
-            print("❌ No URL received")
-            return
-        }
-
-        print("📥 Received URL: \(url)")
-
-        if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
-            components.queryItems?.contains(where: { $0.name == "session_id" }) == true
-        {
-            handleStripeCallback(url: url)
-        } else {
-             
-        }
-    }
-
-    func handleStripeCallback(url: URL) {
-        if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
-            let sessionId = components.queryItems?.first(where: { $0.name == "session_id" })?.value
-        {
-            print("💳 Received Stripe session ID:", sessionId)
-
-            Task {
-                do {
-                    let verifyURL = URL(
-                        string: "https://www.writedown.space/verify-payment?session_id=\(sessionId)"
-                    )!
-                    let (data, response) = try await URLSession.shared.data(from: verifyURL)
-
-                    if let httpResponse = response as? HTTPURLResponse,
-                        httpResponse.statusCode == 200,
-                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                        let status = json["status"] as? String,
-                        status == "success"
-                    {
-                        Mixpanel.mainInstance().track(event: "Payment Successful")
-                        Mixpanel.mainInstance().people.set(property: "isPro", to: true)
-
-                        await MainActor.run {
-                            let defaults = UserDefaults.standard
-                            defaults.set(true, forKey: "isPro")
-                            defaults.synchronize()
-
-                            NotificationCenter.default.post(
-                                name: NSNotification.Name("SubscriptionDidUpdate"),
-                                object: nil
-                            )
-
-                            let notification = NSUserNotification()
-                            notification.title = L("Payment Successful")
-                            notification.informativeText = L("Welcome to Writedown Pro!")
-                            NSUserNotificationCenter.default.deliver(notification)
-                        }
-                    } else {
-                        print("❌ Payment verification failed: Invalid response")
-                    }
-                } catch {
-                    print("❌ Payment verification failed:", error)
-                }
             }
         }
     }
@@ -569,7 +449,6 @@ class GlobalKeyMonitor {
             try textWithMetadata.write(to: fileURL, atomically: true, encoding: .utf8)
             print("Saved clipboard content to: \(fileURL.path)")
 
-            // 增加使用次数统计
             HotkeyCounter.shared.increment()
 
             Task {
