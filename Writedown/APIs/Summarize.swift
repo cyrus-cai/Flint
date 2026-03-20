@@ -184,7 +184,7 @@ class DoubaoAPI {
         // fall back to the working endpoint (ep-20250128221733-ldppp)
         let selectedModel =
             UserDefaults.standard.string(forKey: "AIModel")
-            ?? AIModelConfig.availableModels.first(where: { !$0.isProOnly })?.modelId
+            ?? AIModelConfig.availableModels.first?.modelId
             ?? "ep-20250128221733-ldppp"
 
         // Select the appropriate prompt based on summarization type

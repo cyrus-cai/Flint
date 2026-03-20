@@ -118,15 +118,6 @@
 /* Quick save */
 "Quick save" = "快速儲存";
 
-/* Today: %d/%d */
-"Today: %d/%d" = "今日：%d/%d";
-
-/* Upgrade to Pro */
-"Upgrade to Pro" = "升級至專業版";
-
-/* Payment Error */
-"Payment Error" = "付款錯誤";
-
 /* OK */
 "OK" = "確定";
 
@@ -214,12 +205,6 @@
 /* Help summarize & make plans. */
 "Help summarize & make plans." = "協助總結和制定計劃。";
 
-/* Get Pro */
-"Get Pro" = "取得專業版";
-
-/* Get more with Writedown Pro */
-"Get more with Writedown Pro" = "使用 Writedown Pro 取得更多功能";
-
 /* You're All Set! */
 "You're All Set!" = "一切準備就緒！";
 
@@ -253,38 +238,11 @@
 /* Change Location */
 "Change Location" = "更改位置";
 
-/* Daily Limit Reached */
-"Daily Limit Reached" = "已達每日限制";
-
-/* You've reached the daily limit */
-"You've reached the daily limit of %d quick wake-ups. Upgrade to Pro for unlimited access." = "您已達每日 %d 次快速喚醒的限制。升級至專業版以取得無限存取。";
-
-/* You can still launch Writedown from the dock. */
-"You can still launch Writedown from the dock." = "您仍可從 Dock 啟動 Writedown。";
-
-/* Processing... */
-"Processing..." = "處理中...";
-
-/* RMB 48 Lifetime-Pro */
-"RMB 48 Lifetime-Pro" = "￥48 終身專業版";
-
-/* Restore Purchase */
-"Restore Purchase" = "恢復購買";
-
-/* Already subscribed? Log in */
-"Already subscribed? Log in" = "已訂閱？登入";
-
 /* Error */
 "Error" = "錯誤";
 
 /* Cancel */
 "Cancel" = "取消";
-
-/* Success */
-"Success" = "成功";
-
-/* Welcome to Writedown Pro! You now have unlimited quick wake-ups. */
-"Welcome to Writedown Pro! You now have unlimited quick wake-ups." = "歡迎使用 Writedown Pro！您現在擁有無限次快速喚醒。";
 
 /* Renaming... */
 "Renaming..." = "重新命名中...";
@@ -409,12 +367,6 @@
 /* Quit */
 "Quit" = "結束";
 
-/* Payment Successful */
-"Payment Successful" = "付款成功";
-
-/* Welcome to Writedown Pro! */
-"Welcome to Writedown Pro!" = "歡迎使用 Writedown Pro！";
-
 /* Content Saved */
 "Content Saved" = "內容已儲存";
 
@@ -454,30 +406,6 @@
 /* Welcome to Writedown */
 "Welcome to Writedown" = "歡迎使用 Writedown";
 
-/* Subscription */
-"Subscription" = "訂閱";
-
-/* Status */
-"Status" = "狀態";
-
-/* Free */
-"Free" = "免費版";
-
-/* Restore */
-"Restore" = "恢復";
-
-/* Restore Result */
-"Restore Result" = "恢復結果";
-
-/* Your Pro subscription has been restored. */
-"Your Pro subscription has been restored." = "您的專業版訂閱已恢復。";
-
-/* Restore Failed */
-"Restore Failed" = "恢復失敗";
-
-/* Unlimited quick wake-ups (Pro) */
-"Unlimited quick wake-ups (Pro)" = "無限次快速喚醒（專業版）";
-
 /* Double press Option key */
 "Double press Option key" = "雙擊 Option 鍵";
 
@@ -495,4 +423,3 @@
 
 /* Delete */
 "Delete" = "刪除";
-

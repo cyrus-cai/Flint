@@ -311,7 +311,6 @@ class LocalizationManager: ObservableObject {
         "Latest available": ["zh-Hans": "已是最新版本", "zh-Hant": "已是最新版本"],
         "Double press Option key": ["zh-Hans": "双击 Option 键", "zh-Hant": "雙擊 Option 鍵"],
         "Cmd + C (double click)": ["zh-Hans": "Cmd + C (双击)", "zh-Hant": "Cmd + C (雙擊)"],
-        "Unlimited quick wake-ups (Pro)": ["zh-Hans": "无限快速唤醒 (Pro)", "zh-Hant": "無限快速喚醒 (Pro)"],
         "Stop": ["zh-Hans": "停止", "zh-Hant": "停止"],
         "No more notes": ["zh-Hans": "没有更多笔记了", "zh-Hant": "沒有更多筆記了"],
         "Welcome to Writedown": ["zh-Hans": "欢迎使用 Writedown", "zh-Hant": "歡迎使用 Writedown"],
@@ -327,47 +326,28 @@ class LocalizationManager: ObservableObject {
         "Display": ["zh-Hans": "显示", "zh-Hant": "顯示"],
         "Update": ["zh-Hans": "更新", "zh-Hant": "更新"],
         "Done": ["zh-Hans": "完成", "zh-Hant": "完成"],
-        // LimitExceededView translations
-        "Daily Limit Reached": ["zh-Hans": "达到每日限制", "zh-Hant": "已達每日限制"],
-        "You've reached the daily limit of %d quick wake-ups.": ["zh-Hans": "您已达到每日 %d 次快速唤醒的限制。", "zh-Hant": "您已達到每日 %d 次快速喚醒的限制。"],
-        "You can still launch Writedown from the dock.": ["zh-Hans": "您仍然可以从程序坞启动 Writedown。", "zh-Hant": "您仍然可以從 Dock 啟動 Writedown。"],
-        "Processing...": ["zh-Hans": "处理中...", "zh-Hant": "處理中..."],
-        "RMB 48 Lifetime-Pro": ["zh-Hans": "￥48 终身专业版", "zh-Hant": "￥48 終身專業版"],
-        "Restore Purchase": ["zh-Hans": "恢复购买", "zh-Hant": "恢復購買"],
-        "Already subscribed? Log in": ["zh-Hans": "已订阅？登录", "zh-Hant": "已訂閱？登入"],
         "Error": ["zh-Hans": "错误", "zh-Hant": "錯誤"],
         "Retry": ["zh-Hans": "重试", "zh-Hant": "重試"],
         "Success": ["zh-Hans": "成功", "zh-Hant": "成功"],
         "OK": ["zh-Hans": "确定", "zh-Hant": "確定"],
-        "Welcome to Writedown Pro! You now have unlimited quick wake-ups.": ["zh-Hans": "欢迎使用 Writedown Pro！您现在拥有无限次快速唤醒。", "zh-Hant": "歡迎使用 Writedown Pro！您現在擁有無限次快速喚醒。"],
         // TitleBarView translations
         "Attachments": ["zh-Hans": "附件", "zh-Hant": "附件"],
         "No attachments": ["zh-Hans": "无附件", "zh-Hant": "無附件"],
         // OnboardingView translations
         "Previous": ["zh-Hans": "上一步", "zh-Hant": "上一步"],
         "Next Step": ["zh-Hans": "下一步", "zh-Hant": "下一步"],
-        "Get Pro": ["zh-Hans": "获取专业版", "zh-Hant": "取得專業版"],
         "Start Writedown": ["zh-Hans": "开始使用 Writedown", "zh-Hant": "開始使用 Writedown"],
         "Storage Location": ["zh-Hans": "存储位置", "zh-Hant": "儲存位置"],
         "Change Location": ["zh-Hans": "更改位置", "zh-Hant": "變更位置"],
         "Select Notes Directory": ["zh-Hans": "选择笔记目录", "zh-Hant": "選擇筆記目錄"],
-        // WritedownApp notifications
-        "Payment Successful": ["zh-Hans": "支付成功", "zh-Hant": "付款成功"],
-        "Welcome to Writedown Pro!": ["zh-Hans": "欢迎使用 Writedown Pro！", "zh-Hant": "歡迎使用 Writedown Pro！"],
         "From %@": ["zh-Hans": "来自 %@", "zh-Hant": "來自 %@"],
         "From %@ | %d chars": ["zh-Hans": "来自 %@ | %d 字符", "zh-Hant": "來自 %@ | %d 字元"],
         // Summarize.swift notifications
         "Maybe Like Captured": ["zh-Hans": "可能喜欢的内容已保存", "zh-Hant": "可能喜歡的內容已儲存"],
         // ContentView
         "Start writing...": ["zh-Hans": "开始写作...", "zh-Hant": "開始撰寫..."],
-        // SettingsView - Alerts
-        "Payment Error": ["zh-Hans": "支付错误", "zh-Hant": "付款錯誤"],
-        "Restore Result": ["zh-Hans": "恢复结果", "zh-Hant": "恢復結果"],
-        "Your Pro subscription has been restored.": ["zh-Hans": "您的专业版订阅已恢复。", "zh-Hant": "您的專業版訂閱已恢復。"],
-        "Restore Failed": ["zh-Hans": "恢复失败", "zh-Hant": "恢復失敗"],
         // SettingsView - Sections and Labels
         "Updates": ["zh-Hans": "更新", "zh-Hant": "更新"],
-        "Subscription": ["zh-Hans": "订阅", "zh-Hant": "訂閱"],
         "Release Notes": ["zh-Hans": "发布说明", "zh-Hant": "發行說明"],
         "Send Feedback": ["zh-Hans": "发送反馈", "zh-Hant": "傳送回饋"],
         "Note Operations": ["zh-Hans": "笔记操作", "zh-Hant": "筆記操作"],
@@ -382,21 +362,17 @@ class LocalizationManager: ObservableObject {
         "Auto generate note titles": ["zh-Hans": "自动生成笔记标题", "zh-Hant": "自動產生筆記標題"],
         "Auto save important clipboard content": ["zh-Hans": "自动保存重要剪贴板内容", "zh-Hant": "自動儲存重要剪貼簿內容"],
         "Status": ["zh-Hans": "状态", "zh-Hant": "狀態"],
-        // SettingsView - More items (duplicates removed: Preferences, Font, Double press Option key, Unlimited quick wake-ups (Pro), Latest available)
+        // SettingsView - More items (duplicates removed: Preferences, Font, Double press Option key, Latest available)
         "Launch at login": ["zh-Hans": "开机启动", "zh-Hant": "開機啟動"],
         "Change...": ["zh-Hans": "更改...", "zh-Hant": "更改..."],
         "Wake Up": ["zh-Hans": "快速唤醒", "zh-Hant": "快速喚醒"],
         "Quick wake-up": ["zh-Hans": "快速唤醒", "zh-Hant": "快速喚醒"],
         "Double press Option key to toggle window": ["zh-Hans": "双击 Option 键切换窗口", "zh-Hant": "雙擊 Option 鍵切換視窗"],
         "Quick save": ["zh-Hans": "快速保存", "zh-Hant": "快速儲存"],
-        "Today: %d/%d": ["zh-Hans": "今日：%d/%d", "zh-Hant": "今日：%d/%d"],
-        "Upgrade to Pro": ["zh-Hans": "升级到专业版", "zh-Hant": "升級至專業版"],
         "Downloading... %d%": ["zh-Hans": "正在下载... %d%", "zh-Hant": "正在下載... %d%"],
         "Checking...": ["zh-Hans": "检查中...", "zh-Hant": "檢查中..."],
         "Check Now": ["zh-Hans": "立即检查", "zh-Hant": "立即檢查"],
         "Previous attempt failed": ["zh-Hans": "上次尝试失败", "zh-Hant": "上次嘗試失敗"],
-        "Free": ["zh-Hans": "免费版", "zh-Hant": "免費版"],
-        "Restore": ["zh-Hans": "恢复", "zh-Hant": "恢復"],
         "Support": ["zh-Hans": "支持", "zh-Hant": "支援"],
         "Writedown Feedback": ["zh-Hans": "Writedown 反馈", "zh-Hant": "Writedown 回饋"],
         "Update failed": ["zh-Hans": "更新失败", "zh-Hant": "更新失敗"],
@@ -420,7 +396,6 @@ class LocalizationManager: ObservableObject {
         "Delete Note": ["zh-Hans": "删除笔记", "zh-Hant": "刪除筆記"],
         "Designed for quick write-down": ["zh-Hans": "为快速记录而设计", "zh-Hant": "專為快速記錄而設計"],
         "Enter title": ["zh-Hans": "输入标题", "zh-Hant": "輸入標題"],
-        "Get more with Writedown Pro": ["zh-Hans": "使用 Writedown Pro 获得更多功能", "zh-Hant": "使用 Writedown Pro 取得更多功能"],
         "Help summarize & make plans.": ["zh-Hans": "帮助总结和制定计划。", "zh-Hant": "協助總結和制定計劃。"],
         "Quick wake-up shortcut": ["zh-Hans": "快速唤醒快捷键", "zh-Hant": "快速喚醒快捷鍵"],
         "Quickly access Writedown when you need it": ["zh-Hans": "在需要时快速访问 Writedown", "zh-Hant": "在需要時快速存取 Writedown"],
@@ -493,4 +468,3 @@ extension Notification.Name {
 func L(_ key: String) -> String {
     return LocalizationManager.shared.localizedString(key)
 }
-

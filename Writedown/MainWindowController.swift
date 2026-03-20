@@ -6,7 +6,6 @@ class WindowManager {
     static let shared = WindowManager()
     private(set) var activeWindow: MainWindowController?
     private var windows: [MainWindowController] = []
-    private var limitExceededWindow: LimitExceededWindowController?
 
     func createNewWindow() {
         // For backwards compatibility, redirect to new method
@@ -49,32 +48,6 @@ class WindowManager {
             onboardingController.showWindow(nil)
             NSApp.activate(ignoringOtherApps: true)
         }
-    }
-
-    func createLimitExceededWindow() {
-        if limitExceededWindow == nil {
-            let window = LimitExceededWindowController()
-            window.showWindow(nil)
-            NSApp.activate(ignoringOtherApps: true)
-            limitExceededWindow = window
-
-            // Add window close observer
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(limitExceededWindowDidClose),
-                name: NSWindow.willCloseNotification,
-                object: window.window
-            )
-        }
-    }
-
-    @objc private func limitExceededWindowDidClose(_ notification: Notification) {
-        limitExceededWindow = nil
-        NotificationCenter.default.removeObserver(
-            self,
-            name: NSWindow.willCloseNotification,
-            object: notification.object
-        )
     }
 }
 
@@ -615,15 +588,10 @@ class MainWindowController: NSWindowController {
 
     // 公共方法：执行 Quick wake-up 逻辑
     private func performQuickWakeup() {
-        if HotkeyCounter.shared.todayCount >= AppConfig.QuickWakeup.dailyLimit &&
-            !UserDefaults.standard.bool(forKey: "isPro") {
-            WindowManager.shared.createLimitExceededWindow()
-        } else {
-            let wasHidden = !(self.window?.isVisible ?? false)
-            self.toggleWindow()  // 内部会根据 window.isVisible 调用 hideWindow() 或 showWindow(nil)
-            if wasHidden {
-                HotkeyCounter.shared.increment()
-            }
+        let wasHidden = !(self.window?.isVisible ?? false)
+        self.toggleWindow()
+        if wasHidden {
+            HotkeyCounter.shared.increment()
         }
     }
 
@@ -631,4 +599,3 @@ class MainWindowController: NSWindowController {
         checkTripleOptionKey(event)
     }
 }
-

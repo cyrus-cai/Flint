@@ -188,9 +188,6 @@ struct SettingsView: View {
 
     @State private var selectedTab: SettingsTab? = .general
     @StateObject private var updateManager = UpdateManager.shared
-    @StateObject private var counter = HotkeyCounter.shared
-
-    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
 
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
@@ -231,13 +228,13 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         switch selectedTab {
                         case .general:
-                            GeneralSettingsView(isPro: $isPro)
+                            GeneralSettingsView()
                         case .integration:
                             IntegrationSettingsView()
                         case .appearance:
                             AppearanceSettingsView()
                         case .hotkeys:
-                            HotkeySettingsView(counter: counter)
+                            HotkeySettingsView()
                         case .about:
                             AboutSettingsView(
                                 version: version,
@@ -258,9 +255,6 @@ struct SettingsView: View {
         .frame(width: 900, height: 580)
         .navigationSplitViewStyle(.automatic)
         .toolbar(.automatic)
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UserDidLogin"))) { _ in
-            isPro = UserDefaults.standard.bool(forKey: "isPro")
-        }
     }
 }
 
@@ -272,7 +266,6 @@ struct GeneralSettingsView: View {
     @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin = AppDefaults.launchAtLogin
     @AppStorage(AppStorageKeys.hasRequestedLaunchPermission) private var hasRequestedPermission = AppDefaults.hasRequestedLaunchPermission
     private let loginManager = LoginManager.shared
-    @Binding var isPro: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -338,7 +331,6 @@ struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
     @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
-    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
     
     @State private var customPath: String = LocalFileManager.shared.currentNotesPath
@@ -346,9 +338,7 @@ struct IntegrationSettingsView: View {
     private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
 
     private var allowedModels: [AIModel] {
-        AIModelConfig.availableModels.filter { model in
-            isPro || (!model.isProOnly)
-        }
+        AIModelConfig.availableModels
     }
 
     var body: some View {
@@ -503,10 +493,7 @@ struct IntegrationSettingsView: View {
 // MARK: - Hotkey Settings
 
 struct HotkeySettingsView: View {
-    @ObservedObject var counter: HotkeyCounter
-    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
     @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleOption = AppDefaults.enableDoubleOption
-    @StateObject private var paymentVM = PaymentViewModel()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -545,46 +532,8 @@ struct HotkeySettingsView: View {
                     }
 
                     Divider()
-
-                    if isPro {
-                        Text(L("Unlimited quick wake-ups (Pro)"))
-                            .font(.callout)
-                            .foregroundColor(.secondary)
-                    } else {
-                        HStack {
-                            Text(String(format: L("Today: %d/%d"), counter.todayCount, AppConfig.QuickWakeup.dailyLimit))
-                                .font(.callout)
-                                .foregroundColor(.secondary)
-                            Spacer()
-
-                            if paymentVM.isProcessing {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                    .frame(width: 16, height: 16)
-                            } else {
-                                Button(L("Upgrade to Pro")) {
-                                    openProUpgrade()
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.purple)
-                                .controlSize(.small)
-                            }
-                        }
-                    }
                 }
                 .padding(12)
-            }
-            .alert(
-                L("Payment Error"),
-                isPresented: Binding(
-                    get: { paymentVM.error != nil },
-                    set: { if !$0 { paymentVM.clearError() } }
-                ),
-                presenting: paymentVM.error
-            ) { _ in
-                Button(L("OK")) { paymentVM.clearError() }
-            } message: { error in
-                Text(error.localizedDescription)
             }
 
             // Note Operations Section
@@ -624,12 +573,6 @@ struct HotkeySettingsView: View {
             }
         }
     }
-
-    private func openProUpgrade() {
-        Task {
-            await paymentVM.startPayment()
-        }
-    }
 }
 
 // MARK: - About Settings
@@ -646,9 +589,6 @@ struct AboutSettingsView: View {
     @State private var updateFailed = false
     @State private var latestVersion: String?
     @State private var progressSubscription: AnyCancellable?
-
-    @StateObject private var paymentVM = PaymentViewModel()
-    @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -723,80 +663,6 @@ struct AboutSettingsView: View {
                     }
                 }
                 .padding(12)
-            }
-
-            // Subscription Section
-            SettingsSectionHeader(title: L("Subscription"), icon: "creditcard")
-
-            GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Label(L("Status"), systemImage: isPro ? "checkmark.seal.fill" : "person")
-                        Spacer()
-                        if isPro {
-                            Text("Pro")
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(
-                                    LinearGradient(
-                                        colors: [.purple, .pink],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .clipShape(Capsule())
-                        } else {
-                            Text(L("Free"))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-
-                    if !isPro {
-                        Divider()
-
-                        HStack {
-                            Label(L("Restore Purchase"), systemImage: "arrow.clockwise")
-                            Spacer()
-                            Button {
-                                Task {
-                                    await paymentVM.restorePurchase()
-                                }
-                            } label: {
-                                if paymentVM.isProcessing {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                        .frame(width: 16, height: 16)
-                                } else {
-                                    Text(L("Restore"))
-                                }
-                            }
-                            .disabled(paymentVM.isProcessing)
-                        }
-                    }
-                }
-                .padding(12)
-            }
-            .alert(
-                L("Restore Result"),
-                isPresented: $paymentVM.showSuccessAlert
-            ) {
-                Button(L("OK")) {}
-            } message: {
-                Text(L("Your Pro subscription has been restored."))
-            }
-            .alert(
-                L("Restore Failed"),
-                isPresented: Binding(
-                    get: { paymentVM.error != nil },
-                    set: { if !$0 { paymentVM.clearError() } }
-                ),
-                presenting: paymentVM.error
-            ) { _ in
-                Button(L("OK")) { paymentVM.clearError() }
-            } message: { error in
-                Text(error.localizedDescription)
             }
 
             // Support Section

@@ -12,11 +12,7 @@ import SwiftUI
 enum AppStorageKeys {
     // General Settings
     static let launchAtLogin = "launchAtLogin"
-    static let userName = "userName"
-    static let userEmail = "userEmail"
-    static let userAvatar = "userAvatar"
     static let hasRequestedLaunchPermission = "hasRequestedLaunchPermission"
-    static let isPro = "isPro"
 
     // Note Settings
     static let AIModel = "AIModel"
@@ -38,14 +34,10 @@ enum AppStorageKeys {
 struct AppDefaults {
     // General Settings
     static let launchAtLogin = false
-    static let userName = ""
-    static let userEmail = ""
-    static let userAvatar = ""
     static let hasRequestedLaunchPermission = false
-    static let isPro = false
 
     // Note Settings
-    static let AIModel = AIModelConfig.availableModels.first { !$0.isProOnly }?.modelId ?? "ep-20250128221733-ldppp"
+    static let AIModel = AIModelConfig.availableModels.first?.modelId ?? "ep-20250128221733-ldppp"
     static let enableAIRename = true
     static let enableAutoSaveClipboard = true
     static let editorFont = "System"
@@ -59,6 +51,3 @@ struct AppDefaults {
     // Hotkey Settings
     static let enableDoubleOption = true
 }
-
-// Usage example (for demonstration):
-// @AppStorage(AppStorageKeys.isPro) private var isPro: Bool = AppDefaults.isPro

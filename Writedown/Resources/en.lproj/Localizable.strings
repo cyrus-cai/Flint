@@ -118,15 +118,6 @@
 /* Quick save */
 "Quick save" = "Quick save";
 
-/* Today: %d/%d */
-"Today: %d/%d" = "Today: %d/%d";
-
-/* Upgrade to Pro */
-"Upgrade to Pro" = "Upgrade to Pro";
-
-/* Payment Error */
-"Payment Error" = "Payment Error";
-
 /* OK */
 "OK" = "OK";
 
@@ -217,12 +208,6 @@
 /* Help summarize & make plans. */
 "Help summarize & make plans." = "Help summarize & make plans.";
 
-/* Get Pro */
-"Get Pro" = "Get Pro";
-
-/* Get more with Writedown Pro */
-"Get more with Writedown Pro" = "Get more with Writedown Pro";
-
 /* You're All Set! */
 "You're All Set!" = "You're All Set!";
 
@@ -256,38 +241,11 @@
 /* Change Location */
 "Change Location" = "Change Location";
 
-/* Daily Limit Reached */
-"Daily Limit Reached" = "Daily Limit Reached";
-
-/* You've reached the daily limit */
-"You've reached the daily limit of %d quick wake-ups. Upgrade to Pro for unlimited access." = "You've reached the daily limit of %d quick wake-ups. Upgrade to Pro for unlimited access.";
-
-/* You can still launch Writedown from the dock. */
-"You can still launch Writedown from the dock." = "You can still launch Writedown from the dock.";
-
-/* Processing... */
-"Processing..." = "Processing...";
-
-/* RMB 48 Lifetime-Pro */
-"RMB 48 Lifetime-Pro" = "RMB 48 Lifetime-Pro";
-
-/* Restore Purchase */
-"Restore Purchase" = "Restore Purchase";
-
-/* Already subscribed? Log in */
-"Already subscribed? Log in" = "Already subscribed? Log in";
-
 /* Error */
 "Error" = "Error";
 
 /* Cancel */
 "Cancel" = "Cancel";
-
-/* Success */
-"Success" = "Success";
-
-/* Welcome to Writedown Pro! You now have unlimited quick wake-ups. */
-"Welcome to Writedown Pro! You now have unlimited quick wake-ups." = "Welcome to Writedown Pro! You now have unlimited quick wake-ups.";
 
 /* Renaming... */
 "Renaming..." = "Renaming...";
@@ -411,12 +369,6 @@
 
 /* Quit */
 "Quit" = "Quit";
-
-/* Payment Successful */
-"Payment Successful" = "Payment Successful";
-
-/* Welcome to Writedown Pro! */
-"Welcome to Writedown Pro!" = "Welcome to Writedown Pro!";
 
 /* Content Saved */
 "Content Saved" = "Content Saved";
