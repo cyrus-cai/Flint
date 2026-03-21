@@ -464,6 +464,7 @@ struct IntegrationSettingsView: View {
                                 TextField(L("Paste your API Key here"), text: $miniMaxAPIKey)
                                     .textFieldStyle(.roundedBorder)
                                     .onSubmit {
+                                        guard !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
                                         commitAPIKey()
                                     }
 
@@ -472,9 +473,9 @@ struct IntegrationSettingsView: View {
                                 }
                                 .disabled(miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-                                if hasMiniMaxAPIKey {
+                                if isEditingAPIKey {
                                     Button(L("Cancel")) {
-                                        miniMaxAPIKey = KeychainHelper.load(key: "com.writedown.minimax-api-key") ?? ""
+                                        miniMaxAPIKey = MiniMaxAPI.loadAPIKey()
                                         isEditingAPIKey = false
                                     }
                                 }
@@ -500,7 +501,7 @@ struct IntegrationSettingsView: View {
                 .padding(12)
             }
             .onAppear {
-                miniMaxAPIKey = KeychainHelper.load(key: "com.writedown.minimax-api-key") ?? ""
+                miniMaxAPIKey = MiniMaxAPI.loadAPIKey()
                 validateAIConfiguration()
             }
             .onChange(of: enableAutoSaveClipboard) { newValue in

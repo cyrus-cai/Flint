@@ -81,17 +81,28 @@ final class MiniMaxAPI {
         }
     }
 
+    /// Ensures migration runs once, even when accessed via static properties.
+    private static let ensureMigration: Void = {
+        _ = shared
+    }()
+
     static var hasConfiguredAPIKey: Bool {
-        !storedAPIKey.isEmpty
+        _ = ensureMigration
+        return !storedAPIKey.isEmpty
     }
 
     private static var storedAPIKey: String {
-        KeychainHelper.load(key: keychainKey)?
+        _ = ensureMigration
+        return KeychainHelper.load(key: keychainKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
     static func setAPIKey(_ value: String) {
         KeychainHelper.save(key: keychainKey, value: value)
+    }
+
+    static func loadAPIKey() -> String {
+        storedAPIKey
     }
 
     private var apiKey: String {
@@ -299,6 +310,14 @@ final class MiniMaxAPI {
         private func finishIfNeeded(session: URLSession) {
             guard !hasCompleted else { return }
             hasCompleted = true
+            // Flush any buffered partial content that wasn't part of a think tag
+            if !thinkBuffer.isEmpty && !insideThinkTag {
+                let remaining = thinkBuffer
+                thinkBuffer = ""
+                DispatchQueue.main.async { [weak self] in
+                    self?.streamDelegate.receivedPartialContent(remaining)
+                }
+            }
             DispatchQueue.main.async {
                 self.streamDelegate.completed()
             }
@@ -388,31 +407,43 @@ final class MiniMaxAPI {
         }
 
         /// Handles <think>...</think> tags that may span multiple SSE chunks.
+        /// Buffers trailing characters that could be a partial tag delimiter
+        /// split across chunk boundaries.
         private func filterThinkingContent(_ chunk: String) -> String {
+            let openTag = "<think>"
+            let closeTag = "</think>"
+            let maxTagLen = max(openTag.count, closeTag.count)
+
+            // Prepend any buffered partial from previous chunk
+            let combined = thinkBuffer + chunk
+            thinkBuffer = ""
+
             var output = ""
-            var remaining = chunk
+            var remaining = combined
 
             while !remaining.isEmpty {
                 if insideThinkTag {
-                    if let endRange = remaining.range(of: "</think>", options: .caseInsensitive) {
-                        // End of thinking block found — discard everything up to and including </think>
+                    if let endRange = remaining.range(of: closeTag, options: .caseInsensitive) {
                         insideThinkTag = false
-                        thinkBuffer = ""
                         remaining = String(remaining[endRange.upperBound...])
                     } else {
                         // Still inside <think>, discard entire chunk
-                        thinkBuffer += remaining
                         remaining = ""
                     }
                 } else {
-                    if let startRange = remaining.range(of: "<think>", options: .caseInsensitive) {
-                        // Output everything before <think>
+                    if let startRange = remaining.range(of: openTag, options: .caseInsensitive) {
                         output += String(remaining[remaining.startIndex..<startRange.lowerBound])
                         insideThinkTag = true
-                        thinkBuffer = ""
                         remaining = String(remaining[startRange.upperBound...])
                     } else {
-                        output += remaining
+                        // Hold back a trailing window that could be a partial tag
+                        if remaining.count >= maxTagLen {
+                            let safeEnd = remaining.index(remaining.endIndex, offsetBy: -(maxTagLen - 1))
+                            output += String(remaining[..<safeEnd])
+                            thinkBuffer = String(remaining[safeEnd...])
+                        } else {
+                            thinkBuffer = remaining
+                        }
                         remaining = ""
                     }
                 }
