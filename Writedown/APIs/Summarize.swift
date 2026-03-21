@@ -327,6 +327,8 @@ final class MiniMaxAPI {
 
         private func failWith(_ error: Error, session: URLSession) {
             guard !hasCompleted else { return }
+            // Intentional cancellation (e.g. restarting a stream) is not a real failure
+            if (error as NSError).code == NSURLErrorCancelled { return }
             hasCompleted = true
             DispatchQueue.main.async {
                 self.streamDelegate.failed(with: error)
@@ -527,11 +529,6 @@ Output: SwiftUI 新特性研究
         do {
             let rawTitle = try await performCompletion(messages: messages, temperature: 0.3)
 
-            if rawTitle == "CANNOT_GENERATE" || rawTitle.isEmpty {
-                let timestamp = Date().timeIntervalSince1970
-                return "Note \(Int(timestamp))"
-            }
-
             let cleanTitle = rawTitle
                 .replacingOccurrences(of: "\"", with: "")
                 .replacingOccurrences(of: String(UnicodeScalar(0x201C)!), with: "")
@@ -539,7 +536,7 @@ Output: SwiftUI 新特性研究
                 .replacingOccurrences(of: "\n", with: " ")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
 
-            if cleanTitle.contains("\n") || cleanTitle.count > 100 {
+            if cleanTitle.isEmpty || cleanTitle == "CANNOT_GENERATE" || cleanTitle.count > 100 {
                 let timestamp = Date().timeIntervalSince1970
                 return "Note \(Int(timestamp))"
             }
