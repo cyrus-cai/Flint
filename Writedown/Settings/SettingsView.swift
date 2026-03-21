@@ -416,76 +416,77 @@ struct IntegrationSettingsView: View {
 
             // AI Section
             SettingsSectionHeader(title: "AI", icon: "brain")
-            
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Label(L("Provider"), systemImage: "network")
-                        Spacer()
-                        Text("MiniMax")
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Label(L("API Key"), systemImage: "key.horizontal")
+                            Text("MiniMax API Key")
                             Spacer()
-                            Text(hasMiniMaxAPIKey ? L("Configured") : L("Required"))
-                                .foregroundColor(hasMiniMaxAPIKey ? .green : .orange)
-                        }
-
-                        SecureField(L("Enter your MiniMax API Key"), text: $miniMaxAPIKey)
-                            .textFieldStyle(.roundedBorder)
-
-                        Text(L("AI features require your own MiniMax API key. Leave it blank to keep AI disabled."))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Label(L("Model"), systemImage: "cpu")
-                        Spacer()
-                        Picker("", selection: $AIModel) {
-                            ForEach(allowedModels) { model in
-                                Text(model.displayName)
-                                    .tag(model.modelId)
+                            if hasMiniMaxAPIKey {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                    .font(.caption)
                             }
                         }
-                        .labelsHidden()
-                        .frame(width: 220)
-                        .disabled(!hasMiniMaxAPIKey)
+
+                        HStack(spacing: 8) {
+                            TextField(L("Paste your API Key here"), text: $miniMaxAPIKey)
+                                .textFieldStyle(.roundedBorder)
+                                .onSubmit {
+                                    normalizeAndPersistAPIKey()
+                                }
+
+                            if !miniMaxAPIKey.isEmpty {
+                                Button {
+                                    miniMaxAPIKey = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        Button {
+                            if let url = URL(string: "https://platform.minimax.io/user-center/basic-information/interface-key") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(L("Get your API Key from MiniMax"))
+                                    .font(.caption)
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption2)
+                            }
+                            .foregroundColor(.accentColor)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .opacity(hasMiniMaxAPIKey ? 1 : 0.5)
 
-                    Divider()
+                    if hasMiniMaxAPIKey {
+                        Divider()
 
-                    HStack {
-                        Text(L("Auto generate note titles"))
-                        Spacer()
-                        Toggle("", isOn: $enableAIRename)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                            .disabled(!hasMiniMaxAPIKey)
+                        HStack {
+                            Text(L("Auto generate note titles"))
+                            Spacer()
+                            Toggle("", isOn: $enableAIRename)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            Text(L("Auto save important clipboard content"))
+                            Spacer()
+                            Toggle("", isOn: $enableAutoSaveClipboard)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                        }
                     }
-                    .opacity(hasMiniMaxAPIKey ? 1 : 0.5)
-
-                    Divider()
-
-                    HStack {
-                        Text(L("Auto save important clipboard content"))
-                        Spacer()
-                        Toggle("", isOn: $enableAutoSaveClipboard)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                            .disabled(!hasMiniMaxAPIKey)
-                    }
-                    .opacity(hasMiniMaxAPIKey ? 1 : 0.5)
                 }
                 .padding(12)
             }
@@ -496,18 +497,7 @@ struct IntegrationSettingsView: View {
             .onChange(of: miniMaxAPIKey) { _ in
                 normalizeAndPersistAPIKey()
             }
-            .onChange(of: enableAIRename) { newValue in
-                if newValue && !hasMiniMaxAPIKey {
-                    enableAIRename = false
-                }
-            }
             .onChange(of: enableAutoSaveClipboard) { newValue in
-                guard hasMiniMaxAPIKey else {
-                    enableAutoSaveClipboard = false
-                    MaybeLikeService.shared.stopMonitoring()
-                    return
-                }
-
                 if newValue {
                     MaybeLikeService.shared.startMonitoring()
                 } else {
