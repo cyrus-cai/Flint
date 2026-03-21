@@ -331,6 +331,7 @@ struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
     @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
     @State private var miniMaxAPIKey: String = ""
+    @State private var isEditingAPIKey: Bool = false
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
 
@@ -419,52 +420,20 @@ struct IntegrationSettingsView: View {
 
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 8) {
+                    if hasMiniMaxAPIKey && !isEditingAPIKey {
+                        // Configured state — compact
                         HStack {
-                            Text("MiniMax API Key")
+                            Text("API Key")
                             Spacer()
-                            if hasMiniMaxAPIKey {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                    .font(.caption)
+                            Text("sk-•••" + miniMaxAPIKey.suffix(4))
+                                .foregroundColor(.secondary)
+                                .font(.callout.monospaced())
+                            Button(L("Change")) {
+                                isEditingAPIKey = true
                             }
+                            .controlSize(.small)
                         }
 
-                        HStack(spacing: 8) {
-                            TextField(L("Paste your API Key here"), text: $miniMaxAPIKey)
-                                .textFieldStyle(.roundedBorder)
-                                .onSubmit {
-                                    normalizeAndPersistAPIKey()
-                                }
-
-                            if !miniMaxAPIKey.isEmpty {
-                                Button {
-                                    miniMaxAPIKey = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.secondary)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-
-                        Button {
-                            if let url = URL(string: "https://platform.minimax.io/user-center/basic-information/interface-key") {
-                                NSWorkspace.shared.open(url)
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(L("Get your API Key from MiniMax"))
-                                    .font(.caption)
-                                Image(systemName: "arrow.up.right")
-                                    .font(.caption2)
-                            }
-                            .foregroundColor(.accentColor)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    if hasMiniMaxAPIKey {
                         Divider()
 
                         HStack {
@@ -486,6 +455,46 @@ struct IntegrationSettingsView: View {
                                 .labelsHidden()
                                 .controlSize(.small)
                         }
+                    } else {
+                        // Input state — shown when no key or editing
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("MiniMax API Key")
+
+                            HStack(spacing: 8) {
+                                TextField(L("Paste your API Key here"), text: $miniMaxAPIKey)
+                                    .textFieldStyle(.roundedBorder)
+                                    .onSubmit {
+                                        commitAPIKey()
+                                    }
+
+                                Button(L("Save")) {
+                                    commitAPIKey()
+                                }
+                                .disabled(miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                                if hasMiniMaxAPIKey {
+                                    Button(L("Cancel")) {
+                                        miniMaxAPIKey = KeychainHelper.load(key: "com.writedown.minimax-api-key") ?? ""
+                                        isEditingAPIKey = false
+                                    }
+                                }
+                            }
+
+                            Button {
+                                if let url = URL(string: "https://platform.minimax.io/user-center/basic-information/interface-key") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text(L("Get your API Key from MiniMax"))
+                                        .font(.caption)
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.caption2)
+                                }
+                                .foregroundColor(.accentColor)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
                 .padding(12)
@@ -493,9 +502,6 @@ struct IntegrationSettingsView: View {
             .onAppear {
                 miniMaxAPIKey = KeychainHelper.load(key: "com.writedown.minimax-api-key") ?? ""
                 validateAIConfiguration()
-            }
-            .onChange(of: miniMaxAPIKey) { _ in
-                normalizeAndPersistAPIKey()
             }
             .onChange(of: enableAutoSaveClipboard) { newValue in
                 if newValue {
@@ -532,24 +538,17 @@ struct IntegrationSettingsView: View {
         }
     }
 
-    private func normalizeAndPersistAPIKey() {
+    private func commitAPIKey() {
         let trimmed = miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed != miniMaxAPIKey {
-            miniMaxAPIKey = trimmed
-            return // onChange will re-enter with the trimmed value
-        }
-
+        miniMaxAPIKey = trimmed
         MiniMaxAPI.setAPIKey(trimmed)
+        isEditingAPIKey = false
 
         if trimmed.isEmpty {
-            disableAIFeatures()
+            enableAIRename = false
+            enableAutoSaveClipboard = false
+            MaybeLikeService.shared.stopMonitoring()
         }
-    }
-
-    private func disableAIFeatures() {
-        enableAIRename = false
-        enableAutoSaveClipboard = false
-        MaybeLikeService.shared.stopMonitoring()
     }
 
     private func validateAIConfiguration() {
