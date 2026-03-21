@@ -170,16 +170,16 @@ class GeneralSettingsViewModel: ObservableObject {
 struct SettingsView: View {
     enum SettingsTab: String, CaseIterable {
         case general = "通用"
-        case integration = "笔记设置"
-        case appearance = "外观"
+        case editor = "编辑器"
+        case ai = "AI"
         case hotkeys = "快捷键"
         case about = "关于"
 
         var icon: String {
             switch self {
             case .general: return "gear"
-            case .integration: return "note.text"
-            case .appearance: return "paintbrush"
+            case .editor: return "textformat"
+            case .ai: return "brain"
             case .hotkeys: return "keyboard"
             case .about: return "info.circle"
             }
@@ -229,10 +229,10 @@ struct SettingsView: View {
                         switch selectedTab {
                         case .general:
                             GeneralSettingsView()
-                        case .integration:
-                            IntegrationSettingsView()
-                        case .appearance:
-                            AppearanceSettingsView()
+                        case .editor:
+                            EditorSettingsView()
+                        case .ai:
+                            AISettingsView()
                         case .hotkeys:
                             HotkeySettingsView()
                         case .about:
@@ -324,65 +324,73 @@ struct GeneralSettingsView: View {
     }
 }
 
-// MARK: - Integration Settings (Note Settings)
+// MARK: - Editor Settings
 
-struct IntegrationSettingsView: View {
-    @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
-    @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
-    @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
-    @State private var miniMaxAPIKey: String = ""
-    @State private var isEditingAPIKey: Bool = false
+struct EditorSettingsView: View {
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
+    @AppStorage(AppStorageKeys.appearanceMode) private var appearanceMode: AppearanceMode = AppDefaults.appearanceMode
 
     @State private var customPath: String = LocalFileManager.shared.currentNotesPath
 
     private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
 
-    private var allowedModels: [AIModel] {
-        AIModelConfig.availableModels
-    }
-
-    private var hasMiniMaxAPIKey: Bool {
-        !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Storage Section
-            SettingsSectionHeader(title: L("Storage"), icon: "folder")
-            
+            // Theme Section
+            SettingsSectionHeader(title: L("Theme"), icon: "paintbrush")
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Label(L("Location"), systemImage: "folder")
-                        Spacer()
-                        Text(customPath)
-                            .font(.callout)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .frame(maxWidth: 300, alignment: .trailing)
-                        
-                        Button(L("Change...")) {
-                            selectCustomDirectory()
+                    Text(L("Appearance"))
+                        .fontWeight(.medium)
+
+                    HStack(spacing: 20) {
+                        AppearanceOptionView(
+                            image: "system-example",
+                            title: "System",
+                            isSelected: appearanceMode == .system
+                        ) {
+                            appearanceMode = .system
                         }
-                    }
 
-                    Divider()
+                        AppearanceOptionView(
+                            image: "light-example",
+                            title: "Light",
+                            isSelected: appearanceMode == .light
+                        ) {
+                            appearanceMode = .light
+                        }
 
-                    HStack {
-                        Label(L("Auto-save interval"), systemImage: "timer")
+                        AppearanceOptionView(
+                            image: "dark-example",
+                            title: "Dark",
+                            isSelected: appearanceMode == .dark
+                        ) {
+                            appearanceMode = .dark
+                        }
+
                         Spacer()
-                        AutoSaveIntervalSection()
                     }
                 }
                 .padding(12)
             }
+            .onChange(of: appearanceMode) { newValue in
+                NSApp.windows.forEach { window in
+                    switch newValue {
+                    case .system:
+                        window.appearance = nil
+                    case .light:
+                        window.appearance = NSAppearance(named: .aqua)
+                    case .dark:
+                        window.appearance = NSAppearance(named: .darkAqua)
+                    }
+                }
+            }
 
-            // Editor Section
+            // Font Section
             SettingsSectionHeader(title: L("Editor"), icon: "textformat")
-            
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(L("Font"))
@@ -400,9 +408,9 @@ struct IntegrationSettingsView: View {
                         }
                         Spacer()
                     }
-                    
+
                     Divider()
-                    
+
                     HStack {
                         Text(L("Show Word Count"))
                         Spacer()
@@ -415,13 +423,79 @@ struct IntegrationSettingsView: View {
                 .padding(12)
             }
 
-            // AI Section
+            // Storage Section
+            SettingsSectionHeader(title: L("Storage"), icon: "folder")
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Label(L("Location"), systemImage: "folder")
+                        Spacer()
+                        Text(customPath)
+                            .font(.callout)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .frame(maxWidth: 300, alignment: .trailing)
+
+                        Button(L("Change...")) {
+                            selectCustomDirectory()
+                        }
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Label(L("Auto-save interval"), systemImage: "timer")
+                        Spacer()
+                        AutoSaveIntervalSection()
+                    }
+                }
+                .padding(12)
+            }
+        }
+    }
+
+    private func selectCustomDirectory() {
+        let openPanel = NSOpenPanel()
+        openPanel.canChooseDirectories = true
+        openPanel.canChooseFiles = false
+        openPanel.allowsMultipleSelection = false
+        openPanel.title = L("Select Notes Directory")
+
+        if openPanel.runModal() == .OK {
+            if let selectedPath = openPanel.url {
+                LocalFileManager.shared.setCustomDirectory(selectedPath)
+                customPath = selectedPath.path
+            }
+        }
+    }
+}
+
+// MARK: - AI Settings
+
+struct AISettingsView: View {
+    @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
+    @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
+    @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
+    @State private var miniMaxAPIKey: String = ""
+    @State private var isEditingAPIKey: Bool = false
+
+    private var allowedModels: [AIModel] {
+        AIModelConfig.availableModels
+    }
+
+    private var hasMiniMaxAPIKey: Bool {
+        !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
             SettingsSectionHeader(title: "AI", icon: "brain")
 
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     if hasMiniMaxAPIKey && !isEditingAPIKey {
-                        // Configured state — compact
                         HStack {
                             Text("API Key")
                             Spacer()
@@ -456,7 +530,6 @@ struct IntegrationSettingsView: View {
                                 .controlSize(.small)
                         }
                     } else {
-                        // Input state — shown when no key or editing
                         VStack(alignment: .leading, spacing: 8) {
                             Text("MiniMax API Key")
 
@@ -510,21 +583,6 @@ struct IntegrationSettingsView: View {
                 } else {
                     MaybeLikeService.shared.stopMonitoring()
                 }
-            }
-        }
-    }
-
-    private func selectCustomDirectory() {
-        let openPanel = NSOpenPanel()
-        openPanel.canChooseDirectories = true
-        openPanel.canChooseFiles = false
-        openPanel.allowsMultipleSelection = false
-        openPanel.title = L("Select Notes Directory")
-
-        if openPanel.runModal() == .OK {
-            if let selectedPath = openPanel.url {
-                LocalFileManager.shared.setCustomDirectory(selectedPath)
-                customPath = selectedPath.path
             }
         }
     }
@@ -598,8 +656,6 @@ struct HotkeySettingsView: View {
                         Text(L("Cmd + C (double click)"))
                             .foregroundColor(.secondary)
                     }
-
-                    Divider()
                 }
                 .padding(12)
             }
@@ -879,66 +935,6 @@ struct AboutSettingsView: View {
         alert.alertStyle = .critical
         alert.addButton(withTitle: "OK")
         alert.runModal()
-    }
-}
-
-// MARK: - Appearance Settings
-
-struct AppearanceSettingsView: View {
-    @AppStorage(AppStorageKeys.appearanceMode) private var appearanceMode: AppearanceMode = AppDefaults.appearanceMode
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            SettingsSectionHeader(title: L("Theme"), icon: "paintbrush")
-            
-            GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(L("Appearance"))
-                        .fontWeight(.medium)
-
-                    HStack(spacing: 20) {
-                        AppearanceOptionView(
-                            image: "system-example",
-                            title: "System",
-                            isSelected: appearanceMode == .system
-                        ) {
-                            appearanceMode = .system
-                        }
-
-                        AppearanceOptionView(
-                            image: "light-example",
-                            title: "Light",
-                            isSelected: appearanceMode == .light
-                        ) {
-                            appearanceMode = .light
-                        }
-
-                        AppearanceOptionView(
-                            image: "dark-example",
-                            title: "Dark",
-                            isSelected: appearanceMode == .dark
-                        ) {
-                            appearanceMode = .dark
-                        }
-
-                        Spacer()
-                    }
-                }
-                .padding(12)
-            }
-        }
-        .onChange(of: appearanceMode) { newValue in
-            NSApp.windows.forEach { window in
-                switch newValue {
-                case .system:
-                    window.appearance = nil
-                case .light:
-                    window.appearance = NSAppearance(named: .aqua)
-                case .dark:
-                    window.appearance = NSAppearance(named: .darkAqua)
-                }
-            }
-        }
     }
 }
 
