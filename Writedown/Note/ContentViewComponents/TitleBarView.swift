@@ -7,6 +7,7 @@ struct TitleBarView: View {
     let isHovered: Bool
     let links: [String]
     @ObservedObject var toolbarState: TitleBarToolbarState
+    @AppStorage(AppStorageKeys.miniMaxAPIKey) private var miniMaxAPIKey: String = AppDefaults.miniMaxAPIKey
     let onNoteSelected: (String, URL?) -> Void
     let onCopy: () -> Void  // 复制内容的回调
     let onShare: () -> Void  // 分享内容的回调
@@ -23,6 +24,10 @@ struct TitleBarView: View {
     @State private var animationProgress: CGFloat = 0
     @State private var showLoadingPulse = false
     @State private var showLoadingText = false
+
+    private var hasMiniMaxAPIKey: Bool {
+        !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     private func generateObsidianURI(from title: String) -> String? {
         // Get the Obsidian vault path from UserDefaults
@@ -196,7 +201,7 @@ struct TitleBarView: View {
                     }
 
                     // AI按钮 - 添加单独的悬停状态
-                    if toolbarState.noteContentLength >= 20 && !isGeneratingTitle {
+                    if hasMiniMaxAPIKey && toolbarState.noteContentLength >= 20 && !isGeneratingTitle {
                         SummarizeButtonWithHover {
                             generateTitleWithAI()
                         }
@@ -304,6 +309,11 @@ struct TitleBarView: View {
 
     // 新增生成标题的方法
     private func generateTitleWithAI() {
+        guard hasMiniMaxAPIKey else {
+            toolbarState.showNavigationToast(message: L("Enter your MiniMax API Key first"))
+            return
+        }
+
         guard let noteContent = toolbarState.noteContent,
               !noteContent.isEmpty,
               noteContent.count >= 20 else {
@@ -373,7 +383,7 @@ struct TitleBarView: View {
 
         // 调用API生成标题
         print("🚀 调用API开始生成标题...")
-        DoubaoAPI.shared.summarizeWithStream(text: noteContent, delegate: streamHandler)
+        MiniMaxAPI.shared.summarizeWithStream(text: noteContent, delegate: streamHandler)
     }
 }
 
@@ -887,7 +897,7 @@ class TitleBarToolbarState: ObservableObject {
         }
     }
 
-    private func showNavigationToast(message: String) {
+    func showNavigationToast(message: String) {
         toastMessage = message
         showToast = true
 
@@ -902,6 +912,11 @@ class TitleBarToolbarState: ObservableObject {
 
     /// Handle Command+Shift+Enter to trigger AI agent
     func handleAIAgent(content: String) {
+        guard MiniMaxAPI.hasConfiguredAPIKey else {
+            showNavigationToast(message: L("Enter your MiniMax API Key first"))
+            return
+        }
+
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             showNavigationToast(message: L("No content to analyze"))
             return
@@ -913,7 +928,7 @@ class TitleBarToolbarState: ObservableObject {
         Task {
             do {
                 // Analyze intent using AI
-                let response = try await DoubaoAPI.shared.analyzeIntent(text: content)
+                let response = try await MiniMaxAPI.shared.analyzeIntent(text: content)
 
                 await MainActor.run {
                     self.currentIntentResponse = response

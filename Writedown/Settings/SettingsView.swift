@@ -330,15 +330,20 @@ struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
     @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
     @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
+    @AppStorage(AppStorageKeys.miniMaxAPIKey) private var miniMaxAPIKey: String = AppDefaults.miniMaxAPIKey
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
-    
+
     @State private var customPath: String = LocalFileManager.shared.currentNotesPath
 
     private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
 
     private var allowedModels: [AIModel] {
         AIModelConfig.availableModels
+    }
+
+    private var hasMiniMaxAPIKey: Bool {
+        !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var body: some View {
@@ -415,30 +420,28 @@ struct IntegrationSettingsView: View {
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text(L("Auto generate note titles"))
+                        Label(L("Provider"), systemImage: "network")
                         Spacer()
-                        Toggle("", isOn: $enableAIRename)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
+                        Text("MiniMax")
+                            .foregroundColor(.secondary)
                     }
 
                     Divider()
 
-                    HStack {
-                        Text(L("Auto save important clipboard content"))
-                        Spacer()
-                        Toggle("", isOn: $enableAutoSaveClipboard)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                            .onChange(of: enableAutoSaveClipboard) { newValue in
-                                if newValue {
-                                    MaybeLikeService.shared.startMonitoring()
-                                } else {
-                                    MaybeLikeService.shared.stopMonitoring()
-                                }
-                            }
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Label(L("API Key"), systemImage: "key.horizontal")
+                            Spacer()
+                            Text(hasMiniMaxAPIKey ? L("Configured") : L("Required"))
+                                .foregroundColor(hasMiniMaxAPIKey ? .green : .orange)
+                        }
+
+                        SecureField(L("Enter your MiniMax API Key"), text: $miniMaxAPIKey)
+                            .textFieldStyle(.roundedBorder)
+
+                        Text(L("AI features require your own MiniMax API key. Leave it blank to keep AI disabled."))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
 
                     Divider()
@@ -453,13 +456,62 @@ struct IntegrationSettingsView: View {
                             }
                         }
                         .labelsHidden()
-                        .frame(width: 180)
+                        .frame(width: 220)
+                        .disabled(!hasMiniMaxAPIKey)
                     }
+                    .opacity(hasMiniMaxAPIKey ? 1 : 0.5)
+
+                    Divider()
+
+                    HStack {
+                        Text(L("Auto generate note titles"))
+                        Spacer()
+                        Toggle("", isOn: $enableAIRename)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .disabled(!hasMiniMaxAPIKey)
+                    }
+                    .opacity(hasMiniMaxAPIKey ? 1 : 0.5)
+
+                    Divider()
+
+                    HStack {
+                        Text(L("Auto save important clipboard content"))
+                        Spacer()
+                        Toggle("", isOn: $enableAutoSaveClipboard)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .disabled(!hasMiniMaxAPIKey)
+                    }
+                    .opacity(hasMiniMaxAPIKey ? 1 : 0.5)
                 }
                 .padding(12)
             }
             .onAppear {
-                validateAIModel()
+                validateAIConfiguration()
+            }
+            .onChange(of: miniMaxAPIKey) { _ in
+                normalizeAPIKey()
+            }
+            .onChange(of: enableAIRename) { newValue in
+                if newValue && !hasMiniMaxAPIKey {
+                    enableAIRename = false
+                }
+            }
+            .onChange(of: enableAutoSaveClipboard) { newValue in
+                guard hasMiniMaxAPIKey else {
+                    enableAutoSaveClipboard = false
+                    MaybeLikeService.shared.stopMonitoring()
+                    return
+                }
+
+                if newValue {
+                    MaybeLikeService.shared.startMonitoring()
+                } else {
+                    MaybeLikeService.shared.stopMonitoring()
+                }
             }
         }
     }
@@ -482,11 +534,33 @@ struct IntegrationSettingsView: View {
     private func validateAIModel() {
         if let currentModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel) {
             if !allowedModels.contains(where: { $0.modelId == currentModel }) {
-                AIModel = allowedModels.first?.modelId ?? "ep-20250128221733-ldppp"
+                AIModel = allowedModels.first?.modelId ?? "MiniMax-M2.5"
             }
         } else {
-            AIModel = allowedModels.first?.modelId ?? "ep-20250128221733-ldppp"
+            AIModel = allowedModels.first?.modelId ?? "MiniMax-M2.5"
         }
+    }
+
+    private func normalizeAPIKey() {
+        let trimmed = miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed != miniMaxAPIKey {
+            miniMaxAPIKey = trimmed
+        }
+
+        if trimmed.isEmpty {
+            disableAIFeatures()
+        }
+    }
+
+    private func disableAIFeatures() {
+        enableAIRename = false
+        enableAutoSaveClipboard = false
+        MaybeLikeService.shared.stopMonitoring()
+    }
+
+    private func validateAIConfiguration() {
+        validateAIModel()
+        normalizeAPIKey()
     }
 }
 

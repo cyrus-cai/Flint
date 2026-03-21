@@ -9,139 +9,41 @@ import AppKit
 import Foundation
 import Combine
 
-class DeepseekAPI {
-    static let shared = DeepseekAPI()
-    private let baseURL = "https://api.deepseek.com/chat/completions"
-    private let apiKey: String
-
-    private init() {
-        // Load API key from configuration
-        // In production, this should be securely stored
-        self.apiKey = "sk-26764f1aa7b14441925d3fd444466e38"
-    }
-
-    struct ChatMessage: Codable {
-        let role: String
-        let content: String
-    }
-
-    struct ChatRequest: Codable {
-        let model: String
-        let messages: [ChatMessage]
-        let stream: Bool
-    }
-
-    struct ChatResponse: Codable {
-        let id: String
-        let choices: [Choice]
-
-        struct Choice: Codable {
-            let message: ChatMessage
-            let finishReason: String?
-
-            enum CodingKeys: String, CodingKey {
-                case message
-                case finishReason = "finish_reason"
-            }
-        }
-    }
-
-    func summarize(text: String) async throws -> String {
-        print("🤖 Starting summarization request")
-        print("📝 Input text length: \(text.count) Chars")
-
-        let systemPrompt =
-            "请整理文本，按【Saved】、【Todo】分类。1.若 Saved 有内容。1.1若为代码，格式使用 ``` code inside ``` 1.2 若非代码，使用 bullet list ；2.若 Todo 有内容时，格式使用 - [ ] 3.若原文没有可整理为【Saved】或/和【Todo】的内容，相关条目下方应为空（无任何多余符号、描述等）4.【Saved】和【Todo】中间，需空行 5.以原文本的语言整理 6.严格遵循原文，杜绝额外补充，杜绝重复总结"
-
-
-            //  let systemPrompt =
-            // "请整理文本。1.若为代码，格式使用 ``` code inside ``` 2. 若非代码，使用 bullet list ；3.若 Todo 有内容时，格式使用 - [ ] 4.以原文本的语言整理 5.严格遵循原文，杜绝额外补充，杜绝重复总结"
-
-        let messages = [
-            ChatMessage(role: "system", content: systemPrompt),
-            ChatMessage(role: "user", content: text),
-        ]
-
-        let request = ChatRequest(
-            model: "deepseek-chat",
-            messages: messages,
-            stream: false
-        )
-
-        do {
-            var urlRequest = URLRequest(url: URL(string: baseURL)!)
-            urlRequest.httpMethod = "POST"
-            urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-
-            let encodedBody = try JSONEncoder().encode(request)
-            urlRequest.httpBody = encodedBody
-
-            print("📤 Sending request to Deepseek API")
-            print("🔑 Using API key: \(apiKey.prefix(8))...")
-
-            let (data, response) = try await URLSession.shared.data(for: urlRequest)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("❌ Invalid response type received")
-                throw DeepseekError.invalidResponse
-            }
-
-            print("📥 Received response with status code: \(httpResponse.statusCode)")
-
-            if httpResponse.statusCode != 200 {
-                let errorBody = String(data: data, encoding: .utf8) ?? "No error body"
-                print("❌ API request failed:")
-                print("Status code: \(httpResponse.statusCode)")
-                print("Error response: \(errorBody)")
-                throw DeepseekError.requestFailed
-            }
-
-            let chatResponse = try JSONDecoder().decode(ChatResponse.self, from: data)
-            let summary = chatResponse.choices.first?.message.content ?? ""
-
-            print("✅ Successfully generated summary")
-            print("📝 Summary length: \(summary.count) Chars")
-
-            return summary
-
-        } catch let error as DecodingError {
-            print("❌ JSON Decoding error:")
-            switch error {
-            case .dataCorrupted(let context):
-                print("Data corrupted: \(context.debugDescription)")
-            case .keyNotFound(let key, let context):
-                print("Key '\(key.stringValue)' not found: \(context.debugDescription)")
-            case .typeMismatch(let type, let context):
-                print("Type '\(type)' mismatch: \(context.debugDescription)")
-            case .valueNotFound(let type, let context):
-                print("Value of type '\(type)' not found: \(context.debugDescription)")
-            @unknown default:
-                print("Unknown decoding error: \(error)")
-            }
-            throw error
-        } catch {
-            print("❌ Unexpected error: \(error.localizedDescription)")
-            print("Error details: \(error)")
-            throw error
-        }
-    }
-}
-
 protocol SummarizeStreamDelegate: AnyObject {
     func receivedPartialContent(_ content: String)
     func completed()
     func failed(with error: Error)
 }
 
-class DoubaoAPI {
-    static let shared = DoubaoAPI()
-    private let baseURL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
-    private let apiKey: String
+final class MiniMaxAPI {
+    static let shared = MiniMaxAPI()
+    private let baseURL = "https://api.minimax.io/v1/chat/completions"
     private var currentTask: URLSessionDataTask?
 
-    private init() {
-        self.apiKey = "9eadfde1-ce10-4159-a87b-5490ba6a2209"
+    private init() {}
+
+    static var hasConfiguredAPIKey: Bool {
+        !storedAPIKey.isEmpty
+    }
+
+    private static var storedAPIKey: String {
+        UserDefaults.standard.string(forKey: AppStorageKeys.miniMaxAPIKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    private var apiKey: String {
+        Self.storedAPIKey
+    }
+
+    private var selectedModel: String {
+        let storedModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel)
+        if let storedModel,
+            AIModelConfig.availableModels.contains(where: { $0.modelId == storedModel })
+        {
+            return storedModel
+        }
+
+        return AIModelConfig.availableModels.first?.modelId ?? "MiniMax-M2.5"
     }
 
     struct ChatMessage: Codable {
@@ -153,10 +55,19 @@ class DoubaoAPI {
         let model: String
         let messages: [ChatMessage]
         let stream: Bool
+        let temperature: Double
+        let topP: Double
+
+        enum CodingKeys: String, CodingKey {
+            case model
+            case messages
+            case stream
+            case temperature
+            case topP = "top_p"
+        }
     }
 
     struct StreamResponse: Codable {
-        let id: String
         let choices: [Choice]
 
         struct Choice: Codable {
@@ -174,20 +85,103 @@ class DoubaoAPI {
         }
     }
 
+    struct ChatCompletionResponse: Codable {
+        struct Choice: Codable {
+            struct Message: Codable {
+                let content: String?
+            }
+
+            let message: Message
+        }
+
+        let choices: [Choice]
+    }
+
+    private func makeRequest(
+        messages: [ChatMessage],
+        stream: Bool,
+        temperature: Double
+    ) throws -> URLRequest {
+        guard let url = URL(string: baseURL) else {
+            throw MiniMaxError.invalidConfiguration
+        }
+
+        guard !apiKey.isEmpty else {
+            throw MiniMaxError.missingAPIKey
+        }
+
+        let requestPayload = ChatRequest(
+            model: selectedModel,
+            messages: messages,
+            stream: stream,
+            temperature: temperature,
+            topP: 0.95
+        )
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
+        return urlRequest
+    }
+
+    private func performCompletion(
+        messages: [ChatMessage],
+        temperature: Double
+    ) async throws -> String {
+        let urlRequest = try makeRequest(messages: messages, stream: false, temperature: temperature)
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw MiniMaxError.invalidResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let errorBody = String(data: data, encoding: .utf8) ?? ""
+            throw MiniMaxError.requestFailed(
+                statusCode: httpResponse.statusCode,
+                message: errorBody
+            )
+        }
+
+        let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+        let rawContent = completion.choices.first?.message.content ?? ""
+        return Self.sanitizeOutput(rawContent)
+    }
+
+    private static func stripThinkingTags(from text: String) -> String {
+        var sanitized = text
+
+        if let regex = try? NSRegularExpression(
+            pattern: "<think>[\\s\\S]*?</think>",
+            options: [.caseInsensitive]
+        ) {
+            let range = NSRange(sanitized.startIndex..., in: sanitized)
+            sanitized = regex.stringByReplacingMatches(
+                in: sanitized,
+                options: [],
+                range: range,
+                withTemplate: ""
+            )
+        }
+
+        return sanitized
+    }
+
+    private static func sanitizeOutput(_ text: String) -> String {
+        stripThinkingTags(from: text).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     /// Begins a streaming summarization request.
-    func summarizeWithStream(text: String, delegate: SummarizeStreamDelegate, type: SummarizeType = .title) {
+    func summarizeWithStream(
+        text: String,
+        delegate: SummarizeStreamDelegate,
+        type: SummarizeType = .title
+    ) {
         print("🔄 Starting streaming summarization of type: \(type)")
         print("📝 Input text length: \(text.count) characters")
 
-        // Retrieve the user-selected model from UserDefaults.
-        // If none is found (or if for some reason the stored value is missing),
-        // fall back to the working endpoint (ep-20250128221733-ldppp)
-        let selectedModel =
-            UserDefaults.standard.string(forKey: "AIModel")
-            ?? AIModelConfig.availableModels.first?.modelId
-            ?? "ep-20250128221733-ldppp"
-
-        // Select the appropriate prompt based on summarization type
         let systemPrompt: String
 
         switch type {
@@ -204,57 +198,52 @@ class DoubaoAPI {
             ChatMessage(role: "user", content: text),
         ]
 
-        let requestPayload = ChatRequest(model: selectedModel, messages: messages, stream: true)
-
-        guard let url = URL(string: baseURL) else {
-            delegate.failed(with: DoubaoError.invalidConfiguration)
-            return
-        }
-
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-
         do {
-            urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
+            let urlRequest = try makeRequest(
+                messages: messages,
+                stream: true,
+                temperature: type == .title ? 0.3 : 0.5
+            )
+
+            let session = URLSession(
+                configuration: .default,
+                delegate: StreamTaskHandler(delegate: delegate),
+                delegateQueue: nil
+            )
+            currentTask = session.dataTask(with: urlRequest)
+            currentTask?.resume()
+            print("🚀 API request started")
         } catch {
             delegate.failed(with: error)
-            return
         }
-
-        // 使用内部的 StreamTaskHandler 保存 delegate
-        let session = URLSession(
-            configuration: .default, delegate: StreamTaskHandler(delegate: delegate),
-            delegateQueue: nil)
-        currentTask = session.dataTask(with: urlRequest)
-        currentTask?.resume()
-        print("🚀 API request started")
     }
 
-    // 内部类：用于处理流式响应数据，把 SummarizeStreamDelegate 保存为 streamDelegate。
     private class StreamTaskHandler: NSObject, URLSessionDataDelegate {
         let streamDelegate: SummarizeStreamDelegate
         private var partialData = Data()
+        private var hasCompleted = false
 
         init(delegate: SummarizeStreamDelegate) {
             self.streamDelegate = delegate
         }
 
+        private func finishIfNeeded() {
+            guard !hasCompleted else { return }
+            hasCompleted = true
+            DispatchQueue.main.async {
+                self.streamDelegate.completed()
+            }
+        }
+
         func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
         {
-            // 累计新接收到的数据到缓存中
             partialData.append(data)
 
-            // 尝试将缓存转换为字符串
             guard let responseString = String(data: partialData, encoding: .utf8) else {
                 return
             }
 
-            // 将数据按换行符分割
             var lines = responseString.components(separatedBy: "\n")
-
-            // 如果最后一行不完整，则保留它到缓存中，其他行作为完整行来处理
             let incompleteLine = responseString.hasSuffix("\n") ? nil : lines.popLast()
 
             for line in lines {
@@ -262,9 +251,7 @@ class DoubaoAPI {
                 let jsonString = String(line.dropFirst(6))
 
                 if jsonString == "[DONE]" {
-                    DispatchQueue.main.async {
-                        self.streamDelegate.completed()
-                    }
+                    finishIfNeeded()
                     continue
                 }
 
@@ -273,17 +260,19 @@ class DoubaoAPI {
                 guard let jsonData = jsonString.data(using: .utf8) else { continue }
                 do {
                     let streamResponse = try JSONDecoder().decode(
-                        DoubaoAPI.StreamResponse.self, from: jsonData)
+                        MiniMaxAPI.StreamResponse.self,
+                        from: jsonData
+                    )
                     if let content = streamResponse.choices.first?.delta.content {
                         DispatchQueue.main.async { [weak self] in
-                            self?.streamDelegate.receivedPartialContent(content)
+                            self?.streamDelegate.receivedPartialContent(
+                                MiniMaxAPI.stripThinkingTags(from: content)
+                            )
                         }
                     }
-                    // 如果返回 finishReason 为 "stop" 的标记，则调用完成回调
+
                     if streamResponse.choices.first?.finishReason == "stop" {
-                        DispatchQueue.main.async {
-                            self.streamDelegate.completed()
-                        }
+                        finishIfNeeded()
                     }
                 } catch {
                     print("❌ Error decoding JSON: \(error)")
@@ -291,7 +280,6 @@ class DoubaoAPI {
                 }
             }
 
-            // 清空缓存并保留未完整处理的最后一行（如果存在）
             if let incompleteLine = incompleteLine {
                 partialData = incompleteLine.data(using: .utf8) ?? Data()
             } else {
@@ -315,45 +303,18 @@ class DoubaoAPI {
         currentTask = nil
         print("⏹️ Summarization cancelled")
     }
-    struct ChatCompletionResponse: Codable {
-        struct Choice: Codable {
-            struct Message: Codable {
-                let content: String
-            }
-            let message: Message
-        }
-        let choices: [Choice]
-    }
 
     func checkRelevance(text: String) async throws -> Bool {
-        let selectedModel = UserDefaults.standard.string(forKey: "AIModel") ?? "ep-20250128221733-ldppp"
-        
         let systemPrompt = "You are a specialized content filter. Analyze the user's clipboard content. If it contains valuable information (technical knowledge, code, instructions, useful data) that a user might want to save for later, reply with 'SAVE'. If it is trivial (random numbers, passwords, temporary logs, system gibberish) or junk, reply with 'REJECT'. Only reply with one word: SAVE or REJECT."
-        
+
         let messages = [
             ChatMessage(role: "system", content: systemPrompt),
             ChatMessage(role: "user", content: text)
         ]
-        
-        let requestPayload = ChatRequest(model: selectedModel, messages: messages, stream: false)
-        
-        guard let url = URL(string: baseURL) else { throw DoubaoError.invalidConfiguration }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        
+
         do {
-            urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
-            let (data, response) = try await URLSession.shared.data(for: urlRequest)
-            
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                throw DoubaoError.requestFailed
-            }
-            
-            let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-            let content = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() ?? "REJECT"
+            let content = (try await performCompletion(messages: messages, temperature: 0.2))
+                .uppercased()
             return content.contains("SAVE")
         } catch {
             print("AI Check failed: \(error)")
@@ -362,8 +323,6 @@ class DoubaoAPI {
     }
 
     func generateTitle(text: String) async throws -> String {
-        let selectedModel = UserDefaults.standard.string(forKey: "AIModel") ?? "ep-20250128221733-ldppp"
-        
         let systemPrompt = """
 You are a professional title generator. Generate a concise, professional title based on the text content.
 
@@ -387,44 +346,27 @@ Output: SwiftUI 新特性研究
             ChatMessage(role: "system", content: systemPrompt),
             ChatMessage(role: "user", content: text)
         ]
-        
-        let requestPayload = ChatRequest(model: selectedModel, messages: messages, stream: false)
-        
-        guard let url = URL(string: baseURL) else { throw DoubaoError.invalidConfiguration }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        
+
         do {
-            urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
-            let (data, response) = try await URLSession.shared.data(for: urlRequest)
-            
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                throw DoubaoError.requestFailed
-            }
-            
-            let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-            let rawTitle = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            
+            let rawTitle = try await performCompletion(messages: messages, temperature: 0.3)
+
             if rawTitle == "CANNOT_GENERATE" || rawTitle.isEmpty {
                 let timestamp = Date().timeIntervalSince1970
                 return "Note \(Int(timestamp))"
             }
-            
+
             let cleanTitle = rawTitle
                 .replacingOccurrences(of: "\"", with: "")
                 .replacingOccurrences(of: String(UnicodeScalar(0x201C)!), with: "")
                 .replacingOccurrences(of: String(UnicodeScalar(0x201D)!), with: "")
                 .replacingOccurrences(of: "\n", with: " ")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            
+
             if cleanTitle.contains("\n") || cleanTitle.count > 100 {
                 let timestamp = Date().timeIntervalSince1970
                 return "Note \(Int(timestamp))"
             }
-            
+
             return cleanTitle
         } catch {
             print("AI Title Generation failed: \(error)")
@@ -438,8 +380,6 @@ Output: SwiftUI 新特性研究
     /// - Parameter text: The user's natural language input
     /// - Returns: An IntentResponse with parsed intent, time, and suggestions
     func analyzeIntent(text: String) async throws -> IntentResponse {
-        let selectedModel = UserDefaults.standard.string(forKey: "AIModel") ?? "ep-20250128221733-ldppp"
-
         let currentDate = Date()
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss EEEE"
@@ -519,27 +459,9 @@ IMPORTANT: Only output valid JSON, no other text. The response must be parseable
             ChatMessage(role: "user", content: text)
         ]
 
-        let requestPayload = ChatRequest(model: selectedModel, messages: messages, stream: false)
-
-        guard let url = URL(string: baseURL) else { throw DoubaoError.invalidConfiguration }
-
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-
         do {
-            urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
-            let (data, response) = try await URLSession.shared.data(for: urlRequest)
+            let content = try await performCompletion(messages: messages, temperature: 0.2)
 
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                throw DoubaoError.requestFailed
-            }
-
-            let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-            let content = completion.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? "{}"
-
-            // Parse the JSON response
             return try parseIntentResponse(from: content, originalText: text)
         } catch {
             print("AI Intent Analysis failed: \(error)")
@@ -563,7 +485,7 @@ IMPORTANT: Only output valid JSON, no other text. The response must be parseable
         cleanJson = cleanJson.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let jsonData = cleanJson.data(using: .utf8) else {
-            throw DoubaoError.requestFailed
+            throw MiniMaxError.invalidResponse
         }
 
         let decoder = JSONDecoder()
@@ -654,24 +576,25 @@ IMPORTANT: Only output valid JSON, no other text. The response must be parseable
     }
 }
 
-enum DoubaoError: Error {
+enum MiniMaxError: LocalizedError {
+    case missingAPIKey
     case invalidConfiguration
-    case requestFailed
-}
-
-enum DeepseekError: Error {
-    case requestFailed
     case invalidResponse
-    case invalidConfiguration
+    case requestFailed(statusCode: Int, message: String)
 
-    var localizedDescription: String {
+    var errorDescription: String? {
         switch self {
-        case .requestFailed:
-            return "The API request failed"
-        case .invalidResponse:
-            return "Received an invalid response from the API"
+        case .missingAPIKey:
+            return L("MiniMax API Key is required")
         case .invalidConfiguration:
-            return "The API is not properly configured"
+            return L("MiniMax API configuration is invalid")
+        case .invalidResponse:
+            return L("MiniMax returned an invalid response")
+        case .requestFailed(let statusCode, let message):
+            if message.isEmpty {
+                return String(format: L("MiniMax request failed (%d)"), statusCode)
+            }
+            return String(format: L("MiniMax request failed (%d): %@"), statusCode, message)
         }
     }
 }
@@ -701,6 +624,11 @@ class MaybeLikeService: ObservableObject {
     func startMonitoring() {
         guard UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") else {
             print("MaybeLike Service: Monitoring disabled by user settings")
+            return
+        }
+
+        guard MiniMaxAPI.hasConfiguredAPIKey else {
+            print("MaybeLike Service: MiniMax API key missing")
             return
         }
         
@@ -751,7 +679,11 @@ class MaybeLikeService: ObservableObject {
     }
     
     private func processContent(_ content: String) {
-        let aiInput = DoubaoAPI.prepareForAI(content, maxChars: maxContextChars)
+        guard MiniMaxAPI.hasConfiguredAPIKey else {
+            return
+        }
+
+        let aiInput = MiniMaxAPI.prepareForAI(content, maxChars: maxContextChars)
         
         Task {
             do {
@@ -759,11 +691,11 @@ class MaybeLikeService: ObservableObject {
                 if sourceApp == "Writedown" { return } 
                 
                 print("MaybeLike: Asking AI to check content relevance...")
-                let isRelevent = try await DoubaoAPI.shared.checkRelevance(text: aiInput)
+                let isRelevent = try await MiniMaxAPI.shared.checkRelevance(text: aiInput)
                 
                 if isRelevent {
                     print("MaybeLike: AI accepted content, generating title...")
-                    let aiTitle = try await DoubaoAPI.shared.generateTitle(text: aiInput)
+                    let aiTitle = try await MiniMaxAPI.shared.generateTitle(text: aiInput)
                     print("MaybeLike: Generated title: \(aiTitle)")
                     
                     await MainActor.run {
@@ -778,7 +710,7 @@ class MaybeLikeService: ObservableObject {
         }
     }
     
-    // Private method removed as it is now in DoubaoAPI
+    // Private method removed as it is now in MiniMaxAPI
     
     private func saveToNotes(_ content: String, sourceApp: String, title: String) {
         let safeTitle = title.map { $0 == "/" || $0 == ":" ? "-" : $0 }

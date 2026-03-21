@@ -455,14 +455,16 @@ class GlobalKeyMonitor {
                 var summaryText = "\(clipboardContent.count) chars saved"
                 
                 // Try to get AI summary
-                let aiInput = DoubaoAPI.prepareForAI(clipboardContent)
-                do {
-                    let title = try await DoubaoAPI.shared.generateTitle(text: aiInput)
-                    if !title.isEmpty {
-                        summaryText = title
+                if MiniMaxAPI.hasConfiguredAPIKey {
+                    let aiInput = MiniMaxAPI.prepareForAI(clipboardContent)
+                    do {
+                        let title = try await MiniMaxAPI.shared.generateTitle(text: aiInput)
+                        if !title.isEmpty {
+                            summaryText = title
+                        }
+                    } catch {
+                        print("AI Summary failed for manual capture: \(error)")
                     }
-                } catch {
-                    print("AI Summary failed for manual capture: \(error)")
                 }
                 
                 let finalSummary = summaryText
@@ -745,8 +747,10 @@ class ContentSavedWindowController: NSWindowController {
 
 private func registerDefaultSettings() {
     let defaults: [String: Any] = [
-        "enableAIRename": true,
-        // Other default settings can be added here
+        AppStorageKeys.enableAIRename: AppDefaults.enableAIRename,
+        AppStorageKeys.enableAutoSaveClipboard: AppDefaults.enableAutoSaveClipboard,
+        AppStorageKeys.AIModel: AppDefaults.AIModel,
+        AppStorageKeys.miniMaxAPIKey: AppDefaults.miniMaxAPIKey,
     ]
 
     UserDefaults.standard.register(defaults: defaults)

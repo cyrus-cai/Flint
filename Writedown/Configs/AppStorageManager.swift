@@ -16,6 +16,7 @@ enum AppStorageKeys {
 
     // Note Settings
     static let AIModel = "AIModel"
+    static let miniMaxAPIKey = "MiniMaxAPIKey"
     static let enableAIRename = "enableAIRename"
     static let enableAutoSaveClipboard = "enableAutoSaveClipboard"
     static let editorFont = "editorFont"
@@ -37,9 +38,10 @@ struct AppDefaults {
     static let hasRequestedLaunchPermission = false
 
     // Note Settings
-    static let AIModel = AIModelConfig.availableModels.first?.modelId ?? "ep-20250128221733-ldppp"
-    static let enableAIRename = true
-    static let enableAutoSaveClipboard = true
+    static let AIModel = AIModelConfig.availableModels.first?.modelId ?? "MiniMax-M2.5"
+    static let miniMaxAPIKey = ""
+    static let enableAIRename = false
+    static let enableAutoSaveClipboard = false
     static let editorFont = "System"
     static let autoSaveInterval: TimeInterval = 10
     static let notionIntegration = false
