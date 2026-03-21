@@ -330,15 +330,21 @@ struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
     @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
     @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
+    @State private var miniMaxAPIKey: String = ""
+    @State private var isEditingAPIKey: Bool = false
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
-    
+
     @State private var customPath: String = LocalFileManager.shared.currentNotesPath
 
     private let editorFonts = ["System", "Serif", "Mono", "Heiti"]
 
     private var allowedModels: [AIModel] {
         AIModelConfig.availableModels
+    }
+
+    private var hasMiniMaxAPIKey: Bool {
+        !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var body: some View {
@@ -411,55 +417,99 @@ struct IntegrationSettingsView: View {
 
             // AI Section
             SettingsSectionHeader(title: "AI", icon: "brain")
-            
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text(L("Auto generate note titles"))
-                        Spacer()
-                        Toggle("", isOn: $enableAIRename)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
+                    if hasMiniMaxAPIKey && !isEditingAPIKey {
+                        // Configured state — compact
+                        HStack {
+                            Text("API Key")
+                            Spacer()
+                            Text("sk-•••" + miniMaxAPIKey.suffix(4))
+                                .foregroundColor(.secondary)
+                                .font(.callout.monospaced())
+                            Button(L("Change")) {
+                                isEditingAPIKey = true
+                            }
                             .controlSize(.small)
-                    }
+                        }
 
-                    Divider()
+                        Divider()
 
-                    HStack {
-                        Text(L("Auto save important clipboard content"))
-                        Spacer()
-                        Toggle("", isOn: $enableAutoSaveClipboard)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                            .onChange(of: enableAutoSaveClipboard) { newValue in
-                                if newValue {
-                                    MaybeLikeService.shared.startMonitoring()
-                                } else {
-                                    MaybeLikeService.shared.stopMonitoring()
+                        HStack {
+                            Text(L("Auto generate note titles"))
+                            Spacer()
+                            Toggle("", isOn: $enableAIRename)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            Text(L("Auto save important clipboard content"))
+                            Spacer()
+                            Toggle("", isOn: $enableAutoSaveClipboard)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                        }
+                    } else {
+                        // Input state — shown when no key or editing
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("MiniMax API Key")
+
+                            HStack(spacing: 8) {
+                                TextField(L("Paste your API Key here"), text: $miniMaxAPIKey)
+                                    .textFieldStyle(.roundedBorder)
+                                    .onSubmit {
+                                        guard !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+                                        commitAPIKey()
+                                    }
+
+                                Button(L("Save")) {
+                                    commitAPIKey()
+                                }
+                                .disabled(miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                                if isEditingAPIKey {
+                                    Button(L("Cancel")) {
+                                        miniMaxAPIKey = MiniMaxAPI.loadAPIKey()
+                                        isEditingAPIKey = false
+                                    }
                                 }
                             }
-                    }
 
-                    Divider()
-
-                    HStack {
-                        Label(L("Model"), systemImage: "cpu")
-                        Spacer()
-                        Picker("", selection: $AIModel) {
-                            ForEach(allowedModels) { model in
-                                Text(model.displayName)
-                                    .tag(model.modelId)
+                            Button {
+                                if let url = URL(string: "https://platform.minimax.io/user-center/basic-information/interface-key") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text(L("Get your API Key from MiniMax"))
+                                        .font(.caption)
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.caption2)
+                                }
+                                .foregroundColor(.accentColor)
                             }
+                            .buttonStyle(.plain)
                         }
-                        .labelsHidden()
-                        .frame(width: 180)
                     }
                 }
                 .padding(12)
             }
             .onAppear {
-                validateAIModel()
+                miniMaxAPIKey = MiniMaxAPI.loadAPIKey()
+                validateAIConfiguration()
+            }
+            .onChange(of: enableAutoSaveClipboard) { newValue in
+                if newValue {
+                    MaybeLikeService.shared.startMonitoring()
+                } else {
+                    MaybeLikeService.shared.stopMonitoring()
+                }
             }
         }
     }
@@ -482,11 +532,29 @@ struct IntegrationSettingsView: View {
     private func validateAIModel() {
         if let currentModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel) {
             if !allowedModels.contains(where: { $0.modelId == currentModel }) {
-                AIModel = allowedModels.first?.modelId ?? "ep-20250128221733-ldppp"
+                AIModel = allowedModels.first?.modelId ?? "MiniMax-M2.5"
             }
         } else {
-            AIModel = allowedModels.first?.modelId ?? "ep-20250128221733-ldppp"
+            AIModel = allowedModels.first?.modelId ?? "MiniMax-M2.5"
         }
+    }
+
+    private func commitAPIKey() {
+        let trimmed = miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        miniMaxAPIKey = trimmed
+
+        guard MiniMaxAPI.setAPIKey(trimmed) else { return }
+        isEditingAPIKey = false
+
+        if trimmed.isEmpty {
+            enableAIRename = false
+            enableAutoSaveClipboard = false
+            MaybeLikeService.shared.stopMonitoring()
+        }
+    }
+
+    private func validateAIConfiguration() {
+        validateAIModel()
     }
 }
 

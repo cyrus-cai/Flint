@@ -8,10 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
-		A3INTENT2D910A0100000001 /* IntentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3INTENT2D910A0100000002 /* IntentModels.swift */; };
-		A3REMIND2D910A0100000001 /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3REMIND2D910A0100000002 /* ReminderService.swift */; };
-		A3NOTIFS2D910A0100000001 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3NOTIFS2D910A0100000002 /* NotificationService.swift */; };
-		A3AICONF2D910A0100000001 /* AIConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AICONF2D910A0100000002 /* AIConfirmationView.swift */; };
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
 		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
@@ -19,7 +15,6 @@
 		A32036C12D56440D00803BE8 /* AppleScriptManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32036C02D56440D00803BE8 /* AppleScriptManager.swift */; };
 		A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32671EB2CF8D15100162AF4 /* checkUpdates.swift */; };
 		A344E4852CF4D27B001DBF27 /* RecentNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */; };
-
 		A35E117E2CF9F65400EF949D /* AutoUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35E117D2CF9F65400EF949D /* AutoUpdate.swift */; };
 		A3717AC92CF600890073E925 /* FileManagerExtend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3717AC82CF600890073E925 /* FileManagerExtend.swift */; };
 		A37C396B2D5E4E3A003EBCC6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A37C396A2D5E4E3A003EBCC6 /* KeyboardShortcuts */; };
@@ -35,11 +30,14 @@
 		A398BF7F2D394A6D00187871 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398BF7E2D394A6D00187871 /* AppConfig.swift */; };
 		A3A50DA42D3AB27D00382A2A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A50DA32D3AB27D00382A2A /* OnboardingView.swift */; };
 		A3A50DA62D3AB2FD00382A2A /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */; };
+		A3AICONF2D910A0100000001 /* AIConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AICONF2D910A0100000002 /* AIConfirmationView.swift */; };
 		A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */; };
-
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 		A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */; };
+		A3INTENT2D910A0100000001 /* IntentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3INTENT2D910A0100000002 /* IntentModels.swift */; };
+		A3NOTIFS2D910A0100000001 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3NOTIFS2D910A0100000002 /* NotificationService.swift */; };
+		A3REMIND2D910A0100000001 /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3REMIND2D910A0100000002 /* ReminderService.swift */; };
 		A3TEXTM3TR1C52D93A1B00001 /* TextMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */; };
 		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
 /* End PBXBuildFile section */
@@ -63,10 +61,6 @@
 
 /* Begin PBXFileReference section */
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
-		A3INTENT2D910A0100000002 /* IntentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentModels.swift; sourceTree = "<group>"; };
-		A3REMIND2D910A0100000002 /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
-		A3NOTIFS2D910A0100000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
-		A3AICONF2D910A0100000002 /* AIConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfirmationView.swift; sourceTree = "<group>"; };
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		A30FF3952CE1057D0034F9DC /* markdownconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = markdownconfig.json; sourceTree = "<group>"; };
@@ -74,7 +68,6 @@
 		A32036C02D56440D00803BE8 /* AppleScriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptManager.swift; sourceTree = "<group>"; };
 		A32671EB2CF8D15100162AF4 /* checkUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = checkUpdates.swift; sourceTree = "<group>"; };
 		A344E4842CF4D27B001DBF27 /* RecentNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentNotesListView.swift; sourceTree = "<group>"; };
-
 		A35E117D2CF9F65400EF949D /* AutoUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoUpdate.swift; sourceTree = "<group>"; };
 		A3717AC82CF600890073E925 /* FileManagerExtend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtend.swift; sourceTree = "<group>"; };
 		A37C396C2D5E501F003EBCC6 /* KeyboardShortcutNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutNames.swift; sourceTree = "<group>"; };
@@ -93,11 +86,14 @@
 		A398BF7E2D394A6D00187871 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		A3A50DA32D3AB27D00382A2A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindowController.swift; sourceTree = "<group>"; };
+		A3AICONF2D910A0100000002 /* AIConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfirmationView.swift; sourceTree = "<group>"; };
 		A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandler.swift; sourceTree = "<group>"; };
-
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 		A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageManager.swift; sourceTree = "<group>"; };
+		A3INTENT2D910A0100000002 /* IntentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentModels.swift; sourceTree = "<group>"; };
+		A3NOTIFS2D910A0100000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		A3REMIND2D910A0100000002 /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
 		A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMetrics.swift; sourceTree = "<group>"; };
 		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -132,7 +128,6 @@
 			isa = PBXGroup;
 			children = (
 			);
-			name = ViewModels;
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
@@ -143,17 +138,7 @@
 				A3REMIND2D910A0100000002 /* ReminderService.swift */,
 				A3NOTIFS2D910A0100000002 /* NotificationService.swift */,
 			);
-			name = Services;
 			path = Services;
-			sourceTree = "<group>";
-		};
-		A3VIEWS2D910A0100000003 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				A3AICONF2D910A0100000002 /* AIConfirmationView.swift */,
-			);
-			name = Views;
-			path = Views;
 			sourceTree = "<group>";
 		};
 		A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */ = {
@@ -299,6 +284,14 @@
 				A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A3VIEWS2D910A0100000003 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A3AICONF2D910A0100000002 /* AIConfirmationView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -646,7 +639,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 0.9.5;
+				MARKETING_VERSION = 0.9.7;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -679,7 +672,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 0.9.5;
+				MARKETING_VERSION = 0.9.7;
 				PRODUCT_BUNDLE_IDENTIFIER = Writedown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -697,7 +690,7 @@
 				DEVELOPMENT_TEAM = 32RM54L485;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.9.5;
+				MARKETING_VERSION = 0.9.7;
 				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-NoteTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -716,7 +709,7 @@
 				DEVELOPMENT_TEAM = 32RM54L485;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.9.5;
+				MARKETING_VERSION = 0.9.7;
 				PRODUCT_BUNDLE_IDENTIFIER = "kii.Hyper-NoteTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -733,7 +726,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 32RM54L485;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.9.5;
+				MARKETING_VERSION = 0.9.7;
 				PRODUCT_BUNDLE_IDENTIFIER = kii.WritedownUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -750,7 +743,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 32RM54L485;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.9.5;
+				MARKETING_VERSION = 0.9.7;
 				PRODUCT_BUNDLE_IDENTIFIER = kii.WritedownUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

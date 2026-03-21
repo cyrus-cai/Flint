@@ -280,9 +280,12 @@ struct ContentView: View {
     private func triggerAIRename(content: String) {
         print("Auto-triggering AI rename for note: \(currentNoteId ?? "untitled")")
 
+        guard MiniMaxAPI.hasConfiguredAPIKey else {
+            return
+        }
+
         if content.count >= 20 {
-            // Pass the content directly to the API
-            DoubaoAPI.shared.summarizeWithStream(
+            MiniMaxAPI.shared.summarizeWithStream(
                 text: content,
                 delegate: TitleStreamHandler { newTitle in
                     DispatchQueue.main.async {
