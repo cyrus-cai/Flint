@@ -542,7 +542,8 @@ struct IntegrationSettingsView: View {
     private func commitAPIKey() {
         let trimmed = miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
         miniMaxAPIKey = trimmed
-        MiniMaxAPI.setAPIKey(trimmed)
+
+        guard MiniMaxAPI.setAPIKey(trimmed) else { return }
         isEditingAPIKey = false
 
         if trimmed.isEmpty {

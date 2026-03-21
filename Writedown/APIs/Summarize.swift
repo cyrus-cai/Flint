@@ -97,7 +97,8 @@ final class MiniMaxAPI {
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
-    static func setAPIKey(_ value: String) {
+    @discardableResult
+    static func setAPIKey(_ value: String) -> Bool {
         KeychainHelper.save(key: keychainKey, value: value)
     }
 
@@ -427,7 +428,14 @@ final class MiniMaxAPI {
                         insideThinkTag = false
                         remaining = String(remaining[endRange.upperBound...])
                     } else {
-                        // Still inside <think>, discard entire chunk
+                        // Still inside <think> — buffer trailing chars that could
+                        // be a partial </think> split across chunks
+                        let closeLen = closeTag.count
+                        if remaining.count >= closeLen {
+                            thinkBuffer = String(remaining.suffix(closeLen - 1))
+                        } else {
+                            thinkBuffer = remaining
+                        }
                         remaining = ""
                     }
                 } else {
