@@ -59,3 +59,8 @@ iOSInjectionProject/
 
 ## macOS
 .DS_Store
+
+## Environment & local config
+.env
+.env.local
+.claude/
