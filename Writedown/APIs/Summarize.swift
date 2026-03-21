@@ -8,6 +8,45 @@
 import AppKit
 import Foundation
 import Combine
+import Security
+
+// MARK: - Keychain Helper
+
+enum KeychainHelper {
+    static func save(key: String, value: String) {
+        guard let data = value.data(using: .utf8) else { return }
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(query as CFDictionary)
+        guard !value.isEmpty else { return }
+        var addQuery = query
+        addQuery[kSecValueData as String] = data
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    static func load(key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func delete(key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
 
 protocol SummarizeStreamDelegate: AnyObject {
     func receivedPartialContent(_ content: String)
@@ -19,16 +58,36 @@ final class MiniMaxAPI {
     static let shared = MiniMaxAPI()
     private let baseURL = "https://api.minimax.io/v1/chat/completions"
     private var currentTask: URLSessionDataTask?
+    private var currentSession: URLSession?
 
-    private init() {}
+    private static let keychainKey = "com.writedown.minimax-api-key"
+
+    private init() {
+        migrateAPIKeyToKeychainIfNeeded()
+    }
+
+    /// One-time migration from UserDefaults to Keychain.
+    private func migrateAPIKeyToKeychainIfNeeded() {
+        let legacyKey = UserDefaults.standard.string(forKey: AppStorageKeys.miniMaxAPIKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !legacyKey.isEmpty else { return }
+        if (KeychainHelper.load(key: Self.keychainKey) ?? "").isEmpty {
+            KeychainHelper.save(key: Self.keychainKey, value: legacyKey)
+        }
+        UserDefaults.standard.removeObject(forKey: AppStorageKeys.miniMaxAPIKey)
+    }
 
     static var hasConfiguredAPIKey: Bool {
         !storedAPIKey.isEmpty
     }
 
     private static var storedAPIKey: String {
-        UserDefaults.standard.string(forKey: AppStorageKeys.miniMaxAPIKey)?
+        KeychainHelper.load(key: keychainKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    static func setAPIKey(_ value: String) {
+        KeychainHelper.save(key: keychainKey, value: value)
     }
 
     private var apiKey: String {
@@ -205,11 +264,15 @@ final class MiniMaxAPI {
                 temperature: type == .title ? 0.3 : 0.5
             )
 
+            // Cancel any in-flight stream before starting a new one
+            cancelSummarize()
+
             let session = URLSession(
                 configuration: .default,
                 delegate: StreamTaskHandler(delegate: delegate),
                 delegateQueue: nil
             )
+            currentSession = session
             currentTask = session.dataTask(with: urlRequest)
             currentTask?.resume()
             print("🚀 API request started")
@@ -222,17 +285,49 @@ final class MiniMaxAPI {
         let streamDelegate: SummarizeStreamDelegate
         private var partialData = Data()
         private var hasCompleted = false
+        private var thinkBuffer = ""
+        private var insideThinkTag = false
 
         init(delegate: SummarizeStreamDelegate) {
             self.streamDelegate = delegate
         }
 
-        private func finishIfNeeded() {
+        private func finishIfNeeded(session: URLSession) {
             guard !hasCompleted else { return }
             hasCompleted = true
             DispatchQueue.main.async {
                 self.streamDelegate.completed()
             }
+            session.finishTasksAndInvalidate()
+        }
+
+        private func failWith(_ error: Error, session: URLSession) {
+            guard !hasCompleted else { return }
+            hasCompleted = true
+            DispatchQueue.main.async {
+                self.streamDelegate.failed(with: error)
+            }
+            session.invalidateAndCancel()
+        }
+
+        // Validate HTTP status on the initial response
+        func urlSession(
+            _ session: URLSession,
+            dataTask: URLSessionDataTask,
+            didReceive response: URLResponse,
+            completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
+        ) {
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200..<300).contains(httpResponse.statusCode) {
+                let error = MiniMaxError.requestFailed(
+                    statusCode: httpResponse.statusCode,
+                    message: "HTTP \(httpResponse.statusCode)"
+                )
+                failWith(error, session: session)
+                completionHandler(.cancel)
+                return
+            }
+            completionHandler(.allow)
         }
 
         func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
@@ -251,7 +346,7 @@ final class MiniMaxAPI {
                 let jsonString = String(line.dropFirst(6))
 
                 if jsonString == "[DONE]" {
-                    finishIfNeeded()
+                    finishIfNeeded(session: session)
                     continue
                 }
 
@@ -264,15 +359,16 @@ final class MiniMaxAPI {
                         from: jsonData
                     )
                     if let content = streamResponse.choices.first?.delta.content {
-                        DispatchQueue.main.async { [weak self] in
-                            self?.streamDelegate.receivedPartialContent(
-                                MiniMaxAPI.stripThinkingTags(from: content)
-                            )
+                        let filtered = filterThinkingContent(content)
+                        if !filtered.isEmpty {
+                            DispatchQueue.main.async { [weak self] in
+                                self?.streamDelegate.receivedPartialContent(filtered)
+                            }
                         }
                     }
 
                     if streamResponse.choices.first?.finishReason == "stop" {
-                        finishIfNeeded()
+                        finishIfNeeded(session: session)
                     }
                 } catch {
                     print("❌ Error decoding JSON: \(error)")
@@ -287,13 +383,48 @@ final class MiniMaxAPI {
             }
         }
 
+        /// Handles <think>...</think> tags that may span multiple SSE chunks.
+        private func filterThinkingContent(_ chunk: String) -> String {
+            var output = ""
+            var remaining = chunk
+
+            while !remaining.isEmpty {
+                if insideThinkTag {
+                    if let endRange = remaining.range(of: "</think>", options: .caseInsensitive) {
+                        // End of thinking block found — discard everything up to and including </think>
+                        insideThinkTag = false
+                        thinkBuffer = ""
+                        remaining = String(remaining[endRange.upperBound...])
+                    } else {
+                        // Still inside <think>, discard entire chunk
+                        thinkBuffer += remaining
+                        remaining = ""
+                    }
+                } else {
+                    if let startRange = remaining.range(of: "<think>", options: .caseInsensitive) {
+                        // Output everything before <think>
+                        output += String(remaining[remaining.startIndex..<startRange.lowerBound])
+                        insideThinkTag = true
+                        thinkBuffer = ""
+                        remaining = String(remaining[startRange.upperBound...])
+                    } else {
+                        output += remaining
+                        remaining = ""
+                    }
+                }
+            }
+
+            return output
+        }
+
         func urlSession(
             _ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?
         ) {
             if let error = error {
-                DispatchQueue.main.async {
-                    self.streamDelegate.failed(with: error)
-                }
+                failWith(error, session: session)
+            } else {
+                // Transport finished without error — ensure delegate is notified
+                finishIfNeeded(session: session)
             }
         }
     }
@@ -301,6 +432,8 @@ final class MiniMaxAPI {
     func cancelSummarize() {
         currentTask?.cancel()
         currentTask = nil
+        currentSession?.invalidateAndCancel()
+        currentSession = nil
         print("⏹️ Summarization cancelled")
     }
 
@@ -314,8 +447,9 @@ final class MiniMaxAPI {
 
         do {
             let content = (try await performCompletion(messages: messages, temperature: 0.2))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
                 .uppercased()
-            return content.contains("SAVE")
+            return content == "SAVE"
         } catch {
             print("AI Check failed: \(error)")
             throw error

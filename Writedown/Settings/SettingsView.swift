@@ -330,7 +330,7 @@ struct IntegrationSettingsView: View {
     @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
     @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
     @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
-    @AppStorage(AppStorageKeys.miniMaxAPIKey) private var miniMaxAPIKey: String = AppDefaults.miniMaxAPIKey
+    @State private var miniMaxAPIKey: String = ""
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
 
@@ -490,10 +490,11 @@ struct IntegrationSettingsView: View {
                 .padding(12)
             }
             .onAppear {
+                miniMaxAPIKey = KeychainHelper.load(key: "com.writedown.minimax-api-key") ?? ""
                 validateAIConfiguration()
             }
             .onChange(of: miniMaxAPIKey) { _ in
-                normalizeAPIKey()
+                normalizeAndPersistAPIKey()
             }
             .onChange(of: enableAIRename) { newValue in
                 if newValue && !hasMiniMaxAPIKey {
@@ -541,11 +542,14 @@ struct IntegrationSettingsView: View {
         }
     }
 
-    private func normalizeAPIKey() {
+    private func normalizeAndPersistAPIKey() {
         let trimmed = miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed != miniMaxAPIKey {
             miniMaxAPIKey = trimmed
+            return // onChange will re-enter with the trimmed value
         }
+
+        MiniMaxAPI.setAPIKey(trimmed)
 
         if trimmed.isEmpty {
             disableAIFeatures()
@@ -560,7 +564,6 @@ struct IntegrationSettingsView: View {
 
     private func validateAIConfiguration() {
         validateAIModel()
-        normalizeAPIKey()
     }
 }
 

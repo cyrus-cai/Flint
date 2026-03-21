@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftUI
 
 // MARK: - TitleBar Related Views
 struct TitleBarView: View {
@@ -7,7 +6,6 @@ struct TitleBarView: View {
     let isHovered: Bool
     let links: [String]
     @ObservedObject var toolbarState: TitleBarToolbarState
-    @AppStorage(AppStorageKeys.miniMaxAPIKey) private var miniMaxAPIKey: String = AppDefaults.miniMaxAPIKey
     let onNoteSelected: (String, URL?) -> Void
     let onCopy: () -> Void  // 复制内容的回调
     let onShare: () -> Void  // 分享内容的回调
@@ -26,7 +24,7 @@ struct TitleBarView: View {
     @State private var showLoadingText = false
 
     private var hasMiniMaxAPIKey: Bool {
-        !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        MiniMaxAPI.hasConfiguredAPIKey
     }
 
     private func generateObsidianURI(from title: String) -> String? {

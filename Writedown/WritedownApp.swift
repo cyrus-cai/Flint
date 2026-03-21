@@ -750,7 +750,6 @@ private func registerDefaultSettings() {
         AppStorageKeys.enableAIRename: AppDefaults.enableAIRename,
         AppStorageKeys.enableAutoSaveClipboard: AppDefaults.enableAutoSaveClipboard,
         AppStorageKeys.AIModel: AppDefaults.AIModel,
-        AppStorageKeys.miniMaxAPIKey: AppDefaults.miniMaxAPIKey,
     ]
 
     UserDefaults.standard.register(defaults: defaults)
