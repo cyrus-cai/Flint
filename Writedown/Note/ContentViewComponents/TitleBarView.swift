@@ -451,7 +451,7 @@ struct TitleBarToolbar: View {
             )
             .popover(isPresented: $state.showRecentNotes) {
                 RecentNotesListView(
-                    notes: state.recentNotes,
+                    viewModel: state.notesViewModel,
                     onSelectNote: onNoteSelected
                 )
             }
@@ -827,28 +827,26 @@ class TitleBarToolbarState: ObservableObject {
     @Published var showRecentNotes = false
     @Published var showToast = false
     @Published var toastMessage = ""
-    @Published var recentNotes: [RecentNote] = []
     @Published var isEmpty: Bool = true
-    @Published var currentNoteContent: String? = nil  // 添加当前笔记内容
-    @Published var aiAgentState: AIAgentState = .idle  // AI 代理状态
-    @Published var showAIConfirmation: Bool = false  // 是否显示 AI 确认弹窗
-    @Published var currentIntentResponse: IntentResponse? = nil  // 当前意图响应
-    private var currentNoteIndex: Int = 0
+    @Published var currentNoteContent: String? = nil
+    @Published var aiAgentState: AIAgentState = .idle
+    @Published var showAIConfirmation: Bool = false
+    @Published var currentIntentResponse: IntentResponse? = nil
+
+    // Shared ViewModel for recent notes list
+    let notesViewModel = RecentNotesViewModel(loadOnInit: false)
+    // Bridge from ContentView's current editing file
+    var currentEditingFileURL: URL? = nil
 
     var onRename: (() -> Void)?
-    var onRenameWithTitle: ((String) -> Void)?  // 添加带有标题参数的重命名回调
+    var onRenameWithTitle: ((String) -> Void)?
     var onDelete: (() -> Void)?
     var onSave: (() -> Void)?
     var onAddNew: (() -> Void)?
     var onNoteSelected: ((String, URL?) -> Void)?
-    var onAIAgentComplete: (() -> Void)?  // AI 代理完成后的回调（如清空笔记）
+    var onAIAgentComplete: (() -> Void)?
 
     init() {
-        refreshRecentNotes()
-    }
-
-    func refreshRecentNotes() {
-        recentNotes = LocalFileManager.shared.getRecentNotes()
     }
 
     func renameFile() {
@@ -861,7 +859,7 @@ class TitleBarToolbarState: ObservableObject {
 
     func openFileDictionary() {
         showRecentNotes = true
-        refreshRecentNotes()
+        notesViewModel.refreshAsync(selectNoteID: currentEditingFileURL?.path)
     }
 
     func openSettings() {
@@ -874,24 +872,30 @@ class TitleBarToolbarState: ObservableObject {
     }
 
     func navigateToPreviousNote() {
-        guard !recentNotes.isEmpty else { return }
-
-        if currentNoteIndex > 0 {
-            currentNoteIndex -= 1
-            onNoteSelected?(recentNotes[currentNoteIndex].content, recentNotes[currentNoteIndex].fileURL)
-        } else {
+        let notes = notesViewModel.filteredNotes
+        guard !notes.isEmpty, !notesViewModel.isRefreshing else {
             showNavigationToast(message: L("No more notes"))
+            return
+        }
+
+        notesViewModel.selectPreviousNote()
+        if let id = notesViewModel.selectedNoteID,
+           let note = notes.first(where: { $0.id == id }) {
+            onNoteSelected?(note.content, note.fileURL)
         }
     }
 
     func navigateToNextNote() {
-        guard !recentNotes.isEmpty else { return }
-
-        if currentNoteIndex < recentNotes.count - 1 {
-            currentNoteIndex += 1
-            onNoteSelected?(recentNotes[currentNoteIndex].content, recentNotes[currentNoteIndex].fileURL)
-        } else {
+        let notes = notesViewModel.filteredNotes
+        guard !notes.isEmpty, !notesViewModel.isRefreshing else {
             showNavigationToast(message: L("No more notes"))
+            return
+        }
+
+        notesViewModel.selectNextNote()
+        if let id = notesViewModel.selectedNoteID,
+           let note = notes.first(where: { $0.id == id }) {
+            onNoteSelected?(note.content, note.fileURL)
         }
     }
 
