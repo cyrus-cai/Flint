@@ -13,17 +13,19 @@ import Security
 // MARK: - Keychain Helper
 
 enum KeychainHelper {
-    static func save(key: String, value: String) {
-        guard let data = value.data(using: .utf8) else { return }
+    @discardableResult
+    static func save(key: String, value: String) -> Bool {
+        guard let data = value.data(using: .utf8) else { return false }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
         ]
         SecItemDelete(query as CFDictionary)
-        guard !value.isEmpty else { return }
+        guard !value.isEmpty else { return true }
         var addQuery = query
         addQuery[kSecValueData as String] = data
-        SecItemAdd(addQuery as CFDictionary, nil)
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        return status == errSecSuccess
     }
 
     static func load(key: String) -> String? {
@@ -71,10 +73,12 @@ final class MiniMaxAPI {
         let legacyKey = UserDefaults.standard.string(forKey: AppStorageKeys.miniMaxAPIKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !legacyKey.isEmpty else { return }
-        if (KeychainHelper.load(key: Self.keychainKey) ?? "").isEmpty {
-            KeychainHelper.save(key: Self.keychainKey, value: legacyKey)
+        // Already migrated
+        if let existing = KeychainHelper.load(key: Self.keychainKey), !existing.isEmpty { return }
+        // Only delete from UserDefaults after confirming Keychain write succeeded
+        if KeychainHelper.save(key: Self.keychainKey, value: legacyKey) {
+            UserDefaults.standard.removeObject(forKey: AppStorageKeys.miniMaxAPIKey)
         }
-        UserDefaults.standard.removeObject(forKey: AppStorageKeys.miniMaxAPIKey)
     }
 
     static var hasConfiguredAPIKey: Bool {
