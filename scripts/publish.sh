@@ -7,7 +7,7 @@ if [ -f .env ]; then
 fi
 
 VERSION=$1
-PLIST_PATH="Writedown-Info.plist"
+PLIST_PATH="Flint-Info.plist"
 
 if [ ! -f "$PLIST_PATH" ]; then
     echo "❌ Error: $PLIST_PATH not found."
@@ -31,7 +31,7 @@ if [ "$VERSION" != "$CURRENT_VERSION" ]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST_PATH"
     
     echo "🔧 Updating MARKETING_VERSION in project file..."
-    sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $VERSION;/g" Writedown.xcodeproj/project.pbxproj
+    sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $VERSION;/g" Flint.xcodeproj/project.pbxproj
     
     echo "Resetting build number to 1..."
     xcrun agvtool new-version -all 1
@@ -45,7 +45,7 @@ echo "📦 Packaging..."
 
 # 3. Detect Version from Built Artifact (Source of Truth)
 # We read the Info.plist from the actual built .app file to ensure consistency
-BUILT_APP_PLIST="build/Export/Writedown.app/Contents/Info.plist"
+BUILT_APP_PLIST="build/Export/Flint.app/Contents/Info.plist"
 
 if [ ! -f "$BUILT_APP_PLIST" ]; then
     echo "❌ Error: Built app Info.plist not found at $BUILT_APP_PLIST"

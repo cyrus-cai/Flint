@@ -59,9 +59,9 @@ export interface MdxLayoutProps {
 }
 
 export const MdxLayout = (props: MdxLayoutProps) => {
-  const title = `${props.meta.title} | HyperNote Changelog`;
-  const description = "Discover new updates and improvements to HyperNote.";
-  const url = "https://hypernote.app";
+  const title = `${props.meta.title} | Flint Changelog`;
+  const description = "Discover new updates and improvements to Flint.";
+  const url = "https://flintapp.dev";
 
   const { setPrevUrl } = usePreviousPageUrl();
   const router = useRouter();
@@ -129,8 +129,8 @@ export const MdxLayout = (props: MdxLayoutProps) => {
           <link
             rel="alternate"
             type="application/rss+xml"
-            title="HyperNote Changelog"
-            href="https://hypernote.app/rss.xml"
+            title="Flint Changelog"
+            href="https://flintapp.dev/rss.xml"
           />
         </Head>
       )}

@@ -1,4 +1,4 @@
 module.exports = {
-  siteUrl: "https://hypernote.app",
+  siteUrl: "https://flint.app",
   generateRobotsTxt: true,
 };

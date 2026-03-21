@@ -1,94 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0">
     <channel>
-        <title>HyperNote Changelog</title>
-        <link>https://hypernote.app</link>
-        <description>What's new in HyperNote</description>
+        <title>Flint Changelog</title>
+        <link>https://flintapp.dev</link>
+        <description>What's new in Flint</description>
         <lastBuildDate>Sun, 18 Jan 2026 14:37:30 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
-        <generator>Feed for HyperNote changelog</generator>
+        <generator>Feed for Flint changelog</generator>
         <image>
-            <title>HyperNote Changelog</title>
-            <url>https://hypernote.app/favicon.ico</url>
-            <link>https://hypernote.app</link>
+            <title>Flint Changelog</title>
+            <url>https://flintapp.dev/favicon.ico</url>
+            <link>https://flintapp.dev</link>
         </image>
-        <copyright>All rights reserved 2026, HyperNote</copyright>
+        <copyright>All rights reserved 2026, Flint</copyright>
         <item>
-            <title><![CDATA[HyperNote v0.9.2]]></title>
-            <link>https://hypernote.app/changelogs/v0.9.2-release</link>
-            <guid>https://hypernote.app/changelogs/v0.9.2-release</guid>
+            <title><![CDATA[Flint v0.9.2]]></title>
+            <link>https://flintapp.dev/changelogs/v0.9.2-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.9.2-release</guid>
             <pubDate>Sun, 18 Jan 2026 03:32:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.9.2-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.9.2-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.9.1]]></title>
-            <link>https://hypernote.app/changelogs/v0.9.1-release</link>
-            <guid>https://hypernote.app/changelogs/v0.9.1-release</guid>
+            <title><![CDATA[Flint v0.9.1]]></title>
+            <link>https://flintapp.dev/changelogs/v0.9.1-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.9.1-release</guid>
             <pubDate>Sat, 17 Jan 2026 18:00:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.9.1-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.9.1-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.9.0: AI Summaries]]></title>
-            <link>https://hypernote.app/changelogs/v0.9.0-release</link>
-            <guid>https://hypernote.app/changelogs/v0.9.0-release</guid>
+            <title><![CDATA[Flint v0.9.0: AI Summaries]]></title>
+            <link>https://flintapp.dev/changelogs/v0.9.0-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.9.0-release</guid>
             <pubDate>Fri, 16 Jan 2026 23:30:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.9.0-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.9.0-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.9]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.9-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.9-release</guid>
+            <title><![CDATA[Flint v0.8.9]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.9-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.9-release</guid>
             <pubDate>Fri, 16 Jan 2026 23:00:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.9-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.9-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.8]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.8-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.8-release</guid>
+            <title><![CDATA[Flint v0.8.8]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.8-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.8-release</guid>
             <pubDate>Fri, 16 Jan 2026 00:18:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.8-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.8-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.7: Liquid Glass]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.7-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.7-release</guid>
+            <title><![CDATA[Flint v0.8.7: Liquid Glass]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.7-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.7-release</guid>
             <pubDate>Fri, 16 Jan 2026 00:05:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.7-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.7-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.6: Smart Clipboard]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.6-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.6-release</guid>
+            <title><![CDATA[Flint v0.8.6: Smart Clipboard]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.6-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.6-release</guid>
             <pubDate>Thu, 15 Jan 2026 23:18:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.6-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.6-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.5]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.5-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.5-release</guid>
+            <title><![CDATA[Flint v0.8.5]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.5-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.5-release</guid>
             <pubDate>Thu, 15 Jan 2026 00:44:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.5-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.5-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.4]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.4-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.4-release</guid>
+            <title><![CDATA[Flint v0.8.4]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.4-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.4-release</guid>
             <pubDate>Thu, 15 Jan 2026 00:01:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.4-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.4-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.2]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.2-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.2-release</guid>
+            <title><![CDATA[Flint v0.8.2]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.2-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.2-release</guid>
             <pubDate>Wed, 14 Jan 2026 15:10:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.2-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.2-header.png" length="0" type="image/png"/>
         </item>
         <item>
-            <title><![CDATA[HyperNote v0.8.1]]></title>
-            <link>https://hypernote.app/changelogs/v0.8.1-release</link>
-            <guid>https://hypernote.app/changelogs/v0.8.1-release</guid>
+            <title><![CDATA[Flint v0.8.1]]></title>
+            <link>https://flintapp.dev/changelogs/v0.8.1-release</link>
+            <guid>https://flintapp.dev/changelogs/v0.8.1-release</guid>
             <pubDate>Mon, 12 Jan 2026 15:00:00 GMT</pubDate>
-            <enclosure url="https://hypernote.app/images/changelog/v0.8.1-header.png" length="0" type="image/png"/>
+            <enclosure url="https://flintapp.dev/images/changelog/v0.8.1-header.png" length="0" type="image/png"/>
         </item>
     </channel>
 </rss>

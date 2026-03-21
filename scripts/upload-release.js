@@ -15,8 +15,8 @@ async function uploadRelease() {
         process.exit(1);
     }
 
-    const appName = "Writedown";
-    // Match the output filename from package.sh (Writedown.zip)
+    const appName = "Flint";
+    // Match the output filename from package.sh (Flint.zip)
     const zipFileName = `${appName}.zip`;
     const zipPath = path.join(__dirname, '..', 'build', zipFileName);
 

@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://hypernote.app
+Host: https://flint.app
 
 # Sitemaps
-Sitemap: https://hypernote.app/sitemap.xml
+Sitemap: https://flint.app/sitemap.xml

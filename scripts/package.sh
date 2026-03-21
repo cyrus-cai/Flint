@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-APP_NAME="Writedown"
-SCHEME="Writedown"
+APP_NAME="Flint"
+SCHEME="Flint"
 BUILD_DIR="build"
 ARCHIVE_PATH="$BUILD_DIR/$APP_NAME.xcarchive"
 EXPORT_PATH="$BUILD_DIR/Export"
@@ -11,7 +11,7 @@ ZIP_PATH="$BUILD_DIR/$APP_NAME.zip"
 # Extract Version Info
 echo "🔍 Reading version info from Info.plist..."
 # Prioritize the known location
-PLIST_PATH="Writedown-Info.plist"
+PLIST_PATH="Flint-Info.plist"
 
 if [ ! -f "$PLIST_PATH" ]; then
     PLIST_PATH="$APP_NAME/Info.plist"

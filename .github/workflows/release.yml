@@ -21,9 +21,9 @@ jobs:
 
     - name: Build and Archive
       run: |
-        xcodebuild -scheme Writedown \
+        xcodebuild -scheme Flint \
           -configuration Release \
-          -archivePath build/Writedown.xcarchive \
+          -archivePath build/Flint.xcarchive \
           -destination 'generic/platform=macOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
@@ -35,16 +35,16 @@ jobs:
         # Directly copying from archive (Unsigned/Ad-hoc)
         # For signed builds, you need to set up certificates and profiles
         mkdir -p build/Export
-        cp -R build/Writedown.xcarchive/Products/Applications/Writedown.app build/Export/
+        cp -R build/Flint.xcarchive/Products/Applications/Flint.app build/Export/
 
     - name: Zip App
       run: |
         cd build/Export
-        zip -r Writedown.zip Writedown.app
+        zip -r Flint.zip Flint.app
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: build/Export/Writedown.zip
+        files: build/Export/Flint.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

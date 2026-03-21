@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-APP_NAME="Writedown"
-DOWNLOAD_URL="https://wfcpsam37fc4yuvn.public.blob.vercel-storage.com/Writedown-0.8.6.zip"
+APP_NAME="Flint"
+DOWNLOAD_URL="https://wfcpsam37fc4yuvn.public.blob.vercel-storage.com/Flint-latest.zip"
 INSTALL_DIR="/Applications"
 TEMP_DIR=$(mktemp -d)
 

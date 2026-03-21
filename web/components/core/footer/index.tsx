@@ -21,14 +21,14 @@ export const Footer = ({ hideCTA = false, className = '' }: FooterProps) => {
               </a>
               <a
                 className="hover:underline"
-                href="https://hypernote.app/download"
+                href="https://flintapp.dev/download"
               >
                 Download
               </a>
             </div>
             
             <div className="mt-8 text-xs text-gray-500">
-              © {new Date().getFullYear()} HyperNote. All rights reserved.
+              © {new Date().getFullYear()} Flint. All rights reserved.
             </div>
           </div>
         </div>

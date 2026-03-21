@@ -2,8 +2,8 @@
 set -e
 
 # Configuration
-REPO="cyrus-cai/Hyper-Note"
-APP_NAME="Writedown"
+REPO="cyrus-cai/Flint"
+APP_NAME="Flint"
 INSTALL_DIR="/Applications"
 TEMP_DIR=$(mktemp -d)
 

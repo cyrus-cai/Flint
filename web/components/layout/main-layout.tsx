@@ -41,7 +41,7 @@ export const MainLayout = ({
 }: MainLayoutProps) => {
   const metaTitle = `${
     infiniteScrollingView ? "" : page > 0 ? `Page ${page} -` : ""
-  } HyperNote Changelog`;
+  } Flint Changelog`;
   const timeline = useTimelineStore();
   const { animatePage, setAnimatePage } = useAnimatePageStore();
   const router = useRouter();
@@ -99,29 +99,29 @@ export const MainLayout = ({
           <title>{metaTitle}</title>
           <link rel="icon" href="/favicon.ico" />
           <meta name="title" content={metaTitle} />
-          <meta name="description" content="Discover new updates and improvements to HyperNote." />
-          <meta name="image" content="https://hypernote.app/social.png" />
+          <meta name="description" content="Discover new updates and improvements to Flint." />
+          <meta name="image" content="https://flintapp.dev/social.png" />
           <meta property="og:type" content="website" />
-          <meta property="og:url" content="https://hypernote.app" />
+          <meta property="og:url" content="https://flintapp.dev" />
           <meta property="og:title" content={metaTitle} />
           <meta
             property="og:description"
-            content="Discover new updates and improvements to HyperNote."
+            content="Discover new updates and improvements to Flint."
           />
-          <meta property="og:image" content="https://hypernote.app/social.png" />
+          <meta property="og:image" content="https://flintapp.dev/social.png" />
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:url" content="https://hypernote.app" />
+          <meta name="twitter:url" content="https://flintapp.dev" />
           <meta name="twitter:title" content={metaTitle} />
           <meta
             name="twitter:description"
-            content="Discover new updates and improvements to HyperNote."
+            content="Discover new updates and improvements to Flint."
           />
-          <meta name="twitter:image" content="https://hypernote.app/social.png" />
+          <meta name="twitter:image" content="https://flintapp.dev/social.png" />
           <link
             rel="alternate"
             type="application/rss+xml"
-            title="HyperNote Changelog"
-            href="https://hypernote.app/rss.xml"
+            title="Flint Changelog"
+            href="https://flintapp.dev/rss.xml"
           />
         </Head>
       )}
