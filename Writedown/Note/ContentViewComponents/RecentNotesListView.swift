@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import SwiftUI
 
@@ -23,202 +24,122 @@ struct GroupedNotes {
 }
 
 class RecentNotesViewModel: ObservableObject {
+    // MARK: - Data
     @Published var notes: [RecentNote] = []
     @Published var searchText: String = ""
-    @Published var selectedNoteIndex: Int? = nil
-    @Published var hoveredNoteIndex: Int? = nil
-    @Published var currentNoteIndex: Int? = nil
-    @Published private var isHoverEnabled = true
     @Published var showStarredOnly = false
 
-    // 用于存储星标笔记的路径
+    // MARK: - Cached filtered/grouped results (Step 1)
+    @Published private(set) var filteredNotes: [RecentNote] = []
+    @Published private(set) var groupedFilteredNotes: [GroupedNotes] = []
+    private(set) var filteredNoteIndexMap: [String: Int] = [:]  // note.id → index
+
+    // MARK: - Selection (ID-based, Step 0b)
+    @Published var selectedNoteID: String? = nil   // keyboard nav / toolbar prev-next anchor
+    @Published var hoveredNoteID: String? = nil    // visual highlight only
+    @Published private var isHoverEnabled = true
+
+    var highlightedNoteID: String? {
+        hoveredNoteID ?? selectedNoteID
+    }
+
+    // MARK: - Async refresh (Step 3)
+    private(set) var refreshGeneration: UInt = 0
+    private var pendingSelectedNoteID: String? = nil
+    @Published var isRefreshing: Bool = false
+
+    // MARK: - Metrics cache (Step 4)
+    private let cacheQueue = DispatchQueue(label: "com.hypernote.contentCache")
+    private var _wordCountCache: [String: Int] = [:]
+    private var _charCountCache: [String: Int] = [:]
+    private var _loadingIDs: Set<String> = []
+
+    // MARK: - Combine
+    private var cancellables = Set<AnyCancellable>()
+
+    // MARK: - Starred persistence
     private let starredNotesKey = "StarredNotes"
 
-    init() {
-        notes = LocalFileManager.shared.getRecentNotes()
-        if !notes.isEmpty {
-            currentNoteIndex = 0
+    // MARK: - Init
+
+    init(loadOnInit: Bool = true) {
+        if loadOnInit {
+            notes = LocalFileManager.shared.getRecentNotes()
+            loadStarredStatus()
         }
 
-        // 加载星标状态
-        loadStarredStatus()
+        // Recompute when notes, searchText, or showStarredOnly change
+        Publishers.CombineLatest3($notes, $showStarredOnly, $searchText)
+            .dropFirst()
+            .sink { [weak self] _, _, _ in self?.recomputeFilteredNotes() }
+            .store(in: &cancellables)
+
+        // Initial computation
+        recomputeFilteredNotes()
     }
 
-    var filteredNotes: [RecentNote] {
-        let searchFiltered = notes.filter { note in
-            if searchText.isEmpty { return true }
-            return note.title.localizedCaseInsensitiveContains(searchText) ||
-                   note.content.localizedCaseInsensitiveContains(searchText)
-        }
+    // MARK: - Filtered/Grouped recomputation
 
-        // 添加星标筛选
-        if showStarredOnly {
-            return searchFiltered.filter { $0.isStarred }
-        }
-
-        return searchFiltered
-    }
-
-    func deleteNote(_ note: RecentNote) {
-        do {
-            // 1. 首先确保我们要删除的是正确的文件
-            let fileToDelete = note.fileURL
-            print("Attempting to delete file at: \(fileToDelete.path)")
-
-            // 2. 验证文件仍然存在
-            let fileManager = Foundation.FileManager.default
-            guard fileManager.fileExists(atPath: fileToDelete.path) else {
-                print("File does not exist at path: \(fileToDelete.path)")
-                return
+    func recomputeFilteredNotes() {
+        let base = showStarredOnly ? notes.filter { $0.isStarred } : notes
+        if searchText.isEmpty {
+            filteredNotes = base
+        } else {
+            filteredNotes = base.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText) ||
+                $0.firstLinePreview.localizedCaseInsensitiveContains(searchText)
             }
+        }
+        filteredNoteIndexMap = Dictionary(uniqueKeysWithValues:
+            filteredNotes.enumerated().map { ($1.id, $0) })
+        recomputeGroupedNotes()
 
-            // 3. 删除文件
-            try fileManager.removeItem(at: fileToDelete)
-
-            // 4. 从内存中移除
-            notes.removeAll { $0.fileURL == note.fileURL }
-
-            // 5. 更新选择状态
-            updateSelectionAfterDeletion()
-
-        } catch {
-            print("Error deleting note: \(error)")
-            print("File path: \(note.fileURL.path)")
-            print("Error details: \(error.localizedDescription)")
+        // Selection sync: pending from refresh takes priority
+        if let pending = pendingSelectedNoteID, filteredNoteIndexMap[pending] != nil {
+            selectedNoteID = pending
+            pendingSelectedNoteID = nil
+        } else if selectedNoteID == nil || filteredNoteIndexMap[selectedNoteID!] == nil {
+            selectedNoteID = filteredNotes.first?.id
+        }
+        // Hover sync
+        if let hid = hoveredNoteID, filteredNoteIndexMap[hid] == nil {
+            hoveredNoteID = nil
         }
     }
 
-    private func updateSelectionAfterDeletion() {
-        // 如果过滤后的列表为空，重置选择
-        if filteredNotes.isEmpty {
-            currentNoteIndex = nil
-            return
-        }
-
-        // 否则确保有效范围内
-        if let current = currentNoteIndex {
-            currentNoteIndex = min(current, filteredNotes.count - 1)
-        }
-    }
-
-    // 键盘导航：保持单一职责，只处理选中状态
-   func selectNextNote() {
-        guard !filteredNotes.isEmpty else { return }
-
-        // 暂时禁用悬停效果
-        isHoverEnabled = false
-
-        // 延迟重新启用悬停效果
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.isHoverEnabled = true
-        }
-
-        if let current = currentNoteIndex {
-            currentNoteIndex = min(current + 1, filteredNotes.count - 1)
-        } else {
-            currentNoteIndex = 0
-        }
-    }
-
-    func selectPreviousNote() {
-        guard !filteredNotes.isEmpty else { return }
-
-        // 暂时禁用悬停效果
-        isHoverEnabled = false
-
-        // 延迟重新启用悬停效果
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.isHoverEnabled = true
-        }
-
-        if let current = currentNoteIndex {
-            currentNoteIndex = max(current - 1, 0)
-        } else {
-            currentNoteIndex = filteredNotes.count - 1
-        }
-    }
-
-    func setHoveredNote(_ index: Int?) {
-        // 只在允许悬停时更新状态
-        if isHoverEnabled {
-            currentNoteIndex = index
-        }
-    }
-
-    // 点击选择：同时更新选中状态并清除悬停状态
-    func selectNote(_ index: Int) {
-        currentNoteIndex = index
-        //        hoveredNoteIndex = nil
-
-        // 暂时禁用悬停效果
-        isHoverEnabled = false
-
-        // 延迟重新启用悬停效果
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.isHoverEnabled = true
-        }
-    }
-
-    // 重置选择：清除所有状态
-    func resetSelection() {
-        if !filteredNotes.isEmpty {
-            currentNoteIndex = 0
-        } else {
-            currentNoteIndex = nil
-        }
-        currentNoteIndex = nil
-    }
-
-    var hoverEnabled: Bool {
-        isHoverEnabled
-    }
-
-    var groupedFilteredNotes: [GroupedNotes] {
+    private func recomputeGroupedNotes() {
         let calendar = Calendar.current
         let now = Date()
         let todayStart = calendar.startOfDay(for: now)
         let yesterday = calendar.date(byAdding: .day, value: -1, to: todayStart)!
         let weekStart = calendar.date(byAdding: .day, value: -7, to: todayStart)!
 
-        // Containers for non‐today groups and today's sub‐groups
         var nonTodayGroups: [TimeGroup: [RecentNote]] = [:]
         var todayGroups: [TimeGroup: [RecentNote]] = [:]
 
-        // Define thresholds for today
         let fifteenMinutes: TimeInterval = 15 * 60
         let oneHour: TimeInterval = 60 * 60
         let noonToday =
             calendar.date(bySettingHour: 12, minute: 0, second: 0, of: now)
             ?? todayStart.addingTimeInterval(12 * 3600)
 
-        // Enable sub–groups only if enough time has passed today
         let enableLast15 = now.timeIntervalSince(todayStart) >= fifteenMinutes
         let enableLast1 = now.timeIntervalSince(todayStart) >= oneHour
         let enableAfternoon = now >= noonToday
 
-        if enableLast15 {
-            todayGroups[.last15Min] = []
-        }
-        if enableLast1 {
-            todayGroups[.last1Hour] = []
-        }
-        // Always add a "This morning" group (even if it is the only one)
+        if enableLast15 { todayGroups[.last15Min] = [] }
+        if enableLast1 { todayGroups[.last1Hour] = [] }
         todayGroups[.thisMorning] = []
-        if enableAfternoon {
-            todayGroups[.thisAfternoon] = []
-        }
+        if enableAfternoon { todayGroups[.thisAfternoon] = [] }
 
-        // Loop through filteredNotes and assign groups
         for note in filteredNotes {
             let noteDate = note.lastModified
             if calendar.isDate(noteDate, inSameDayAs: now) {
-                // For today, use relative thresholds
                 if enableLast15 && noteDate >= now.addingTimeInterval(-fifteenMinutes) {
                     todayGroups[.last15Min]?.append(note)
                 } else if enableLast1 && noteDate >= now.addingTimeInterval(-oneHour) {
                     todayGroups[.last1Hour]?.append(note)
                 } else {
-                    // For notes older than one hour, choose morning vs. afternoon if applicable
                     if enableAfternoon {
                         if noteDate >= noonToday {
                             todayGroups[.thisAfternoon]?.append(note)
@@ -238,17 +159,10 @@ class RecentNotesViewModel: ObservableObject {
             }
         }
 
-        // Now build the resulting array in the desired order.
         var groupsArray: [GroupedNotes] = []
-
-        // Order today's groups according to what's enabled.
         var todayOrder: [TimeGroup] = []
-        if enableLast15 {
-            todayOrder.append(.last15Min)
-        }
-        if enableLast1 {
-            todayOrder.append(.last1Hour)
-        }
+        if enableLast15 { todayOrder.append(.last15Min) }
+        if enableLast1 { todayOrder.append(.last1Hour) }
         if enableAfternoon {
             todayOrder.append(.thisAfternoon)
             todayOrder.append(.thisMorning)
@@ -260,57 +174,165 @@ class RecentNotesViewModel: ObservableObject {
                 groupsArray.append(GroupedNotes(group: group, notes: notes))
             }
         }
-
-        // Order non–today groups in a fixed order.
         let nonTodayOrder: [TimeGroup] = [.yesterday, .thisWeek, .older]
         for group in nonTodayOrder {
             if let notes = nonTodayGroups[group], !notes.isEmpty {
                 groupsArray.append(GroupedNotes(group: group, notes: notes))
             }
         }
-        return groupsArray
+        groupedFilteredNotes = groupsArray
     }
 
-    // 切换笔记的星标状态
+    // MARK: - Async refresh
+
+    func refreshAsync(selectNoteID: String? = nil) {
+        let gen = refreshGeneration &+ 1
+        refreshGeneration = gen
+        pendingSelectedNoteID = selectNoteID
+        isRefreshing = true
+        searchText = ""
+        showStarredOnly = false
+        hoveredNoteID = nil
+        clearMetricsCache()
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let freshNotes = LocalFileManager.shared.getRecentNotes()
+            DispatchQueue.main.async {
+                guard let self, self.refreshGeneration == gen else { return }
+                self.notes = freshNotes
+                self.loadStarredStatus()
+                self.isRefreshing = false
+                // Combine sink auto-triggers recomputeFilteredNotes
+            }
+        }
+    }
+
+    // MARK: - Selection / Hover
+
+    func setHoveredNote(_ noteID: String?) {
+        if isHoverEnabled {
+            hoveredNoteID = noteID
+        }
+    }
+
+    func selectNextNote() {
+        guard !filteredNotes.isEmpty else { return }
+        isHoverEnabled = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.isHoverEnabled = true
+        }
+
+        if let currentID = selectedNoteID,
+           let currentIndex = filteredNoteIndexMap[currentID] {
+            let nextIndex = min(currentIndex + 1, filteredNotes.count - 1)
+            selectedNoteID = filteredNotes[nextIndex].id
+        } else {
+            selectedNoteID = filteredNotes.first?.id
+        }
+        hoveredNoteID = nil
+    }
+
+    func selectPreviousNote() {
+        guard !filteredNotes.isEmpty else { return }
+        isHoverEnabled = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.isHoverEnabled = true
+        }
+
+        if let currentID = selectedNoteID,
+           let currentIndex = filteredNoteIndexMap[currentID] {
+            let prevIndex = max(currentIndex - 1, 0)
+            selectedNoteID = filteredNotes[prevIndex].id
+        } else {
+            selectedNoteID = filteredNotes.last?.id
+        }
+        hoveredNoteID = nil
+    }
+
+    func resetSelection() {
+        selectedNoteID = filteredNotes.first?.id
+        hoveredNoteID = nil
+    }
+
+    var hoverEnabled: Bool {
+        isHoverEnabled
+    }
+
+    // MARK: - Delete
+
+    func deleteNote(_ note: RecentNote) {
+        do {
+            let fileToDelete = note.fileURL
+            let fileManager = Foundation.FileManager.default
+            guard fileManager.fileExists(atPath: fileToDelete.path) else { return }
+            try fileManager.removeItem(at: fileToDelete)
+            notes.removeAll { $0.id == note.id }
+            // Combine sink auto-triggers recomputeFilteredNotes which syncs selection
+        } catch {
+            print("Error deleting note: \(error)")
+        }
+    }
+
+    // MARK: - Star
+
     func toggleStarred(_ note: RecentNote) {
         guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
-
-        // 切换星标状态
         notes[index].isStarred.toggle()
-
-        // 持久化星标状态
         saveStarredStatus()
-
-        // 通知UI更新
-        objectWillChange.send()
+        // @Published notes change triggers Combine → recomputeFilteredNotes
     }
 
-    // 保存星标状态到 UserDefaults
     private func saveStarredStatus() {
         let starredPaths = notes.filter { $0.isStarred }.map { $0.fileURL.path }
         UserDefaults.standard.set(starredPaths, forKey: starredNotesKey)
     }
 
-    // 从 UserDefaults 加载星标状态
-    private func loadStarredStatus() {
+    func loadStarredStatus() {
         let starredPaths = UserDefaults.standard.stringArray(forKey: starredNotesKey) ?? []
-
-        // 更新笔记的星标状态
         for (index, note) in notes.enumerated() {
             if starredPaths.contains(note.fileURL.path) {
                 notes[index].isStarred = true
             }
         }
     }
+
+    // MARK: - Metrics cache
+
+    func cachedWordCount(for noteID: String) -> Int? { _wordCountCache[noteID] }
+    func cachedCharCount(for noteID: String) -> Int? { _charCountCache[noteID] }
+
+    func loadMetricsIfNeeded(for note: RecentNote) {
+        let id = note.id
+        if _wordCountCache[id] != nil || _loadingIDs.contains(id) { return }
+        _loadingIDs.insert(id)
+        let fileURL = note.fileURL
+        let gen = refreshGeneration
+        cacheQueue.async { [weak self] in
+            let content = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
+            let wc = TextMetrics.countWords(in: content)
+            let cc = content.count
+            DispatchQueue.main.async {
+                guard let self, self.refreshGeneration == gen else { return }
+                self._wordCountCache[id] = wc
+                self._charCountCache[id] = cc
+                self._loadingIDs.remove(id)
+                self.objectWillChange.send()
+            }
+        }
+    }
+
+    func clearMetricsCache() {
+        _wordCountCache.removeAll()
+        _charCountCache.removeAll()
+        _loadingIDs.removeAll()
+    }
 }
 
 //MARK: - Main List View
 struct RecentNotesListView: View {
-    let notes: [RecentNote]
+    @ObservedObject var viewModel: RecentNotesViewModel
     let onSelectNote: (String, URL) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    @StateObject private var viewModel = RecentNotesViewModel()
     @FocusState private var searchFocused: Bool
     @State private var isShowAllHovered = false
     @State private var eventMonitor: Any?
@@ -342,9 +364,10 @@ struct RecentNotesListView: View {
                     return event
                 }
 
-                if let currentIndex = viewModel.currentNoteIndex {
-                    let currentNote = viewModel.filteredNotes[currentIndex]
-                    onSelectNote(currentNote.content, currentNote.fileURL)
+                if let highlightedID = viewModel.highlightedNoteID,
+                   let index = viewModel.filteredNoteIndexMap[highlightedID] {
+                    let note = viewModel.filteredNotes[index]
+                    onSelectNote(note.content, note.fileURL)
                     dismiss()
                     return nil
                 }
@@ -403,9 +426,6 @@ struct RecentNotesListView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 12)
-                .onChange(of: viewModel.searchText) {
-                    viewModel.resetSelection()
-                }
 
                 // Notes List
                 if !viewModel.filteredNotes.isEmpty {
@@ -438,10 +458,15 @@ struct RecentNotesListView: View {
 
                 // Empty State
                 if viewModel.filteredNotes.isEmpty {
-                    Text(viewModel.searchText.isEmpty ? L("No notes") : L("No matching notes"))
-                        .foregroundColor(.secondary)
-                        .padding(24)
-                        .frame(height: 360)
+                    if viewModel.isRefreshing {
+                        ProgressView()
+                            .frame(height: 360)
+                    } else {
+                        Text(viewModel.searchText.isEmpty ? L("No notes") : L("No matching notes"))
+                            .foregroundColor(.secondary)
+                            .padding(24)
+                            .frame(height: 360)
+                    }
                 }
             }
             .frame(width: 320)
@@ -473,6 +498,9 @@ struct NoteRow: View {
     let searchText: String
     var onToggleStar: () -> Void
     var onDelete: () -> Void
+    var wordCount: Int?
+    var charCount: Int?
+    var onAppearLoadMetrics: (() -> Void)?
     @State private var isCopied = false
     @State private var isHoveringCopy = false
     @State private var isHoveringShare = false
@@ -516,49 +544,24 @@ struct NoteRow: View {
     }
 
     private func getMatchingContent() -> (title: String, contexts: [AttributedString]?) {
-        // 默认显示标题
         let title = note.title.isEmpty ? "Untitled" : note.title
 
         guard !searchText.isEmpty else {
             return (title, nil)
         }
 
+        // Only highlight in title and firstLinePreview (no disk I/O)
         var matchingContexts: [AttributedString] = []
-
-        // 查找包含搜索词的段落和位置
-        let paragraphs = note.content.components(separatedBy: .newlines)
-        for paragraph in paragraphs {
-            if paragraph.localizedCaseInsensitiveContains(searchText) {
-                // 使用 NSString 来处理中文字符
-                let nsString = paragraph as NSString
+        for text in [note.title, note.firstLinePreview] {
+            if text.localizedCaseInsensitiveContains(searchText) {
+                let nsString = text as NSString
                 let range = nsString.range(of: searchText, options: .caseInsensitive)
-
                 if range.location != NSNotFound {
-                    // 计算前后文的范围
-                    let preStart = max(0, range.location - 20)
-                    let preLength = min(20, range.location - preStart)
-                    let postStart = range.location + range.length
-                    let postLength = min(20, nsString.length - postStart)
-
-                    // 提取前后文
-                    let preContext = nsString.substring(
-                        with: NSRange(location: preStart, length: preLength))
-                    let matchText = nsString.substring(with: range)
-                    let postContext = nsString.substring(
-                        with: NSRange(location: postStart, length: postLength))
-
-                    // 组合完整的上下文
-                    let fullContext = "\(preContext)\(matchText)\(postContext)"
-                    var attributed = AttributedString(fullContext)
-
-                    // 计算高亮范围
-                    let highlightRange = (fullContext as NSString).range(of: matchText)
-                    if highlightRange.location != NSNotFound {
-                        let attribRange = Range(highlightRange, in: attributed)!
+                    var attributed = AttributedString(text)
+                    if let attribRange = Range(range, in: attributed) {
                         attributed[attribRange].backgroundColor = .yellow.opacity(0.3)
                         attributed[attribRange].foregroundColor = .primary
                     }
-
                     matchingContexts.append(attributed)
                 }
             }
@@ -635,14 +638,25 @@ struct NoteRow: View {
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
                         if showWordCount {
-                            let wordCount = TextMetrics.countWords(in: note.content)
-                            Text(String(format: L(wordCount != 1 ? "%d Words" : "%d Word"), wordCount))
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
+                            if let wc = wordCount {
+                                Text(String(format: L(wc != 1 ? "%d Words" : "%d Word"), wc))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("...")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
                         } else {
-                            Text(String(format: L("%d Chars"), note.content.count))
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
+                            if let cc = charCount {
+                                Text(String(format: L("%d Chars"), cc))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("...")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
                         }
 
                         // Display source app if available
@@ -805,6 +819,7 @@ struct NoteRow: View {
         .modifier(HoverButtonBackgroundModifier(isHovered: isHighLight, colorScheme: colorScheme))
         .padding(.horizontal, 6)
         .onHover(perform: onHover)
+        .onAppear { onAppearLoadMetrics?() }
     }
 }
 
@@ -1084,29 +1099,28 @@ struct CollapsibleGroupView: View {
             // Only show the note rows when expanded - 使用 LazyVStack 实现懒加载
             if isExpanded {
                 LazyVStack(spacing: 2) {
-                    ForEach(Array(group.notes.enumerated()), id: \.element.id) { index, note in
-                        let globalIndex = viewModel.filteredNotes.firstIndex(where: { $0.id == note.id }) ?? 0
+                    ForEach(group.notes) { note in
                         NoteRow(
                             note: note,
-                            isHighLight: viewModel.currentNoteIndex == globalIndex,
+                            isHighLight: viewModel.highlightedNoteID == note.id,
                             onTap: {
                                 onSelectNote(note.content, note.fileURL)
                                 dismiss()
                             },
                             onHover: { isHovered in
-                                viewModel.setHoveredNote(isHovered ? globalIndex : nil)
+                                viewModel.setHoveredNote(isHovered ? note.id : nil)
                             },
                             searchText: viewModel.searchText,
                             onToggleStar: {
-                                withAnimation {
-                                    viewModel.toggleStarred(note)
-                                }
+                                viewModel.toggleStarred(note)
                             },
                             onDelete: {
                                 viewModel.deleteNote(note)
-                            }
+                            },
+                            wordCount: viewModel.cachedWordCount(for: note.id),
+                            charCount: viewModel.cachedCharCount(for: note.id),
+                            onAppearLoadMetrics: { viewModel.loadMetricsIfNeeded(for: note) }
                         )
-                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }

@@ -50,6 +50,7 @@ struct LinkDetector {
 struct ContentView: View {
     @State private var text = ""
     @State private var currentNoteId: String?
+    @State private var currentEditingFileURL: URL? = nil
     @State private var links: [String] = []
     @State private var isHovered = false
     @Environment(\.colorScheme) private var colorScheme
@@ -89,9 +90,7 @@ struct ContentView: View {
     private func startMonitoringFile() {
         stopMonitoringFile()
 
-        guard let currentId = currentNoteId,
-            let fileURL = LocalFileManager.shared.fileURL(for: currentId)
-        else {
+        guard let fileURL = currentEditingFileURL else {
             return
         }
 
@@ -140,9 +139,7 @@ struct ContentView: View {
         print("Saving document with trigger: \(trigger)")
 
         do {
-            if let currentId = currentNoteId,
-               let fileURL = LocalFileManager.shared.fileURL(for: currentId) {
-
+            if let fileURL = currentEditingFileURL {
                 if trigger == .titleEdit {
                     return
                 } else {
@@ -171,9 +168,11 @@ struct ContentView: View {
 
                     try text.write(to: uniqueFileURL, atomically: true, encoding: .utf8)
                     currentNoteId = uniqueTitle
+                    currentEditingFileURL = uniqueFileURL
                 } else {
                     try text.write(to: fileURL, atomically: true, encoding: .utf8)
                     currentNoteId = documentTitle
+                    currentEditingFileURL = fileURL
                 }
 
                 lastSaveDate = Date()
@@ -205,6 +204,7 @@ struct ContentView: View {
 
         if let url = fileURL {
             let filename = url.deletingPathExtension().lastPathComponent
+            currentEditingFileURL = url
             currentNoteId = filename
 
             customTitle = filename
@@ -246,6 +246,7 @@ struct ContentView: View {
         stopMonitoringFile()
         text = ""
         currentNoteId = nil
+        currentEditingFileURL = nil
         customTitle = nil
         contentHashForAIRename = 0
     }
@@ -315,8 +316,7 @@ struct ContentView: View {
     }
 
     private func deleteCurrentNote() {
-        guard let currentId = currentNoteId,
-              let fileURL = LocalFileManager.shared.fileURL(for: currentId) else {
+        guard let fileURL = currentEditingFileURL else {
             return
         }
 
@@ -330,9 +330,7 @@ struct ContentView: View {
             
         } catch {
             print("Error deleting note: \(error)")
-            if currentNoteId == currentId {
-                startMonitoringFile()
-            }
+            startMonitoringFile()
         }
     }
 
@@ -354,8 +352,7 @@ struct ContentView: View {
             customTitle = editedTitle
 
             // Rename the file if we have an existing note
-            if let currentId = currentNoteId,
-               let oldFileURL = LocalFileManager.shared.fileURL(for: currentId),
+            if let oldFileURL = currentEditingFileURL,
                let newFileURL = LocalFileManager.shared.fileURL(for: editedTitle) {
 
                 do {
@@ -369,8 +366,9 @@ struct ContentView: View {
                     // Rename the file without changing its content
                     try Foundation.FileManager.default.moveItem(at: oldFileURL, to: newFileURL)
 
-                    // Update currentNoteId to the new title
+                    // Update identity
                     currentNoteId = editedTitle
+                    currentEditingFileURL = newFileURL
 
                     // Start monitoring the new file
                     startMonitoringFile()
@@ -497,16 +495,15 @@ struct ContentView: View {
                 deleteCurrentNote()
             }
             toolbarState.onRenameWithTitle = { newTitle in
-                // 确保 currentNoteId 不为 nil
-                guard let currentId = currentNoteId,
-                      let oldFileURL = LocalFileManager.shared.fileURL(for: currentId),
+                guard let oldFileURL = currentEditingFileURL,
                       let newFileURL = LocalFileManager.shared.fileURL(for: newTitle) else { return }
 
                 do {
                     try Foundation.FileManager.default.moveItem(at: oldFileURL, to: newFileURL)
                     currentNoteId = newTitle
-                    customTitle = newTitle  // 更新自定义标题
-                    startMonitoringFile()  // 重新开始监控文件
+                    currentEditingFileURL = newFileURL
+                    customTitle = newTitle
+                    startMonitoringFile()
                 } catch {
                     print("Error renaming file: \(error)")
                 }
@@ -562,6 +559,9 @@ struct ContentView: View {
                 name: Notification.Name("autoSaveIntervalDidChange"),
                 object: nil
             )
+        }
+        .onChange(of: currentEditingFileURL) {
+            toolbarState.currentEditingFileURL = currentEditingFileURL
         }
         .onChange(of: toolbarState.showRecentNotes) { newValue in
             if newValue == false {

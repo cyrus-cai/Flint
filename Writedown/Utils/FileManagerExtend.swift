@@ -9,7 +9,7 @@ extension Notification.Name {
 
 // MARK: - Recent Note Model
 struct RecentNote: Identifiable {
-    let id = UUID()
+    var id: String { fileURL.path }
     let title: String
     let firstLinePreview: String  // Add this to store the first line separately
     let lastModified: Date
@@ -33,7 +33,9 @@ struct RecentNote: Identifiable {
 
         let filename = url.deletingPathExtension().lastPathComponent
         let lines = headerString.components(separatedBy: .newlines)
-        let firstLine = lines.first?.isEmpty ?? true ? "Untitled" : lines[0]
+        // Skip metadata comment lines (e.g. <!-- Source: ... -->)
+        let contentLines = lines.drop { $0.hasPrefix("<!--") && $0.hasSuffix("-->") }
+        let firstLine = contentLines.first(where: { !$0.isEmpty }) ?? "Untitled"
 
         // Extract source app from metadata comment if available
         var sourceApp: String? = nil
