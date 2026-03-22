@@ -1,0 +1,54 @@
+# Xcode
+xcuserdata/
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.pbxuser
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Build
+build/
+DerivedData/
+*.hmap
+*.ipa
+*.pkg
+
+# CocoaPods
+# Pods/
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Code injection
+iOSInjectionProject/
+
+# Swift Package Manager
+.build/
+
+# macOS
+.DS_Store
+
+# Environment & secrets
+.env
+.env.local
+*.xcconfig
+
+# IDE
+.vscode/
+.claude/
+
+# Deprecated project
+Writedown.xcodeproj/
+
+# Web changelog (separate project)
+web/
+
+# Tests (Xcode template stubs)
+FlintTests/
+FlintUITests/

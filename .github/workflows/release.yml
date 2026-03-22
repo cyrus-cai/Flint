@@ -1,0 +1,50 @@
+name: Release macOS App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: 'latest-stable'
+
+    - name: Build and Archive
+      run: |
+        xcodebuild -scheme Flint \
+          -configuration Release \
+          -archivePath build/Flint.xcarchive \
+          -destination 'generic/platform=macOS' \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          archive
+
+    - name: Export App
+      run: |
+        # Directly copying from archive (Unsigned/Ad-hoc)
+        # For signed builds, you need to set up certificates and profiles
+        mkdir -p build/Export
+        cp -R build/Flint.xcarchive/Products/Applications/Flint.app build/Export/
+
+    - name: Zip App
+      run: |
+        cd build/Export
+        zip -r Flint.zip Flint.app
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/Export/Flint.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
