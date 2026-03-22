@@ -180,7 +180,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "list_notes": {
         const a = ["list", "--json"];
         if (args?.week) a.push("--week", String(args.week));
-        if (args?.limit) a.push("--limit", String(args.limit));
+        if (args?.limit != null) a.push("--limit", String(args.limit));
         return ok(flint(a));
       }
 

@@ -772,11 +772,25 @@ struct AISettingsView: View {
         let candidates = [
             "/opt/homebrew/bin/node",       // Apple Silicon Homebrew
             "/usr/local/bin/node",          // Intel Homebrew / official installer
-            FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent(".nvm/current/bin/node").path,
+            nvmNodePath(),                  // NVM
             "/usr/bin/node",                // Xcode CLT / system
         ]
-        return candidates.first { FileManager.default.fileExists(atPath: $0) }
+        return candidates.compactMap { $0 }.first { FileManager.default.fileExists(atPath: $0) }
+    }
+
+    /// Resolve the node binary from NVM by picking the latest installed version.
+    private static func nvmNodePath() -> String? {
+        let nvmDir = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".nvm/versions/node")
+        guard let versions = try? FileManager.default.contentsOfDirectory(atPath: nvmDir.path) else {
+            return nil
+        }
+        // Sort version dirs descending so the latest comes first
+        guard let latest = versions.filter({ $0.hasPrefix("v") }).sorted(by: >).first else {
+            return nil
+        }
+        let path = nvmDir.appendingPathComponent(latest).appendingPathComponent("bin/node").path
+        return FileManager.default.fileExists(atPath: path) ? path : nil
     }
 
     private func registerMCPServer() {
