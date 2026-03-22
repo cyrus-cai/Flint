@@ -113,7 +113,36 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
     
+    private func installCLI() {
+        guard let cliBinary = Bundle.main.url(forResource: "flint-cli", withExtension: nil) else { return }
+
+        // Try ~/.local/bin first (no root needed), then /usr/local/bin
+        let candidates = [
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/bin").path,
+            "/usr/local/bin",
+        ]
+
+        for dir in candidates {
+            let symlinkPath = "\(dir)/flint"
+            // Check if symlink already points to the correct binary
+            if let dest = try? FileManager.default.destinationOfSymbolicLink(atPath: symlinkPath),
+               dest == cliBinary.path {
+                return // Already installed correctly
+            }
+            // Try to create the symlink
+            try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            try? FileManager.default.removeItem(atPath: symlinkPath)
+            do {
+                try FileManager.default.createSymbolicLink(atPath: symlinkPath, withDestinationPath: cliBinary.path)
+                return // Success
+            } catch {
+                continue // Try next candidate
+            }
+        }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        installCLI()
         UpdateManager.shared.checkAndDownloadUpdate()
 
         if UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") {

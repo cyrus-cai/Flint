@@ -7,7 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B52CE4353B1985075CBD8BE /* ListCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27D14386BC17BB0CEE178AB /* ListCommand.swift */; };
+		1C20B5CC7293A83F7DD9CD59 /* flint-cli in Embed CLI */ = {isa = PBXBuildFile; fileRef = 29FA3805DF14D75E1E3EF894 /* flint-cli */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		220EFCB870C04FEC9D62B014 /* CreateCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A523F627F57E251A6ED72615 /* CreateCommand.swift */; };
 		23D1A0C3E2EF4337B0AECE06 /* DesignSystemHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */; };
+		386778058C71E1C59ADE4E6A /* EditCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A6D27D5BCB7CE3B729BEC9 /* EditCommand.swift */; };
+		4BD372D836692CCBCBC5BAE2 /* StatusCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA997EDCA23CDFF6582931F /* StatusCommand.swift */; };
+		50AC18A8B8A29CDD05B500EB /* AutoUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35E117D2CF9F65400EF949D /* AutoUpdate.swift */; };
+		5445373BFBA752410306AC58 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C50774F594DE06ED0F6FC8B /* main.swift */; };
+		5A996460195DA29EBD1396F4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBA83FE4FFDCFD4F56C0170D /* Cocoa.framework */; };
+		68BE676E62974C1F9C1FBF9B /* ReadCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454EB51A34C5E6726ED00B /* ReadCommand.swift */; };
+		6F10926902294D4C551A4DE4 /* FileManagerExtend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3717AC82CF600890073E925 /* FileManagerExtend.swift */; };
 		A30FF3812CDFDA000034F9DC /* TitleBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF3802CDFDA000034F9DC /* TitleBarView.swift */; };
 		A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30FF38F2CE084E10034F9DC /* MainWindowController.swift */; };
 		A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */ = {isa = PBXBuildFile; fileRef = A30FF3952CE1057D0034F9DC /* markdownconfig.json */; };
@@ -39,10 +49,22 @@
 		A3NOTIFS2D910A0100000001 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3NOTIFS2D910A0100000002 /* NotificationService.swift */; };
 		A3REMIND2D910A0100000001 /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3REMIND2D910A0100000002 /* ReminderService.swift */; };
 		A3TEXTM3TR1C52D93A1B00001 /* TextMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */; };
+		BC7C229CDF8357F7882C95A3 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = A315A8F6841829640E58BAA0 /* ArgumentParser */; };
+		D070EFA941FDDF331340ED07 /* NoteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8DEE77813EADF0D3B7BA8E /* NoteResolver.swift */; };
+		DF7BDDBBD1B80D6D605630E6 /* CLIVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F14C8993CA086D14941086F /* CLIVersion.swift */; };
+		E0D610EB457A358F69DCDA73 /* RemoveCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B235565D9DCAD064DDACCB /* RemoveCommand.swift */; };
+		F50BFF8562DB569AE90DA0FE /* SearchCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30F69AFDCC15A481321F6AD /* SearchCommand.swift */; };
 		FC1DEC28000748A9AD5B9F44 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2A52D64D748C8E29AB0C256D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A37D47292CDE6ECE00B2E727 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1994C2DA670F42D79CC7D9C3;
+			remoteInfo = "flint-cli";
+		};
 		A37D47432CDE6ECF00B2E727 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A37D47292CDE6ECE00B2E727 /* Project object */;
@@ -59,8 +81,26 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		CE52A5DE1810062CD52906ED /* Embed CLI */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				1C20B5CC7293A83F7DD9CD59 /* flint-cli in Embed CLI */,
+			);
+			name = "Embed CLI";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		1C50774F594DE06ED0F6FC8B /* main.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
+		29FA3805DF14D75E1E3EF894 /* flint-cli */ = {isa = PBXFileReference; includeInIndex = 0; path = "flint-cli"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2AA997EDCA23CDFF6582931F /* StatusCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusCommand.swift; sourceTree = "<group>"; };
+		3F14C8993CA086D14941086F /* CLIVersion.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CLIVersion.swift; sourceTree = "<group>"; };
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
 		A30FF38F2CE084E10034F9DC /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		A30FF3952CE1057D0034F9DC /* markdownconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = markdownconfig.json; sourceTree = "<group>"; };
@@ -95,10 +135,27 @@
 		A3NOTIFS2D910A0100000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		A3REMIND2D910A0100000002 /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
 		A3TEXTM3TR1C52D93A1B00002 /* TextMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMetrics.swift; sourceTree = "<group>"; };
+		A523F627F57E251A6ED72615 /* CreateCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CreateCommand.swift; sourceTree = "<group>"; };
+		B7A6D27D5BCB7CE3B729BEC9 /* EditCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EditCommand.swift; sourceTree = "<group>"; };
+		CBA83FE4FFDCFD4F56C0170D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		D30F69AFDCC15A481321F6AD /* SearchCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchCommand.swift; sourceTree = "<group>"; };
+		E27D14386BC17BB0CEE178AB /* ListCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListCommand.swift; sourceTree = "<group>"; };
+		EA454EB51A34C5E6726ED00B /* ReadCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadCommand.swift; sourceTree = "<group>"; };
+		F7B235565D9DCAD064DDACCB /* RemoveCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemoveCommand.swift; sourceTree = "<group>"; };
 		FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
+		FD8DEE77813EADF0D3B7BA8E /* NoteResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoteResolver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		177002246BAB6A9DCB9BDF21 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A996460195DA29EBD1396F4 /* Cocoa.framework in Frameworks */,
+				BC7C229CDF8357F7882C95A3 /* ArgumentParser in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A37D472E2CDE6ECE00B2E727 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -131,6 +188,14 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		61F7166693212B920709AAA5 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				CBA83FE4FFDCFD4F56C0170D /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
 		82949F51FCBCF2C138A5F560 /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -139,6 +204,21 @@
 				A3NOTIFS2D910A0100000002 /* NotificationService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		875ED437FD750697711C0A19 /* Commands */ = {
+			isa = PBXGroup;
+			children = (
+				A523F627F57E251A6ED72615 /* CreateCommand.swift */,
+				E27D14386BC17BB0CEE178AB /* ListCommand.swift */,
+				D30F69AFDCC15A481321F6AD /* SearchCommand.swift */,
+				EA454EB51A34C5E6726ED00B /* ReadCommand.swift */,
+				B7A6D27D5BCB7CE3B729BEC9 /* EditCommand.swift */,
+				F7B235565D9DCAD064DDACCB /* RemoveCommand.swift */,
+				2AA997EDCA23CDFF6582931F /* StatusCommand.swift */,
+			);
+			name = Commands;
+			path = Commands;
 			sourceTree = "<group>";
 		};
 		A30FF37F2CDFD9D20034F9DC /* ContentViewComponents */ = {
@@ -154,6 +234,7 @@
 		A30FF3922CE102F30034F9DC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				61F7166693212B920709AAA5 /* OS X */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -190,6 +271,7 @@
 				A37D474F2CDE6ECF00B2E727 /* FlintUITests */,
 				A37D47322CDE6ECE00B2E727 /* Products */,
 				A30FF3922CE102F30034F9DC /* Frameworks */,
+				FBF0D64F53B8D2D5F767CD81 /* FlintCLI */,
 			);
 			sourceTree = "<group>";
 		};
@@ -199,6 +281,7 @@
 				A37D47312CDE6ECE00B2E727 /* Flint.app */,
 				A37D47422CDE6ECF00B2E727 /* FlintTests.xctest */,
 				A37D474C2CDE6ECF00B2E727 /* FlintUITests.xctest */,
+				29FA3805DF14D75E1E3EF894 /* flint-cli */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -294,9 +377,49 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		E680FEDBD8A13C997FD3E76A /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				FD8DEE77813EADF0D3B7BA8E /* NoteResolver.swift */,
+			);
+			name = Helpers;
+			path = Helpers;
+			sourceTree = "<group>";
+		};
+		FBF0D64F53B8D2D5F767CD81 /* FlintCLI */ = {
+			isa = PBXGroup;
+			children = (
+				875ED437FD750697711C0A19 /* Commands */,
+				E680FEDBD8A13C997FD3E76A /* Helpers */,
+				1C50774F594DE06ED0F6FC8B /* main.swift */,
+				3F14C8993CA086D14941086F /* CLIVersion.swift */,
+			);
+			name = FlintCLI;
+			path = FlintCLI;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1994C2DA670F42D79CC7D9C3 /* flint-cli */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 93E7146BFE5E20EDD153D864 /* Build configuration list for PBXNativeTarget "flint-cli" */;
+			buildPhases = (
+				61F65E0AC8C484548D3DE889 /* Sources */,
+				177002246BAB6A9DCB9BDF21 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "flint-cli";
+			packageProductDependencies = (
+				A315A8F6841829640E58BAA0 /* ArgumentParser */,
+			);
+			productName = "flint-cli";
+			productReference = 29FA3805DF14D75E1E3EF894 /* flint-cli */;
+			productType = "com.apple.product-type.tool";
+		};
 		A37D47302CDE6ECE00B2E727 /* Flint */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A37D47562CDE6ECF00B2E727 /* Build configuration list for PBXNativeTarget "Flint" */;
@@ -304,10 +427,13 @@
 				A37D472D2CDE6ECE00B2E727 /* Sources */,
 				A37D472E2CDE6ECE00B2E727 /* Frameworks */,
 				A37D472F2CDE6ECE00B2E727 /* Resources */,
+				CE52A5DE1810062CD52906ED /* Embed CLI */,
+				1835656EEE74FDF45A0E21CB /* Embed FlintMCP */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A16B130CA1D501A6748A0744 /* PBXTargetDependency */,
 			);
 			name = Flint;
 			packageProductDependencies = (
@@ -363,6 +489,9 @@
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					1994C2DA670F42D79CC7D9C3 = {
+						CreatedOnToolsVersion = 16.0;
+					};
 					A37D47302CDE6ECE00B2E727 = {
 						CreatedOnToolsVersion = 16.0;
 					};
@@ -388,6 +517,7 @@
 			mainGroup = A37D47282CDE6ECE00B2E727;
 			packageReferences = (
 				A37C39692D5E4E3A003EBCC6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				3C3283FFE9253B53DD873E80 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			productRefGroup = A37D47322CDE6ECE00B2E727 /* Products */;
 			projectDirPath = "";
@@ -396,6 +526,7 @@
 				A37D47302CDE6ECE00B2E727 /* Flint */,
 				A37D47412CDE6ECF00B2E727 /* FlintTests */,
 				A37D474B2CDE6ECF00B2E727 /* FlintUITests */,
+				1994C2DA670F42D79CC7D9C3 /* flint-cli */,
 			);
 		};
 /* End PBXProject section */
@@ -427,7 +558,50 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		1835656EEE74FDF45A0E21CB /* Embed FlintMCP */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/FlintMCP/dist/server.mjs",
+			);
+			name = "Embed FlintMCP";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Resources/FlintMCP/server.mjs",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "SRC=\"${SRCROOT}/FlintMCP/dist/server.mjs\"\nif [ ! -f \"$SRC\" ]; then\n  echo \"warning: FlintMCP/dist/server.mjs not found, skipping. Run 'cd FlintMCP && npm run build' to enable.\"\n  exit 0\nfi\nMCP_DEST=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/FlintMCP\"\nmkdir -p \"$MCP_DEST\"\ncp \"$SRC\" \"$MCP_DEST/\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		61F65E0AC8C484548D3DE889 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5445373BFBA752410306AC58 /* main.swift in Sources */,
+				DF7BDDBBD1B80D6D605630E6 /* CLIVersion.swift in Sources */,
+				220EFCB870C04FEC9D62B014 /* CreateCommand.swift in Sources */,
+				1B52CE4353B1985075CBD8BE /* ListCommand.swift in Sources */,
+				F50BFF8562DB569AE90DA0FE /* SearchCommand.swift in Sources */,
+				68BE676E62974C1F9C1FBF9B /* ReadCommand.swift in Sources */,
+				386778058C71E1C59ADE4E6A /* EditCommand.swift in Sources */,
+				E0D610EB457A358F69DCDA73 /* RemoveCommand.swift in Sources */,
+				4BD372D836692CCBCBC5BAE2 /* StatusCommand.swift in Sources */,
+				D070EFA941FDDF331340ED07 /* NoteResolver.swift in Sources */,
+				6F10926902294D4C551A4DE4 /* FileManagerExtend.swift in Sources */,
+				50AC18A8B8A29CDD05B500EB /* AutoUpdate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A37D472D2CDE6ECE00B2E727 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -481,6 +655,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A16B130CA1D501A6748A0744 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "flint-cli";
+			target = 1994C2DA670F42D79CC7D9C3 /* flint-cli */;
+			targetProxy = 2A52D64D748C8E29AB0C256D /* PBXContainerItemProxy */;
+		};
 		A37D47442CDE6ECF00B2E727 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A37D47302CDE6ECE00B2E727 /* Flint */;
@@ -532,7 +712,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -596,7 +776,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -752,9 +932,48 @@
 			};
 			name = Release;
 		};
+		DE361FE0632DB0E57E121C8F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 32RM54L485;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 0.9.7;
+				PRODUCT_NAME = "flint-cli";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F7C0B5BB2A3EAAD9CFAAF61F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 32RM54L485;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 0.9.7;
+				PRODUCT_NAME = "flint-cli";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		93E7146BFE5E20EDD153D864 /* Build configuration list for PBXNativeTarget "flint-cli" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE361FE0632DB0E57E121C8F /* Release */,
+				F7C0B5BB2A3EAAD9CFAAF61F /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A37D472C2CDE6ECE00B2E727 /* Build configuration list for PBXProject "Flint" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -794,6 +1013,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		3C3283FFE9253B53DD873E80 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
 		A37C39692D5E4E3A003EBCC6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
@@ -805,6 +1032,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A315A8F6841829640E58BAA0 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3C3283FFE9253B53DD873E80 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
 		A37C396A2D5E4E3A003EBCC6 /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A37C39692D5E4E3A003EBCC6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;

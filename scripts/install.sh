@@ -38,5 +38,16 @@ mv "$TEMP_DIR/$APP_NAME.app" "$INSTALL_DIR/"
 # Cleanup
 rm -rf "$TEMP_DIR"
 
+# Set up CLI symlink
+CLI_PATH="$INSTALL_DIR/$APP_NAME.app/Contents/Resources/flint-cli"
+if [ -f "$CLI_PATH" ]; then
+    # Prefer ~/.local/bin (no sudo), fall back to /usr/local/bin
+    for BIN_DIR in "$HOME/.local/bin" "/usr/local/bin"; do
+        mkdir -p "$BIN_DIR" 2>/dev/null && \
+        ln -sf "$CLI_PATH" "$BIN_DIR/flint" 2>/dev/null && \
+        echo "🔧 CLI installed: $BIN_DIR/flint" && break
+    done
+fi
+
 echo "✅ $APP_NAME successfully installed!"
 echo "🎉 You can now find it in your Applications folder."
