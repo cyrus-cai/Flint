@@ -443,7 +443,7 @@ class GlobalKeyMonitor {
             }
 
             // Add source app information as a metadata line at the beginning of the file
-            let textWithMetadata = "<!-- Source: \(sourceApp) -->\n\(clipboardContent)"
+            let textWithMetadata = "<!-- Source: \(sourceApp) -->\n<!-- Type: HotKey -->\n\(clipboardContent)"
 
             // Write content to file
             try textWithMetadata.write(to: fileURL, atomically: true, encoding: .utf8)

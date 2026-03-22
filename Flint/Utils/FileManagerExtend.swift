@@ -15,6 +15,7 @@ struct RecentNote: Identifiable {
     let lastModified: Date
     let fileURL: URL
     let sourceApp: String?  // New field for source application
+    let noteType: String?  // Note creation method: "HotKey", "MaybeLike", or nil (manual)
     var isStarred: Bool = false  // 新增的星标属性
 
     // 懒加载内容 - 只在需要时读取文件
@@ -37,13 +38,24 @@ struct RecentNote: Identifiable {
         let contentLines = lines.drop { $0.hasPrefix("<!--") && $0.hasSuffix("-->") }
         let firstLine = contentLines.first(where: { !$0.isEmpty }) ?? "Untitled"
 
-        // Extract source app from metadata comment if available
+        // Extract source app and note type from metadata comments
         var sourceApp: String? = nil
-        if let firstLine = lines.first, firstLine.hasPrefix("<!-- Source:") {
-            if let endTagIndex = firstLine.range(of: "-->")?.lowerBound {
-                let startIndex = firstLine.index(firstLine.startIndex, offsetBy: 12)
-                if startIndex < endTagIndex {
-                    sourceApp = String(firstLine[startIndex..<endTagIndex]).trimmingCharacters(in: .whitespaces)
+        var noteType: String? = nil
+        for line in lines {
+            guard line.hasPrefix("<!--") && line.hasSuffix("-->") else { break }
+            if line.hasPrefix("<!-- Source:") {
+                if let endTagIndex = line.range(of: "-->")?.lowerBound {
+                    let startIndex = line.index(line.startIndex, offsetBy: 12)
+                    if startIndex < endTagIndex {
+                        sourceApp = String(line[startIndex..<endTagIndex]).trimmingCharacters(in: .whitespaces)
+                    }
+                }
+            } else if line.hasPrefix("<!-- Type:") {
+                if let endTagIndex = line.range(of: "-->")?.lowerBound {
+                    let startIndex = line.index(line.startIndex, offsetBy: 10)
+                    if startIndex < endTagIndex {
+                        noteType = String(line[startIndex..<endTagIndex]).trimmingCharacters(in: .whitespaces)
+                    }
                 }
             }
         }
@@ -53,7 +65,8 @@ struct RecentNote: Identifiable {
             firstLinePreview: firstLine,
             lastModified: modificationDate,
             fileURL: url,
-            sourceApp: sourceApp
+            sourceApp: sourceApp,
+            noteType: noteType
         )
     }
 }

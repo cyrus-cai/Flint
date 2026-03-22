@@ -8,7 +8,16 @@ class RecentNotesViewModel: ObservableObject {
     // MARK: - Data
     @Published var notes: [RecentNote] = []
     @Published var searchText: String = ""
-    @Published var showStarredOnly = false
+    @Published var showStarredOnly = false { didSet { recomputeFilteredNotes() } }
+    @Published var showManual: Bool = UserDefaults.standard.object(forKey: AppStorageKeys.filterShowManual) as? Bool ?? AppDefaults.filterShowManual {
+        didSet { UserDefaults.standard.set(showManual, forKey: AppStorageKeys.filterShowManual); recomputeFilteredNotes() }
+    }
+    @Published var showHotKey: Bool = UserDefaults.standard.object(forKey: AppStorageKeys.filterShowHotKey) as? Bool ?? AppDefaults.filterShowHotKey {
+        didSet { UserDefaults.standard.set(showHotKey, forKey: AppStorageKeys.filterShowHotKey); recomputeFilteredNotes() }
+    }
+    @Published var showMaybeLike: Bool = UserDefaults.standard.object(forKey: AppStorageKeys.filterShowMaybeLike) as? Bool ?? AppDefaults.filterShowMaybeLike {
+        didSet { UserDefaults.standard.set(showMaybeLike, forKey: AppStorageKeys.filterShowMaybeLike); recomputeFilteredNotes() }
+    }
 
     // MARK: - Cached filtered results
     @Published private(set) var filteredNotes: [RecentNote] = []
@@ -50,10 +59,10 @@ class RecentNotesViewModel: ObservableObject {
             hasLoaded = true
         }
 
-        // Recompute when notes, searchText, or showStarredOnly change
-        Publishers.CombineLatest3($notes, $showStarredOnly, $searchText)
+        // Recompute when notes or searchText change (filter properties use didSet)
+        Publishers.CombineLatest($notes, $searchText)
             .dropFirst()
-            .sink { [weak self] _, _, _ in self?.recomputeFilteredNotes() }
+            .sink { [weak self] _, _ in self?.recomputeFilteredNotes() }
             .store(in: &cancellables)
 
         // Initial computation
@@ -63,7 +72,21 @@ class RecentNotesViewModel: ObservableObject {
     // MARK: - Filtered recomputation
 
     func recomputeFilteredNotes() {
-        let base = showStarredOnly ? notes.filter { $0.isStarred } : notes
+        let base: [RecentNote]
+        if showStarredOnly {
+            // Star mode: show all starred notes regardless of type filter
+            base = notes.filter { $0.isStarred }
+        } else {
+            // Filter by note type
+            base = notes.filter { note in
+                switch note.noteType {
+                case nil: return showManual
+                case "HotKey": return showHotKey
+                case "MaybeLike": return showMaybeLike
+                default: return showManual  // unknown types treated as manual
+                }
+            }
+        }
         if searchText.isEmpty {
             filteredNotes = base
         } else {
@@ -259,6 +282,14 @@ struct RecentNotesListView: View {
     @State private var eventMonitor: Any?
     @State private var isCopyButtonHovered = false
     @State private var isShareButtonHovered = false
+    @State private var showFilterPopover = false
+
+    private var hasCustomFilter: Bool {
+        viewModel.showStarredOnly ||
+        viewModel.showManual != AppDefaults.filterShowManual ||
+        viewModel.showHotKey != AppDefaults.filterShowHotKey ||
+        viewModel.showMaybeLike != AppDefaults.filterShowMaybeLike
+    }
 
     private func setupKeyboardMonitor() {
         removeKeyboardMonitor()
@@ -321,6 +352,44 @@ struct RecentNotesListView: View {
         )
     }
 
+    private var filterPopoverContent: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Note type checkboxes
+            Toggle(isOn: $viewModel.showManual) {
+                Label(L("Manual"), systemImage: "square.and.pencil")
+                    .font(.system(size: 13))
+            }
+            .toggleStyle(.checkbox)
+            .disabled(viewModel.showStarredOnly)
+
+            Toggle(isOn: $viewModel.showHotKey) {
+                Label(L("HotKey"), systemImage: "keyboard")
+                    .font(.system(size: 13))
+            }
+            .toggleStyle(.checkbox)
+            .disabled(viewModel.showStarredOnly)
+
+            Toggle(isOn: $viewModel.showMaybeLike) {
+                Label(L("Auto"), systemImage: "sparkles")
+                    .font(.system(size: 13))
+            }
+            .toggleStyle(.checkbox)
+            .disabled(viewModel.showStarredOnly)
+
+            Divider()
+
+            // Starred only toggle
+            Toggle(isOn: $viewModel.showStarredOnly) {
+                Label(L("Starred Only"), systemImage: "star.fill")
+                    .font(.system(size: 13))
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+        }
+        .padding(12)
+        .frame(width: 200)
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
@@ -343,6 +412,19 @@ struct RecentNotesListView: View {
                                 .font(.system(size: 12))
                         }
                         .buttonStyle(PlainButtonStyle())
+                    }
+
+                    // Filter button
+                    Button(action: { showFilterPopover.toggle() }) {
+                        Image(systemName: hasCustomFilter
+                              ? "line.3.horizontal.decrease.circle.fill"
+                              : "line.3.horizontal.decrease.circle")
+                            .font(.system(size: 14))
+                            .foregroundColor(hasCustomFilter ? .accentColor : .secondary)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .popover(isPresented: $showFilterPopover, arrowEdge: .bottom) {
+                        filterPopoverContent
                     }
                 }
                 .padding(.horizontal, 12)
@@ -604,6 +686,22 @@ struct NoteRow: View {
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
+                        }
+
+                        // Display note type icon
+                        if let noteType = note.noteType {
+                            Text("·")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            if noteType == "HotKey" {
+                                Image(systemName: "keyboard")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.secondary)
+                            } else if noteType == "MaybeLike" {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     }
                     .opacity(0.6)

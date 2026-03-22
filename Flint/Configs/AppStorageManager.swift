@@ -30,6 +30,11 @@ enum AppStorageKeys {
 
     // Hotkey Settings
     static let enableDoubleOption = "enableDoubleOption"
+
+    // Filter Settings
+    static let filterShowManual = "filterShowManual"
+    static let filterShowHotKey = "filterShowHotKey"
+    static let filterShowMaybeLike = "filterShowMaybeLike"
 }
 
 /// Structure containing all default values for AppStorage properties
@@ -54,4 +59,9 @@ struct AppDefaults {
 
     // Hotkey Settings
     static let enableDoubleOption = true
+
+    // Filter Settings
+    static let filterShowManual = true
+    static let filterShowHotKey = true
+    static let filterShowMaybeLike = false
 }
