@@ -78,7 +78,7 @@ struct OnboardingView: View {
                         Capsule()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(.systemPurple), Color(.systemPink)],
+                                    colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -276,7 +276,7 @@ struct StepContent: View {
                                 .fill(.primary.opacity(0.05))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                        .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
                                 )
                         )
                 }
@@ -321,7 +321,7 @@ struct StepContent: View {
                             .fill(.primary.opacity(0.05))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                    .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
                             )
                     )
 
@@ -344,7 +344,7 @@ struct StepContent: View {
                                 .fill(.primary.opacity(0.05))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                        .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
                                 )
                         )
                     }
@@ -384,7 +384,7 @@ struct StepContent: View {
                                 .fill(.primary.opacity(0.05))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                                        .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
                                 )
                         )
                     }
@@ -423,7 +423,7 @@ private struct GradientButtonStyle: ButtonStyle {
             .padding(.vertical, 10)
             .background(
                 LinearGradient(
-                    colors: [Color(.systemPurple), Color(.systemPink)],
+                    colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
                     startPoint: isHovered ? .topLeading : .leading,
                     endPoint: isHovered ? .bottomTrailing : .trailing
                 )
@@ -454,14 +454,14 @@ private struct BorderedGradientButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium, design: .rounded))
-            .foregroundColor(Color(.systemPurple))
+            .foregroundColor(.accentColor)
             .padding(.horizontal, 24)
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(
                         LinearGradient(
-                            colors: [Color(.systemPurple), Color(.systemPink)],
+                            colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
                             startPoint: isHovered ? .topLeading : .leading,
                             endPoint: isHovered ? .bottomTrailing : .trailing
                         ),

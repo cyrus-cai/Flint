@@ -58,26 +58,39 @@ protocol SummarizeStreamDelegate: AnyObject {
 
 final class MiniMaxAPI {
     static let shared = MiniMaxAPI()
-    private let baseURL = "https://api.minimax.io/v1/chat/completions"
     private var currentTask: URLSessionDataTask?
     private var currentSession: URLSession?
 
-    private static let keychainKey = "com.flint.minimax-api-key"
+    // MARK: - Provider
 
-    private init() {
-        migrateAPIKeyToKeychainIfNeeded()
+    static var currentProvider: AIProvider {
+        let raw = UserDefaults.standard.string(forKey: AppStorageKeys.AIProvider) ?? AIProvider.minimax.rawValue
+        return AIProvider(rawValue: raw) ?? .minimax
     }
 
-    /// One-time migration from UserDefaults to Keychain.
-    private func migrateAPIKeyToKeychainIfNeeded() {
+    private init() {
+        runMigrations()
+    }
+
+    // MARK: - Migrations (idempotent)
+
+    private func runMigrations() {
+        // 1. Legacy UserDefaults API key → Keychain (MiniMax only)
         let legacyKey = UserDefaults.standard.string(forKey: AppStorageKeys.miniMaxAPIKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !legacyKey.isEmpty else { return }
-        // Already migrated
-        if let existing = KeychainHelper.load(key: Self.keychainKey), !existing.isEmpty { return }
-        // Only delete from UserDefaults after confirming Keychain write succeeded
-        if KeychainHelper.save(key: Self.keychainKey, value: legacyKey) {
-            UserDefaults.standard.removeObject(forKey: AppStorageKeys.miniMaxAPIKey)
+        if !legacyKey.isEmpty {
+            if let existing = KeychainHelper.load(key: AIProvider.minimax.keychainKey), !existing.isEmpty {
+                // Already migrated
+            } else if KeychainHelper.save(key: AIProvider.minimax.keychainKey, value: legacyKey) {
+                UserDefaults.standard.removeObject(forKey: AppStorageKeys.miniMaxAPIKey)
+            }
+        }
+
+        // 2. Legacy global AIModel → per-provider AIModel_minimax
+        if let oldModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel),
+           UserDefaults.standard.string(forKey: AIProvider.minimax.modelStorageKey) == nil {
+            UserDefaults.standard.set(oldModel, forKey: AIProvider.minimax.modelStorageKey)
+            UserDefaults.standard.removeObject(forKey: AppStorageKeys.AIModel)
         }
     }
 
@@ -86,39 +99,54 @@ final class MiniMaxAPI {
         _ = shared
     }()
 
+    // MARK: - API Key Management
+
     static var hasConfiguredAPIKey: Bool {
         _ = ensureMigration
         return !storedAPIKey.isEmpty
     }
 
+    static func hasAPIKey(for provider: AIProvider) -> Bool {
+        _ = ensureMigration
+        let key = KeychainHelper.load(key: provider.keychainKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return !key.isEmpty
+    }
+
     private static var storedAPIKey: String {
         _ = ensureMigration
-        return KeychainHelper.load(key: keychainKey)?
+        return KeychainHelper.load(key: currentProvider.keychainKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
     @discardableResult
-    static func setAPIKey(_ value: String) -> Bool {
-        KeychainHelper.save(key: keychainKey, value: value)
+    static func setAPIKey(_ value: String, for provider: AIProvider? = nil) -> Bool {
+        let p = provider ?? currentProvider
+        return KeychainHelper.save(key: p.keychainKey, value: value)
     }
 
-    static func loadAPIKey() -> String {
-        storedAPIKey
+    static func loadAPIKey(for provider: AIProvider? = nil) -> String {
+        _ = ensureMigration
+        let p = provider ?? currentProvider
+        return KeychainHelper.load(key: p.keychainKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
     private var apiKey: String {
         Self.storedAPIKey
     }
 
+    // MARK: - Model Selection
+
     private var selectedModel: String {
-        let storedModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel)
+        let provider = Self.currentProvider
+        let storedModel = UserDefaults.standard.string(forKey: provider.modelStorageKey)
         if let storedModel,
-            AIModelConfig.availableModels.contains(where: { $0.modelId == storedModel })
+            provider.models.contains(where: { $0.modelId == storedModel })
         {
             return storedModel
         }
-
-        return AIModelConfig.availableModels.first?.modelId ?? "MiniMax-M2.5"
+        return provider.defaultModelId
     }
 
     struct ChatMessage: Codable {
@@ -172,31 +200,40 @@ final class MiniMaxAPI {
         let choices: [Choice]
     }
 
+    /// Build a URLRequest, snapshotting provider/key/model at call time.
     private func makeRequest(
         messages: [ChatMessage],
         stream: Bool,
         temperature: Double
     ) throws -> URLRequest {
-        guard let url = URL(string: baseURL) else {
-            throw MiniMaxError.invalidConfiguration
+        // Snapshot current state so in-flight requests are not affected by provider switches
+        let endpoint = Self.currentProvider.chatCompletionsURL
+        let key = apiKey
+        let model = selectedModel
+
+        guard let url = URL(string: endpoint) else {
+            throw AIServiceError.invalidConfiguration
         }
 
-        guard !apiKey.isEmpty else {
-            throw MiniMaxError.missingAPIKey
+        guard !key.isEmpty else {
+            throw AIServiceError.missingAPIKey
         }
+
+        // Kimi models only accept temperature = 1
+        let effectiveTemperature = Self.currentProvider == .kimi ? 1.0 : temperature
 
         let requestPayload = ChatRequest(
-            model: selectedModel,
+            model: model,
             messages: messages,
             stream: stream,
-            temperature: temperature,
+            temperature: effectiveTemperature,
             topP: 0.95
         )
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        urlRequest.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         urlRequest.httpBody = try JSONEncoder().encode(requestPayload)
         return urlRequest
     }
@@ -209,12 +246,12 @@ final class MiniMaxAPI {
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw MiniMaxError.invalidResponse
+            throw AIServiceError.invalidResponse
         }
 
         guard (200..<300).contains(httpResponse.statusCode) else {
             let errorBody = String(data: data, encoding: .utf8) ?? ""
-            throw MiniMaxError.requestFailed(
+            throw AIServiceError.requestFailed(
                 statusCode: httpResponse.statusCode,
                 message: errorBody
             )
@@ -345,7 +382,7 @@ final class MiniMaxAPI {
         ) {
             if let httpResponse = response as? HTTPURLResponse,
                !(200..<300).contains(httpResponse.statusCode) {
-                let error = MiniMaxError.requestFailed(
+                let error = AIServiceError.requestFailed(
                     statusCode: httpResponse.statusCode,
                     message: "HTTP \(httpResponse.statusCode)"
                 )
@@ -659,7 +696,7 @@ IMPORTANT: Only output valid JSON, no other text. The response must be parseable
         cleanJson = cleanJson.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let jsonData = cleanJson.data(using: .utf8) else {
-            throw MiniMaxError.invalidResponse
+            throw AIServiceError.invalidResponse
         }
 
         let decoder = JSONDecoder()
@@ -750,7 +787,7 @@ IMPORTANT: Only output valid JSON, no other text. The response must be parseable
     }
 }
 
-enum MiniMaxError: LocalizedError {
+enum AIServiceError: LocalizedError {
     case missingAPIKey
     case invalidConfiguration
     case invalidResponse
@@ -759,19 +796,22 @@ enum MiniMaxError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingAPIKey:
-            return L("MiniMax API Key is required")
+            return L("API Key is required")
         case .invalidConfiguration:
-            return L("MiniMax API configuration is invalid")
+            return L("API configuration is invalid")
         case .invalidResponse:
-            return L("MiniMax returned an invalid response")
+            return L("AI returned an invalid response")
         case .requestFailed(let statusCode, let message):
             if message.isEmpty {
-                return String(format: L("MiniMax request failed (%d)"), statusCode)
+                return String(format: L("AI request failed (%d)"), statusCode)
             }
-            return String(format: L("MiniMax request failed (%d): %@"), statusCode, message)
+            return String(format: L("AI request failed (%d): %@"), statusCode, message)
         }
     }
 }
+
+/// Backward compatibility alias
+typealias MiniMaxError = AIServiceError
 
 // Add an enum to indicate summarization type
 enum SummarizeType {
@@ -793,16 +833,31 @@ class MaybeLikeService: ObservableObject {
     
     private init() {
         self.lastChangeCount = pasteboard.changeCount
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleProviderChange),
+            name: .aiProviderDidChange,
+            object: nil
+        )
     }
-    
+
+    @objc private func handleProviderChange() {
+        if UserDefaults.standard.bool(forKey: AppStorageKeys.enableAutoSaveClipboard),
+           MiniMaxAPI.hasConfiguredAPIKey {
+            startMonitoring()
+        } else {
+            stopMonitoring()
+        }
+    }
+
     func startMonitoring() {
-        guard UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") else {
+        guard UserDefaults.standard.bool(forKey: AppStorageKeys.enableAutoSaveClipboard) else {
             print("MaybeLike Service: Monitoring disabled by user settings")
             return
         }
 
         guard MiniMaxAPI.hasConfiguredAPIKey else {
-            print("MaybeLike Service: MiniMax API key missing")
+            print("MaybeLike Service: API key missing")
             return
         }
         

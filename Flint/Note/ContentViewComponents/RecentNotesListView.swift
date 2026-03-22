@@ -208,9 +208,24 @@ class RecentNotesViewModel: ObservableObject {
 
     // MARK: - Selection / Hover
 
+    private var hoverExitWorkItem: DispatchWorkItem?
+
     func setHoveredNote(_ noteID: String?) {
-        if isHoverEnabled {
+        guard isHoverEnabled else { return }
+        // Cancel any pending hover-exit
+        hoverExitWorkItem?.cancel()
+        hoverExitWorkItem = nil
+
+        if noteID != nil {
+            // Entering a row: apply immediately
             hoveredNoteID = noteID
+        } else {
+            // Leaving a row: defer briefly so a neighbouring row's enter can override
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.hoveredNoteID = nil
+            }
+            hoverExitWorkItem = workItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.03, execute: workItem)
         }
     }
 
@@ -410,7 +425,7 @@ struct RecentNotesListView: View {
                     TextField(L("Search notes..."), text: $viewModel.searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.system(size: 14))
-                        .tint(.purple)
+                        .tint(.accentColor)
                         .focused($searchFocused)
                     if !viewModel.searchText.isEmpty {
                         Button(action: {
@@ -817,8 +832,8 @@ struct NoteRow: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
         .modifier(HoverButtonBackgroundModifier(isHovered: isHighLight, colorScheme: colorScheme))
-        .padding(.horizontal, 6)
         .onHover(perform: onHover)
+        .padding(.horizontal, 6)
         .onAppear { onAppearLoadMetrics?() }
     }
 }
@@ -1030,27 +1045,16 @@ private struct StandardToastBackgroundModifier: ViewModifier {
 private struct HoverButtonBackgroundModifier: ViewModifier {
     let isHovered: Bool
     let colorScheme: ColorScheme
-    
+
     func body(content: Content) -> some View {
-        if #available(macOS 26.0, *) {
-            // macOS 26+: 悬停时使用原生 Liquid Glass 效果
-            if isHovered {
-                content
-                    .glassEffect(in: .rect(cornerRadius: 8))
-            } else {
-                content
-            }
-        } else {
-            // macOS 15-25: 使用传统背景
-            content
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            isHovered
-                                ? (colorScheme == .dark ? Color(white: 0.3) : Color(white: 0.85))
-                                : Color.clear)
-                )
-        }
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(
+                        isHovered
+                            ? (colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.04))
+                            : Color.clear)
+            )
     }
 }
 

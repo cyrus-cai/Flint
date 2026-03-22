@@ -101,19 +101,10 @@ struct TitleBarView: View {
                         }
 
                         switch key {
-                        case "\r":  // Command+Enter or Command+Shift+Enter
-                            if event.modifierFlags.contains(.shift) {
-                                // Command+Shift+Enter: 新建笔记
-                                if !toolbarState.isEmpty {
-                                    toolbarState.addNew()
-                                    return nil
-                                }
-                            } else {
-                                // Command+Enter: AI 代理
-                                if let content = toolbarState.currentNoteContent, !content.isEmpty {
-                                    toolbarState.handleAIAgent(content: content)
-                                    return nil
-                                }
+                        case "\r":  // Command+Enter or Command+Shift+Enter: 新建笔记
+                            if !toolbarState.isEmpty {
+                                toolbarState.addNew()
+                                return nil
                             }
                         case "n", "k":
                             if !toolbarState.isEmpty {
@@ -308,7 +299,7 @@ struct TitleBarView: View {
     // 新增生成标题的方法
     private func generateTitleWithAI() {
         guard hasMiniMaxAPIKey else {
-            toolbarState.showNavigationToast(message: L("Enter your MiniMax API Key first"))
+            toolbarState.showNavigationToast(message: L("Enter your API Key first"))
             return
         }
 
@@ -598,7 +589,7 @@ struct BadgeView: View {
     var body: some View {
         Text(displayText)
             .font(.system(size: 8, weight: .medium))
-            .foregroundColor(Color.purple)  // 修改文字颜色为紫色
+            .foregroundColor(.accentColor)
             .padding(.horizontal, 3)
             .padding(.vertical, 0.5)
             .modifier(BadgeBackgroundModifier())
@@ -615,11 +606,11 @@ private struct BadgeBackgroundModifier: ViewModifier {
                 .glassEffect(in: .capsule)
                 .overlay(
                     Capsule()
-                        .fill(Color.purple.opacity(0.02))
+                        .fill(Color.accentColor.opacity(0.02))
                 )
                 .overlay(
                     Capsule()
-                        .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
+                        .strokeBorder(Color.accentColor.opacity(0.3), lineWidth: 1)
                 )
         } else {
             // macOS 15-25: Use traditional Material
@@ -629,11 +620,11 @@ private struct BadgeBackgroundModifier: ViewModifier {
                         .fill(.thinMaterial)
                         .overlay(
                             Capsule()
-                                .fill(Color.purple.opacity(0.02))
+                                .fill(Color.accentColor.opacity(0.02))
                         )
                         .overlay(
                             Capsule()
-                                .strokeBorder(Color.purple.opacity(0.3), lineWidth: 1)
+                                .strokeBorder(Color.accentColor.opacity(0.3), lineWidth: 1)
                         )
                 }
         }
@@ -695,7 +686,7 @@ struct TitleBarButton: View {
         }
         // paperclip 图标使用紫色
         if icon == .paperclip {
-            return .purple
+            return .accentColor
         }
         return .secondary
     }
@@ -708,39 +699,22 @@ private struct TitleBarButtonBackgroundModifier: ViewModifier {
     let colorScheme: ColorScheme
     
     func body(content: Content) -> some View {
-        if #available(macOS 26.0, *) {
-            // macOS 26+: Use native Liquid Glass effect when hovered
-            if isHovered {
-                content
-                    .glassEffect(in: .rect(cornerRadius: 6))
-                    .overlay {
-                        if isPaperclip {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color.purple.opacity(0.1))
-                        }
-                    }
-            } else {
-                content
-            }
-        } else {
-            // macOS 15-25: Use traditional background
-            content
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(backgroundColor)
-                )
-        }
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(backgroundColor)
+            )
     }
-    
+
     private var backgroundColor: Color {
         if !isHovered {
             return .clear
         }
-        
+
         if isPaperclip {
-            return colorScheme == .dark ? .purple.opacity(0.2) : .purple.opacity(0.1)
+            return colorScheme == .dark ? Color.accentColor.opacity(0.2) : Color.accentColor.opacity(0.1)
         }
-        
+
         return colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05)
     }
 }
@@ -829,10 +803,6 @@ class TitleBarToolbarState: ObservableObject {
     @Published var toastMessage = ""
     @Published var isEmpty: Bool = true
     @Published var currentNoteContent: String? = nil
-    @Published var aiAgentState: AIAgentState = .idle
-    @Published var showAIConfirmation: Bool = false
-    @Published var currentIntentResponse: IntentResponse? = nil
-
     // Shared ViewModel for recent notes list
     let notesViewModel = RecentNotesViewModel(loadOnInit: false)
     // Bridge from ContentView's current editing file
@@ -844,7 +814,6 @@ class TitleBarToolbarState: ObservableObject {
     var onSave: (() -> Void)?
     var onAddNew: (() -> Void)?
     var onNoteSelected: ((String, URL?) -> Void)?
-    var onAIAgentComplete: (() -> Void)?
 
     init() {
     }
@@ -910,161 +879,6 @@ class TitleBarToolbarState: ObservableObject {
         }
     }
 
-    // MARK: - AI Agent Methods
-
-    /// Handle Command+Shift+Enter to trigger AI agent
-    func handleAIAgent(content: String) {
-        guard MiniMaxAPI.hasConfiguredAPIKey else {
-            showNavigationToast(message: L("Enter your MiniMax API Key first"))
-            return
-        }
-
-        guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            showNavigationToast(message: L("No content to analyze"))
-            return
-        }
-
-        // Set analyzing state
-        aiAgentState = .analyzing
-
-        Task {
-            do {
-                // Analyze intent using AI
-                let response = try await MiniMaxAPI.shared.analyzeIntent(text: content)
-
-                await MainActor.run {
-                    self.currentIntentResponse = response
-                    self.aiAgentState = .confirming(response)
-                    self.showAIConfirmation = true
-                }
-            } catch {
-                await MainActor.run {
-                    self.aiAgentState = .failed(error.localizedDescription)
-                    self.showNavigationToast(message: L("AI analysis failed"))
-
-                    // Reset after delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        self.aiAgentState = .idle
-                    }
-                }
-            }
-        }
-    }
-
-    /// Confirm and execute the AI intent
-    func confirmAIIntent(updatedDate: Date? = nil) {
-        guard let response = currentIntentResponse else { return }
-
-        // If date was updated, create a new response with the updated date
-        var finalResponse = response
-        if let newDate = updatedDate, let oldParsedDateTime = response.parsedDateTime {
-            let newParsedDateTime = ParsedDateTime(
-                date: newDate,
-                isAllDay: oldParsedDateTime.isAllDay,
-                confidence: oldParsedDateTime.confidence,
-                originalText: oldParsedDateTime.originalText
-            )
-            finalResponse = IntentResponse(
-                intent: response.intent,
-                title: response.title,
-                parsedDateTime: newParsedDateTime,
-                notes: response.notes,
-                confidence: response.confidence,
-                rawInterpretation: response.rawInterpretation
-            )
-        }
-
-        showAIConfirmation = false
-        aiAgentState = .executing
-
-        Task {
-            do {
-                switch finalResponse.intent {
-                case .scheduleReminder:
-                    try await executeReminderIntent(finalResponse)
-                case .createCalendarEvent:
-                    try await executeCalendarIntent(finalResponse)
-                default:
-                    await MainActor.run {
-                        self.aiAgentState = .completed(success: false, message: L("Intent not supported"))
-                    }
-                    return
-                }
-
-                await MainActor.run {
-                    self.aiAgentState = .completed(success: true, message: L("Action completed"))
-                    self.onAIAgentComplete?()
-
-                    // Reset after delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                        self.aiAgentState = .idle
-                        self.currentIntentResponse = nil
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.aiAgentState = .failed(error.localizedDescription)
-                    self.showNavigationToast(message: L("Action failed"))
-
-                    // Reset after delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        self.aiAgentState = .idle
-                    }
-                }
-            }
-        }
-    }
-
-    /// Cancel AI intent
-    func cancelAIIntent() {
-        showAIConfirmation = false
-        aiAgentState = .idle
-        currentIntentResponse = nil
-    }
-
-    /// Execute reminder intent
-    private func executeReminderIntent(_ response: IntentResponse) async throws {
-        guard let title = response.title,
-              let dateTime = response.parsedDateTime else {
-            throw ReminderServiceError.saveFailed
-        }
-
-        let reminderId = try await ReminderService.shared.createReminder(
-            title: title,
-            dueDate: dateTime.date,
-            notes: response.notes
-        )
-
-        // Send notification
-        await NotificationService.shared.sendReminderCreated(
-            title: title,
-            dueDate: dateTime.date
-        )
-
-        print("Created reminder with ID: \(reminderId)")
-    }
-
-    /// Execute calendar event intent
-    private func executeCalendarIntent(_ response: IntentResponse) async throws {
-        guard let title = response.title,
-              let dateTime = response.parsedDateTime else {
-            throw ReminderServiceError.saveFailed
-        }
-
-        let eventId = try await ReminderService.shared.createCalendarEvent(
-            title: title,
-            startDate: dateTime.date,
-            notes: response.notes
-        )
-
-        // Send notification
-        await NotificationService.shared.sendCalendarEventCreated(
-            title: title,
-            startDate: dateTime.date
-        )
-
-        print("Created calendar event with ID: \(eventId)")
-    }
 }
 
 // MARK: - Draggable View
@@ -1147,8 +961,7 @@ struct EditButtonWithHover: View {
                 .font(.system(size: 10))
                 .foregroundColor(isHovered ? .primary : .secondary)
                 .opacity(isHovered ? 1.0 : 0.8)
-                .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
-                .scaleEffect(isHovered ? 1.1 : 1.0)
+                .scaleEffect(isHovered ? 1.05 : 1.0)
                 .transition(.opacity.combined(with: .scale))
                 .padding(2) // 添加内边距来扩大点击区域
         }
@@ -1205,8 +1018,7 @@ struct SummarizeButtonWithHover: View {
                         .frame(width: 12, height: 12)
                 }
             }
-            .scaleEffect(isHovered ? 1.1 : 1.0)
-            .shadow(color: isHovered ? .secondary.opacity(0.8) : .clear, radius: isHovered ? 3 : 0)
+            .scaleEffect(isHovered ? 1.05 : 1.0)
             .transition(.opacity.combined(with: .scale))
             .padding(2)
         }

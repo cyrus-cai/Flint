@@ -439,30 +439,8 @@ struct ContentView: View {
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
 
-                // AI Processing Indicator
-                if toolbarState.aiAgentState.isProcessing {
-                    AIProcessingIndicator()
-                        .padding(.top, 50)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                        .transition(.opacity.combined(with: .scale))
-                        .animation(.easeInOut(duration: 0.3), value: toolbarState.aiAgentState.isProcessing)
-                }
             }
             .background(colorScheme == .light ? Color.white.opacity(0.5) : Color.clear)
-            // AI Confirmation Dialog
-            .sheet(isPresented: $toolbarState.showAIConfirmation) {
-                if let response = toolbarState.currentIntentResponse {
-                    AIConfirmationView(
-                        intentResponse: response,
-                        onConfirm: { date in
-                            toolbarState.confirmAIIntent(updatedDate: date)
-                        },
-                        onCancel: {
-                            toolbarState.cancelAIIntent()
-                        }
-                    )
-                }
-            }
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -507,10 +485,6 @@ struct ContentView: View {
                 } catch {
                     print("Error renaming file: \(error)")
                 }
-            }
-            // AI Agent completion callback - clear note after successful action
-            toolbarState.onAIAgentComplete = {
-                createNewNote()
             }
         }
         .ignoresSafeArea()
@@ -704,7 +678,7 @@ struct EditorView: View {
     @Environment(\.colorScheme) private var colorScheme
     @FocusState private var isEditing: Bool
     let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
-    let linkColor = Color.purple
+    let linkColor = Color.accentColor
     @State private var isPlaceholderVisible = true
     @State private var lastHeight: CGFloat = 0
     @State private var debounceTimer: Timer?
@@ -794,7 +768,7 @@ struct EditorView: View {
                         key: ContentHeightPreferenceKey.self,
                         value: calculateHeight(for: text, width: geometry.size.width)
                     )
-                    .tint(.purple)
+                    .tint(.accentColor)
                     .background(
                         KeyEventHandler { event in
                             if event.keyCode != 51 {

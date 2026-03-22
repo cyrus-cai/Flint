@@ -14,9 +14,10 @@ enum AppStorageKeys {
     static let launchAtLogin = "launchAtLogin"
     static let hasRequestedLaunchPermission = "hasRequestedLaunchPermission"
 
-    // Note Settings
-    static let AIModel = "AIModel"
-    static let miniMaxAPIKey = "MiniMaxAPIKey"
+    // AI Settings
+    static let AIProvider = "AIProvider"
+    static let AIModel = "AIModel" // Legacy, migrated to per-provider keys
+    static let miniMaxAPIKey = "MiniMaxAPIKey" // Legacy, migrated to Keychain
     static let enableAIRename = "enableAIRename"
     static let enableAutoSaveClipboard = "enableAutoSaveClipboard"
     static let editorFont = "editorFont"
@@ -37,7 +38,8 @@ struct AppDefaults {
     static let launchAtLogin = false
     static let hasRequestedLaunchPermission = false
 
-    // Note Settings
+    // AI Settings
+    static let AIProviderDefault = AIProvider.minimax.rawValue
     static let AIModel = AIModelConfig.availableModels.first?.modelId ?? "MiniMax-M2.5"
     static let miniMaxAPIKey = ""
     static let enableAIRename = false

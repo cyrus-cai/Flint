@@ -182,13 +182,21 @@ struct SettingsView: View {
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var settingsBackgroundColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.15, green: 0.14, blue: 0.12)
+            : Color(red: 1.0, green: 0.973, blue: 0.906) // #FFF8E7
+    }
+
     var body: some View {
         ZStack {
             if #available(macOS 26.0, *) {
-                Color.clear
+                settingsBackgroundColor
                     .edgesIgnoringSafeArea(.all)
             } else {
-                VisualEffectBlur(material: .sidebar)
+                settingsBackgroundColor
                     .edgesIgnoringSafeArea(.all)
             }
 
@@ -235,11 +243,13 @@ struct SettingsView: View {
                             EmptyView()
                         }
                     }
-                    .padding(24)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .scrollContentBackground(.hidden)
-                .background(Color.clear)
+                .background(settingsBackgroundColor)
             }
         }
         .frame(width: 900, height: 580)
@@ -465,31 +475,63 @@ struct EditorSettingsView: View {
 // MARK: - AI Settings
 
 struct AISettingsView: View {
-    @AppStorage(AppStorageKeys.enableAIRename) private var enableAIRename: Bool = AppDefaults.enableAIRename
-    @AppStorage(AppStorageKeys.enableAutoSaveClipboard) private var enableAutoSaveClipboard: Bool = AppDefaults.enableAutoSaveClipboard
-    @AppStorage(AppStorageKeys.AIModel) private var AIModel: String = AppDefaults.AIModel
-    @State private var miniMaxAPIKey: String = ""
+    @AppStorage(AppStorageKeys.AIProvider) private var selectedProviderRaw: String = AppDefaults.AIProviderDefault
+    @State private var selectedModelId: String = ""
+    @State private var apiKey: String = ""
     @State private var isEditingAPIKey: Bool = false
+    /// Whether a key is confirmed persisted in Keychain (not just typed in the field).
+    @State private var hasPersistedAPIKey: Bool = false
+    @State private var enableAIRename: Bool = false
+    @State private var enableAutoSaveClipboard: Bool = false
 
-    private var allowedModels: [AIModel] {
-        AIModelConfig.availableModels
-    }
-
-    private var hasMiniMaxAPIKey: Bool {
-        !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    private var provider: AIProvider {
+        AIProvider(rawValue: selectedProviderRaw) ?? .minimax
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             SettingsSectionHeader(title: "AI", icon: "brain")
 
+            // Provider, Model, API Key
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
-                    if hasMiniMaxAPIKey && !isEditingAPIKey {
+                    // Provider picker
+                    HStack {
+                        Text(L("Provider"))
+                        Spacer()
+                        Picker("", selection: $selectedProviderRaw) {
+                            ForEach(AIProvider.allCases) { p in
+                                Text(p.displayName).tag(p.rawValue)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .fixedSize()
+                    }
+
+                    Divider()
+
+                    // Model picker
+                    HStack {
+                        Text(L("Model"))
+                        Spacer()
+                        Picker("", selection: $selectedModelId) {
+                            ForEach(provider.models) { model in
+                                Text(model.displayName).tag(model.modelId)
+                            }
+                        }
+                        .labelsHidden()
+                        .fixedSize()
+                    }
+
+                    Divider()
+
+                    // API Key
+                    if hasPersistedAPIKey && !isEditingAPIKey {
                         HStack {
                             Text("API Key")
                             Spacer()
-                            Text("sk-•••" + miniMaxAPIKey.suffix(4))
+                            Text("sk-•••" + apiKey.suffix(4))
                                 .foregroundColor(.secondary)
                                 .font(.callout.monospaced())
                             Button(L("Change")) {
@@ -497,60 +539,34 @@ struct AISettingsView: View {
                             }
                             .controlSize(.small)
                         }
-
-                        Divider()
-
-                        HStack {
-                            Text(L("Auto generate note titles"))
-                            Spacer()
-                            Toggle("", isOn: $enableAIRename)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                                .controlSize(.small)
-                        }
-
-                        Divider()
-
-                        HStack {
-                            Text(L("Auto save important clipboard content"))
-                            Spacer()
-                            Toggle("", isOn: $enableAutoSaveClipboard)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                                .controlSize(.small)
-                        }
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("MiniMax API Key")
+                            Text("API Key")
 
                             HStack(spacing: 8) {
-                                TextField(L("Paste your API Key here"), text: $miniMaxAPIKey)
+                                TextField(L("Paste your API Key here"), text: $apiKey)
                                     .textFieldStyle(.roundedBorder)
-                                    .onSubmit {
-                                        guard !miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-                                        commitAPIKey()
-                                    }
 
                                 Button(L("Save")) {
                                     commitAPIKey()
                                 }
-                                .disabled(miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
                                 if isEditingAPIKey {
                                     Button(L("Cancel")) {
-                                        miniMaxAPIKey = MiniMaxAPI.loadAPIKey()
+                                        apiKey = MiniMaxAPI.loadAPIKey(for: provider)
                                         isEditingAPIKey = false
                                     }
                                 }
                             }
 
                             Button {
-                                if let url = URL(string: "https://platform.minimax.io/user-center/basic-information/interface-key") {
+                                if let url = URL(string: provider.websiteURL) {
                                     NSWorkspace.shared.open(url)
                                 }
                             } label: {
                                 HStack(spacing: 4) {
-                                    Text(L("Get your API Key from MiniMax"))
+                                    Text(L("Get your API Key"))
                                         .font(.caption)
                                     Image(systemName: "arrow.up.right")
                                         .font(.caption2)
@@ -563,46 +579,136 @@ struct AISettingsView: View {
                 }
                 .padding(12)
             }
-            .onAppear {
-                miniMaxAPIKey = MiniMaxAPI.loadAPIKey()
-                validateAIConfiguration()
-            }
-            .onChange(of: enableAutoSaveClipboard) { newValue in
-                if newValue {
-                    MaybeLikeService.shared.startMonitoring()
-                } else {
-                    MaybeLikeService.shared.stopMonitoring()
+
+            // Feature toggles
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text(L("Auto generate note titles"))
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { enableAIRename },
+                            set: { newValue in
+                                enableAIRename = newValue
+                                UserDefaults.standard.set(newValue, forKey: provider.enableAIRenameKey)
+                                // Sync to global key for external readers
+                                UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAIRename)
+                            }
+                        ))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .disabled(!hasPersistedAPIKey)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text(L("Auto save important clipboard content"))
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { enableAutoSaveClipboard },
+                            set: { newValue in
+                                enableAutoSaveClipboard = newValue
+                                UserDefaults.standard.set(newValue, forKey: provider.enableAutoSaveClipboardKey)
+                                // Sync to global key for external readers
+                                UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAutoSaveClipboard)
+                                if newValue {
+                                    MaybeLikeService.shared.startMonitoring()
+                                } else {
+                                    MaybeLikeService.shared.stopMonitoring()
+                                }
+                            }
+                        ))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .disabled(!hasPersistedAPIKey)
+                    }
                 }
+                .padding(12)
             }
+        }
+        .onAppear {
+            loadProviderState()
+        }
+        .onChange(of: selectedProviderRaw) { _ in
+            // Provider switched: load its key and model, post notification
+            loadProviderState()
+            isEditingAPIKey = false
+            NotificationCenter.default.post(name: .aiProviderDidChange, object: nil)
+        }
+        .onChange(of: selectedModelId) { newValue in
+            // Persist model selection for current provider
+            UserDefaults.standard.set(newValue, forKey: provider.modelStorageKey)
         }
     }
 
-    private func validateAIModel() {
-        if let currentModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel) {
-            if !allowedModels.contains(where: { $0.modelId == currentModel }) {
-                AIModel = allowedModels.first?.modelId ?? "MiniMax-M2.5"
-            }
+    private func loadProviderState() {
+        apiKey = MiniMaxAPI.loadAPIKey(for: provider)
+        hasPersistedAPIKey = !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        // Load persisted model for this provider, or fall back to default
+        let storedModel = UserDefaults.standard.string(forKey: provider.modelStorageKey)
+        if let storedModel, provider.models.contains(where: { $0.modelId == storedModel }) {
+            selectedModelId = storedModel
         } else {
-            AIModel = allowedModels.first?.modelId ?? "MiniMax-M2.5"
+            selectedModelId = provider.defaultModelId
+            UserDefaults.standard.set(selectedModelId, forKey: provider.modelStorageKey)
+        }
+
+        // Migrate legacy global toggles to per-provider (one-time)
+        let ud = UserDefaults.standard
+        let migrationKey = "didMigratePerProviderToggles"
+        if !ud.bool(forKey: migrationKey) {
+            let globalRename = ud.bool(forKey: AppStorageKeys.enableAIRename)
+            let globalClipboard = ud.bool(forKey: AppStorageKeys.enableAutoSaveClipboard)
+            if globalRename || globalClipboard {
+                // Apply old global setting to whichever provider was active
+                let activeProvider = AIProvider(rawValue: ud.string(forKey: AppStorageKeys.AIProvider) ?? "") ?? .minimax
+                ud.set(globalRename, forKey: activeProvider.enableAIRenameKey)
+                ud.set(globalClipboard, forKey: activeProvider.enableAutoSaveClipboardKey)
+            }
+            ud.set(true, forKey: migrationKey)
+        }
+
+        // Load per-provider feature toggles
+        enableAIRename = ud.bool(forKey: provider.enableAIRenameKey)
+        enableAutoSaveClipboard = ud.bool(forKey: provider.enableAutoSaveClipboardKey)
+
+        // Sync global keys so external readers see the current provider's settings
+        UserDefaults.standard.set(enableAIRename, forKey: AppStorageKeys.enableAIRename)
+        UserDefaults.standard.set(enableAutoSaveClipboard, forKey: AppStorageKeys.enableAutoSaveClipboard)
+
+        if enableAutoSaveClipboard && hasPersistedAPIKey {
+            MaybeLikeService.shared.startMonitoring()
+        } else {
+            MaybeLikeService.shared.stopMonitoring()
         }
     }
 
     private func commitAPIKey() {
-        let trimmed = miniMaxAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        miniMaxAPIKey = trimmed
+        let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        apiKey = trimmed
 
-        guard MiniMaxAPI.setAPIKey(trimmed) else { return }
+        guard MiniMaxAPI.setAPIKey(trimmed, for: provider) else { return }
+
+        // Verify the key was actually persisted to Keychain before updating UI
+        let persisted = MiniMaxAPI.loadAPIKey(for: provider)
+        guard persisted == trimmed else { return }
+
+        hasPersistedAPIKey = !trimmed.isEmpty
         isEditingAPIKey = false
 
         if trimmed.isEmpty {
             enableAIRename = false
             enableAutoSaveClipboard = false
+            UserDefaults.standard.set(false, forKey: provider.enableAIRenameKey)
+            UserDefaults.standard.set(false, forKey: provider.enableAutoSaveClipboardKey)
+            UserDefaults.standard.set(false, forKey: AppStorageKeys.enableAIRename)
+            UserDefaults.standard.set(false, forKey: AppStorageKeys.enableAutoSaveClipboard)
             MaybeLikeService.shared.stopMonitoring()
         }
-    }
-
-    private func validateAIConfiguration() {
-        validateAIModel()
     }
 }
 
@@ -928,7 +1034,7 @@ struct SettingsSectionHeader: View {
 
     var body: some View {
         Text(title)
-            .font(.headline)
+            .font(.custom("Georgia", size: 16).weight(.semibold))
             .foregroundColor(.secondary)
     }
 }

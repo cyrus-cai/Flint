@@ -284,7 +284,7 @@ struct AIProcessingIndicator: View {
                     Circle()
                         .stroke(
                             LinearGradient(
-                                colors: [.purple, .blue, .purple],
+                                colors: [.accentColor, .accentColor.opacity(0.6), .accentColor],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
