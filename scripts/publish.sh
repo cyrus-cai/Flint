@@ -32,7 +32,14 @@ if [ "$VERSION" != "$CURRENT_VERSION" ]; then
     
     echo "🔧 Updating MARKETING_VERSION in project file..."
     sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $VERSION;/g" Flint.xcodeproj/project.pbxproj
-    
+
+    echo "🔧 Syncing CLI version fallback..."
+    sed -i '' "s/return \".*\"/return \"$VERSION\"/" FlintCLI/CLIVersion.swift
+
+    echo "🔧 Syncing MCP server version..."
+    sed -i '' "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" FlintMCP/package.json
+    sed -i '' "s/version: \".*\"/version: \"$VERSION\"/" FlintMCP/server.ts
+
     echo "Resetting build number to 1..."
     xcrun agvtool new-version -all 1
 else

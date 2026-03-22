@@ -79,6 +79,22 @@ class LocalFileManager {
     static let shared = LocalFileManager()
     let fm = Foundation.FileManager.default
 
+    // Shared UserDefaults domain so both App (bundle ID "Flint") and CLI read the same prefs
+    static let defaults: UserDefaults = {
+        let suite = UserDefaults(suiteName: "Flint") ?? .standard
+
+        // One-time migration: copy CustomNotesDirectoryPath from .standard to suite
+        let migrationKey = "didMigrateToSuiteDefaults"
+        if !suite.bool(forKey: migrationKey),
+           let oldPath = UserDefaults.standard.string(forKey: "CustomNotesDirectoryPath"),
+           suite.string(forKey: "CustomNotesDirectoryPath") == nil {
+            suite.set(oldPath, forKey: "CustomNotesDirectoryPath")
+            suite.set(true, forKey: migrationKey)
+        }
+
+        return suite
+    }()
+
     // Get current week folder name (e.g., "2024W50")
     public var currentWeekFolder: String {
         let calendar = Calendar(identifier: .iso8601)
@@ -93,7 +109,7 @@ class LocalFileManager {
     // Get base notes directory (Obsidian vault)
     var baseDirectory: URL? {
         // First check if user has set a custom path
-        if let customPath = UserDefaults.standard.string(forKey: kCustomNotesDirectoryPath) {
+        if let customPath = Self.defaults.string(forKey: kCustomNotesDirectoryPath) {
             return URL(fileURLWithPath: customPath)
         }
 
@@ -138,7 +154,7 @@ class LocalFileManager {
 
     // Set custom directory (Obsidian vault)
     func setCustomDirectory(_ url: URL) {
-        UserDefaults.standard.set(url.path, forKey: kCustomNotesDirectoryPath)
+        Self.defaults.set(url.path, forKey: kCustomNotesDirectoryPath)
 
         // Create Float directory and current week directory
         if let floatDir = floatDirectory,
@@ -148,10 +164,9 @@ class LocalFileManager {
             try? fm.createDirectory(at: weekDir, withIntermediateDirectories: true)
 
             // 只在未执行过迁移时执行
-            if !UserDefaults.standard.bool(forKey: kMigrationCompletedKey) {
+            if !Self.defaults.bool(forKey: kMigrationCompletedKey) {
                 migrateExistingNotes()
-                // 标记迁移已完成
-                UserDefaults.standard.set(true, forKey: kMigrationCompletedKey)
+                Self.defaults.set(true, forKey: kMigrationCompletedKey)
             }
         }
 

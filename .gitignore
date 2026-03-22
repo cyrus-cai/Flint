@@ -39,6 +39,15 @@ iOSInjectionProject/
 .env.local
 *.xcconfig
 
+# Node / Bun
+node_modules/
+bun.lock
+bun.lockb
+package-lock.json
+
+# Profiling
+*.profraw
+
 # IDE
 .vscode/
 .claude/

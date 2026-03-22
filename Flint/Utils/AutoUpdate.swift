@@ -5,49 +5,46 @@
 //  Created by LC John on 2024/11/29.
 //
 
+#if canImport(AppKit)
 import Cocoa
 import Combine
+#endif
 import Foundation
 
 class AutoUpdater {
-    // ⚠️ 请替换为您 Vercel Blob 中 latest.json 的实际公开链接
-    // 例如: "https://public.blob.vercel-storage.com/your-store-id/latest.json"
     private let versionCheckURL = URL(string: "https://wfcpsam37fc4yuvn.public.blob.vercel-storage.com/latest.json")!
 
-    // 当前应用版本
     private var currentVersion: String
-    // 临时下载目录
     private let downloadDirectory: URL
 
+    #if canImport(AppKit)
     private let progressSubject = PassthroughSubject<Double, Never>()
     var progressPublisher: AnyPublisher<Double, Never> {
         progressSubject.eraseToAnyPublisher()
     }
+    #endif
 
-    init() {
-        // 从 Info.plist 获取当前版本
-        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+    init(currentVersion: String? = nil) {
+        if let version = currentVersion {
+            self.currentVersion = version
+        } else if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
             self.currentVersion = version
         } else {
             self.currentVersion = "0.1.0"
         }
 
-        // 设置下载目录
         self.downloadDirectory = Foundation.FileManager.default.temporaryDirectory
             .appendingPathComponent("Flint")
             .appendingPathComponent("Updates")
     }
 
-    // 检查更新
     func checkForUpdates() async throws -> UpdateInfo? {
-        // 防止缓存，添加时间戳参数 (可选，视 Vercel 缓存策略而定)
         var urlComponents = URLComponents(url: versionCheckURL, resolvingAgainstBaseURL: false)
         urlComponents?.queryItems = [URLQueryItem(name: "t", value: "\(Date().timeIntervalSince1970)")]
         let url = urlComponents?.url ?? versionCheckURL
 
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
-        
-        print("Checking for updates at: \(url)")
+
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -55,17 +52,15 @@ class AutoUpdater {
         }
 
         guard httpResponse.statusCode == 200 else {
-            print("Failed to fetch version info. Status: \(httpResponse.statusCode)")
             throw URLError(.badServerResponse)
         }
 
         let updateInfo = try JSONDecoder().decode(UpdateInfo.self, from: data)
-        print("Remote version info: \(updateInfo)")
 
-        // 只有当有新版本时才返回 updateInfo
         return compareVersions(updateInfo.version, isGreaterThan: currentVersion) ? updateInfo : nil
     }
 
+    #if canImport(AppKit)
     private class DownloadDelegate: NSObject, URLSessionDownloadDelegate {
         let progressHandler: (Double) -> Void
 
@@ -73,7 +68,6 @@ class AutoUpdater {
             self.progressHandler = progressHandler
         }
 
-        // 下载进度更新时调用
         func urlSession(
             _ session: URLSession,
             downloadTask: URLSessionDownloadTask,
@@ -92,7 +86,6 @@ class AutoUpdater {
             downloadTask: URLSessionDownloadTask,
             didFinishDownloadingTo location: URL
         ) {
-            // 文件移动在外部处理
         }
 
         func urlSession(
@@ -114,42 +107,37 @@ class AutoUpdater {
 
         let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
 
-        // 清理旧文件
         if fileManager.fileExists(atPath: destinationURL.path) {
             try fileManager.removeItem(at: destinationURL)
         }
 
-        // 创建带代理的 URLSession
         let delegate = DownloadDelegate(progressHandler: { [weak self] progress in
             self?.progressSubject.send(progress)
         })
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
 
-        // 执行下载
         print("Downloading update from: \(url)")
         let (downloadURL, response) = try await session.download(from: url)
-        
+
         if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
             print("Download failed with status: \(httpResponse.statusCode)")
             throw URLError(.badServerResponse)
         }
 
         try fileManager.moveItem(at: downloadURL, to: destinationURL)
-        progressSubject.send(1.0)  // 发送完成进度
+        progressSubject.send(1.0)
         return destinationURL
     }
 
     func installUpdate(from updateFile: URL) throws {
         let fileManager = Foundation.FileManager.default
 
-        // 清理并创建解压目录
         let updateDirectory = downloadDirectory.appendingPathComponent("extracted")
         if fileManager.fileExists(atPath: updateDirectory.path) {
             try fileManager.removeItem(at: updateDirectory)
         }
         try fileManager.createDirectory(at: updateDirectory, withIntermediateDirectories: true)
 
-        // 解压更新包
         print("Extracting update file...")
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
@@ -171,21 +159,18 @@ class AutoUpdater {
             throw UpdateError.shellCommandFailed
         }
 
-        // 获取应用程序目录路径
         guard let applicationsDirectory = fileManager.urls(for: .applicationDirectory, in: .localDomainMask).first else {
             throw UpdateError.invalidAppPath
         }
 
         let newAppPath = updateDirectory.appendingPathComponent("Flint.app")
         let targetAppPath = applicationsDirectory.appendingPathComponent("Flint.app")
-        
-        // 简单验证解压是否成功
+
         if !fileManager.fileExists(atPath: newAppPath.path) {
             print("Error: Flint.app not found in extracted files. Found: \(try? fileManager.contentsOfDirectory(atPath: updateDirectory.path))")
             throw UpdateError.invalidUpdateFile
         }
 
-        // 直接执行更新操作
         DispatchQueue.main.async {
             do {
                 let scriptContent = """
@@ -220,7 +205,27 @@ class AutoUpdater {
         }
     }
 
-    // 更新错误枚举
+    func cachedUpdateFile() -> URL? {
+        let fileManager = Foundation.FileManager.default
+        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            return destinationURL
+        }
+        return nil
+    }
+
+    func deleteDownloadedUpdatePackage() throws {
+        let fileManager = Foundation.FileManager.default
+        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+            print("Deleted downloaded update package.")
+        } else {
+            print("No downloaded update package found.")
+        }
+    }
+    #endif
+
     enum UpdateError: Error {
         case invalidAppPath
         case shellCommandFailed
@@ -241,8 +246,7 @@ class AutoUpdater {
         }
     }
 
-    // 比较版本号
-    private func compareVersions(_ version1: String, isGreaterThan version2: String) -> Bool {
+    func compareVersions(_ version1: String, isGreaterThan version2: String) -> Bool {
         let v1Components = version1.split(separator: ".").compactMap { Int($0) }
         let v2Components = version2.split(separator: ".").compactMap { Int($0) }
 
@@ -260,31 +264,8 @@ class AutoUpdater {
         }
         return false
     }
-    
-    // In the AutoUpdater class, add a helper method to return the cached update file (if it exists).
-    func cachedUpdateFile() -> URL? {
-        let fileManager = Foundation.FileManager.default
-        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
-        if fileManager.fileExists(atPath: destinationURL.path) {
-            return destinationURL
-        }
-        return nil
-    }
-
-    // New method to delete the downloaded update package
-    func deleteDownloadedUpdatePackage() throws {
-        let fileManager = Foundation.FileManager.default
-        let destinationURL = downloadDirectory.appendingPathComponent("update.zip")
-        if fileManager.fileExists(atPath: destinationURL.path) {
-            try fileManager.removeItem(at: destinationURL)
-            print("Deleted downloaded update package.")
-        } else {
-            print("No downloaded update package found.")
-        }
-    }
 }
 
-// 更新信息模型
 struct UpdateInfo: Codable {
     let version: String
     let downloadURL: String
@@ -292,6 +273,7 @@ struct UpdateInfo: Codable {
     let description: String
 }
 
+#if canImport(AppKit)
 class UpdateManager: ObservableObject {
     static let shared = UpdateManager()
 
@@ -368,3 +350,4 @@ class UpdateManager: ObservableObject {
         }
     }
 }
+#endif
