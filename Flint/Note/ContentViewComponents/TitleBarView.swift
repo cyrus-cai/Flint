@@ -827,8 +827,8 @@ class TitleBarToolbarState: ObservableObject {
     }
 
     func openFileDictionary() {
-        showRecentNotes = true
         notesViewModel.refreshAsync(selectNoteID: currentEditingFileURL?.path)
+        showRecentNotes = true
     }
 
     func openSettings() {

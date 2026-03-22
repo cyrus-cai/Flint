@@ -154,12 +154,17 @@ final class MiniMaxAPI {
         let content: String
     }
 
+    struct ThinkingParam: Codable {
+        let type: String
+    }
+
     struct ChatRequest: Codable {
         let model: String
         let messages: [ChatMessage]
         let stream: Bool
         let temperature: Double
         let topP: Double
+        let thinking: ThinkingParam?
 
         enum CodingKeys: String, CodingKey {
             case model
@@ -167,6 +172,7 @@ final class MiniMaxAPI {
             case stream
             case temperature
             case topP = "top_p"
+            case thinking
         }
     }
 
@@ -219,15 +225,18 @@ final class MiniMaxAPI {
             throw AIServiceError.missingAPIKey
         }
 
-        // Kimi models only accept temperature = 1
-        let effectiveTemperature = Self.currentProvider == .kimi ? 1.0 : temperature
+        // kimi-k2.5 only accepts temperature=0.6 (with thinking disabled)
+        let isKimiK25 = model.hasPrefix("kimi-k2.5")
+        let effectiveTemperature = isKimiK25 ? 0.6 : temperature
+        let thinking: ThinkingParam? = isKimiK25 ? ThinkingParam(type: "disabled") : nil
 
         let requestPayload = ChatRequest(
             model: model,
             messages: messages,
             stream: stream,
             temperature: effectiveTemperature,
-            topP: 0.95
+            topP: 0.95,
+            thinking: thinking
         )
 
         var urlRequest = URLRequest(url: url)

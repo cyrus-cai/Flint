@@ -4,34 +4,14 @@ import SwiftUI
 
 // MARK: - Recent Note Model has been moved to FileManagerExtend.swift
 
-enum TimeGroup: String {
-    case last15Min = "Last 15 min"
-    case last1Hour = "Last 1 hour"
-    case thisMorning = "This morning"
-    case thisAfternoon = "This afternoon"
-    case yesterday = "Yesterday"
-    case thisWeek = "This Week"
-    case older = "Earlier"
-    
-    var localized: String {
-        return L(self.rawValue)
-    }
-}
-
-struct GroupedNotes {
-    let group: TimeGroup
-    let notes: [RecentNote]
-}
-
 class RecentNotesViewModel: ObservableObject {
     // MARK: - Data
     @Published var notes: [RecentNote] = []
     @Published var searchText: String = ""
     @Published var showStarredOnly = false
 
-    // MARK: - Cached filtered/grouped results (Step 1)
+    // MARK: - Cached filtered results
     @Published private(set) var filteredNotes: [RecentNote] = []
-    @Published private(set) var groupedFilteredNotes: [GroupedNotes] = []
     private(set) var filteredNoteIndexMap: [String: Int] = [:]  // note.id → index
 
     // MARK: - Selection (ID-based, Step 0b)
@@ -47,6 +27,7 @@ class RecentNotesViewModel: ObservableObject {
     private(set) var refreshGeneration: UInt = 0
     private var pendingSelectedNoteID: String? = nil
     @Published var isRefreshing: Bool = false
+    @Published private(set) var hasLoaded: Bool = false
 
     // MARK: - Metrics cache (Step 4)
     private let cacheQueue = DispatchQueue(label: "com.flint.contentCache")
@@ -66,6 +47,7 @@ class RecentNotesViewModel: ObservableObject {
         if loadOnInit {
             notes = LocalFileManager.shared.getRecentNotes()
             loadStarredStatus()
+            hasLoaded = true
         }
 
         // Recompute when notes, searchText, or showStarredOnly change
@@ -78,7 +60,7 @@ class RecentNotesViewModel: ObservableObject {
         recomputeFilteredNotes()
     }
 
-    // MARK: - Filtered/Grouped recomputation
+    // MARK: - Filtered recomputation
 
     func recomputeFilteredNotes() {
         let base = showStarredOnly ? notes.filter { $0.isStarred } : notes
@@ -92,7 +74,6 @@ class RecentNotesViewModel: ObservableObject {
         }
         filteredNoteIndexMap = Dictionary(uniqueKeysWithValues:
             filteredNotes.enumerated().map { ($1.id, $0) })
-        recomputeGroupedNotes()
 
         // Selection sync: pending from refresh takes priority
         if let pending = pendingSelectedNoteID, filteredNoteIndexMap[pending] != nil {
@@ -105,82 +86,6 @@ class RecentNotesViewModel: ObservableObject {
         if let hid = hoveredNoteID, filteredNoteIndexMap[hid] == nil {
             hoveredNoteID = nil
         }
-    }
-
-    private func recomputeGroupedNotes() {
-        let calendar = Calendar.current
-        let now = Date()
-        let todayStart = calendar.startOfDay(for: now)
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: todayStart)!
-        let weekStart = calendar.date(byAdding: .day, value: -7, to: todayStart)!
-
-        var nonTodayGroups: [TimeGroup: [RecentNote]] = [:]
-        var todayGroups: [TimeGroup: [RecentNote]] = [:]
-
-        let fifteenMinutes: TimeInterval = 15 * 60
-        let oneHour: TimeInterval = 60 * 60
-        let noonToday =
-            calendar.date(bySettingHour: 12, minute: 0, second: 0, of: now)
-            ?? todayStart.addingTimeInterval(12 * 3600)
-
-        let enableLast15 = now.timeIntervalSince(todayStart) >= fifteenMinutes
-        let enableLast1 = now.timeIntervalSince(todayStart) >= oneHour
-        let enableAfternoon = now >= noonToday
-
-        if enableLast15 { todayGroups[.last15Min] = [] }
-        if enableLast1 { todayGroups[.last1Hour] = [] }
-        todayGroups[.thisMorning] = []
-        if enableAfternoon { todayGroups[.thisAfternoon] = [] }
-
-        for note in filteredNotes {
-            let noteDate = note.lastModified
-            if calendar.isDate(noteDate, inSameDayAs: now) {
-                if enableLast15 && noteDate >= now.addingTimeInterval(-fifteenMinutes) {
-                    todayGroups[.last15Min]?.append(note)
-                } else if enableLast1 && noteDate >= now.addingTimeInterval(-oneHour) {
-                    todayGroups[.last1Hour]?.append(note)
-                } else {
-                    if enableAfternoon {
-                        if noteDate >= noonToday {
-                            todayGroups[.thisAfternoon]?.append(note)
-                        } else {
-                            todayGroups[.thisMorning]?.append(note)
-                        }
-                    } else {
-                        todayGroups[.thisMorning]?.append(note)
-                    }
-                }
-            } else if calendar.isDate(noteDate, inSameDayAs: yesterday) {
-                nonTodayGroups[.yesterday, default: []].append(note)
-            } else if noteDate >= weekStart {
-                nonTodayGroups[.thisWeek, default: []].append(note)
-            } else {
-                nonTodayGroups[.older, default: []].append(note)
-            }
-        }
-
-        var groupsArray: [GroupedNotes] = []
-        var todayOrder: [TimeGroup] = []
-        if enableLast15 { todayOrder.append(.last15Min) }
-        if enableLast1 { todayOrder.append(.last1Hour) }
-        if enableAfternoon {
-            todayOrder.append(.thisAfternoon)
-            todayOrder.append(.thisMorning)
-        } else {
-            todayOrder.append(.thisMorning)
-        }
-        for group in todayOrder {
-            if let notes = todayGroups[group], !notes.isEmpty {
-                groupsArray.append(GroupedNotes(group: group, notes: notes))
-            }
-        }
-        let nonTodayOrder: [TimeGroup] = [.yesterday, .thisWeek, .older]
-        for group in nonTodayOrder {
-            if let notes = nonTodayGroups[group], !notes.isEmpty {
-                groupsArray.append(GroupedNotes(group: group, notes: notes))
-            }
-        }
-        groupedFilteredNotes = groupsArray
     }
 
     // MARK: - Async refresh
@@ -200,8 +105,9 @@ class RecentNotesViewModel: ObservableObject {
                 guard let self, self.refreshGeneration == gen else { return }
                 self.notes = freshNotes
                 self.loadStarredStatus()
+                self.recomputeFilteredNotes()
                 self.isRefreshing = false
-                // Combine sink auto-triggers recomputeFilteredNotes
+                self.hasLoaded = true
             }
         }
     }
@@ -281,7 +187,7 @@ class RecentNotesViewModel: ObservableObject {
             guard fileManager.fileExists(atPath: fileToDelete.path) else { return }
             try fileManager.removeItem(at: fileToDelete)
             notes.removeAll { $0.id == note.id }
-            // Combine sink auto-triggers recomputeFilteredNotes which syncs selection
+            recomputeFilteredNotes()
         } catch {
             print("Error deleting note: \(error)")
         }
@@ -293,7 +199,7 @@ class RecentNotesViewModel: ObservableObject {
         guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
         notes[index].isStarred.toggle()
         saveStarredStatus()
-        // @Published notes change triggers Combine → recomputeFilteredNotes
+        recomputeFilteredNotes()
     }
 
     private func saveStarredStatus() {
@@ -446,18 +352,29 @@ struct RecentNotesListView: View {
                 if !viewModel.filteredNotes.isEmpty {
                     ScrollViewReader { proxy in
                         ScrollView {
-                            LazyVStack(spacing: 6) {
-                                ForEach(viewModel.groupedFilteredNotes, id: \.group.rawValue) { group in
-                                    CollapsibleGroupView(
-                                        group: group,
-                                        viewModel: viewModel,
-                                        onSelectNote: onSelectNote
+                            LazyVStack(spacing: 2) {
+                                ForEach(viewModel.filteredNotes) { note in
+                                    NoteRow(
+                                        note: note,
+                                        isHighLight: viewModel.highlightedNoteID == note.id,
+                                        onTap: {
+                                            onSelectNote(note.content, note.fileURL)
+                                            dismiss()
+                                        },
+                                        onHover: { isHovered in
+                                            viewModel.setHoveredNote(isHovered ? note.id : nil)
+                                        },
+                                        searchText: viewModel.searchText,
+                                        onToggleStar: {
+                                            viewModel.toggleStarred(note)
+                                        },
+                                        onDelete: {
+                                            viewModel.deleteNote(note)
+                                        },
+                                        wordCount: viewModel.cachedWordCount(for: note.id),
+                                        charCount: viewModel.cachedCharCount(for: note.id),
+                                        onAppearLoadMetrics: { viewModel.loadMetricsIfNeeded(for: note) }
                                     )
-                                    if group.group.rawValue != viewModel.groupedFilteredNotes.last?.group.rawValue {
-                                        Divider()
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 4)
-                                    }
                                 }
                             }
                             .padding(.vertical, 4)
@@ -473,13 +390,16 @@ struct RecentNotesListView: View {
 
                 // Empty State
                 if viewModel.filteredNotes.isEmpty {
-                    if viewModel.isRefreshing {
-                        ProgressView()
-                            .frame(height: 360)
-                    } else {
+                    let _ = print("[EmptyState] hasLoaded=\(viewModel.hasLoaded) isRefreshing=\(viewModel.isRefreshing) notes=\(viewModel.notes.count) filtered=\(viewModel.filteredNotes.count)")
+                    if viewModel.hasLoaded && !viewModel.isRefreshing {
                         Text(viewModel.searchText.isEmpty ? L("No notes") : L("No matching notes"))
                             .foregroundColor(.secondary)
                             .padding(24)
+                            .frame(height: 360)
+                    } else {
+                        Text(L("Loading..."))
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 13))
                             .frame(height: 360)
                     }
                 }
@@ -862,25 +782,6 @@ extension Array {
     }
 }
 
-struct TimeGroupHeader: View {
-    let title: String
-    let notes: [RecentNote]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Text(title)
-                    .font(.system(size: 12))
-                    .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-        }
-        .background(Color.clear)
-    }
-}
 
 struct ToastStyle {
     static let backgroundColor = Color(white: 0.15).opacity(0.95)
@@ -1038,7 +939,6 @@ private struct StandardToastBackgroundModifier: ViewModifier {
     }
 }
 
-// New view: CollapsibleGroupView
 // MARK: - Hover Background Modifier (matching SettingsListView)
 /// On macOS 26+, uses native glassEffect for hover state
 /// On earlier versions, uses colored background
@@ -1058,89 +958,3 @@ private struct HoverButtonBackgroundModifier: ViewModifier {
     }
 }
 
-struct CollapsibleGroupView: View {
-    let group: GroupedNotes
-    @ObservedObject var viewModel: RecentNotesViewModel
-    @State private var isExpanded: Bool
-    let onSelectNote: (String, URL) -> Void
-    @Environment(\.dismiss) private var dismiss
-    @Namespace private var groupNamespace
-
-    // Default collapse for the "Earlier" group (i.e. .older case)
-    init(group: GroupedNotes, viewModel: RecentNotesViewModel, onSelectNote: @escaping (String, URL) -> Void) {
-        self.group = group
-        self.viewModel = viewModel
-        self.onSelectNote = onSelectNote
-        // When search is active, always expand all groups
-        if !viewModel.searchText.isEmpty {
-            _isExpanded = State(initialValue: true)
-        } else if group.group == .older {
-            _isExpanded = State(initialValue: false)
-        } else {
-            _isExpanded = State(initialValue: true)
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Header with disclosure indicator
-            HStack(spacing: 0) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                    .padding(.leading, 8)
-                    TimeGroupHeader(title: group.group.localized, notes: group.notes)
-                .padding(.leading, -6)
-            }
-            .id("header-\(group.group.rawValue)")
-            .contentShape(Rectangle())
-            .onTapGesture {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
-                    isExpanded.toggle()
-                }
-            }
-
-            // Only show the note rows when expanded - 使用 LazyVStack 实现懒加载
-            if isExpanded {
-                LazyVStack(spacing: 2) {
-                    ForEach(group.notes) { note in
-                        NoteRow(
-                            note: note,
-                            isHighLight: viewModel.highlightedNoteID == note.id,
-                            onTap: {
-                                onSelectNote(note.content, note.fileURL)
-                                dismiss()
-                            },
-                            onHover: { isHovered in
-                                viewModel.setHoveredNote(isHovered ? note.id : nil)
-                            },
-                            searchText: viewModel.searchText,
-                            onToggleStar: {
-                                viewModel.toggleStarred(note)
-                            },
-                            onDelete: {
-                                viewModel.deleteNote(note)
-                            },
-                            wordCount: viewModel.cachedWordCount(for: note.id),
-                            charCount: viewModel.cachedCharCount(for: note.id),
-                            onAppearLoadMetrics: { viewModel.loadMetricsIfNeeded(for: note) }
-                        )
-                    }
-                }
-            }
-        }
-        .onChange(of: viewModel.searchText) { newValue in
-            // When search text changes, expand all groups if search is active
-            if !newValue.isEmpty {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
-                    isExpanded = true
-                }
-            } else if group.group == .older {
-                // Return to default collapsed state for "Earlier" group when search is cleared
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.65)) {
-                    isExpanded = false
-                }
-            }
-        }
-    }
-}
