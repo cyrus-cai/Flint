@@ -43,9 +43,14 @@ CLI_PATH="$INSTALL_DIR/$APP_NAME.app/Contents/Resources/flint-cli"
 if [ -f "$CLI_PATH" ]; then
     # Prefer ~/.local/bin (no sudo), fall back to /usr/local/bin
     for BIN_DIR in "$HOME/.local/bin" "/usr/local/bin"; do
-        mkdir -p "$BIN_DIR" 2>/dev/null && \
-        ln -sf "$CLI_PATH" "$BIN_DIR/flint" 2>/dev/null && \
-        echo "🔧 CLI installed: $BIN_DIR/flint" && break
+        LINK_PATH="$BIN_DIR/flint"
+        mkdir -p "$BIN_DIR" 2>/dev/null || continue
+        if [ -e "$LINK_PATH" ] && [ ! -L "$LINK_PATH" ]; then
+            echo "⚠️  Skipping $LINK_PATH (existing non-symlink file)"
+            continue
+        fi
+        ln -sfn "$CLI_PATH" "$LINK_PATH" 2>/dev/null && \
+        echo "🔧 CLI installed: $LINK_PATH" && break
     done
 fi
 

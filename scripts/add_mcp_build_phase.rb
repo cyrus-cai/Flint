@@ -27,7 +27,7 @@ phase.input_paths = [
   '$(SRCROOT)/FlintMCP/notes.ts',
 ]
 phase.output_paths = [
-  '$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Resources/FlintMCP/server.ts',
+  '$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Resources/FlintMCP/server.mjs',
 ]
 
 puts "Added 'Embed FlintMCP' Run Script build phase to Flint target"

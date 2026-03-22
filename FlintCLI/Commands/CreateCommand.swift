@@ -44,6 +44,9 @@ struct Create: ParsableCommand {
         guard let fileURL = fm.fileURL(for: title) else {
             throw FlintError("Could not determine notes directory.")
         }
+        guard !FileManager.default.fileExists(atPath: fileURL.path) else {
+            throw FlintError("Note already exists: \(fileURL.lastPathComponent)")
+        }
 
         let fullContent = "<!-- Source: CLI -->\n\(content)"
         try fullContent.write(to: fileURL, atomically: true, encoding: .utf8)

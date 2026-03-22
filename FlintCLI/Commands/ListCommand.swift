@@ -24,6 +24,9 @@ struct List: ParsableCommand {
         }
 
         if let limit = limit {
+            guard limit >= 0 else {
+                throw FlintError("--limit must be non-negative.")
+            }
             notes = Array(notes.prefix(limit))
         }
 
@@ -40,7 +43,7 @@ struct List: ParsableCommand {
                 ]
             }
             let data = try JSONSerialization.data(withJSONObject: items, options: [.prettyPrinted, .sortedKeys])
-            print(String(data: data, encoding: .utf8)!)
+            print(String(data: data, encoding: .utf8) ?? "[]")
         } else {
             if notes.isEmpty {
                 print("No notes found.")

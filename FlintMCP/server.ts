@@ -26,11 +26,12 @@ const FLINT_BIN: string = (() => {
   return "flint"; // fall back to PATH lookup
 })();
 
-function flint(args: string[]): string {
+function flint(args: string[], input?: string): string {
   return execFileSync(FLINT_BIN, args, {
     encoding: "utf8",
     timeout: 15_000,
     maxBuffer: 10 * 1024 * 1024,
+    input,
   }).trim();
 }
 
@@ -185,19 +186,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "search_notes": {
         if (!args?.query) return err("query is required.");
-        const a = ["search", String(args.query), "--json"];
+        const a = ["search", "--json"];
         if (args?.title_only) a.push("--title");
+        a.push("--", String(args.query));
         return ok(flint(a));
       }
 
       case "read_note": {
         if (!args?.identifier) return err("identifier is required.");
-        return ok(flint(["read", String(args.identifier)]));
+        return ok(flint(["read", "--", String(args.identifier)]));
       }
 
       case "create_note": {
         if (!args?.content) return err("content is required.");
-        return ok(flint(["create", String(args.content)]));
+        return ok(flint(["create", "--stdin"], String(args.content)));
       }
 
       case "edit_note": {
@@ -209,17 +211,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (hasContent && hasAppend)
           return err("Provide content or append, not both.");
 
-        const a = ["edit", String(args.identifier)];
-        if (hasContent) a.push("--content", String(args.content));
-        if (hasAppend) a.push("--append", "--content", String(args.append));
-        return ok(flint(a));
+        const a = ["edit", "--stdin"];
+        if (hasAppend) a.push("--append");
+        a.push("--", String(args.identifier));
+        return ok(flint(a, String(hasContent ? args.content : args.append)));
       }
 
       case "delete_note": {
         if (args?.confirm !== true)
           return err("confirm must be true to delete.");
         if (!args?.identifier) return err("identifier is required.");
-        return ok(flint(["rm", String(args.identifier), "--force"]));
+        return ok(flint(["rm", "--force", "--", String(args.identifier)]));
       }
 
       case "get_status":

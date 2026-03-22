@@ -129,9 +129,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                dest == cliBinary.path {
                 return // Already installed correctly
             }
-            // Try to create the symlink
+            // Try to create the symlink — only remove existing symlinks, never real binaries
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-            try? FileManager.default.removeItem(atPath: symlinkPath)
+            if FileManager.default.fileExists(atPath: symlinkPath) {
+                let attrs = try? FileManager.default.attributesOfItem(atPath: symlinkPath)
+                guard (attrs?[.type] as? FileAttributeType) == .typeSymbolicLink else { continue }
+                try? FileManager.default.removeItem(atPath: symlinkPath)
+            }
             do {
                 try FileManager.default.createSymbolicLink(atPath: symlinkPath, withDestinationPath: cliBinary.path)
                 return // Success

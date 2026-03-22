@@ -42,7 +42,7 @@ struct Search: ParsableCommand {
                 ["path": $0.url.path, "match": $0.matchLine, "title": $0.url.deletingPathExtension().lastPathComponent]
             }
             let data = try JSONSerialization.data(withJSONObject: items, options: [.prettyPrinted, .sortedKeys])
-            print(String(data: data, encoding: .utf8)!)
+            print(String(data: data, encoding: .utf8) ?? "[]")
         } else {
             if results.isEmpty {
                 print("No results for '\(query)'.")
