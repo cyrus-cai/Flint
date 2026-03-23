@@ -12,7 +12,8 @@ import Combine
 import Foundation
 
 class AutoUpdater {
-    private let versionCheckURL = URL(string: "https://wfcpsam37fc4yuvn.public.blob.vercel-storage.com/latest.json")!
+    private let releaseFeedURL = URL(string: "https://api.github.com/repos/cyrus-cai/Flint/releases/latest")!
+    private let releaseAssetName = "Flint.zip"
 
     private var currentVersion: String
     private let downloadDirectory: URL
@@ -39,11 +40,13 @@ class AutoUpdater {
     }
 
     func checkForUpdates() async throws -> UpdateInfo? {
-        var urlComponents = URLComponents(url: versionCheckURL, resolvingAgainstBaseURL: false)
-        urlComponents?.queryItems = [URLQueryItem(name: "t", value: "\(Date().timeIntervalSince1970)")]
-        let url = urlComponents?.url ?? versionCheckURL
-
-        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+        var request = URLRequest(
+            url: releaseFeedURL,
+            cachePolicy: .reloadIgnoringLocalCacheData,
+            timeoutInterval: 10
+        )
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -51,11 +54,35 @@ class AutoUpdater {
             throw URLError(.badServerResponse)
         }
 
+        if httpResponse.statusCode == 404 {
+            return nil
+        }
+
         guard httpResponse.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
 
-        let updateInfo = try JSONDecoder().decode(UpdateInfo.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let release = try decoder.decode(GitHubRelease.self, from: data)
+
+        guard let asset = release.assets.first(where: { $0.name == releaseAssetName })
+            ?? release.assets.first(where: { $0.name.hasSuffix(".zip") }) else {
+            throw UpdateError.invalidUpdateFile
+        }
+
+        let normalizedVersion = release.tagName.replacingOccurrences(
+            of: #"^v"#,
+            with: "",
+            options: .regularExpression
+        )
+
+        let updateInfo = UpdateInfo(
+            version: normalizedVersion,
+            downloadURL: asset.browserDownloadUrl,
+            lastUpdated: release.publishedAt ?? "",
+            description: release.body ?? ""
+        )
 
         return compareVersions(updateInfo.version, isGreaterThan: currentVersion) ? updateInfo : nil
     }
@@ -140,8 +167,8 @@ class AutoUpdater {
 
         print("Extracting update file...")
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-        process.arguments = [updateFile.path, "-d", updateDirectory.path]
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+        process.arguments = ["-x", "-k", updateFile.path, updateDirectory.path]
 
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -167,7 +194,8 @@ class AutoUpdater {
         let targetAppPath = applicationsDirectory.appendingPathComponent("Flint.app")
 
         if !fileManager.fileExists(atPath: newAppPath.path) {
-            print("Error: Flint.app not found in extracted files. Found: \(try? fileManager.contentsOfDirectory(atPath: updateDirectory.path))")
+            let extractedContents = String(describing: try? fileManager.contentsOfDirectory(atPath: updateDirectory.path))
+            print("Error: Flint.app not found in extracted files. Found: \(extractedContents)")
             throw UpdateError.invalidUpdateFile
         }
 
@@ -271,6 +299,18 @@ struct UpdateInfo: Codable {
     let downloadURL: String
     let lastUpdated: String
     let description: String
+}
+
+private struct GitHubRelease: Decodable {
+    let tagName: String
+    let body: String?
+    let publishedAt: String?
+    let assets: [GitHubReleaseAsset]
+}
+
+private struct GitHubReleaseAsset: Decodable {
+    let name: String
+    let browserDownloadUrl: String
 }
 
 #if canImport(AppKit)
