@@ -142,6 +142,13 @@ class MainWindowController: NSWindowController {
         setupContentView()
         setupInitialPosition()
         setupOptionKeyMonitor()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTransparencyChange),
+            name: .windowTransparencyDidChange,
+            object: nil
+        )
     }
 
     // ... (existing code)
@@ -195,16 +202,7 @@ class MainWindowController: NSWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
 
-        // macOS 26+ Liquid Glass 适配
-        if #available(macOS 26.0, *) {
-            // macOS 26+: 设置透明背景以启用 Liquid Glass 效果
-            window.isOpaque = false
-            window.backgroundColor = .clear
-        } else {
-            // macOS 15-25: 传统透明窗口设置
-            window.isOpaque = false
-            window.backgroundColor = .clear
-        }
+        applyTransparency()
 
         window.hasShadow = true
         window.invalidateShadow()
@@ -255,6 +253,26 @@ class MainWindowController: NSWindowController {
         // 替换原始按钮
         closeButton.superview?.addSubview(customCloseButton)
         closeButton.isHidden = true
+    }
+
+    private func applyTransparency() {
+        guard let window = window else { return }
+        let isTransparent = UserDefaults.standard.object(forKey: AppStorageKeys.windowTransparent) as? Bool ?? AppDefaults.windowTransparent
+
+        if isTransparent {
+            window.isOpaque = false
+            window.backgroundColor = .clear
+        } else {
+            window.isOpaque = true
+            window.backgroundColor = .noteWindowBackgroundColor
+        }
+        window.invalidateShadow()
+    }
+
+    @objc private func handleTransparencyChange() {
+        applyTransparency()
+        // Rebuild content view to pick up the new background mode
+        setupContentView()
     }
 
     private func setupResizeNotifications() {
@@ -347,43 +365,53 @@ class MainWindowController: NSWindowController {
 
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.wantsLayer = true
-        
-        if #available(macOS 26.0, *) {
-            hostingView.layer?.cornerRadius = DesignSystem.standardCornerRadius
-            hostingView.layer?.masksToBounds = true
-            
-            let containerView = NSView()
-            containerView.wantsLayer = true
-            containerView.layer?.cornerRadius = DesignSystem.standardCornerRadius
-            containerView.layer?.masksToBounds = true
-            
-            let visualEffectView = NSVisualEffectView()
-            visualEffectView.material = .hudWindow
-            visualEffectView.blendingMode = .behindWindow
-            visualEffectView.state = .active
-            visualEffectView.wantsLayer = true
-            
-            containerView.addSubview(visualEffectView)
-            containerView.addSubview(hostingView)
-            
-            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
-            hostingView.translatesAutoresizingMaskIntoConstraints = false
-            
-            NSLayoutConstraint.activate([
-                visualEffectView.topAnchor.constraint(equalTo: containerView.topAnchor),
-                visualEffectView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-                visualEffectView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-                visualEffectView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-                
-                hostingView.topAnchor.constraint(equalTo: containerView.topAnchor),
-                hostingView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-                hostingView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-                hostingView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
-            ])
-            
-            window?.contentView = containerView
+
+        let isTransparent = UserDefaults.standard.object(forKey: AppStorageKeys.windowTransparent) as? Bool ?? AppDefaults.windowTransparent
+
+        if isTransparent {
+            if #available(macOS 26.0, *) {
+                hostingView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+                hostingView.layer?.masksToBounds = true
+
+                let containerView = NSView()
+                containerView.wantsLayer = true
+                containerView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+                containerView.layer?.masksToBounds = true
+
+                let visualEffectView = NSVisualEffectView()
+                visualEffectView.material = .hudWindow
+                visualEffectView.blendingMode = .behindWindow
+                visualEffectView.state = .active
+                visualEffectView.wantsLayer = true
+
+                containerView.addSubview(visualEffectView)
+                containerView.addSubview(hostingView)
+
+                visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+                hostingView.translatesAutoresizingMaskIntoConstraints = false
+
+                NSLayoutConstraint.activate([
+                    visualEffectView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                    visualEffectView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                    visualEffectView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                    visualEffectView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+
+                    hostingView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                    hostingView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                    hostingView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                    hostingView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+                ])
+
+                window?.contentView = containerView
+            } else {
+                hostingView.layer?.cornerRadius = 12
+                hostingView.layer?.masksToBounds = true
+                window?.contentView = hostingView
+            }
         } else {
-            hostingView.layer?.cornerRadius = 12
+            // Not transparent: no visual effect view, just the hosting view
+            let cornerRadius: CGFloat = if #available(macOS 26.0, *) { DesignSystem.standardCornerRadius } else { 12 }
+            hostingView.layer?.cornerRadius = cornerRadius
             hostingView.layer?.masksToBounds = true
             window?.contentView = hostingView
         }

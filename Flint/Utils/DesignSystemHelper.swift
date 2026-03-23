@@ -192,7 +192,7 @@ class WindowConfigurationHelper {
             // Don't set backgroundColor to clear - let the glass material show through
             window.isOpaque = false
         } else {
-            // macOS 15-25: Traditional transparent window setup
+            // macOS 15-25: Traditional Liquid Glass style setup
             window.backgroundColor = .clear
             window.isOpaque = false
         }
@@ -231,7 +231,27 @@ class WindowConfigurationHelper {
 
 // MARK: - Color Adaptations
 
+extension NSColor {
+    static var noteWindowBackgroundColor: NSColor {
+        let lightColor = NSColor(srgbRed: 1.0, green: 248.0 / 255.0, blue: 231.0 / 255.0, alpha: 1.0)
+        let darkColor = NSColor(srgbRed: 0.0, green: 7.0 / 255.0, blue: 24.0 / 255.0, alpha: 1.0)
+
+        return NSColor(name: nil) { appearance in
+            switch appearance.bestMatch(from: [.darkAqua, .vibrantDark, .aqua, .vibrantLight]) {
+            case .darkAqua, .vibrantDark:
+                return darkColor
+            default:
+                return lightColor
+            }
+        }
+    }
+}
+
 extension Color {
+    static var noteWindowBackground: Color {
+        Color(nsColor: .noteWindowBackgroundColor)
+    }
+
     /// Returns an adaptive separator color for the current design system
     static var adaptiveSeparator: Color {
         if #available(macOS 26.0, *) {
@@ -307,6 +327,7 @@ class LocalizationManager: ObservableObject {
         "English": ["zh-Hans": "英语", "zh-Hant": "英語"],
         "Font": ["zh-Hans": "字体", "zh-Hant": "字型"],
         "Appearance": ["zh-Hans": "外观", "zh-Hant": "外觀"],
+        "Liquid Glass style": ["zh-Hans": "Liquid Glass 风格", "zh-Hant": "Liquid Glass 風格"],
         "Check for updates": ["zh-Hans": "检查更新", "zh-Hant": "檢查更新"],
         "Latest available": ["zh-Hans": "已是最新版本", "zh-Hant": "已是最新版本"],
         "Double press Option key": ["zh-Hans": "双击 Option 键", "zh-Hant": "雙擊 Option 鍵"],

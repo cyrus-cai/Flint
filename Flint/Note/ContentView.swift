@@ -78,6 +78,7 @@ struct ContentView: View {
     @State private var contentHashForAIRename: Int = 0
 
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
+    @AppStorage(AppStorageKeys.windowTransparent) private var windowTransparent: Bool = AppDefaults.windowTransparent
 
     enum SaveTrigger {
         case timer
@@ -400,20 +401,22 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // macOS 26+ Liquid Glass 适配: 使用自适应背景
-            // 在最底部加上背景效果
-            if #available(macOS 26.0, *) {
-                // macOS 26+: 系统会自动处理 Liquid Glass 效果
-                // 使用更轻量的背景让玻璃效果更突出
-                Color.clear
-                    .edgesIgnoringSafeArea(.all)
+            if windowTransparent {
+                // Transparent mode: 使用毛玻璃/Liquid Glass 效果
+                if #available(macOS 26.0, *) {
+                    Color.clear
+                        .edgesIgnoringSafeArea(.all)
+                } else {
+                    VisualEffectBlur(material: .sidebar)
+                        .edgesIgnoringSafeArea(.all)
+                }
             } else {
-                // macOS 15-25: 使用传统毛玻璃效果
-                VisualEffectBlur(material: .sidebar)
+                // Not transparent mode: 使用自定义的不透明背景
+                Color.noteWindowBackground
                     .edgesIgnoringSafeArea(.all)
             }
 
-            // 你笔记窗口的主要内容
+            // 笔记窗口的主要内容
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     // Title bar with editable title
@@ -446,7 +449,9 @@ struct ContentView: View {
                 }
 
             }
-            .background(colorScheme == .light ? Color.white.opacity(0.5) : Color.clear)
+            .background(windowTransparent
+                ? (colorScheme == .light ? Color.white.opacity(0.5) : Color.clear)
+                : Color.clear)
         }
         .onChange(of: text) {
             links = LinkDetector.findLinks(in: text)
@@ -539,6 +544,9 @@ struct ContentView: View {
                 name: Notification.Name("autoSaveIntervalDidChange"),
                 object: nil
             )
+        }
+        .onChange(of: windowTransparent) {
+            NotificationCenter.default.post(name: .windowTransparencyDidChange, object: nil)
         }
         .onChange(of: currentEditingFileURL) {
             toolbarState.currentEditingFileURL = currentEditingFileURL

@@ -27,6 +27,7 @@ enum AppStorageKeys {
 
     // Appearance Settings
     static let appearanceMode = "appearanceMode"
+    static let windowTransparent = "windowTransparent"
 
     // Hotkey Settings
     static let enableDoubleOption = "enableDoubleOption"
@@ -56,6 +57,7 @@ struct AppDefaults {
 
     // Appearance Settings
     static let appearanceMode = AppearanceMode.system
+    static let windowTransparent = true
 
     // Hotkey Settings
     static let enableDoubleOption = true

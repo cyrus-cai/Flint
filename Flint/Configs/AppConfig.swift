@@ -102,6 +102,7 @@ struct AIModelConfig {
 
 extension Notification.Name {
     static let aiProviderDidChange = Notification.Name("aiProviderDidChange")
+    static let windowTransparencyDidChange = Notification.Name("windowTransparencyDidChange")
 }
 
 enum AppearanceMode: String, CaseIterable {

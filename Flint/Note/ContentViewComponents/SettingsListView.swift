@@ -232,7 +232,7 @@ private struct PopoverBackgroundModifier: ViewModifier {
             content
         } else {
             // macOS 15-25: 使用窗口背景色
-            content.background(Color(NSColor.windowBackgroundColor))
+            content.background(Color.noteWindowBackground)
         }
     }
 }

@@ -502,7 +502,7 @@ struct LinkListView: View {
             }
         }
         .frame(width: 280)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(Color.noteWindowBackground)
     }
 }
 
@@ -943,7 +943,7 @@ private struct NavigationToastBackgroundModifier: ViewModifier {
             content
                 .background(
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(Color(NSColor.windowBackgroundColor))
+                        .fill(Color.noteWindowBackground)
                 )
                 .cornerRadius(cornerRadius)
         }
