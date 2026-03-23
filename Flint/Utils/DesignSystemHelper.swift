@@ -192,7 +192,7 @@ class WindowConfigurationHelper {
             // Don't set backgroundColor to clear - let the glass material show through
             window.isOpaque = false
         } else {
-            // macOS 15-25: Traditional Liquid Glass style setup
+            // macOS 15-25: Traditional transparent window setup, compatible with newer Liquid Glass behavior
             window.backgroundColor = .clear
             window.isOpaque = false
         }

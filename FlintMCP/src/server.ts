@@ -50,8 +50,8 @@ const tools = [
                     description: 'Filter by ISO week, e.g. "2026W12".',
                 },
                 limit: {
-                    type: "number",
-                    description: "Max notes to return.",
+                    type: "integer",
+                    description: "Max notes to return. Must be a positive integer.",
                 },
             },
         },
@@ -220,6 +220,17 @@ function readOptionalInteger(args: ToolArgs, key: string): number | undefined {
     return value;
 }
 
+function readOptionalPositiveInteger(args: ToolArgs, key: string): number | undefined {
+    const value = readOptionalInteger(args, key);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (value <= 0) {
+        throw new Error(`${key} must be a positive integer.`);
+    }
+    return value;
+}
+
 const server = new Server(
     { name: SERVER_NAME, version: SERVER_VERSION },
     { capabilities: { tools: {} } }
@@ -236,7 +247,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         switch (name) {
         case "list_notes": {
             const week = readOptionalString(args, "week");
-            const limit = readOptionalInteger(args, "limit");
+            const limit = readOptionalPositiveInteger(args, "limit");
             const flintArgs = ["list", "--json"];
             if (week) flintArgs.push("--week", week);
             if (limit != null) flintArgs.push("--limit", String(limit));
@@ -305,7 +316,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 });
 
+let isShuttingDown = false;
+
+function registerShutdownHandlers() {
+    const shutdownSignals: NodeJS.Signals[] = ["SIGINT", "SIGTERM"];
+
+    for (const signal of shutdownSignals) {
+        process.on(signal, () => {
+            if (isShuttingDown) {
+                return;
+            }
+
+            isShuttingDown = true;
+
+            void (async () => {
+                console.error(`Received ${signal}, shutting down Flint MCP server...`);
+                try {
+                    await server.close();
+                    console.error("Flint MCP server shutdown complete.");
+                    process.exit(0);
+                } catch (error) {
+                    console.error("Flint MCP server shutdown failed:", error);
+                    process.exit(1);
+                }
+            })();
+        });
+    }
+}
+
 async function main() {
+    registerShutdownHandlers();
     const transport = new StdioServerTransport();
     await server.connect(transport);
 }

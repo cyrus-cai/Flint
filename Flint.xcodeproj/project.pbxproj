@@ -578,7 +578,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "SRC=\"${SRCROOT}/FlintMCP/dist/server.mjs\"\nif [ ! -f \"$SRC\" ]; then\n  echo \"warning: FlintMCP/dist/server.mjs not found, skipping. Run 'cd FlintMCP && bun run build' to enable.\"\n  exit 0\nfi\nMCP_DEST=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/FlintMCP\"\nmkdir -p \"$MCP_DEST\"\ncp \"$SRC\" \"$MCP_DEST/\"\n";
+			shellScript = "SRC=\"${SRCROOT}/FlintMCP/dist/server.mjs\"\nMCP_DEST=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/FlintMCP\"\nmkdir -p \"$MCP_DEST\"\nif [ ! -f \"$SRC\" ]; then\n  rm -f \"$MCP_DEST/server.mjs\"\n  echo \"warning: FlintMCP/dist/server.mjs not found, skipping. Run 'cd FlintMCP && bun run build' to enable.\"\n  exit 0\nfi\ncp \"$SRC\" \"$MCP_DEST/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

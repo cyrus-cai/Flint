@@ -376,14 +376,9 @@ struct EditorSettingsView: View {
 
                     Divider()
 
-                    HStack {
-                        Text(L("Liquid Glass style"))
-                        Spacer()
-                        Toggle("", isOn: $windowTransparent)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                    }
+                    Toggle(L("Liquid Glass style"), isOn: $windowTransparent)
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
                 }
                 .padding(12)
             }

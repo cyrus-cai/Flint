@@ -110,6 +110,7 @@ class MainWindowController: NSWindowController {
     }
 
     private var trackingArea: NSTrackingArea?
+    private weak var trackingAreaView: NSView?
     private var isResizing: Bool = false
     /// When true, window height changes are suppressed. Used during note loading
     /// so the window stays stable while SwiftUI fills in the new content.
@@ -312,9 +313,7 @@ class MainWindowController: NSWindowController {
     private func setupTrackingArea() {
         guard let contentView = window?.contentView else { return }
 
-        if let existingTrackingArea = trackingArea {
-            contentView.removeTrackingArea(existingTrackingArea)
-        }
+        clearTrackingArea()
 
         let trackingArea = NSTrackingArea(
             rect: contentView.bounds,
@@ -325,6 +324,14 @@ class MainWindowController: NSWindowController {
 
         contentView.addTrackingArea(trackingArea)
         self.trackingArea = trackingArea
+        trackingAreaView = contentView
+    }
+
+    private func clearTrackingArea() {
+        guard let existingTrackingArea = trackingArea else { return }
+        trackingAreaView?.removeTrackingArea(existingTrackingArea)
+        trackingArea = nil
+        trackingAreaView = nil
     }
 
     override func mouseEntered(with event: NSEvent) {
@@ -372,6 +379,7 @@ class MainWindowController: NSWindowController {
 
         let isTransparent = UserDefaults.standard.object(forKey: AppStorageKeys.windowTransparent) as? Bool ?? AppDefaults.windowTransparent
         hostingView.removeFromSuperview()
+        clearTrackingArea()
 
         if isTransparent {
             if #available(macOS 26.0, *) {
@@ -616,9 +624,7 @@ class MainWindowController: NSWindowController {
     }
 
     deinit {
-        if let trackingArea = trackingArea, let contentView = window?.contentView {
-            contentView.removeTrackingArea(trackingArea)
-        }
+        clearTrackingArea()
         NotificationCenter.default.removeObserver(self)
 
         if let monitor = optionKeyTapMonitor {

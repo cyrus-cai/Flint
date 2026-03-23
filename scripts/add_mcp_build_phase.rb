@@ -27,12 +27,13 @@ phase.output_paths = [
 ]
 phase.shell_script = <<~SCRIPT
   SRC="${SRCROOT}/FlintMCP/dist/server.mjs"
+  MCP_DEST="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/FlintMCP"
+  mkdir -p "$MCP_DEST"
   if [ ! -f "$SRC" ]; then
+    rm -f "$MCP_DEST/server.mjs"
     echo "warning: FlintMCP/dist/server.mjs not found, skipping. Run 'cd FlintMCP && bun run build' to enable."
     exit 0
   fi
-  MCP_DEST="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/FlintMCP"
-  mkdir -p "$MCP_DEST"
   cp "$SRC" "$MCP_DEST/"
 SCRIPT
 

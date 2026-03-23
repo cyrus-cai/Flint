@@ -64,6 +64,18 @@ cp -R "$ARCHIVE_PATH/Products/Applications/$APP_NAME.app" "$EXPORT_PATH/"
 # Embed FlintMCP (MCP Server for AI agent integration)
 # Build and ship the pre-bundled single file — no node_modules needed at runtime.
 echo "🔌 Building & embedding FlintMCP..."
+if [ ! -d "FlintMCP" ]; then
+    echo "❌ Error: FlintMCP directory not found."
+    exit 1
+fi
+if ! command -v bun >/dev/null 2>&1; then
+    echo "❌ Error: bun is not installed. Install Bun to build FlintMCP."
+    exit 1
+fi
+if [ ! -f "FlintMCP/bun.lock" ] && [ ! -f "FlintMCP/bun.lockb" ]; then
+    echo "❌ Error: Missing FlintMCP Bun lockfile required by --frozen-lockfile."
+    exit 1
+fi
 (cd FlintMCP && bun install --frozen-lockfile && bun run build)
 MCP_DEST="$EXPORT_PATH/$APP_NAME.app/Contents/Resources/FlintMCP"
 mkdir -p "$MCP_DEST"
