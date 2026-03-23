@@ -15,8 +15,7 @@
 <p align="center">
   <a href="https://github.com/cyrus-cai/Flint/releases">Download</a> &middot;
   <a href="#mcp-server">MCP</a> &middot;
-  <a href="#building-from-source">Build</a> &middot;
-  <a href="docs/release.md">Release</a>
+  <a href="#building-from-source">Build</a>
 </p>
 
 ---

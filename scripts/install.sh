@@ -96,14 +96,31 @@ curl -fL "$LATEST_URL" -o "$TEMP_DIR/$ASSET_NAME"
 echo "==> Installing to $INSTALL_DIR"
 ditto -x -k "$TEMP_DIR/$ASSET_NAME" "$TEMP_DIR/extracted"
 
-if [ -d "$INSTALL_DIR/$APP_NAME.app" ]; then
-    echo "==> Replacing existing installation"
-    rm -rf "$INSTALL_DIR/$APP_NAME.app"
+EXTRACTED_APP_PATH="$TEMP_DIR/extracted/$APP_NAME.app"
+STAGED_APP_PATH="$INSTALL_DIR/$APP_NAME.app.new"
+TARGET_APP_PATH="$INSTALL_DIR/$APP_NAME.app"
+
+if [ ! -d "$EXTRACTED_APP_PATH" ]; then
+    echo "Extracted app bundle not found: $EXTRACTED_APP_PATH" >&2
+    exit 1
 fi
 
-mv "$TEMP_DIR/extracted/$APP_NAME.app" "$INSTALL_DIR/"
+rm -rf "$STAGED_APP_PATH"
+cp -R "$EXTRACTED_APP_PATH" "$STAGED_APP_PATH"
 
-CLI_PATH="$INSTALL_DIR/$APP_NAME.app/Contents/Resources/flint-cli"
+if [ ! -d "$STAGED_APP_PATH" ]; then
+    echo "Failed to stage app bundle at: $STAGED_APP_PATH" >&2
+    exit 1
+fi
+
+if [ -d "$TARGET_APP_PATH" ]; then
+    echo "==> Replacing existing installation"
+    rm -rf "$TARGET_APP_PATH"
+fi
+
+mv "$STAGED_APP_PATH" "$TARGET_APP_PATH"
+
+CLI_PATH="$TARGET_APP_PATH/Contents/Resources/flint-cli"
 if [ -f "$CLI_PATH" ]; then
     for BIN_DIR in "$HOME/.local/bin" "/usr/local/bin"; do
         LINK_PATH="$BIN_DIR/flint"
