@@ -14,19 +14,17 @@ const SERVER_NAME = "flint-notes";
 const SERVER_VERSION = "0.9.7";
 
 type ToolArgs = {
-    week?: string;
-    limit?: number;
-    query?: string;
-    title_only?: boolean;
-    identifier?: string;
-    content?: string;
-    append?: string;
-    confirm?: boolean;
+    [key: string]: unknown;
 };
 
 const FLINT_BIN = (() => {
+    if (process.env.FLINT_BIN) {
+        return process.env.FLINT_BIN;
+    }
+
     const candidates = [
         join(homedir(), ".local", "bin", "flint"),
+        "/opt/homebrew/bin/flint",
         "/usr/local/bin/flint",
     ];
 
@@ -161,7 +159,7 @@ function runFlint(args: string[], input?: string): string {
         timeout: 15_000,
         maxBuffer: 10 * 1024 * 1024,
         input,
-    }).trim();
+    });
 }
 
 function ok(text: string) {
@@ -177,6 +175,51 @@ function err(text: string) {
     };
 }
 
+function normalizeArgs(args: unknown): ToolArgs {
+    if (args == null) {
+        return {};
+    }
+
+    if (typeof args !== "object" || Array.isArray(args)) {
+        throw new Error("arguments must be an object.");
+    }
+
+    return args as ToolArgs;
+}
+
+function readOptionalString(args: ToolArgs, key: string): string | undefined {
+    const value = args[key];
+    if (value === undefined) {
+        return undefined;
+    }
+    if (typeof value !== "string") {
+        throw new Error(`${key} must be a string.`);
+    }
+    return value;
+}
+
+function readOptionalBoolean(args: ToolArgs, key: string): boolean | undefined {
+    const value = args[key];
+    if (value === undefined) {
+        return undefined;
+    }
+    if (typeof value !== "boolean") {
+        throw new Error(`${key} must be a boolean.`);
+    }
+    return value;
+}
+
+function readOptionalInteger(args: ToolArgs, key: string): number | undefined {
+    const value = args[key];
+    if (value === undefined) {
+        return undefined;
+    }
+    if (typeof value !== "number" || !Number.isInteger(value)) {
+        throw new Error(`${key} must be an integer.`);
+    }
+    return value;
+}
+
 const server = new Server(
     { name: SERVER_NAME, version: SERVER_VERSION },
     { capabilities: { tools: {} } }
@@ -186,34 +229,46 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name } = request.params;
-    const args = request.params.arguments as ToolArgs | undefined;
 
     try {
+        const args = normalizeArgs(request.params.arguments);
+
         switch (name) {
         case "list_notes": {
+            const week = readOptionalString(args, "week");
+            const limit = readOptionalInteger(args, "limit");
             const flintArgs = ["list", "--json"];
-            if (args?.week) flintArgs.push("--week", String(args.week));
-            if (args?.limit != null) flintArgs.push("--limit", String(args.limit));
+            if (week) flintArgs.push("--week", week);
+            if (limit != null) flintArgs.push("--limit", String(limit));
             return ok(runFlint(flintArgs));
         }
         case "search_notes": {
-            if (!args?.query) return err("query is required.");
+            const query = readOptionalString(args, "query");
+            const titleOnly = readOptionalBoolean(args, "title_only");
+            if (!query) return err("query is required.");
             const flintArgs = ["search", "--json"];
-            if (args.title_only) flintArgs.push("--title");
-            flintArgs.push("--", String(args.query));
+            if (titleOnly) flintArgs.push("--title");
+            flintArgs.push("--", query);
             return ok(runFlint(flintArgs));
         }
-        case "read_note":
-            if (!args?.identifier) return err("identifier is required.");
-            return ok(runFlint(["read", "--", String(args.identifier)]));
-        case "create_note":
-            if (!args?.content) return err("content is required.");
-            return ok(runFlint(["create", "--stdin"], String(args.content)));
+        case "read_note": {
+            const identifier = readOptionalString(args, "identifier");
+            if (!identifier) return err("identifier is required.");
+            return ok(runFlint(["read", "--", identifier]));
+        }
+        case "create_note": {
+            const content = readOptionalString(args, "content");
+            if (!content) return err("content is required.");
+            return ok(runFlint(["create", "--stdin"], content));
+        }
         case "edit_note": {
-            if (!args?.identifier) return err("identifier is required.");
+            const identifier = readOptionalString(args, "identifier");
+            const content = readOptionalString(args, "content");
+            const append = readOptionalString(args, "append");
+            if (!identifier) return err("identifier is required.");
 
-            const hasContent = args.content !== undefined;
-            const hasAppend = args.append !== undefined;
+            const hasContent = content !== undefined;
+            const hasAppend = append !== undefined;
             if (!hasContent && !hasAppend) {
                 return err("Either content or append is required.");
             }
@@ -223,19 +278,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             const flintArgs = ["edit", "--stdin"];
             if (hasAppend) flintArgs.push("--append");
-            flintArgs.push("--", String(args.identifier));
+            flintArgs.push("--", identifier);
 
             return ok(
                 runFlint(
                     flintArgs,
-                    String(hasContent ? args.content : args.append)
+                    hasContent ? content : append
                 )
             );
         }
-        case "delete_note":
-            if (args?.confirm !== true) return err("confirm must be true to delete.");
-            if (!args?.identifier) return err("identifier is required.");
-            return ok(runFlint(["rm", "--force", "--", String(args.identifier)]));
+        case "delete_note": {
+            const confirm = readOptionalBoolean(args, "confirm");
+            const identifier = readOptionalString(args, "identifier");
+            if (confirm !== true) return err("confirm must be true to delete.");
+            if (!identifier) return err("identifier is required.");
+            return ok(runFlint(["rm", "--force", "--", identifier]));
+        }
         case "get_status":
             return ok(runFlint(["status"]));
         default:

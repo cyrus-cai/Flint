@@ -232,7 +232,7 @@ class WindowConfigurationHelper {
 // MARK: - Color Adaptations
 
 extension NSColor {
-    static var noteWindowBackgroundColor: NSColor {
+    static let noteWindowBackgroundColor: NSColor = {
         let lightColor = NSColor(srgbRed: 1.0, green: 248.0 / 255.0, blue: 231.0 / 255.0, alpha: 1.0)
         let darkColor = NSColor(srgbRed: 0.0, green: 7.0 / 255.0, blue: 24.0 / 255.0, alpha: 1.0)
 
@@ -244,7 +244,7 @@ extension NSColor {
                 return lightColor
             }
         }
-    }
+    }()
 }
 
 extension Color {

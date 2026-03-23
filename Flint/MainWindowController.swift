@@ -118,6 +118,18 @@ class MainWindowController: NSWindowController {
     private var optionKeyTapCount: Int = 0  // 用于记录 Option 键点击次数
     private var optionKeyTapMonitor: Any?
     private var globalOptionKeyTapMonitor: Any?
+    private lazy var contentHostingView: NSHostingView<AnyView> = {
+        let rootView = AnyView(
+            ContentView()
+                .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
+                    self?.updateWindowHeight(height)
+                }
+        )
+        let hostingView = NSHostingView(rootView: rootView)
+        hostingView.wantsLayer = true
+        return hostingView
+    }()
+    private var heightObserver: NSKeyValueObservation?
 
     init() {
         let window = NSWindow(
@@ -271,7 +283,6 @@ class MainWindowController: NSWindowController {
 
     @objc private func handleTransparencyChange() {
         applyTransparency()
-        // Rebuild content view to pick up the new background mode
         setupContentView()
     }
 
@@ -355,18 +366,12 @@ class MainWindowController: NSWindowController {
         }
     }
 
-    private var heightObserver: NSKeyValueObservation?
-
     private func setupContentView() {
-        let contentView = ContentView()
-            .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
-                self?.updateWindowHeight(height)
-            }
-
-        let hostingView = NSHostingView(rootView: contentView)
+        let hostingView = contentHostingView
         hostingView.wantsLayer = true
 
         let isTransparent = UserDefaults.standard.object(forKey: AppStorageKeys.windowTransparent) as? Bool ?? AppDefaults.windowTransparent
+        hostingView.removeFromSuperview()
 
         if isTransparent {
             if #available(macOS 26.0, *) {
@@ -406,19 +411,32 @@ class MainWindowController: NSWindowController {
             } else {
                 hostingView.layer?.cornerRadius = 12
                 hostingView.layer?.masksToBounds = true
+                hostingView.translatesAutoresizingMaskIntoConstraints = true
                 window?.contentView = hostingView
             }
         } else {
             // Not transparent: no visual effect view, just the hosting view
-            let cornerRadius: CGFloat = if #available(macOS 26.0, *) { DesignSystem.standardCornerRadius } else { 12 }
+            let cornerRadius: CGFloat
+            if #available(macOS 26.0, *) {
+                cornerRadius = DesignSystem.standardCornerRadius
+            } else {
+                cornerRadius = 12
+            }
             hostingView.layer?.cornerRadius = cornerRadius
             hostingView.layer?.masksToBounds = true
+            hostingView.translatesAutoresizingMaskIntoConstraints = true
             window?.contentView = hostingView
         }
 
-        heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
-            let contentHeight = view.frame.height
-            self?.updateWindowHeight(contentHeight)
+        if heightObserver == nil {
+            heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
+                let contentHeight = view.frame.height
+                self?.updateWindowHeight(contentHeight)
+            }
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.setupTrackingArea()
         }
     }
 
