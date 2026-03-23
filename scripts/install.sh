@@ -32,41 +32,29 @@ EOF
 }
 
 resolve_release_asset() {
-    if [ "$RELEASE_CHANNEL" = "beta" ]; then
-        curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=20" |
-            jq -r --arg asset "$ASSET_NAME" '
-                [
-                    .[]
-                    | select(.draft == false and .prerelease == true)
-                    | {
-                        tag: .tag_name,
-                        url: (
-                            .assets[]
-                            | select(.name == $asset)
-                            | .browser_download_url
-                        )
-                    }
-                    | select(.url != null)
-                ][0]
-                | if . == null then empty else "\(.tag)\t\(.url)" end
-            '
-        return
-    fi
-
-    curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" |
+    curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=50" |
         jq -r --arg asset "$ASSET_NAME" '
-            if .tag_name == null then
-                empty
-            else
-                [
-                    .tag_name,
-                    (
+            [
+                .[]
+                | select(.draft == false)
+                | select(
+                    if env.RELEASE_CHANNEL == "beta" then
+                        (.tag_name | contains("-beta"))
+                    else
+                        (.tag_name | contains("-beta") | not)
+                    end
+                )
+                | {
+                    tag: .tag_name,
+                    url: (
                         .assets[]
                         | select(.name == $asset)
                         | .browser_download_url
                     )
-                ] | @tsv
-            end
+                }
+                | select(.url != null)
+            ][0]
+            | if . == null then empty else "\(.tag)\t\(.url)" end
         '
 }
 

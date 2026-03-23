@@ -48,7 +48,7 @@ usage() {
 Usage: ./scripts/release.sh <version> [options]
 
 Options:
-  --beta                   Create a GitHub prerelease (default)
+  --beta                   Create a GitHub beta release (default)
   --publish                Create a notarized production release
   --notes-file <path>      Use a notes file instead of --generate-notes
   --tag-suffix <suffix>    Override the generated tag suffix (beta defaults to -beta)
@@ -381,27 +381,31 @@ push_refs() {
     git push origin "$tag"
 }
 
+normalize_github_release_flags() {
+    local repo="$1"
+    local tag="$2"
+    local release_id=""
+
+    release_id="$(gh api "repos/$repo/releases/tags/$tag" --jq '.id')"
+    gh api \
+        --method PATCH \
+        "repos/$repo/releases/$release_id" \
+        -F prerelease=false \
+        >/dev/null
+}
+
 publish_github_release() {
     local repo="$1"
     local tag="$2"
-    local is_prerelease="$3"
     local assets=("build/$APP_NAME.zip" "build/$APP_NAME.dmg")
-    local create_args=()
-    local edit_args=()
-
-    if [ "$is_prerelease" = "1" ]; then
-        create_args+=(--prerelease)
-        edit_args+=(--prerelease)
-    fi
 
     if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
         echo "==> Updating existing GitHub Release $tag"
         gh release upload "$tag" "${assets[@]}" --clobber --repo "$repo"
         if [ -n "$NOTES_FILE" ]; then
-            gh release edit "$tag" --title "$tag" --notes-file "$NOTES_FILE" --repo "$repo" "${edit_args[@]}"
-        elif [ "${#edit_args[@]}" -gt 0 ]; then
-            gh release edit "$tag" --title "$tag" --repo "$repo" "${edit_args[@]}"
+            gh release edit "$tag" --title "$tag" --notes-file "$NOTES_FILE" --repo "$repo"
         fi
+        normalize_github_release_flags "$repo" "$tag"
         return
     fi
 
@@ -410,15 +414,14 @@ publish_github_release() {
         gh release create "$tag" "${assets[@]}" \
             --repo "$repo" \
             --title "$tag" \
-            --notes-file "$NOTES_FILE" \
-            "${create_args[@]}"
+            --notes-file "$NOTES_FILE"
     else
         gh release create "$tag" "${assets[@]}" \
             --repo "$repo" \
             --title "$tag" \
-            --generate-notes \
-            "${create_args[@]}"
+            --generate-notes
     fi
+    normalize_github_release_flags "$repo" "$tag"
 }
 
 while [ $# -gt 0 ]; do
@@ -548,11 +551,7 @@ fi
 if [ "$SKIP_GITHUB_RELEASE" = "0" ]; then
     require_command gh
     gh auth status >/dev/null
-    if [ "$RELEASE_CHANNEL" = "beta" ]; then
-        publish_github_release "$REPO" "$TAG" 1
-    else
-        publish_github_release "$REPO" "$TAG" 0
-    fi
+    publish_github_release "$REPO" "$TAG"
 fi
 
 echo "==> Release complete"

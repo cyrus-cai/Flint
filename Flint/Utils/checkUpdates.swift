@@ -1,13 +1,14 @@
 import Foundation
 
 private struct GitHubVersionResponse: Codable {
+    let draft: Bool
     let tagName: String
 }
 
 class VersionChecker {
     static let shared = VersionChecker()
 
-    private let versionURL = URL(string: "https://api.github.com/repos/cyrus-cai/Flint/releases/latest")!
+    private let versionURL = URL(string: "https://api.github.com/repos/cyrus-cai/Flint/releases?per_page=20")!
 
     func checkLatestVersion() async throws -> String {
         var request = URLRequest(url: versionURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
@@ -23,7 +24,12 @@ class VersionChecker {
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        let release = try decoder.decode(GitHubVersionResponse.self, from: data)
+        let releases = try decoder.decode([GitHubVersionResponse].self, from: data)
+
+        guard let release = releases.first(where: { !$0.draft && !$0.tagName.contains("-beta") }) else {
+            throw URLError(.fileDoesNotExist)
+        }
+
         return release.tagName.replacingOccurrences(of: #"^v"#, with: "", options: .regularExpression)
     }
 }

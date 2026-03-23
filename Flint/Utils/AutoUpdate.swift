@@ -12,7 +12,7 @@ import Combine
 import Foundation
 
 class AutoUpdater {
-    private let releaseFeedURL = URL(string: "https://api.github.com/repos/cyrus-cai/Flint/releases/latest")!
+    private let releaseFeedURL = URL(string: "https://api.github.com/repos/cyrus-cai/Flint/releases?per_page=20")!
     private let releaseAssetName = "Flint.zip"
 
     private var currentVersion: String
@@ -64,7 +64,11 @@ class AutoUpdater {
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        let release = try decoder.decode(GitHubRelease.self, from: data)
+        let releases = try decoder.decode([GitHubRelease].self, from: data)
+
+        guard let release = releases.first(where: { !$0.draft && !$0.tagName.contains("-beta") }) else {
+            return nil
+        }
 
         guard let asset = release.assets.first(where: { $0.name == releaseAssetName })
             ?? release.assets.first(where: { $0.name.hasSuffix(".zip") }) else {
@@ -302,6 +306,7 @@ struct UpdateInfo: Codable {
 }
 
 private struct GitHubRelease: Decodable {
+    let draft: Bool
     let tagName: String
     let body: String?
     let publishedAt: String?
