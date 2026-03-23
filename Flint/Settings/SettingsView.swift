@@ -495,6 +495,7 @@ struct AISettingsView: View {
     @State private var hasPersistedAPIKey: Bool = false
     @State private var enableAIRename: Bool = false
     @State private var enableAutoSaveClipboard: Bool = false
+    @State private var mcpRegistered: Bool = false
 
     private var provider: AIProvider {
         AIProvider(rawValue: selectedProviderRaw) ?? .minimax
@@ -640,9 +641,40 @@ struct AISettingsView: View {
                 }
                 .padding(12)
             }
+
+            // MCP Server
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("MCP Server")
+                            Text("Claude Code")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Circle()
+                            .fill(mcpRegistered ? Color.green : Color.secondary.opacity(0.3))
+                            .frame(width: 8, height: 8)
+                        if mcpRegistered {
+                            Button(L("Unregister")) {
+                                unregisterMCPServer()
+                            }
+                            .controlSize(.small)
+                        } else {
+                            Button(L("Register")) {
+                                registerMCPServer()
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+                }
+                .padding(12)
+            }
         }
         .onAppear {
             loadProviderState()
+            mcpRegistered = isMCPServerRegistered()
         }
         .onChange(of: selectedProviderRaw) { _ in
             // Provider switched: load its key and model, post notification
@@ -721,6 +753,133 @@ struct AISettingsView: View {
             UserDefaults.standard.set(false, forKey: AppStorageKeys.enableAutoSaveClipboard)
             MaybeLikeService.shared.stopMonitoring()
         }
+    }
+
+    // MARK: - MCP Server Registration
+
+    /// Claude Code reads user-scope MCP servers from ~/.claude.json
+    private static let claudeConfigPath: String = {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        return "\(home)/.claude.json"
+    }()
+
+    private static var mcpServerScript: String {
+        let bundled = Bundle.main.resourceURL?
+            .appendingPathComponent("FlintMCP")
+            .appendingPathComponent("server.mjs").path
+        return bundled ?? "/Applications/Flint.app/Contents/Resources/FlintMCP/server.mjs"
+    }
+
+    private func isMCPServerRegistered() -> Bool {
+        guard let data = FileManager.default.contents(atPath: Self.claudeConfigPath),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let servers = json["mcpServers"] as? [String: Any] else {
+            return false
+        }
+        return servers["flint-notes"] != nil
+    }
+
+    /// Find node binary — GUI apps have a minimal PATH, so check common locations.
+    private static func findNode() -> String? {
+        let candidates = [
+            "/opt/homebrew/bin/node",       // Apple Silicon Homebrew
+            "/usr/local/bin/node",          // Intel Homebrew / official installer
+            nvmNodePath(),                  // NVM
+            "/usr/bin/node",                // Xcode CLT / system
+        ]
+        return candidates.compactMap { $0 }.first { FileManager.default.fileExists(atPath: $0) }
+    }
+
+    /// Resolve the node binary from NVM by picking the latest installed version.
+    private static func nvmNodePath() -> String? {
+        let nvmDir = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".nvm/versions/node")
+        guard let versions = try? FileManager.default.contentsOfDirectory(atPath: nvmDir.path) else {
+            return nil
+        }
+        // Sort version dirs descending so the latest comes first
+        guard let latest = versions.filter({ $0.hasPrefix("v") }).sorted(by: >).first else {
+            return nil
+        }
+        let path = nvmDir.appendingPathComponent(latest).appendingPathComponent("bin/node").path
+        return FileManager.default.fileExists(atPath: path) ? path : nil
+    }
+
+    private func registerMCPServer() {
+        guard let nodePath = Self.findNode() else {
+            showMCPError("Node.js is required but not found.\nInstall it from https://nodejs.org or run:\nbrew install node")
+            return
+        }
+
+        do {
+            let fm = FileManager.default
+            let configPath = Self.claudeConfigPath
+            let configURL = URL(fileURLWithPath: configPath)
+
+            // Read existing config or start with empty object
+            var json: [String: Any] = [:]
+            if let data = fm.contents(atPath: configPath) {
+                let parsed = try JSONSerialization.jsonObject(with: data)
+                guard let obj = parsed as? [String: Any] else {
+                    showMCPError("~/.claude.json exists but is not a JSON object. Please fix it manually.")
+                    return
+                }
+                json = obj
+            }
+
+            // Pre-bundled single file — use absolute node path for reliability
+            var servers = json["mcpServers"] as? [String: Any] ?? [:]
+            servers["flint-notes"] = [
+                "command": nodePath,
+                "args": [Self.mcpServerScript],
+            ] as [String: Any]
+            json["mcpServers"] = servers
+
+            let data = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
+            try data.write(to: configURL)
+
+            // Verify the write stuck
+            if isMCPServerRegistered() {
+                mcpRegistered = true
+            } else {
+                showMCPError("Registration appeared to succeed but verification failed.")
+            }
+        } catch {
+            showMCPError("Failed to register: \(error.localizedDescription)")
+        }
+    }
+
+    private func unregisterMCPServer() {
+        do {
+            let fm = FileManager.default
+            let configPath = Self.claudeConfigPath
+            let configURL = URL(fileURLWithPath: configPath)
+
+            guard let data = fm.contents(atPath: configPath),
+                  var json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                mcpRegistered = false
+                return
+            }
+
+            if var servers = json["mcpServers"] as? [String: Any] {
+                servers.removeValue(forKey: "flint-notes")
+                json["mcpServers"] = servers
+            }
+
+            let newData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
+            try newData.write(to: configURL)
+            mcpRegistered = false
+        } catch {
+            showMCPError("Failed to unregister: \(error.localizedDescription)")
+        }
+    }
+
+    private func showMCPError(_ message: String) {
+        let alert = NSAlert()
+        alert.messageText = "MCP Registration Error"
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.runModal()
     }
 }
 
@@ -1061,11 +1220,11 @@ struct KeyboardShortcutBadge: View {
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
-                    .background(Color.secondary.opacity(0.15))
+                    .background(Color.accentColor.opacity(0.15))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
             }
         }
-        .foregroundColor(.secondary)
+        .foregroundColor(.accentColor)
     }
 
     private func shortcutSymbol(for key: String) -> String {

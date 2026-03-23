@@ -48,7 +48,8 @@ echo "🧹 Cleaning..."
 rm -rf "$BUILD_DIR"
 
 echo "🏗️  Archiving $APP_NAME ($FULL_VERSION)..."
-xcodebuild -scheme "$SCHEME" \
+xcodebuild -project Flint.xcodeproj \
+    -scheme "$SCHEME" \
     -configuration Release \
     -archivePath "$ARCHIVE_PATH" \
     -destination 'generic/platform=macOS' \
@@ -59,6 +60,15 @@ echo "📦 Packaging..."
 mkdir -p "$EXPORT_PATH"
 # Direct copy from archive
 cp -R "$ARCHIVE_PATH/Products/Applications/$APP_NAME.app" "$EXPORT_PATH/"
+
+# Embed FlintMCP (MCP Server for AI agent integration)
+# Build and ship the pre-bundled single file — no node_modules needed at runtime.
+echo "🔌 Building & embedding FlintMCP..."
+(cd FlintMCP && bun install --frozen-lockfile && bun run build)
+MCP_DEST="$EXPORT_PATH/$APP_NAME.app/Contents/Resources/FlintMCP"
+mkdir -p "$MCP_DEST"
+cp FlintMCP/dist/server.mjs "$MCP_DEST/"
+echo "   FlintMCP embedded at: $MCP_DEST/server.mjs"
 
 echo "🤐 Zipping..."
 cd "$EXPORT_PATH"

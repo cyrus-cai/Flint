@@ -39,6 +39,14 @@ iOSInjectionProject/
 .env.local
 *.xcconfig
 
+# Node / Bun
+node_modules/
+bun.lockb
+package-lock.json
+
+# Profiling
+*.profraw
+
 # IDE
 .vscode/
 .claude/
@@ -53,6 +61,5 @@ web/
 FlintTests/
 FlintUITests/
 
-node_modules/
 FlintMCP/package-lock.json
 FlintMCP/dist/
