@@ -98,7 +98,7 @@
 /* Begin PBXFileReference section */
 		1C50774F594DE06ED0F6FC8B /* main.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemHelper.swift; sourceTree = "<group>"; };
-		29FA3805DF14D75E1E3EF894 /* flint-cli */ = {isa = PBXFileReference; includeInIndex = 0; path = "flint-cli"; sourceTree = BUILT_PRODUCTS_DIR; };
+		29FA3805DF14D75E1E3EF894 /* flint-cli */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = text; path = "flint-cli"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AA997EDCA23CDFF6582931F /* StatusCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusCommand.swift; sourceTree = "<group>"; };
 		3F14C8993CA086D14941086F /* CLIVersion.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CLIVersion.swift; sourceTree = "<group>"; };
 		A30FF3802CDFDA000034F9DC /* TitleBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleBarView.swift; sourceTree = "<group>"; };
@@ -181,13 +181,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		44E7FBEC77376A0FDCD6572D /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
 		61F7166693212B920709AAA5 /* OS X */ = {
 			isa = PBXGroup;
 			children = (
@@ -217,7 +210,6 @@
 				F7B235565D9DCAD064DDACCB /* RemoveCommand.swift */,
 				2AA997EDCA23CDFF6582931F /* StatusCommand.swift */,
 			);
-			name = Commands;
 			path = Commands;
 			sourceTree = "<group>";
 		};
@@ -301,7 +293,6 @@
 				A37D473D2CDE6ECF00B2E727 /* Flint.entitlements */,
 				A37D473A2CDE6ECF00B2E727 /* Preview Content */,
 				82949F51FCBCF2C138A5F560 /* Services */,
-				44E7FBEC77376A0FDCD6572D /* ViewModels */,
 				A3VIEWS2D910A0100000003 /* Views */,
 			);
 			path = Flint;
@@ -382,7 +373,6 @@
 			children = (
 				FD8DEE77813EADF0D3B7BA8E /* NoteResolver.swift */,
 			);
-			name = Helpers;
 			path = Helpers;
 			sourceTree = "<group>";
 		};
@@ -394,7 +384,6 @@
 				1C50774F594DE06ED0F6FC8B /* main.swift */,
 				3F14C8993CA086D14941086F /* CLIVersion.swift */,
 			);
-			name = FlintCLI;
 			path = FlintCLI;
 			sourceTree = "<group>";
 		};
