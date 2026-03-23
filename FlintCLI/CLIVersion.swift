@@ -9,6 +9,6 @@ let kFlintCLIVersion: String = {
        let version = dict["CFBundleShortVersionString"] as? String {
         return version
     }
-    // Fallback: compile-time constant synced by publish.sh
-    return "0.9.7"
+    // Fallback: compile-time constant synced by release.sh
+    return "0.9.8"
 }()

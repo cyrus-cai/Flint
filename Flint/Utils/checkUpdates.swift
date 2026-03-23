@@ -1,34 +1,35 @@
-//
-//  checkUpdates.swift
-//  Flint
-//
-//  Created by LC John on 2024/11/29.
-//
-
 import Foundation
 
-struct VersionResponse: Codable {
-    let version: String
-    let lastUpdated: String
+private struct GitHubVersionResponse: Codable {
+    let draft: Bool
+    let tagName: String
 }
 
 class VersionChecker {
     static let shared = VersionChecker()
-#if DEBUG
-    private let versionURL = URL(string: "https://www.figa.asia/api/testversion")!
-#else
-    private let versionURL = URL(string: "https://www.figa.asia/api/version")!
-#endif
+
+    private let versionURL = URL(string: "https://api.github.com/repos/cyrus-cai/Flint/releases?per_page=20")!
 
     func checkLatestVersion() async throws -> String {
-        let (data, response) = try await URLSession.shared.data(from: versionURL)
+        var request = URLRequest(url: versionURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
 
-        let versionInfo = try JSONDecoder().decode(VersionResponse.self, from: data)
-        return versionInfo.version
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let releases = try decoder.decode([GitHubVersionResponse].self, from: data)
+
+        guard let release = releases.first(where: { !$0.draft && !$0.tagName.contains("-beta") }) else {
+            throw URLError(.fileDoesNotExist)
+        }
+
+        return release.tagName.replacingOccurrences(of: #"^v"#, with: "", options: .regularExpression)
     }
 }

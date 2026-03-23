@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/cyrus-cai/Flint/releases/latest">Download</a> &middot;
+  <a href="https://github.com/cyrus-cai/Flint/releases">Download</a> &middot;
   <a href="#mcp-server">MCP</a> &middot;
   <a href="#building-from-source">Build</a>
 </p>
@@ -29,7 +29,19 @@
 
 ## Download
 
-Get the latest release from [GitHub Releases](https://github.com/cyrus-cai/Flint/releases/latest). Download `Flint.zip`, unzip, and drag to Applications.
+Get the latest release from [GitHub Releases](https://github.com/cyrus-cai/Flint/releases). Download `Flint.zip`, unzip, and drag to Applications.
+
+Or install directly from the command line:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash
+```
+
+Install the latest beta release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
+```
 
 ## MCP Server
 

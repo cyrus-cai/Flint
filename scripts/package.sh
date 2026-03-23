@@ -1,93 +1,262 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-APP_NAME="Flint"
-SCHEME="Flint"
-BUILD_DIR="build"
-ARCHIVE_PATH="$BUILD_DIR/$APP_NAME.xcarchive"
-EXPORT_PATH="$BUILD_DIR/Export"
-ZIP_PATH="$BUILD_DIR/$APP_NAME.zip"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
 
-# Extract Version Info
-echo "🔍 Reading version info from Info.plist..."
-# Prioritize the known location
-PLIST_PATH="Flint-Info.plist"
+APP_NAME="${APP_NAME:-Flint}"
+SCHEME="${SCHEME:-Flint}"
+PROJECT_PATH="${PROJECT_PATH:-Flint.xcodeproj}"
+CONFIGURATION="${CONFIGURATION:-Release}"
+BUILD_DIR="${BUILD_DIR:-build}"
+ARCHIVE_PATH="${ARCHIVE_PATH:-$BUILD_DIR/$APP_NAME.xcarchive}"
+EXPORT_PATH="${EXPORT_PATH:-$BUILD_DIR/Export}"
+APP_PATH="$EXPORT_PATH/$APP_NAME.app"
+ZIP_PATH="${ZIP_PATH:-$BUILD_DIR/$APP_NAME.zip}"
+DMG_PATH="${DMG_PATH:-$BUILD_DIR/$APP_NAME.dmg}"
+DMG_STAGING_PATH="${DMG_STAGING_PATH:-$BUILD_DIR/DMG}"
+PLIST_PATH="${PLIST_PATH:-Flint-Info.plist}"
+MCP_DIR="${MCP_DIR:-FlintMCP}"
+MCP_ENTRYPOINT="${MCP_ENTRYPOINT:-$MCP_DIR/dist/server.mjs}"
+CODESIGN_IDENTITY="${CODESIGN_IDENTITY-Developer ID Application}"
+CODESIGN_ENTITLEMENTS="${CODESIGN_ENTITLEMENTS:-}"
+CREATE_ZIP="${CREATE_ZIP:-1}"
+CREATE_DMG="${CREATE_DMG:-1}"
+CLEAN_BUILD="${CLEAN_BUILD:-1}"
 
-if [ ! -f "$PLIST_PATH" ]; then
-    PLIST_PATH="$APP_NAME/Info.plist"
-fi
+BUILD_SETTINGS=""
 
-# Check if Info.plist exists in standard location, if not try to find it
-if [ ! -f "$PLIST_PATH" ]; then
-    PLIST_PATH=$(find . -name "Info.plist" -not -path "*/.*" | grep "$APP_NAME-Info.plist" | head -n 1)
-    if [ -z "$PLIST_PATH" ]; then
-         PLIST_PATH=$(find . -name "Info.plist" -not -path "*/.*" | grep "$APP_NAME/Info.plist" | head -n 1)
+require_command() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "Missing required command: $1" >&2
+        exit 1
     fi
-fi
+}
 
-if [ -f "$PLIST_PATH" ]; then
-    MARKETING_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST_PATH")
-    CURRENT_PROJECT_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PLIST_PATH")
-else
-    # Fallback to xcodebuild if plist not found (slower/less reliable for changed files)
-    VERSION_SETTINGS=$(xcodebuild -scheme "$SCHEME" -showBuildSettings 2>/dev/null)
-    MARKETING_VERSION=$(echo "$VERSION_SETTINGS" | grep "MARKETING_VERSION =" | cut -d '=' -f 2 | xargs)
-    CURRENT_PROJECT_VERSION=$(echo "$VERSION_SETTINGS" | grep "CURRENT_PROJECT_VERSION =" | cut -d '=' -f 2 | xargs)
-fi
+read_plist_value() {
+    local key="$1"
+    /usr/libexec/PlistBuddy -c "Print :$key" "$PLIST_PATH" 2>/dev/null || true
+}
 
-if [ -z "$MARKETING_VERSION" ]; then
-    echo "⚠️  Could not detect version. Using default."
-    FULL_VERSION="unknown"
-else
-    echo "ℹ️  App Version: $MARKETING_VERSION"
-    echo "ℹ️  Build Number: $CURRENT_PROJECT_VERSION"
-    FULL_VERSION="$MARKETING_VERSION"
-fi
+build_setting() {
+    local key="$1"
+    echo "$BUILD_SETTINGS" | awk -F ' = ' -v key="$key" '$1 ~ "^[[:space:]]*" key "$" { print $2; exit }'
+}
 
-echo "🧹 Cleaning..."
-rm -rf "$BUILD_DIR"
+load_build_settings() {
+    BUILD_SETTINGS="$(
+        xcodebuild -project "$PROJECT_PATH" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -showBuildSettings 2>/dev/null
+    )"
+}
 
-echo "🏗️  Archiving $APP_NAME ($FULL_VERSION)..."
-xcodebuild -project Flint.xcodeproj \
-    -scheme "$SCHEME" \
-    -configuration Release \
-    -archivePath "$ARCHIVE_PATH" \
-    -destination 'generic/platform=macOS' \
-    archive \
-    -quiet
+resolve_version_info() {
+    MARKETING_VERSION="$(read_plist_value CFBundleShortVersionString)"
+    CURRENT_PROJECT_VERSION="$(read_plist_value CFBundleVersion)"
 
-echo "📦 Packaging..."
-mkdir -p "$EXPORT_PATH"
-# Direct copy from archive
-cp -R "$ARCHIVE_PATH/Products/Applications/$APP_NAME.app" "$EXPORT_PATH/"
+    if [ -z "$MARKETING_VERSION" ]; then
+        MARKETING_VERSION="$(build_setting MARKETING_VERSION)"
+    fi
 
-# Embed FlintMCP (MCP Server for AI agent integration)
-# Build and ship the pre-bundled single file — no node_modules needed at runtime.
-echo "🔌 Building & embedding FlintMCP..."
-if [ ! -d "FlintMCP" ]; then
-    echo "❌ Error: FlintMCP directory not found."
-    exit 1
-fi
-if ! command -v bun >/dev/null 2>&1; then
-    echo "❌ Error: bun is not installed. Install Bun to build FlintMCP."
-    exit 1
-fi
-if [ ! -f "FlintMCP/bun.lock" ] && [ ! -f "FlintMCP/bun.lockb" ]; then
-    echo "❌ Error: Missing FlintMCP Bun lockfile required by --frozen-lockfile."
-    exit 1
-fi
-(cd FlintMCP && bun install --frozen-lockfile && bun run build)
-MCP_DEST="$EXPORT_PATH/$APP_NAME.app/Contents/Resources/FlintMCP"
-mkdir -p "$MCP_DEST"
-cp FlintMCP/dist/server.mjs "$MCP_DEST/"
-echo "   FlintMCP embedded at: $MCP_DEST/server.mjs"
+    if [ -z "$CURRENT_PROJECT_VERSION" ]; then
+        CURRENT_PROJECT_VERSION="$(build_setting CURRENT_PROJECT_VERSION)"
+    fi
 
-echo "🤐 Zipping..."
-cd "$EXPORT_PATH"
-zip -r -q "$APP_NAME.zip" "$APP_NAME.app"
-cd - > /dev/null
-mv "$EXPORT_PATH/$APP_NAME.zip" "$ZIP_PATH"
+    if [ -z "$MARKETING_VERSION" ]; then
+        echo "Failed to resolve MARKETING_VERSION." >&2
+        exit 1
+    fi
 
-echo "✅ Package created at: $ZIP_PATH"
-echo "   Version: $FULL_VERSION (Build $CURRENT_PROJECT_VERSION)"
-echo "👉 Ready to upload to GitHub Release."
+    if [ -z "$CURRENT_PROJECT_VERSION" ]; then
+        echo "Failed to resolve CURRENT_PROJECT_VERSION." >&2
+        exit 1
+    fi
+}
+
+archive_app() {
+    echo "==> Archiving $APP_NAME $MARKETING_VERSION ($CURRENT_PROJECT_VERSION)"
+    xcodebuild -project "$PROJECT_PATH" \
+        -scheme "$SCHEME" \
+        -configuration "$CONFIGURATION" \
+        -archivePath "$ARCHIVE_PATH" \
+        -destination 'generic/platform=macOS' \
+        CODE_SIGN_IDENTITY="" \
+        CODE_SIGNING_REQUIRED=NO \
+        CODE_SIGNING_ALLOWED=NO \
+        archive
+}
+
+copy_app_from_archive() {
+    echo "==> Copying app from archive"
+    mkdir -p "$EXPORT_PATH"
+    rm -rf "$APP_PATH"
+    cp -R "$ARCHIVE_PATH/Products/Applications/$APP_NAME.app" "$APP_PATH"
+
+    if [ ! -d "$APP_PATH" ]; then
+        echo "Archived app not found at $APP_PATH" >&2
+        exit 1
+    fi
+}
+
+require_signing_identity() {
+    if [ -z "$CODESIGN_IDENTITY" ]; then
+        return
+    fi
+
+    if ! security find-identity -v -p codesigning | grep -F "$CODESIGN_IDENTITY" >/dev/null 2>&1; then
+        echo "Signing identity not found: $CODESIGN_IDENTITY" >&2
+        echo "Install a Developer ID Application certificate into your keychain, or set CODESIGN_IDENTITY to a valid identity." >&2
+        exit 1
+    fi
+}
+
+build_mcp() {
+    echo "==> Building FlintMCP"
+    if [ ! -d "$MCP_DIR" ]; then
+        echo "FlintMCP directory not found at $MCP_DIR" >&2
+        exit 1
+    fi
+
+    require_command bun
+
+    if [ ! -f "$MCP_DIR/bun.lock" ] && [ ! -f "$MCP_DIR/bun.lockb" ]; then
+        echo "Missing FlintMCP Bun lockfile." >&2
+        exit 1
+    fi
+
+    (
+        cd "$MCP_DIR"
+        if [ -d node_modules ]; then
+            echo "==> Reusing existing FlintMCP dependencies"
+        else
+            bun install --frozen-lockfile
+        fi
+        bun run build
+    )
+
+    if [ ! -f "$MCP_ENTRYPOINT" ]; then
+        echo "Built FlintMCP entrypoint not found at $MCP_ENTRYPOINT" >&2
+        exit 1
+    fi
+}
+
+embed_mcp() {
+    local destination="$APP_PATH/Contents/Resources/FlintMCP"
+
+    echo "==> Embedding FlintMCP"
+    rm -rf "$destination"
+    mkdir -p "$destination"
+    cp "$MCP_ENTRYPOINT" "$destination/server.mjs"
+    chmod 755 "$destination/server.mjs"
+}
+
+resign_app() {
+    if [ -z "$CODESIGN_IDENTITY" ]; then
+        echo "==> Skipping codesign (CODESIGN_IDENTITY is empty)"
+        return
+    fi
+
+    echo "==> Re-signing app with $CODESIGN_IDENTITY"
+    xattr -cr "$APP_PATH"
+
+    local codesign_args=(
+        --force
+        --deep
+        --timestamp
+        --options runtime
+        --sign "$CODESIGN_IDENTITY"
+    )
+
+    if [ -n "$CODESIGN_ENTITLEMENTS" ]; then
+        if [ ! -f "$CODESIGN_ENTITLEMENTS" ]; then
+            echo "CODESIGN_ENTITLEMENTS file not found: $CODESIGN_ENTITLEMENTS" >&2
+            exit 1
+        fi
+        codesign_args+=(--entitlements "$CODESIGN_ENTITLEMENTS")
+    fi
+
+    codesign "${codesign_args[@]}" "$APP_PATH"
+    codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+}
+
+create_zip() {
+    if [ "$CREATE_ZIP" != "1" ]; then
+        return
+    fi
+
+    echo "==> Creating zip archive"
+    rm -f "$ZIP_PATH"
+    ditto -c -k --keepParent "$APP_PATH" "$ZIP_PATH"
+}
+
+create_dmg() {
+    if [ "$CREATE_DMG" != "1" ]; then
+        return
+    fi
+
+    echo "==> Creating DMG"
+    rm -rf "$DMG_STAGING_PATH"
+    mkdir -p "$DMG_STAGING_PATH"
+    cp -R "$APP_PATH" "$DMG_STAGING_PATH/"
+    ln -s /Applications "$DMG_STAGING_PATH/Applications"
+
+    rm -f "$DMG_PATH"
+    hdiutil create \
+        -volname "$APP_NAME" \
+        -srcfolder "$DMG_STAGING_PATH" \
+        -ov \
+        -format UDZO \
+        "$DMG_PATH"
+
+    if [ -n "$CODESIGN_IDENTITY" ]; then
+        codesign --force --timestamp --sign "$CODESIGN_IDENTITY" "$DMG_PATH"
+        codesign --verify --verbose=2 "$DMG_PATH"
+    fi
+}
+
+print_summary() {
+    echo "==> Package ready"
+    echo "Version: $MARKETING_VERSION ($CURRENT_PROJECT_VERSION)"
+    echo "App: $APP_PATH"
+
+    if [ -f "$ZIP_PATH" ]; then
+        echo "Zip: $ZIP_PATH"
+    fi
+
+    if [ -f "$DMG_PATH" ]; then
+        echo "DMG: $DMG_PATH"
+    fi
+}
+
+main() {
+    require_command xcodebuild
+    require_command codesign
+    require_command ditto
+    require_command hdiutil
+    require_command security
+    require_command xattr
+
+    load_build_settings
+    resolve_version_info
+    require_signing_identity
+
+    if [ "$CLEAN_BUILD" = "1" ]; then
+        echo "==> Cleaning build directory"
+        rm -rf "$BUILD_DIR"
+    fi
+
+    mkdir -p "$BUILD_DIR"
+    archive_app
+    copy_app_from_archive
+    build_mcp
+    embed_mcp
+    resign_app
+    create_zip
+    create_dmg
+    print_summary
+}
+
+main "$@"
