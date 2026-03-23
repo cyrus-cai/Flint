@@ -5,6 +5,7 @@ REPO="${REPO:-cyrus-cai/Flint}"
 APP_NAME="${APP_NAME:-Flint}"
 ASSET_NAME="${ASSET_NAME:-$APP_NAME.zip}"
 INSTALL_DIR="${INSTALL_DIR:-/Applications}"
+RELEASE_CHANNEL="${RELEASE_CHANNEL:-stable}"
 TEMP_DIR="$(mktemp -d)"
 
 cleanup() {
@@ -24,19 +25,84 @@ require_command curl
 require_command jq
 require_command ditto
 
-echo "==> Resolving latest release for $REPO"
-LATEST_URL="$(
+usage() {
+    cat <<'EOF'
+Usage: ./scripts/install.sh [--beta|--stable]
+EOF
+}
+
+resolve_release_asset() {
+    if [ "$RELEASE_CHANNEL" = "beta" ]; then
+        curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=20" |
+            jq -r --arg asset "$ASSET_NAME" '
+                [
+                    .[]
+                    | select(.draft == false and .prerelease == true)
+                    | {
+                        tag: .tag_name,
+                        url: (
+                            .assets[]
+                            | select(.name == $asset)
+                            | .browser_download_url
+                        )
+                    }
+                    | select(.url != null)
+                ][0]
+                | if . == null then empty else "\(.tag)\t\(.url)" end
+            '
+        return
+    fi
+
     curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" |
-        jq -r --arg asset "$ASSET_NAME" '.assets[] | select(.name == $asset) | .browser_download_url' |
-        head -n 1
-)"
+        jq -r --arg asset "$ASSET_NAME" '
+            if .tag_name == null then
+                empty
+            else
+                [
+                    .tag_name,
+                    (
+                        .assets[]
+                        | select(.name == $asset)
+                        | .browser_download_url
+                    )
+                ] | @tsv
+            end
+        '
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --beta)
+            RELEASE_CHANNEL="beta"
+            shift
+            ;;
+        --stable)
+            RELEASE_CHANNEL="stable"
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
+
+echo "==> Resolving $RELEASE_CHANNEL release for $REPO"
+RELEASE_INFO="$(resolve_release_asset)"
+RELEASE_TAG="$(printf '%s\n' "$RELEASE_INFO" | awk -F '\t' 'NR == 1 { print $1 }')"
+LATEST_URL="$(printf '%s\n' "$RELEASE_INFO" | awk -F '\t' 'NR == 1 { print $2 }')"
 
 if [ -z "$LATEST_URL" ] || [ "$LATEST_URL" = "null" ]; then
-    echo "Could not find asset $ASSET_NAME in the latest GitHub Release." >&2
+    echo "Could not find asset $ASSET_NAME in the $RELEASE_CHANNEL GitHub Release feed." >&2
     exit 1
 fi
 
-echo "==> Downloading $APP_NAME"
+echo "==> Downloading $APP_NAME from $RELEASE_TAG"
 curl -fL "$LATEST_URL" -o "$TEMP_DIR/$ASSET_NAME"
 
 echo "==> Installing to $INSTALL_DIR"

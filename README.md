@@ -38,6 +38,12 @@ Or install directly from the command line:
 curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash
 ```
 
+Install the latest beta prerelease:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
+```
+
 ## MCP Server
 
 Flint ships with an MCP server (`FlintMCP/`) that exposes your notes to any MCP-compatible AI client.

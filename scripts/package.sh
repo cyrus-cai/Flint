@@ -16,17 +16,11 @@ APP_PATH="$EXPORT_PATH/$APP_NAME.app"
 ZIP_PATH="${ZIP_PATH:-$BUILD_DIR/$APP_NAME.zip}"
 DMG_PATH="${DMG_PATH:-$BUILD_DIR/$APP_NAME.dmg}"
 DMG_STAGING_PATH="${DMG_STAGING_PATH:-$BUILD_DIR/DMG}"
-EXPORT_OPTIONS_PLIST="${EXPORT_OPTIONS_PLIST:-$BUILD_DIR/ExportOptions.plist}"
 PLIST_PATH="${PLIST_PATH:-Flint-Info.plist}"
 MCP_DIR="${MCP_DIR:-FlintMCP}"
 MCP_ENTRYPOINT="${MCP_ENTRYPOINT:-$MCP_DIR/dist/server.mjs}"
-
-EXPORT_METHOD="${EXPORT_METHOD:-developer-id}"
-SIGNING_STYLE="${SIGNING_STYLE:-automatic}"
-TEAM_ID="${TEAM_ID:-}"
-CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-Developer ID Application}"
+CODESIGN_IDENTITY="${CODESIGN_IDENTITY-Developer ID Application}"
 CODESIGN_ENTITLEMENTS="${CODESIGN_ENTITLEMENTS:-}"
-ALLOW_PROVISIONING_UPDATES="${ALLOW_PROVISIONING_UPDATES:-1}"
 CREATE_ZIP="${CREATE_ZIP:-1}"
 CREATE_DMG="${CREATE_DMG:-1}"
 CLEAN_BUILD="${CLEAN_BUILD:-1}"
@@ -50,11 +44,6 @@ build_setting() {
     echo "$BUILD_SETTINGS" | awk -F ' = ' -v key="$key" '$1 ~ "^[[:space:]]*" key "$" { print $2; exit }'
 }
 
-provisioning_args=()
-if [ "$ALLOW_PROVISIONING_UPDATES" = "1" ]; then
-    provisioning_args=(-allowProvisioningUpdates)
-fi
-
 load_build_settings() {
     BUILD_SETTINGS="$(
         xcodebuild -project "$PROJECT_PATH" \
@@ -76,10 +65,6 @@ resolve_version_info() {
         CURRENT_PROJECT_VERSION="$(build_setting CURRENT_PROJECT_VERSION)"
     fi
 
-    if [ -z "$TEAM_ID" ]; then
-        TEAM_ID="$(build_setting DEVELOPMENT_TEAM)"
-    fi
-
     if [ -z "$MARKETING_VERSION" ]; then
         echo "Failed to resolve MARKETING_VERSION." >&2
         exit 1
@@ -89,30 +74,6 @@ resolve_version_info() {
         echo "Failed to resolve CURRENT_PROJECT_VERSION." >&2
         exit 1
     fi
-
-    if [ -z "$TEAM_ID" ]; then
-        echo "Failed to resolve DEVELOPMENT_TEAM." >&2
-        exit 1
-    fi
-}
-
-create_export_options_plist() {
-    cat > "$EXPORT_OPTIONS_PLIST" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>destination</key>
-    <string>export</string>
-    <key>method</key>
-    <string>$EXPORT_METHOD</string>
-    <key>signingStyle</key>
-    <string>$SIGNING_STYLE</string>
-    <key>teamID</key>
-    <string>$TEAM_ID</string>
-</dict>
-</plist>
-EOF
 }
 
 archive_app() {
@@ -122,20 +83,32 @@ archive_app() {
         -configuration "$CONFIGURATION" \
         -archivePath "$ARCHIVE_PATH" \
         -destination 'generic/platform=macOS' \
-        "${provisioning_args[@]}" \
+        CODE_SIGN_IDENTITY="" \
+        CODE_SIGNING_REQUIRED=NO \
+        CODE_SIGNING_ALLOWED=NO \
         archive
 }
 
-export_app() {
-    echo "==> Exporting signed app ($EXPORT_METHOD)"
-    xcodebuild -exportArchive \
-        -archivePath "$ARCHIVE_PATH" \
-        -exportPath "$EXPORT_PATH" \
-        -exportOptionsPlist "$EXPORT_OPTIONS_PLIST" \
-        "${provisioning_args[@]}"
+copy_app_from_archive() {
+    echo "==> Copying app from archive"
+    mkdir -p "$EXPORT_PATH"
+    rm -rf "$APP_PATH"
+    cp -R "$ARCHIVE_PATH/Products/Applications/$APP_NAME.app" "$APP_PATH"
 
     if [ ! -d "$APP_PATH" ]; then
-        echo "Exported app not found at $APP_PATH" >&2
+        echo "Archived app not found at $APP_PATH" >&2
+        exit 1
+    fi
+}
+
+require_signing_identity() {
+    if [ -z "$CODESIGN_IDENTITY" ]; then
+        return
+    fi
+
+    if ! security find-identity -v -p codesigning | grep -F "$CODESIGN_IDENTITY" >/dev/null 2>&1; then
+        echo "Signing identity not found: $CODESIGN_IDENTITY" >&2
+        echo "Install a Developer ID Application certificate into your keychain, or set CODESIGN_IDENTITY to a valid identity." >&2
         exit 1
     fi
 }
@@ -156,7 +129,11 @@ build_mcp() {
 
     (
         cd "$MCP_DIR"
-        bun install --frozen-lockfile
+        if [ -d node_modules ]; then
+            echo "==> Reusing existing FlintMCP dependencies"
+        else
+            bun install --frozen-lockfile
+        fi
         bun run build
     )
 
@@ -185,15 +162,12 @@ resign_app() {
     echo "==> Re-signing app with $CODESIGN_IDENTITY"
     xattr -cr "$APP_PATH"
 
-    local preserve_metadata
-    preserve_metadata="identifier,flags,runtime"
     local codesign_args=(
         --force
         --deep
         --timestamp
         --options runtime
         --sign "$CODESIGN_IDENTITY"
-        --preserve-metadata="$preserve_metadata"
     )
 
     if [ -n "$CODESIGN_ENTITLEMENTS" ]; then
@@ -202,9 +176,6 @@ resign_app() {
             exit 1
         fi
         codesign_args+=(--entitlements "$CODESIGN_ENTITLEMENTS")
-    else
-        preserve_metadata="$preserve_metadata,entitlements"
-        codesign_args[${#codesign_args[@]}-1]="--preserve-metadata=$preserve_metadata"
     fi
 
     codesign "${codesign_args[@]}" "$APP_PATH"
@@ -265,10 +236,12 @@ main() {
     require_command codesign
     require_command ditto
     require_command hdiutil
+    require_command security
     require_command xattr
 
     load_build_settings
     resolve_version_info
+    require_signing_identity
 
     if [ "$CLEAN_BUILD" = "1" ]; then
         echo "==> Cleaning build directory"
@@ -276,9 +249,8 @@ main() {
     fi
 
     mkdir -p "$BUILD_DIR"
-    create_export_options_plist
     archive_app
-    export_app
+    copy_app_from_archive
     build_mcp
     embed_mcp
     resign_app
