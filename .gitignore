@@ -52,3 +52,7 @@ web/
 # Tests (Xcode template stubs)
 FlintTests/
 FlintUITests/
+
+node_modules/
+FlintMCP/node_modules/
+FlintMCP/dist/
