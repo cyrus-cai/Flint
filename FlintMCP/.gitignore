@@ -1,6 +1,5 @@
 node_modules/
 dist/
-bun.lock
 bun.lockb
 package-lock.json
 *.profraw

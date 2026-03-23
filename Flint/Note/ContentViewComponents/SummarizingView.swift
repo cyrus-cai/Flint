@@ -64,7 +64,7 @@ struct SummarizingView: View {
             } else {
                 // macOS 15-25: 使用窗口背景色
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(NSColor.windowBackgroundColor))
+                    .fill(Color.noteWindowBackground)
             }
         }
         .overlay(

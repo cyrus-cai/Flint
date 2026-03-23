@@ -41,7 +41,6 @@ iOSInjectionProject/
 
 # Node / Bun
 node_modules/
-bun.lock
 bun.lockb
 package-lock.json
 
@@ -61,3 +60,6 @@ web/
 # Tests (Xcode template stubs)
 FlintTests/
 FlintUITests/
+
+FlintMCP/package-lock.json
+FlintMCP/dist/

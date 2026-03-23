@@ -18,17 +18,24 @@ end
 
 # Add Run Script build phase
 phase = flint_app_target.new_shell_script_build_phase('Embed FlintMCP')
-phase.shell_script = '"${SRCROOT}/scripts/embed-mcp.sh"'
 phase.shell_path = '/bin/bash'
-# Input files for incremental builds
 phase.input_paths = [
-  '$(SRCROOT)/FlintMCP/package.json',
-  '$(SRCROOT)/FlintMCP/server.ts',
-  '$(SRCROOT)/FlintMCP/notes.ts',
+  '$(SRCROOT)/FlintMCP/dist/server.mjs',
 ]
 phase.output_paths = [
   '$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Resources/FlintMCP/server.mjs',
 ]
+phase.shell_script = <<~SCRIPT
+  SRC="${SRCROOT}/FlintMCP/dist/server.mjs"
+  MCP_DEST="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/FlintMCP"
+  mkdir -p "$MCP_DEST"
+  if [ ! -f "$SRC" ]; then
+    rm -f "$MCP_DEST/server.mjs"
+    echo "warning: FlintMCP/dist/server.mjs not found, skipping. Run 'cd FlintMCP && bun run build' to enable."
+    exit 0
+  fi
+  cp "$SRC" "$MCP_DEST/"
+SCRIPT
 
 puts "Added 'Embed FlintMCP' Run Script build phase to Flint target"
 

@@ -868,7 +868,7 @@ struct NotePreviewView: View {
                 .padding(12)
         }
         .frame(width: 320)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(Color.noteWindowBackground)
         .cornerRadius(8)
         .shadow(color: .black.opacity(0.2), radius: 10, x: -4, y: 4)
     }
@@ -1055,4 +1055,3 @@ private struct HoverButtonBackgroundModifier: ViewModifier {
             )
     }
 }
-

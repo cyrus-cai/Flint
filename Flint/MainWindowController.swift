@@ -110,6 +110,7 @@ class MainWindowController: NSWindowController {
     }
 
     private var trackingArea: NSTrackingArea?
+    private weak var trackingAreaView: NSView?
     private var isResizing: Bool = false
     /// When true, window height changes are suppressed. Used during note loading
     /// so the window stays stable while SwiftUI fills in the new content.
@@ -118,6 +119,18 @@ class MainWindowController: NSWindowController {
     private var optionKeyTapCount: Int = 0  // 用于记录 Option 键点击次数
     private var optionKeyTapMonitor: Any?
     private var globalOptionKeyTapMonitor: Any?
+    private lazy var contentHostingView: NSHostingView<AnyView> = {
+        let rootView = AnyView(
+            ContentView()
+                .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
+                    self?.updateWindowHeight(height)
+                }
+        )
+        let hostingView = NSHostingView(rootView: rootView)
+        hostingView.wantsLayer = true
+        return hostingView
+    }()
+    private var heightObserver: NSKeyValueObservation?
 
     init() {
         let window = NSWindow(
@@ -142,6 +155,13 @@ class MainWindowController: NSWindowController {
         setupContentView()
         setupInitialPosition()
         setupOptionKeyMonitor()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTransparencyChange),
+            name: .windowTransparencyDidChange,
+            object: nil
+        )
     }
 
     // ... (existing code)
@@ -195,16 +215,7 @@ class MainWindowController: NSWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
 
-        // macOS 26+ Liquid Glass 适配
-        if #available(macOS 26.0, *) {
-            // macOS 26+: 设置透明背景以启用 Liquid Glass 效果
-            window.isOpaque = false
-            window.backgroundColor = .clear
-        } else {
-            // macOS 15-25: 传统透明窗口设置
-            window.isOpaque = false
-            window.backgroundColor = .clear
-        }
+        applyTransparency()
 
         window.hasShadow = true
         window.invalidateShadow()
@@ -257,6 +268,25 @@ class MainWindowController: NSWindowController {
         closeButton.isHidden = true
     }
 
+    private func applyTransparency() {
+        guard let window = window else { return }
+        let isTransparent = UserDefaults.standard.object(forKey: AppStorageKeys.windowTransparent) as? Bool ?? AppDefaults.windowTransparent
+
+        if isTransparent {
+            window.isOpaque = false
+            window.backgroundColor = .clear
+        } else {
+            window.isOpaque = true
+            window.backgroundColor = .noteWindowBackgroundColor
+        }
+        window.invalidateShadow()
+    }
+
+    @objc private func handleTransparencyChange() {
+        applyTransparency()
+        setupContentView()
+    }
+
     private func setupResizeNotifications() {
         NotificationCenter.default.addObserver(
             self,
@@ -283,9 +313,7 @@ class MainWindowController: NSWindowController {
     private func setupTrackingArea() {
         guard let contentView = window?.contentView else { return }
 
-        if let existingTrackingArea = trackingArea {
-            contentView.removeTrackingArea(existingTrackingArea)
-        }
+        clearTrackingArea()
 
         let trackingArea = NSTrackingArea(
             rect: contentView.bounds,
@@ -296,6 +324,14 @@ class MainWindowController: NSWindowController {
 
         contentView.addTrackingArea(trackingArea)
         self.trackingArea = trackingArea
+        trackingAreaView = contentView
+    }
+
+    private func clearTrackingArea() {
+        guard let existingTrackingArea = trackingArea else { return }
+        trackingAreaView?.removeTrackingArea(existingTrackingArea)
+        trackingArea = nil
+        trackingAreaView = nil
     }
 
     override func mouseEntered(with event: NSEvent) {
@@ -337,60 +373,78 @@ class MainWindowController: NSWindowController {
         }
     }
 
-    private var heightObserver: NSKeyValueObservation?
-
     private func setupContentView() {
-        let contentView = ContentView()
-            .onPreferenceChange(ContentHeightPreferenceKey.self) { [weak self] height in
-                self?.updateWindowHeight(height)
-            }
-
-        let hostingView = NSHostingView(rootView: contentView)
+        let hostingView = contentHostingView
         hostingView.wantsLayer = true
-        
-        if #available(macOS 26.0, *) {
-            hostingView.layer?.cornerRadius = DesignSystem.standardCornerRadius
-            hostingView.layer?.masksToBounds = true
-            
-            let containerView = NSView()
-            containerView.wantsLayer = true
-            containerView.layer?.cornerRadius = DesignSystem.standardCornerRadius
-            containerView.layer?.masksToBounds = true
-            
-            let visualEffectView = NSVisualEffectView()
-            visualEffectView.material = .hudWindow
-            visualEffectView.blendingMode = .behindWindow
-            visualEffectView.state = .active
-            visualEffectView.wantsLayer = true
-            
-            containerView.addSubview(visualEffectView)
-            containerView.addSubview(hostingView)
-            
-            visualEffectView.translatesAutoresizingMaskIntoConstraints = false
-            hostingView.translatesAutoresizingMaskIntoConstraints = false
-            
-            NSLayoutConstraint.activate([
-                visualEffectView.topAnchor.constraint(equalTo: containerView.topAnchor),
-                visualEffectView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-                visualEffectView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-                visualEffectView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-                
-                hostingView.topAnchor.constraint(equalTo: containerView.topAnchor),
-                hostingView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-                hostingView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-                hostingView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
-            ])
-            
-            window?.contentView = containerView
+
+        let isTransparent = UserDefaults.standard.object(forKey: AppStorageKeys.windowTransparent) as? Bool ?? AppDefaults.windowTransparent
+        hostingView.removeFromSuperview()
+        clearTrackingArea()
+
+        if isTransparent {
+            if #available(macOS 26.0, *) {
+                hostingView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+                hostingView.layer?.masksToBounds = true
+
+                let containerView = NSView()
+                containerView.wantsLayer = true
+                containerView.layer?.cornerRadius = DesignSystem.standardCornerRadius
+                containerView.layer?.masksToBounds = true
+
+                let visualEffectView = NSVisualEffectView()
+                visualEffectView.material = .hudWindow
+                visualEffectView.blendingMode = .behindWindow
+                visualEffectView.state = .active
+                visualEffectView.wantsLayer = true
+
+                containerView.addSubview(visualEffectView)
+                containerView.addSubview(hostingView)
+
+                visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+                hostingView.translatesAutoresizingMaskIntoConstraints = false
+
+                NSLayoutConstraint.activate([
+                    visualEffectView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                    visualEffectView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                    visualEffectView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                    visualEffectView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+
+                    hostingView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                    hostingView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                    hostingView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                    hostingView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+                ])
+
+                window?.contentView = containerView
+            } else {
+                hostingView.layer?.cornerRadius = 12
+                hostingView.layer?.masksToBounds = true
+                hostingView.translatesAutoresizingMaskIntoConstraints = true
+                window?.contentView = hostingView
+            }
         } else {
-            hostingView.layer?.cornerRadius = 12
+            // Not transparent: no visual effect view, just the hosting view
+            let cornerRadius: CGFloat
+            if #available(macOS 26.0, *) {
+                cornerRadius = DesignSystem.standardCornerRadius
+            } else {
+                cornerRadius = 12
+            }
+            hostingView.layer?.cornerRadius = cornerRadius
             hostingView.layer?.masksToBounds = true
+            hostingView.translatesAutoresizingMaskIntoConstraints = true
             window?.contentView = hostingView
         }
 
-        heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
-            let contentHeight = view.frame.height
-            self?.updateWindowHeight(contentHeight)
+        if heightObserver == nil {
+            heightObserver = hostingView.observe(\.frame) { [weak self] view, _ in
+                let contentHeight = view.frame.height
+                self?.updateWindowHeight(contentHeight)
+            }
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.setupTrackingArea()
         }
     }
 
@@ -570,9 +624,7 @@ class MainWindowController: NSWindowController {
     }
 
     deinit {
-        if let trackingArea = trackingArea, let contentView = window?.contentView {
-            contentView.removeTrackingArea(trackingArea)
-        }
+        clearTrackingArea()
         NotificationCenter.default.removeObserver(self)
 
         if let monitor = optionKeyTapMonitor {

@@ -38,7 +38,7 @@ if [ "$VERSION" != "$CURRENT_VERSION" ]; then
 
     echo "🔧 Syncing MCP server version..."
     sed -i '' "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" FlintMCP/package.json
-    sed -i '' "s/version: \".*\"/version: \"$VERSION\"/" FlintMCP/server.ts
+    sed -i '' "s/const SERVER_VERSION = \".*\";/const SERVER_VERSION = \"$VERSION\";/" FlintMCP/src/server.ts
 
     echo "Resetting build number to 1..."
     xcrun agvtool new-version -all 1

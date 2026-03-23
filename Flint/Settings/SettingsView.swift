@@ -330,6 +330,7 @@ struct EditorSettingsView: View {
     @AppStorage(AppStorageKeys.editorFont) private var editorFont: String = AppDefaults.editorFont
     @AppStorage(AppStorageKeys.showWordCount) private var showWordCount: Bool = AppDefaults.showWordCount
     @AppStorage(AppStorageKeys.appearanceMode) private var appearanceMode: AppearanceMode = AppDefaults.appearanceMode
+    @AppStorage(AppStorageKeys.windowTransparent) private var windowTransparent: Bool = AppDefaults.windowTransparent
 
     @State private var customPath: String = LocalFileManager.shared.currentNotesPath
 
@@ -372,6 +373,12 @@ struct EditorSettingsView: View {
 
                         Spacer()
                     }
+
+                    Divider()
+
+                    Toggle(L("Liquid Glass style"), isOn: $windowTransparent)
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
                 }
                 .padding(12)
             }
