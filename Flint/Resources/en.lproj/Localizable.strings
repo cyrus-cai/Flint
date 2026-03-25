@@ -459,3 +459,27 @@
 
 /* Delete */
 "Delete" = "Delete";
+
+/* Show in Dock */
+"Show in Dock" = "Show in Dock";
+
+/* Notification Permission */
+"Notification Permission" = "Notification Permission";
+
+/* Enabled */
+"Enabled" = "Enabled";
+
+/* Disabled */
+"Disabled" = "Disabled";
+
+/* Open System Settings */
+"Open System Settings" = "Open System Settings";
+
+/* Quick Save Notification */
+"Quick Save Notification" = "Quick Save Notification";
+
+/* Auto Clipboard Notification */
+"Auto Clipboard Notification" = "Auto Clipboard Notification";
+
+/* More */
+"More" = "More";

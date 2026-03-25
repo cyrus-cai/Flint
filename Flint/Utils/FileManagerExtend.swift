@@ -1,6 +1,7 @@
 import Foundation
 
 private let kCustomNotesDirectoryPath = "CustomNotesDirectoryPath"
+private let kCustomNotesDirectoryBookmark = "CustomNotesDirectoryBookmark"
 private let kMigrationCompletedKey = "MigrationCompleted"
 
 extension Notification.Name {
@@ -79,6 +80,9 @@ class LocalFileManager {
     static let shared = LocalFileManager()
     let fm = Foundation.FileManager.default
 
+    /// The currently resolved security-scoped URL (kept alive while the app runs)
+    private var securityScopedURL: URL?
+
     // Shared UserDefaults domain so both App (bundle ID "Flint") and CLI read the same prefs
     static let defaults: UserDefaults = {
         let suite = UserDefaults(suiteName: "Flint") ?? .standard
@@ -108,28 +112,76 @@ class LocalFileManager {
 
     // Get base notes directory (Obsidian vault)
     var baseDirectory: URL? {
-        // First check if user has set a custom path
+        // 1. Try resolving a security-scoped bookmark (persists across launches)
+        if let resolved = resolveBookmark() {
+            return resolved
+        }
+
+        // 2. Legacy fallback: plain path string (pre-bookmark installs)
         if let customPath = Self.defaults.string(forKey: kCustomNotesDirectoryPath) {
             return URL(fileURLWithPath: customPath)
         }
 
-        // If no custom path, use default path in Documents folder
-        let fileManager = Foundation.FileManager.default
+        // 3. Default: use sandbox-safe Application Support directory (no TCC prompt)
         guard
-            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
+            let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
         else {
             return nil
         }
+        let defaultPath = appSupport.appendingPathComponent("Flint")
+        if !fm.fileExists(atPath: defaultPath.path) {
+            try? fm.createDirectory(at: defaultPath, withIntermediateDirectories: true)
+        }
+        return defaultPath
+    }
 
-        // Create default Flint folder in Documents
-        let defaultPath = documentsURL.appendingPathComponent("Flint")
+    // MARK: - Security-Scoped Bookmark helpers
 
-        // Create directory if it doesn't exist
-        if !fileManager.fileExists(atPath: defaultPath.path) {
-            try? fileManager.createDirectory(at: defaultPath, withIntermediateDirectories: true)
+    /// Save a security-scoped bookmark for the given URL
+    private func saveBookmark(for url: URL) {
+        do {
+            let bookmarkData = try url.bookmarkData(
+                options: .withSecurityScope,
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil)
+            Self.defaults.set(bookmarkData, forKey: kCustomNotesDirectoryBookmark)
+        } catch {
+            print("Failed to save bookmark: \(error)")
+        }
+    }
+
+    /// Resolve a previously saved bookmark and start accessing the security-scoped resource
+    private func resolveBookmark() -> URL? {
+        // If we already resolved in this process, reuse it
+        if let existing = securityScopedURL {
+            return existing
         }
 
-        return defaultPath
+        guard let data = Self.defaults.data(forKey: kCustomNotesDirectoryBookmark) else {
+            return nil
+        }
+
+        do {
+            var isStale = false
+            let url = try URL(
+                resolvingBookmarkData: data,
+                options: .withSecurityScope,
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale)
+
+            if isStale {
+                // Re-save the bookmark with refreshed data
+                saveBookmark(for: url)
+            }
+
+            if url.startAccessingSecurityScopedResource() {
+                securityScopedURL = url
+                return url
+            }
+        } catch {
+            print("Failed to resolve bookmark: \(error)")
+        }
+        return nil
     }
 
     // Get Float directory
@@ -154,6 +206,14 @@ class LocalFileManager {
 
     // Set custom directory (Obsidian vault)
     func setCustomDirectory(_ url: URL) {
+        // Stop accessing previous security-scoped resource if any
+        securityScopedURL?.stopAccessingSecurityScopedResource()
+        securityScopedURL = nil
+
+        // Save security-scoped bookmark (persists access across app launches)
+        saveBookmark(for: url)
+
+        // Also save the plain path for backward compatibility / CLI usage
         Self.defaults.set(url.path, forKey: kCustomNotesDirectoryPath)
 
         // Create Float directory and current week directory

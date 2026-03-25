@@ -483,7 +483,17 @@ class LocalizationManager: ObservableObject {
         "No default calendar found for reminders.": ["zh-Hans": "未找到默认提醒日历。", "zh-Hant": "未找到預設提醒日曆。"],
         "The reminder could not be found.": ["zh-Hans": "找不到该提醒。", "zh-Hant": "找不到該提醒。"],
         "The event could not be found.": ["zh-Hans": "找不到该事件。", "zh-Hant": "找不到該事件。"],
-        "Failed to save the reminder.": ["zh-Hans": "保存提醒失败。", "zh-Hant": "儲存提醒失敗。"]
+        "Failed to save the reminder.": ["zh-Hans": "保存提醒失败。", "zh-Hant": "儲存提醒失敗。"],
+        // General Settings - Dock & Notifications
+        "Show in Dock": ["zh-Hans": "在 Dock 栏显示", "zh-Hant": "在 Dock 列顯示"],
+        "Notification Permission": ["zh-Hans": "通知权限", "zh-Hant": "通知權限"],
+        "Enabled": ["zh-Hans": "已开启", "zh-Hant": "已開啟"],
+        "Disabled": ["zh-Hans": "未开启", "zh-Hant": "未開啟"],
+        "Open System Settings": ["zh-Hans": "前往系统设置", "zh-Hant": "前往系統設定"],
+        "Quick Save Notification": ["zh-Hans": "快速保存通知", "zh-Hant": "快速儲存通知"],
+        "Auto Clipboard Notification": ["zh-Hans": "自动剪贴板通知", "zh-Hant": "自動剪貼簿通知"],
+        "More": ["zh-Hans": "更多", "zh-Hant": "更多"],
+        "Show Word Count": ["zh-Hans": "显示字数统计", "zh-Hant": "顯示字數統計"]
     ]
 
     private init() {

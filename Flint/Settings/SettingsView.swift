@@ -265,15 +265,19 @@ struct GeneralSettingsView: View {
     @ObservedObject private var localizationManager = LocalizationManager.shared
     @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin = AppDefaults.launchAtLogin
     @AppStorage(AppStorageKeys.hasRequestedLaunchPermission) private var hasRequestedPermission = AppDefaults.hasRequestedLaunchPermission
+    @AppStorage(AppStorageKeys.showInDock) private var showInDock = AppDefaults.showInDock
+    @AppStorage(AppStorageKeys.enableQuickSaveNotification) private var enableQuickSaveNotification = AppDefaults.enableQuickSaveNotification
+    @AppStorage(AppStorageKeys.enableAutoClipboardNotification) private var enableAutoClipboardNotification = AppDefaults.enableAutoClipboardNotification
     private let loginManager = LoginManager.shared
+
+    @State private var notificationAuthorized: Bool = false
+    @State private var notificationDenied: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Account Section removed as login is no longer required
-            
             // Preferences Section
             SettingsSectionHeader(title: L("Preferences"), icon: "gearshape")
-            
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
@@ -299,12 +303,115 @@ struct GeneralSettingsView: View {
                             }
                         }
                         .labelsHidden()
-                        .frame(width: 120)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text(L("Show in Dock"))
+                        Spacer()
+                        Toggle("", isOn: $showInDock)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .onChange(of: showInDock) { newValue in
+                                NSApp.setActivationPolicy(newValue ? .regular : .accessory)
+                            }
                     }
                 }
                 .padding(12)
             }
+
+            // Notifications Section
+            SettingsSectionHeader(title: L("Notifications"), icon: "bell")
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Permission status
+                    HStack {
+                        Text(L("Notification Permission"))
+                        Spacer()
+                        Circle()
+                            .fill(notificationAuthorized ? Color.green : Color.secondary.opacity(0.3))
+                            .frame(width: 8, height: 8)
+                        if !notificationAuthorized {
+                            Button(L("Open System Settings")) {
+                                openNotificationSettings()
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+
+                    Divider()
+
+                    // Quick save notification toggle
+                    HStack {
+                        Text(L("Quick Save Notification"))
+                        Spacer()
+                        Toggle("", isOn: $enableQuickSaveNotification)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .disabled(!notificationAuthorized)
+                    }
+
+                    Divider()
+
+                    // Auto clipboard notification toggle
+                    HStack {
+                        Text(L("Auto Clipboard Notification"))
+                        Spacer()
+                        Toggle("", isOn: $enableAutoClipboardNotification)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .disabled(!notificationAuthorized)
+                    }
+                }
+                .padding(12)
+            }
+
+            // More Section
+            SettingsSectionHeader(title: L("More"), icon: "ellipsis.circle")
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    Button {
+                        WindowManager.shared.replayOnboarding()
+                    } label: {
+                        HStack {
+                            Text(L("Replay Onboarding"))
+                            Spacer()
+                            Image(systemName: "arrow.counterclockwise")
+                                .foregroundColor(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(12)
+            }
         }
+        .onAppear {
+            refreshNotificationStatus()
+        }
+    }
+
+    private func refreshNotificationStatus() {
+        Task {
+            let status = await NotificationService.shared.checkAuthorizationStatus()
+            await MainActor.run {
+                notificationAuthorized = (status == .authorized || status == .provisional)
+                notificationDenied = (status == .denied)
+            }
+        }
+    }
+
+    private func openNotificationSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 
     private func handleLaunchAtLoginChange(_ newValue: Bool) {
@@ -376,9 +483,14 @@ struct EditorSettingsView: View {
 
                     Divider()
 
-                    Toggle(L("Liquid Glass style"), isOn: $windowTransparent)
-                        .toggleStyle(.switch)
-                        .controlSize(.small)
+                    HStack {
+                        Text(L("Liquid Glass style"))
+                        Spacer()
+                        Toggle("", isOn: $windowTransparent)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.small)
+                    }
                 }
                 .padding(12)
             }
@@ -1059,19 +1171,6 @@ struct AboutSettingsView: View {
                     } label: {
                         HStack {
                             Text(L("Release Notes"))
-                            Spacer()
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-
-                    Divider()
-
-                    Button {
-                        WindowManager.shared.replayOnboarding()
-                    } label: {
-                        HStack {
-                            Text(L("Replay Onboarding"))
                             Spacer()
                         }
                         .contentShape(Rectangle())
