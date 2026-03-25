@@ -5,39 +5,12 @@
 <h1 align="center">Flint</h1>
 
 <p align="center">
-  A lightweight macOS note-taking app with MCP server for AI agents.
+  <b>Opensource alternative to Raycast Note, for humans, for agents.</b>
 </p>
 
-<p align="center">
-  <b>macOS 14.6+</b> &nbsp;|&nbsp; Apple Silicon & Intel
-</p>
-
-<p align="center">
-  <a href="https://github.com/cyrus-cai/Flint/releases">Download</a> &middot;
-  <a href="#mcp-server">MCP</a> &middot;
-  <a href="#building-from-source">Build</a>
-</p>
-
----
-
-## Features
-
-- **Global Hotkey** — Capture a note from anywhere with a single keystroke
-- **Double `Cmd+C`** — Auto-save clipboard content as a note
-- **MCP Server** — Let AI agents (Claude Code, Cursor, etc.) read, create, search, and edit your notes
-- **Local-Only** — All notes stored as plain text files on your machine. No account, no cloud
+Flint lives in the background until you need it. Hit a shortcut and a note appears — type, dismiss, done. If you copy something twice with `Cmd+C`, it becomes a note automatically. Every note is a plain text file on your machine, no account, no cloud. And because Flint speaks MCP, your AI agent — Claude Code, Cursor, whatever you use — can read, search, and create notes just like you do.
 
 ## Download
-
-Get the latest release from [GitHub Releases](https://github.com/cyrus-cai/Flint/releases). Download `Flint.zip`, unzip, and drag to Applications.
-
-Or install directly from the command line:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash
-```
-
-Install the latest beta release:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
@@ -61,7 +34,7 @@ open Flint.xcodeproj
 
 Select your development team under **Signing & Capabilities**, then build and run (`Cmd+R`).
 
-**Requirements:** Xcode 16+
+**Requirements:** macOS 15+ · Apple Silicon · Xcode 16+
 
 ## License
 
