@@ -358,7 +358,11 @@ commit_and_tag() {
 
     echo "==> Creating release commit"
     git add "${staged_files[@]}"
-    git commit -m "Release $tag"
+    if git diff --cached --quiet; then
+        echo "==> No changes to commit (version files already up to date)"
+    else
+        git commit -m "Release $tag"
+    fi
 
     echo "==> Creating git tag $tag"
     git tag -a "$tag" -m "Release $tag"
