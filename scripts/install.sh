@@ -5,7 +5,7 @@ REPO="${REPO:-cyrus-cai/Flint}"
 APP_NAME="${APP_NAME:-Flint}"
 ASSET_NAME="${ASSET_NAME:-$APP_NAME.zip}"
 INSTALL_DIR="${INSTALL_DIR:-/Applications}"
-RELEASE_CHANNEL="${RELEASE_CHANNEL:-stable}"
+export RELEASE_CHANNEL="${RELEASE_CHANNEL:-stable}"
 TEMP_DIR="$(mktemp -d)"
 
 cleanup() {
@@ -31,8 +31,13 @@ Usage: ./scripts/install.sh [--beta|--stable]
 EOF
 }
 
+AUTH_HEADER=()
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    AUTH_HEADER=(-H "Authorization: token $GITHUB_TOKEN")
+fi
+
 resolve_release_asset() {
-    curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=50" |
+    curl -fsSL "${AUTH_HEADER[@]}" "https://api.github.com/repos/$REPO/releases?per_page=50" |
         jq -r --arg asset "$ASSET_NAME" '
             [
                 .[]
@@ -49,12 +54,17 @@ resolve_release_asset() {
                     url: (
                         .assets[]
                         | select(.name == $asset)
+                        | .url
+                    ),
+                    browser_url: (
+                        .assets[]
+                        | select(.name == $asset)
                         | .browser_download_url
                     )
                 }
                 | select(.url != null)
             ][0]
-            | if . == null then empty else "\(.tag)\t\(.url)" end
+            | if . == null then empty else "\(.tag)\t\(.url)\t\(.browser_url)" end
         '
 }
 
@@ -83,15 +93,22 @@ done
 echo "==> Resolving $RELEASE_CHANNEL release for $REPO"
 RELEASE_INFO="$(resolve_release_asset)"
 RELEASE_TAG="$(printf '%s\n' "$RELEASE_INFO" | awk -F '\t' 'NR == 1 { print $1 }')"
-LATEST_URL="$(printf '%s\n' "$RELEASE_INFO" | awk -F '\t' 'NR == 1 { print $2 }')"
+API_URL="$(printf '%s\n' "$RELEASE_INFO" | awk -F '\t' 'NR == 1 { print $2 }')"
+BROWSER_URL="$(printf '%s\n' "$RELEASE_INFO" | awk -F '\t' 'NR == 1 { print $3 }')"
 
-if [ -z "$LATEST_URL" ] || [ "$LATEST_URL" = "null" ]; then
+if [ -z "$API_URL" ] || [ "$API_URL" = "null" ]; then
     echo "Could not find asset $ASSET_NAME in the $RELEASE_CHANNEL GitHub Release feed." >&2
     exit 1
 fi
 
 echo "==> Downloading $APP_NAME from $RELEASE_TAG"
-curl -fL "$LATEST_URL" -o "$TEMP_DIR/$ASSET_NAME"
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    # Private repo: download via API with Accept header for binary
+    curl -fL "${AUTH_HEADER[@]}" -H "Accept: application/octet-stream" "$API_URL" -o "$TEMP_DIR/$ASSET_NAME"
+else
+    # Public repo: browser_download_url works directly
+    curl -fL "$BROWSER_URL" -o "$TEMP_DIR/$ASSET_NAME"
+fi
 
 echo "==> Installing to $INSTALL_DIR"
 ditto -x -k "$TEMP_DIR/$ASSET_NAME" "$TEMP_DIR/extracted"
