@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Flint/Assets.xcassets/AppIcon.appiconset/容器 2@2x.png" width="128" height="128" alt="Flint icon">
+  <img src="icon.png" width="128" height="128" alt="Flint icon">
 </p>
 
 <h1 align="center">Flint</h1>
