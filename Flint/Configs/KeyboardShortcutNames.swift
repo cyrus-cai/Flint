@@ -9,7 +9,7 @@ import Foundation
 import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
-    static let quickWakeup = Self("quickWakeup", default: .init(.x, modifiers: [.option]))
+    static let quickWakeup = Self("quickWakeup")
     static let showRecentNotes = Self("showRecentNotes", default: .init(.e, modifiers: [.option]))
 }
 

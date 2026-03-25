@@ -11,7 +11,7 @@ import SwiftUI
 class OnboardingWindowController: NSWindowController {
     init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 960, height: 560),
+            contentRect: NSRect(x: 0, y: 0, width: 820, height: 540),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -21,6 +21,7 @@ class OnboardingWindowController: NSWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
+        window.backgroundColor = .clear
 
         // 设置内容视图
         let contentView = NSHostingView(

@@ -1,11 +1,13 @@
 import AppKit
 import Foundation
+import KeyboardShortcuts
 import SwiftUI
 
 class WindowManager {
     static let shared = WindowManager()
     private(set) var activeWindow: MainWindowController?
     private var windows: [MainWindowController] = []
+    private var onboardingWindowController: OnboardingWindowController?
 
     func createNewWindow() {
         // For backwards compatibility, redirect to new method
@@ -39,15 +41,33 @@ class WindowManager {
     }
 
     func showOnboardingIfNeeded() {
-
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        print(hasCompletedOnboarding)  // 打印出布尔值
 
         if !hasCompletedOnboarding {
-            let onboardingController = OnboardingWindowController()
-            onboardingController.showWindow(nil)
-            NSApp.activate(ignoringOtherApps: true)
+            showOnboarding()
         }
+    }
+
+    func replayOnboarding() {
+        KeyboardShortcuts.setShortcut(nil, for: .quickWakeup)
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+        dismissOnboarding()
+        showOnboarding()
+    }
+
+    func dismissOnboarding() {
+        onboardingWindowController?.close()
+        onboardingWindowController = nil
+    }
+
+    private func showOnboarding() {
+        if onboardingWindowController == nil {
+            onboardingWindowController = OnboardingWindowController()
+        }
+
+        onboardingWindowController?.showWindow(nil)
+        onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
 

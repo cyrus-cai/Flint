@@ -160,6 +160,42 @@
 /* Release Notes */
 "Release Notes" = "发布说明";
 
+/* Replay Onboarding */
+"Replay Onboarding" = "重播首次引导";
+
+/* Start */
+"Start" = "开始";
+
+/* Change */
+"Change" = "更改";
+
+/* Press Two Keys */
+"Press Two Keys" = "请设置快捷键";
+
+/* Set Hotkey */
+"Set Hotkey" = "设快捷键";
+
+/* Save Here */
+"Save Here" = "请设置笔记存放位置";
+
+/* Open Permissions */
+"Open Permissions" = "最后一步";
+
+/* Enable */
+"Enable" = "开启";
+
+/* Accessibility */
+"Accessibility" = "辅助功能";
+
+/* Notifications */
+"Notifications" = "通知";
+
+/* Write Now */
+"Write Now" = "开始记录";
+
+/* Move */
+"Move" = "换位置";
+
 /* Send Feedback */
 "Send Feedback" = "发送反馈";
 

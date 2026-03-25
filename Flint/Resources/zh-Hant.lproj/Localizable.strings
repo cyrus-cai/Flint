@@ -160,6 +160,42 @@
 /* Release Notes */
 "Release Notes" = "發行說明";
 
+/* Replay Onboarding */
+"Replay Onboarding" = "重播首次引導";
+
+/* Start */
+"Start" = "開始";
+
+/* Change */
+"Change" = "更改";
+
+/* Press Two Keys */
+"Press Two Keys" = "請設置快捷鍵";
+
+/* Set Hotkey */
+"Set Hotkey" = "設快捷鍵";
+
+/* Save Here */
+"Save Here" = "請設置筆記存放位置";
+
+/* Open Permissions */
+"Open Permissions" = "最後一步";
+
+/* Enable */
+"Enable" = "開啟";
+
+/* Accessibility */
+"Accessibility" = "輔助使用";
+
+/* Notifications */
+"Notifications" = "通知";
+
+/* Write Now */
+"Write Now" = "開始記錄";
+
+/* Move */
+"Move" = "換位置";
+
 /* Send Feedback */
 "Send Feedback" = "傳送回饋";
 

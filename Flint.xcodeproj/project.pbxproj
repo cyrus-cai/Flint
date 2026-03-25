@@ -43,6 +43,7 @@
 		A3AICONF2D910A0100000001 /* AIConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AICONF2D910A0100000002 /* AIConfirmationView.swift */; };
 		A3B009EE2CF2EF020095F75C /* KeyEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */; };
 		A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B1E21D2CF3330700C75E71 /* SettingsView.swift */; };
+		A3B7BB772F72F2E400EAC25D /* flink-brands.icon in Resources */ = {isa = PBXBuildFile; fileRef = A3B7BB762F72F2E400EAC25D /* flink-brands.icon */; };
 		A3CB263D2D4543F50000D8E0 /* Summarize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB263C2D4543F50000D8E0 /* Summarize.swift */; };
 		A3F6F1A02D8ECA3800982367 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */; };
 		A3INTENT2D910A0100000001 /* IntentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3INTENT2D910A0100000002 /* IntentModels.swift */; };
@@ -129,6 +130,7 @@
 		A3AICONF2D910A0100000002 /* AIConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfirmationView.swift; sourceTree = "<group>"; };
 		A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandler.swift; sourceTree = "<group>"; };
 		A3B1E21D2CF3330700C75E71 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A3B7BB762F72F2E400EAC25D /* flink-brands.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "flink-brands.icon"; sourceTree = "<group>"; };
 		A3CB263C2D4543F50000D8E0 /* Summarize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Summarize.swift; sourceTree = "<group>"; };
 		A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageManager.swift; sourceTree = "<group>"; };
 		A3INTENT2D910A0100000002 /* IntentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentModels.swift; sourceTree = "<group>"; };
@@ -234,6 +236,7 @@
 		A3243A372CF0E6EC009D39FF /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				A3B7BB762F72F2E400EAC25D /* flink-brands.icon */,
 				23D1A0C3E2EF4337B0AECE07 /* DesignSystemHelper.swift */,
 				FC1DEC28000748A9AD5B9F45 /* VisualEffects.swift */,
 				A3B009ED2CF2EF020095F75C /* KeyEventHandler.swift */,
@@ -528,6 +531,7 @@
 				A37D473C2CDE6ECF00B2E727 /* Preview Assets.xcassets in Resources */,
 				A37D47392CDE6ECF00B2E727 /* Assets.xcassets in Resources */,
 				A30FF3962CE105880034F9DC /* markdownconfig.json in Resources */,
+				A3B7BB772F72F2E400EAC25D /* flink-brands.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -786,9 +790,9 @@
 		A37D47572CDE6ECF00B2E727 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "flink-brands";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -819,9 +823,9 @@
 		A37D47582CDE6ECF00B2E727 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "flink-brands";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;

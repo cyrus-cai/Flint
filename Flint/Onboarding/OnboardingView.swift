@@ -5,477 +5,665 @@
 //  Created by LC John on 1/17/25.
 //
 
+import AppKit
+import ApplicationServices
+import Carbon.HIToolbox
 import Foundation
-import SwiftUI
 import KeyboardShortcuts
+import SwiftUI
+import UserNotifications
 
 struct OnboardingView: View {
     @Binding var isFirstLaunch: Bool
-    @State private var currentStep = 0
-    @State private var slideDirection: SlideDirection = .right
-    @State private var isHoveredPrev = false
+    @State private var page: OnboardingPage = .wake
+    @State private var storagePath = LocalFileManager.shared.currentNotesPath
+    @StateObject private var shortcutState = ShortcutCaptureState()
+    @StateObject private var permissionState = PermissionState()
+    @Environment(\.colorScheme) private var colorScheme
 
-    enum SlideDirection {
-        case left
-        case right
-    }
-
-    private let steps = [
-        OnboardingStep(
-            icon: "bolt",
-            title: L("Designed for quick write-down"),
-            description: L("Anywhere, with your custom shortcut."),
-            detail: "",
-            hasAction: true,
-            imageName: "quick-wake-demo",
-            showLoginOption: true,
-            showStorageConfig: true,
-            showShortcutConfig: true
-        ),
-        //        OnboardingStep(
-        //            icon: "lock",
-        //            title: "Local and private",
-        //            description: "All your notes are stored locally",
-        //            detail: "",
-        //            hasAction: true,
-        //            imageName: "local-private-demo"
-        //        ),
-        // OnboardingStep(
-        //     icon: "folder.badge.gearshape",
-        //     title: "Where to save?",
-        //     description: "Choose your folder",
-        //     detail: "All your notes are stored locally",
-        //     hasAction: true,
-        //     imageName: "storage-config-demo"
-        // ),
-        OnboardingStep(
-            icon: "brain.head.profile",
-            title: L("AI, truly helpful"),
-            description: L("Help summarize & make plans."),
-            detail: "",
-            hasAction: true,
-            imageName: "local-private-demo"
-        ),
-        OnboardingStep(
-            icon: "checkmark.circle",
-            title: L("You're All Set!"),
-            description: L("Ready to start your note-taking journey"),
-            detail: "",
-            imageName: nil
-        ),
-    ]
+    private var pages: [OnboardingPage] { OnboardingPage.allCases }
+    private var canMoveNext: Bool { page != .wake || shortcutState.hasShortcut }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Progress indicator - 现在在顶部居中
-            HStack {
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.gray.opacity(0.15))
-                            .frame(height: 8)
+        ZStack {
+            background
 
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(
-                                width: (CGFloat(currentStep + 1) / CGFloat(steps.count))
-                                    * geometry.size.width,
-                                height: 8
-                            )
-                    }
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
+
+                VStack(spacing: 24) {
+                    Text(page.title)
+                        .font(.system(size: 32, weight: .semibold))
+
+                    pageContent
+                        .frame(maxWidth: 640)
+                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 }
-                .frame(width: 48, height: 8)  // 缩小宽度和高度
-                Spacer()
+                .animation(.easeInOut(duration: 0.18), value: page)
+
+                Spacer(minLength: 0)
+
+                footer
             }
-            .padding(48)
-
-            // Main content area
-            HStack(spacing: 0) {
-                // Left side - Content
-                VStack {
-                    Spacer() // Add this to push content down from top
-
-                    // Content with slide animation
-                    HStack(spacing: 0) {
-                        ForEach(0..<steps.count, id: \.self) { index in
-                            if index == currentStep {
-                                StepContent(step: steps[index])
-                                    .transition(
-                                        .asymmetric(
-                                            insertion: .offset(
-                                                x: slideDirection == .right ? 100 : -100
-                                            )
-                                            .combined(with: .opacity)
-                                            .combined(with: .scale(scale: 0.9)),
-                                            removal: .offset(
-                                                x: slideDirection == .right ? -100 : 100
-                                            )
-                                            .combined(with: .opacity)
-                                            .combined(with: .scale(scale: 0.9))
-                                        )
-                                    )
-                            }
-                        }
-                    }
-                    .animation(.easeInOut(duration: 0.3), value: currentStep)
-                    .frame(maxWidth: .infinity)
-
-                    Spacer()
-                }
-                .frame(width: 360)
-
-                // Right side - Image/Video
-                VStack {
-                    if let imageName = steps[currentStep].imageName {
-                        Image(imageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 500, height: 320)
-                            .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.gray.opacity(0.1), lineWidth: 1)
-                            )
-                            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-                            .offset(x: slideDirection == .right ? 30 : 30)
-                            .animation(
-                                .spring(response: 0.4, dampingFraction: 0.6), value: currentStep)
-                    }
-                }
-
-            }
-            .padding(.horizontal, 48)
-
-            // Navigation buttons
-            HStack {
-                if currentStep > 0 {
-                    Button {
-                        guard currentStep > 0 else { return }
-                        slideDirection = .left
-                        withAnimation {
-                            currentStep -= 1
-                        }
-                    } label: {
-                        Label(L("Previous"), systemImage: "chevron.left")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            .foregroundColor(.secondary)
-                            .padding(8)
-                            .background(
-                                LinearGradient(
-                                    colors: [.clear, .gray.opacity(0.08)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                                .cornerRadius(8)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .scaleEffect(isHoveredPrev ? 1.05 : 1)
-                    .animation(.easeOut, value: isHoveredPrev)
-                    .onHover { isHoveredPrev = $0 }
-                }
-
-                Spacer()
-
-                Button(currentStep == steps.count - 1 ? L("Start Flint") : L("Next Step")) {
-                    if currentStep == steps.count - 1 {
-                        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-
-                        isFirstLaunch = false
-                        if let window = NSApplication.shared.windows.first(where: {
-                            $0.title == L("Welcome to Flint")
-                        }) {
-                            window.close()
-                        }
-                        WindowManager.shared.createNewWindow()
-                    } else {
-                        slideDirection = .right
-                        withAnimation {
-                            currentStep += 1
-                        }
-                    }
-                }
-                .padding(.vertical, 8)
-                .buttonStyle(GradientButtonStyle())
-                .controlSize(.large)
-            }
-            .padding(48)
+            .padding(28)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            // macOS 26+ Liquid Glass 适配: 使用自适应背景
-            Group {
-                if #available(macOS 26.0, *) {
-                    // macOS 26+: 使用更轻薄的材质让 Liquid Glass 效果更明显
-                    Color.clear
-                        .background(.ultraThinMaterial)
-                        .ignoresSafeArea()
-                } else {
-                    // macOS 15-25: 使用传统 HUD 窗口材质
-                    VisualEffectBlur(material: .hudWindow, blendingMode: .behindWindow)
-                        .ignoresSafeArea()
-                }
-            }
-        )
+        .onAppear {
+            handlePageChange(page)
+            permissionState.refresh()
+        }
+        .onChange(of: page) { _, newPage in
+            handlePageChange(newPage)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .storageLocationDidChange)) { _ in
+            storagePath = LocalFileManager.shared.currentNotesPath
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            permissionState.refresh()
+            shortcutState.sync()
+        }
     }
-}
 
-// Helper view to encapsulate step content
-struct StepContent: View {
-    let step: OnboardingStep
-    @AppStorage("launchAtLogin") private var launchAtLogin = false
-    private let loginManager = LoginManager.shared
+    @ViewBuilder
+    private var pageContent: some View {
+        switch page {
+        case .wake:
+            WakePage(state: shortcutState)
+        case .storage:
+            StoragePage(storagePath: storagePath, onChangeLocation: selectCustomDirectory)
+        case .permissions:
+            PermissionsPage(state: permissionState)
+        }
+    }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if #available(macOS 15.0, *) {
-                Image(systemName: step.icon)
-                    .font(.system(size: 40))
-                    .symbolEffect(.bounce.up, options: .speed(0.5).nonRepeating)
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.purple, .pink],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            } else {
-                // Fallback on earlier versions
+    private var footer: some View {
+        HStack {
+            Button {
+                moveBack()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(page == pages.first ? .clear : .secondary)
+                    .frame(width: 36, height: 36)
             }
+            .buttonStyle(.plain)
+            .disabled(page == pages.first)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(step.title)
-                    .font(.system(size: 24, weight: .semibold, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.primary, .primary.opacity(0.7)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+            Spacer()
 
-                Text(step.description)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.secondary)
-
-                if !step.detail.isEmpty {
-                    Text(step.detail)
-                        .font(.system(size: 14))
-                        .foregroundColor(.primary.opacity(0.8))
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.primary.opacity(0.05))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
-                                )
-                        )
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if step.showLoginOption {
-                VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Label(L("Start at login"), systemImage: "power")
-                                .font(.system(size: 14, weight: .medium))
-                            Spacer()
-                            Toggle("", isOn: $launchAtLogin)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                                .controlSize(.small)
-                                .onChange(of: launchAtLogin) { newValue in
-                                    if newValue {
-                                        loginManager.requestLaunchPermission { granted in
-                                            if granted {
-                                                loginManager.enableLaunchAtLogin()
-                                            } else {
-                                                DispatchQueue.main.async {
-                                                    launchAtLogin = false
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        loginManager.disableLaunchAtLogin()
-                                    }
-                                }
-                        }
-
-                        Text(L("Quickly access Flint when you need it"))
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.primary.opacity(0.05))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
-                            )
-                    )
-
-                    // Add shortcut configuration
-                    if step.showShortcutConfig {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Label(L("Quick wake-up shortcut"), systemImage: "bolt.square")
-                                    .font(.system(size: 14, weight: .medium))
-                                Spacer()
-                                KeyboardShortcuts.Recorder("", name: .quickWakeup)
-                            }
-                            Text(L("Set your preferred keyboard shortcut to quickly access Flint from anywhere"))
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.primary.opacity(0.05))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
-                                )
-                        )
-                    }
-
-                    // Add storage configuration
-                    if step.showStorageConfig {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Label(L("Storage Location"), systemImage: "folder")
-                                    .font(.system(size: 14, weight: .medium))
-                                Spacer()
-                                Button(L("Change Location")) {
-                                    let openPanel = NSOpenPanel()
-                                    openPanel.canChooseDirectories = true
-                                    openPanel.canChooseFiles = false
-                                    openPanel.title = L("Select Notes Directory")
-
-                                    if openPanel.runModal() == .OK {
-                                        if let selectedPath = openPanel.url {
-                                            LocalFileManager.shared.setCustomDirectory(selectedPath)
-                                        }
-                                    }
-                                }
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                            }
-
-                            Text(LocalFileManager.shared.currentNotesPath)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.primary.opacity(0.05))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
-                                )
-                        )
-                    }
+            HStack(spacing: 8) {
+                ForEach(pages) { item in
+                    Capsule()
+                        .fill(item == page ? Color.accentColor.opacity(0.88) : Color.primary.opacity(0.12))
+                        .frame(width: item == page ? 20 : 8, height: 8)
                 }
             }
 
             Spacer()
+
+            if page == .permissions {
+                Button(L("New Note")) {
+                    finishOnboarding()
+                }
+                .buttonStyle(MinimalPrimaryButtonStyle())
+            } else {
+                Button {
+                    moveNext()
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .buttonStyle(MinimalIconButtonStyle())
+                .disabled(!canMoveNext)
+                .opacity(canMoveNext ? 1 : 0.35)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        // .padding(.horizontal, 40)
-        .padding(.vertical, 20)
+    }
+
+    private var background: some View {
+        ZStack {
+            GlassBackdrop()
+
+            Circle()
+                .fill(Color.accentColor.opacity(colorScheme == .dark ? 0.08 : 0.06))
+                .frame(width: 300, height: 300)
+                .blur(radius: 110)
+                .offset(x: 220, y: -160)
+
+            Circle()
+                .fill(Color(red: 0.87, green: 0.70, blue: 0.48).opacity(colorScheme == .dark ? 0.05 : 0.06))
+                .frame(width: 240, height: 240)
+                .blur(radius: 100)
+                .offset(x: -220, y: 180)
+
+            Rectangle()
+                .fill(
+                    colorScheme == .dark
+                        ? Color.black.opacity(0.14)
+                        : Color.white.opacity(0.18)
+                )
+        }
+        .ignoresSafeArea()
+    }
+
+    private func handlePageChange(_ newPage: OnboardingPage) {
+        if newPage == .wake {
+            shortcutState.activateIfNeeded()
+        } else {
+            shortcutState.stopRecording(restoreDisplay: true)
+        }
+
+        if newPage == .permissions {
+            permissionState.refresh()
+        }
+    }
+
+    private func moveNext() {
+        guard canMoveNext else { return }
+        guard let index = pages.firstIndex(of: page), index < pages.count - 1 else { return }
+        page = pages[index + 1]
+    }
+
+    private func moveBack() {
+        guard let index = pages.firstIndex(of: page), index > 0 else { return }
+        page = pages[index - 1]
+    }
+
+    private func selectCustomDirectory() {
+        let openPanel = NSOpenPanel()
+        openPanel.canChooseDirectories = true
+        openPanel.canChooseFiles = false
+        openPanel.allowsMultipleSelection = false
+        openPanel.title = L("Select Notes Directory")
+
+        if openPanel.runModal() == .OK, let selectedPath = openPanel.url {
+            LocalFileManager.shared.setCustomDirectory(selectedPath)
+            storagePath = LocalFileManager.shared.currentNotesPath
+        }
+    }
+
+    private func finishOnboarding() {
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        isFirstLaunch = false
+        WindowManager.shared.dismissOnboarding()
+        WindowManager.shared.createNewWindow()
     }
 }
 
-struct OnboardingStep {
-    let icon: String
-    let title: String
-    let description: String
-    let detail: String
-    var hasAction: Bool = false
-    var imageName: String?
-    var showLoginOption: Bool = false
-    var showStorageConfig: Bool = false
-    var showShortcutConfig: Bool = false
+private enum OnboardingPage: Int, CaseIterable, Identifiable {
+    case wake
+    case storage
+    case permissions
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .wake:
+            return L("Press Two Keys")
+        case .storage:
+            return L("Save Here")
+        case .permissions:
+            return L("Open Permissions")
+        }
+    }
 }
 
-private struct GradientButtonStyle: ButtonStyle {
-    @Environment(\.colorScheme) var colorScheme
-    @State private var isHovered = false
+private struct WakePage: View {
+    @ObservedObject var state: ShortcutCaptureState
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .medium, design: .rounded))
-            .foregroundColor(.white)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 10)
-            .background(
-                LinearGradient(
-                    colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-                    startPoint: isHovered ? .topLeading : .leading,
-                    endPoint: isHovered ? .bottomTrailing : .trailing
+    var body: some View {
+        Button {
+            state.startRecording()
+        } label: {
+            HStack(spacing: 20) {
+                ShortcutKeyCap(
+                    text: state.modifierText,
+                    isRecording: state.isRecording,
+                    isFilled: !state.modifierText.isEmpty
                 )
-                .cornerRadius(10)
-                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(
-                            LinearGradient(
-                                colors: [.white.opacity(0.4), .clear],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ), lineWidth: 1.5)
+
+                ShortcutKeyCap(
+                    text: state.keyText,
+                    isRecording: state.isRecording,
+                    isFilled: !state.keyText.isEmpty
                 )
+            }
+            .overlay(alignment: .topTrailing) {
+                if state.didAccept {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.accentColor)
+                        .background(Circle().fill(Color.noteWindowBackground))
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .animation(.spring(response: 0.22, dampingFraction: 0.8), value: state.didAccept)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct StoragePage: View {
+    let storagePath: String
+    let onChangeLocation: () -> Void
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "folder.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.accentColor)
+                .frame(width: 38, height: 38)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.accentColor.opacity(0.10))
+                )
+
+            Text(storagePath)
+                .font(.system(size: 13, weight: .medium, design: .monospaced))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+
+            Spacer(minLength: 12)
+
+            Button {
+                onChangeLocation()
+            } label: {
+                Image(systemName: "folder.badge.gearshape")
+                    .font(.system(size: 15, weight: .semibold))
+            }
+            .buttonStyle(MinimalIconButtonStyle())
+        }
+        .padding(18)
+        .modifier(GlassCardModifier(cornerRadius: 20))
+    }
+}
+
+private struct PermissionsPage: View {
+    @ObservedObject var state: PermissionState
+
+    var body: some View {
+        VStack(spacing: 12) {
+            PermissionRow(
+                title: L("Accessibility"),
+                isEnabled: state.accessibilityEnabled,
+                action: state.requestAccessibility
             )
-            .scaleEffect(configuration.isPressed ? 0.96 : isHovered ? 1.04 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHovered)
-            .onHover { hovering in
-                isHovered = hovering
+
+            PermissionRow(
+                title: L("Notifications"),
+                isEnabled: state.notificationsEnabled,
+                action: state.requestNotifications
+            )
+        }
+    }
+}
+
+@MainActor
+private final class ShortcutCaptureState: ObservableObject {
+    @Published private(set) var shownShortcut: KeyboardShortcuts.Shortcut?
+    @Published private(set) var isRecording = false
+    @Published var didAccept = false
+
+    private var eventMonitor: Any?
+
+    var hasShortcut: Bool { shownShortcut != nil }
+
+    var modifierText: String {
+        guard let shortcut = shownShortcut else { return "" }
+        return shortcut.modifiers.displayText
+    }
+
+    var keyText: String {
+        guard let shortcut = shownShortcut else { return "" }
+        let whole = shortcut.description
+        let modifiers = shortcut.modifiers.displayText
+        guard !modifiers.isEmpty, whole.hasPrefix(modifiers) else { return whole }
+        return String(whole.dropFirst(modifiers.count))
+    }
+
+    init() {
+        shownShortcut = KeyboardShortcuts.getShortcut(for: .quickWakeup)
+    }
+
+    func sync() {
+        if !isRecording {
+            shownShortcut = KeyboardShortcuts.getShortcut(for: .quickWakeup)
+        }
+    }
+
+    func activateIfNeeded() {
+        sync()
+
+        if shownShortcut == nil {
+            startRecording()
+        }
+    }
+
+    func startRecording() {
+        stopRecording(restoreDisplay: false)
+        shownShortcut = nil
+        isRecording = true
+
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return event }
+            return self.handle(event)
+        }
+    }
+
+    func stopRecording(restoreDisplay: Bool) {
+        if let eventMonitor {
+            NSEvent.removeMonitor(eventMonitor)
+            self.eventMonitor = nil
+        }
+
+        isRecording = false
+
+        if restoreDisplay {
+            shownShortcut = KeyboardShortcuts.getShortcut(for: .quickWakeup)
+        }
+    }
+
+    private func handle(_ event: NSEvent) -> NSEvent? {
+        guard isRecording else { return event }
+
+        if event.modifierFlags.isEmpty, event.keyCode == kVK_Escape {
+            stopRecording(restoreDisplay: true)
+            return nil
+        }
+
+        guard
+            let shortcut = KeyboardShortcuts.Shortcut(event: event),
+            shortcut.modifiers.subtracting([.shift, .function]).isEmpty == false
+        else {
+            NSSound.beep()
+            return nil
+        }
+
+        KeyboardShortcuts.setShortcut(shortcut, for: .quickWakeup)
+        shownShortcut = shortcut
+        stopRecording(restoreDisplay: false)
+        didAccept = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            Task { @MainActor in
+                self?.didAccept = false
+            }
+        }
+
+        return nil
+    }
+}
+
+@MainActor
+private final class PermissionState: ObservableObject {
+    @Published private(set) var accessibilityEnabled = AXIsProcessTrusted()
+    @Published private(set) var notificationStatus: UNAuthorizationStatus = .notDetermined
+
+    var notificationsEnabled: Bool {
+        notificationStatus == .authorized || notificationStatus == .provisional
+    }
+
+    func refresh() {
+        accessibilityEnabled = AXIsProcessTrusted()
+
+        Task {
+            let status = await NotificationService.shared.checkAuthorizationStatus()
+            await MainActor.run {
+                self.notificationStatus = status
+            }
+        }
+    }
+
+    func requestAccessibility() {
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as NSString: true] as CFDictionary
+        _ = AXIsProcessTrustedWithOptions(options)
+        refresh()
+    }
+
+    func requestNotifications() {
+        Task {
+            if notificationStatus == .denied {
+                openNotificationSettings()
+                return
+            }
+
+            _ = try? await NotificationService.shared.requestAuthorization()
+            await MainActor.run {
+                self.refresh()
+            }
+        }
+    }
+
+    private func openNotificationSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications") else {
+            return
+        }
+
+        NSWorkspace.shared.open(url)
+    }
+}
+
+private struct ShortcutKeyCap: View {
+    let text: String
+    let isRecording: Bool
+    let isFilled: Bool
+
+    var body: some View {
+        Color.clear
+            .frame(width: 180, height: 180)
+            .modifier(GlassCardModifier(cornerRadius: 28, shadowOpacity: 0.06))
+            .overlay {
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(strokeColor, lineWidth: isRecording || isFilled ? 1.5 : 1)
+            }
+            .overlay {
+                Text(text)
+                    .font(.system(size: 52, weight: .semibold, design: .rounded))
+                    .foregroundColor(.primary.opacity(isFilled ? 0.88 : 0))
             }
     }
-}
 
-private struct BorderedGradientButtonStyle: ButtonStyle {
-    @Environment(\.colorScheme) var colorScheme
-    @State private var isHovered = false
+    private var strokeColor: Color {
+        if isRecording {
+            return Color.accentColor.opacity(0.48)
+        }
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .medium, design: .rounded))
-            .foregroundColor(.accentColor)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(
-                        LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-                            startPoint: isHovered ? .topLeading : .leading,
-                            endPoint: isHovered ? .bottomTrailing : .trailing
-                        ),
-                        lineWidth: 1.5
-                    )
-                    .background(Color.clear)
-            )
-            .contentShape(RoundedRectangle(cornerRadius: 10))
-            .scaleEffect(isHovered ? 1.02 : 1)
-            .animation(.easeOut(duration: 0.1), value: isHovered)
-            .onHover { isHovered = $0 }
+        if isFilled {
+            return Color.accentColor.opacity(0.20)
+        }
+
+        return Color.primary.opacity(0.08)
     }
 }
 
-// MARK: - VisualEffectView 已移至 Utils/VisualEffects.swift
-// 统一使用 Utils/VisualEffects.swift 中的 VisualEffectView (VisualEffectBlur 的别名)
-// 支持 macOS 26+ Liquid Glass 自适应
+private struct PermissionRow: View {
+    let title: String
+    let isEnabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Text(title)
+                .font(.system(size: 15, weight: .medium))
+
+            Spacer()
+
+            if isEnabled {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.accentColor)
+            } else {
+                Button(L("Enable")) {
+                    action()
+                }
+                .buttonStyle(MinimalSecondaryButtonStyle())
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .modifier(GlassCardModifier(cornerRadius: 18))
+    }
+}
+
+private struct MinimalPrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 18)
+            .frame(height: 38)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.accentColor.opacity(configuration.isPressed ? 0.72 : 0.92))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
+            )
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+}
+
+private struct MinimalIconButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundColor(.accentColor)
+            .frame(width: 38, height: 38)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.accentColor.opacity(configuration.isPressed ? 0.14 : 0.08))
+            )
+            .modifier(GlassCardModifier(cornerRadius: 12, shadowOpacity: 0))
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+}
+
+private struct MinimalSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(.accentColor)
+            .padding(.horizontal, 14)
+            .frame(height: 34)
+            .background(
+                Capsule()
+                    .fill(Color.accentColor.opacity(configuration.isPressed ? 0.14 : 0.08))
+            )
+            .modifier(CapsuleGlassModifier(shadowOpacity: 0))
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+}
+
+private struct GlassBackdrop: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        Group {
+            if #available(macOS 26.0, *) {
+                Rectangle()
+                    .fill(Color.clear)
+                    .glassEffect(in: .rect(cornerRadius: 0))
+            } else {
+                VisualEffectBlur(
+                    material: .hudWindow,
+                    blendingMode: .behindWindow,
+                    state: .active
+                )
+            }
+        }
+        .overlay(
+            colorScheme == .dark
+                ? Color.black.opacity(0.10)
+                : Color.white.opacity(0.10)
+        )
+    }
+}
+
+private struct GlassCardModifier: ViewModifier {
+    let cornerRadius: CGFloat
+    var shadowOpacity: Double = 0.08
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(Color.clear)
+                        .glassEffect(in: .rect(cornerRadius: cornerRadius))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(shadowOpacity), radius: 18, x: 0, y: 10)
+        } else {
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(.regularMaterial)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(shadowOpacity), radius: 18, x: 0, y: 10)
+        }
+    }
+}
+
+private struct CapsuleGlassModifier: ViewModifier {
+    var shadowOpacity: Double = 0.06
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content
+                .background(
+                    Capsule()
+                        .fill(Color.clear)
+                        .glassEffect(in: .capsule)
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(shadowOpacity), radius: 14, x: 0, y: 8)
+        } else {
+            content
+                .background(Capsule().fill(.thinMaterial))
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(shadowOpacity), radius: 14, x: 0, y: 8)
+        }
+    }
+}
+
+private extension NSEvent.ModifierFlags {
+    var displayText: String {
+        var value = ""
+
+        if contains(.control) {
+            value += "⌃"
+        }
+
+        if contains(.option) {
+            value += "⌥"
+        }
+
+        if contains(.shift) {
+            value += "⇧"
+        }
+
+        if contains(.command) {
+            value += "⌘"
+        }
+
+        return value
+    }
+}

@@ -157,9 +157,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         NSUserNotificationCenter.default.delegate = self
         globalKeyMonitor = GlobalKeyMonitor()
 
-        // Initialize NotificationService for UserNotifications
-        setupNotificationService()
-
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
         if hasCompletedOnboarding {

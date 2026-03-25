@@ -1068,6 +1068,19 @@ struct AboutSettingsView: View {
                     Divider()
 
                     Button {
+                        WindowManager.shared.replayOnboarding()
+                    } label: {
+                        HStack {
+                            Text(L("Replay Onboarding"))
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    Divider()
+
+                    Button {
                         sendFeedback()
                     } label: {
                         HStack {

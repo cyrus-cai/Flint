@@ -160,6 +160,42 @@
 /* Release Notes */
 "Release Notes" = "Release Notes";
 
+/* Replay Onboarding */
+"Replay Onboarding" = "Replay Onboarding";
+
+/* Start */
+"Start" = "Start";
+
+/* Change */
+"Change" = "Change";
+
+/* Press Two Keys */
+"Press Two Keys" = "Press two keys to open notes";
+
+/* Set Hotkey */
+"Set Hotkey" = "Set Hotkey";
+
+/* Save Here */
+"Save Here" = "Notes are saved here";
+
+/* Open Permissions */
+"Open Permissions" = "Allow access to start writing";
+
+/* Enable */
+"Enable" = "Allow";
+
+/* Accessibility */
+"Accessibility" = "Accessibility";
+
+/* Notifications */
+"Notifications" = "Notifications";
+
+/* Write Now */
+"Write Now" = "Write Now";
+
+/* Move */
+"Move" = "Move";
+
 /* Send Feedback */
 "Send Feedback" = "Send Feedback";
 
