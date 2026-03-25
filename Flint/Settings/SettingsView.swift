@@ -329,7 +329,7 @@ struct GeneralSettingsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Permission status
                     HStack {
-                        Text(L("Notification Permission"))
+                        Text(L("Notifications"))
                         Spacer()
                         Circle()
                             .fill(notificationAuthorized ? Color.green : Color.secondary.opacity(0.3))
@@ -346,7 +346,7 @@ struct GeneralSettingsView: View {
 
                     // Quick save notification toggle
                     HStack {
-                        Text(L("Quick Save Notification"))
+                        Text(L("Notify on quick save"))
                         Spacer()
                         Toggle("", isOn: $enableQuickSaveNotification)
                             .toggleStyle(.switch)
@@ -359,7 +359,7 @@ struct GeneralSettingsView: View {
 
                     // Auto clipboard notification toggle
                     HStack {
-                        Text(L("Auto Clipboard Notification"))
+                        Text(L("Notify on clipboard save"))
                         Spacer()
                         Toggle("", isOn: $enableAutoClipboardNotification)
                             .toggleStyle(.switch)
@@ -594,6 +594,7 @@ struct EditorSettingsView: View {
 // MARK: - AI Settings
 
 struct AISettingsView: View {
+    @AppStorage(AppStorageKeys.enableAI) private var enableAI: Bool = AppDefaults.enableAI
     @AppStorage(AppStorageKeys.AIProvider) private var selectedProviderRaw: String = AppDefaults.AIProviderDefault
     @State private var selectedModelId: String = ""
     @State private var apiKey: String = ""
@@ -612,175 +613,208 @@ struct AISettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             SettingsSectionHeader(title: "AI", icon: "brain")
 
-            // Provider, Model, API Key
+            // Master toggle
             GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Provider picker
+                VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text(L("Provider"))
+                        Text(L("Enable AI Features"))
                         Spacer()
-                        Picker("", selection: $selectedProviderRaw) {
-                            ForEach(AIProvider.allCases) { p in
-                                Text(p.displayName).tag(p.rawValue)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .fixedSize()
-                    }
-
-                    Divider()
-
-                    // Model picker
-                    HStack {
-                        Text(L("Model"))
-                        Spacer()
-                        Picker("", selection: $selectedModelId) {
-                            ForEach(provider.models) { model in
-                                Text(model.displayName).tag(model.modelId)
-                            }
-                        }
-                        .labelsHidden()
-                        .fixedSize()
-                    }
-
-                    Divider()
-
-                    // API Key
-                    if hasPersistedAPIKey && !isEditingAPIKey {
-                        HStack {
-                            Text("API Key")
-                            Spacer()
-                            Text("sk-•••" + apiKey.suffix(4))
-                                .foregroundColor(.secondary)
-                                .font(.callout.monospaced())
-                            Button(L("Change")) {
-                                isEditingAPIKey = true
-                            }
+                        Toggle("", isOn: $enableAI)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
                             .controlSize(.small)
-                        }
-                    } else {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("API Key")
+                    }
+                    if !enableAI {
+                        Text(L("Auto-generate titles, smart clipboard saving, and more."))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(12)
+            }
+            .onChange(of: enableAI) { newValue in
+                if newValue {
+                    // First time enabling: load provider state which accesses Keychain
+                    loadProviderState()
+                } else {
+                    // Disable all AI sub-features
+                    MaybeLikeService.shared.stopMonitoring()
+                }
+            }
 
-                            HStack(spacing: 8) {
-                                TextField(L("Paste your API Key here"), text: $apiKey)
-                                    .textFieldStyle(.roundedBorder)
-
-                                Button(L("Save")) {
-                                    commitAPIKey()
+            if enableAI {
+                // Provider, Model, API Key
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Provider picker
+                        HStack {
+                            Text(L("Provider"))
+                            Spacer()
+                            Picker("", selection: $selectedProviderRaw) {
+                                ForEach(AIProvider.allCases) { p in
+                                    Text(p.displayName).tag(p.rawValue)
                                 }
-                                .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            }
+                            .pickerStyle(.segmented)
+                            .labelsHidden()
+                            .fixedSize()
+                        }
 
-                                if isEditingAPIKey {
-                                    Button(L("Cancel")) {
-                                        apiKey = MiniMaxAPI.loadAPIKey(for: provider)
-                                        isEditingAPIKey = false
+                        Divider()
+
+                        // Model picker
+                        HStack {
+                            Text(L("Model"))
+                            Spacer()
+                            Picker("", selection: $selectedModelId) {
+                                ForEach(provider.models) { model in
+                                    Text(model.displayName).tag(model.modelId)
+                                }
+                            }
+                            .labelsHidden()
+                            .fixedSize()
+                        }
+
+                        Divider()
+
+                        // API Key
+                        if hasPersistedAPIKey && !isEditingAPIKey {
+                            HStack {
+                                Text("API Key")
+                                Spacer()
+                                Text("sk-•••" + apiKey.suffix(4))
+                                    .foregroundColor(.secondary)
+                                    .font(.callout.monospaced())
+                                Button(L("Change")) {
+                                    isEditingAPIKey = true
+                                }
+                                .controlSize(.small)
+                            }
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("API Key")
+
+                                HStack(spacing: 8) {
+                                    TextField(L("Paste your API Key here"), text: $apiKey)
+                                        .textFieldStyle(.roundedBorder)
+
+                                    Button(L("Save")) {
+                                        commitAPIKey()
+                                    }
+                                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                                    if isEditingAPIKey {
+                                        Button(L("Cancel")) {
+                                            apiKey = MiniMaxAPI.loadAPIKey(for: provider)
+                                            isEditingAPIKey = false
+                                        }
                                     }
                                 }
-                            }
 
-                            Button {
-                                if let url = URL(string: provider.websiteURL) {
-                                    NSWorkspace.shared.open(url)
+                                Button {
+                                    if let url = URL(string: provider.websiteURL) {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Text(L("Get your API Key"))
+                                            .font(.caption)
+                                        Image(systemName: "arrow.up.right")
+                                            .font(.caption2)
+                                    }
+                                    .foregroundColor(.accentColor)
                                 }
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Text(L("Get your API Key"))
-                                        .font(.caption)
-                                    Image(systemName: "arrow.up.right")
-                                        .font(.caption2)
-                                }
-                                .foregroundColor(.accentColor)
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
+                    .padding(12)
                 }
-                .padding(12)
-            }
 
-            // Feature toggles
-            GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text(L("Auto generate note titles"))
-                        Spacer()
-                        Toggle("", isOn: Binding(
-                            get: { enableAIRename },
-                            set: { newValue in
-                                enableAIRename = newValue
-                                UserDefaults.standard.set(newValue, forKey: provider.enableAIRenameKey)
-                                // Sync to global key for external readers
-                                UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAIRename)
-                            }
-                        ))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                            .disabled(!hasPersistedAPIKey)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text(L("Auto save important clipboard content"))
-                        Spacer()
-                        Toggle("", isOn: Binding(
-                            get: { enableAutoSaveClipboard },
-                            set: { newValue in
-                                enableAutoSaveClipboard = newValue
-                                UserDefaults.standard.set(newValue, forKey: provider.enableAutoSaveClipboardKey)
-                                // Sync to global key for external readers
-                                UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAutoSaveClipboard)
-                                if newValue {
-                                    MaybeLikeService.shared.startMonitoring()
-                                } else {
-                                    MaybeLikeService.shared.stopMonitoring()
+                // Feature toggles
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text(L("Auto-generate titles"))
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { enableAIRename },
+                                set: { newValue in
+                                    enableAIRename = newValue
+                                    UserDefaults.standard.set(newValue, forKey: provider.enableAIRenameKey)
+                                    // Sync to global key for external readers
+                                    UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAIRename)
                                 }
-                            }
-                        ))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                            .disabled(!hasPersistedAPIKey)
-                    }
-                }
-                .padding(12)
-            }
+                            ))
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                                .disabled(!hasPersistedAPIKey)
+                        }
 
-            // MCP Server
-            GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("MCP Server")
-                            Text("Claude Code")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                        Circle()
-                            .fill(mcpRegistered ? Color.green : Color.secondary.opacity(0.3))
-                            .frame(width: 8, height: 8)
-                        if mcpRegistered {
-                            Button(L("Unregister")) {
-                                unregisterMCPServer()
-                            }
-                            .controlSize(.small)
-                        } else {
-                            Button(L("Register")) {
-                                registerMCPServer()
-                            }
-                            .controlSize(.small)
+                        Divider()
+
+                        HStack {
+                            Text(L("Smart clipboard saving"))
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { enableAutoSaveClipboard },
+                                set: { newValue in
+                                    enableAutoSaveClipboard = newValue
+                                    UserDefaults.standard.set(newValue, forKey: provider.enableAutoSaveClipboardKey)
+                                    // Sync to global key for external readers
+                                    UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAutoSaveClipboard)
+                                    if newValue {
+                                        MaybeLikeService.shared.startMonitoring()
+                                    } else {
+                                        MaybeLikeService.shared.stopMonitoring()
+                                    }
+                                }
+                            ))
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                                .disabled(!hasPersistedAPIKey)
                         }
                     }
+                    .padding(12)
                 }
-                .padding(12)
+
+                // MCP Server
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("MCP Server")
+                                Text("Claude Code")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Circle()
+                                .fill(mcpRegistered ? Color.green : Color.secondary.opacity(0.3))
+                                .frame(width: 8, height: 8)
+                            if mcpRegistered {
+                                Button(L("Unregister")) {
+                                    unregisterMCPServer()
+                                }
+                                .controlSize(.small)
+                            } else {
+                                Button(L("Register")) {
+                                    registerMCPServer()
+                                }
+                                .controlSize(.small)
+                            }
+                        }
+                    }
+                    .padding(12)
+                }
             }
         }
         .onAppear {
-            loadProviderState()
+            if enableAI {
+                loadProviderState()
+            }
             mcpRegistered = isMCPServerRegistered()
         }
         .onChange(of: selectedProviderRaw) { _ in
@@ -1015,7 +1049,7 @@ struct HotkeySettingsView: View {
                             .toggleStyle(.switch)
                             .labelsHidden()
                             .controlSize(.small)
-                            .help(L("Double press Option key to toggle window"))
+                            .help(L("Works even when Flint is in the background"))
                     }
 
                     Divider()
@@ -1023,7 +1057,7 @@ struct HotkeySettingsView: View {
                     HStack {
                         Text(L("Quick save"))
                         Spacer()
-                        Text(L("Cmd + C (double click)"))
+                        Text(L("Cmd + C × 2"))
                             .foregroundColor(.secondary)
                     }
                 }

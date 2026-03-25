@@ -97,8 +97,8 @@
 /* AI */
 "AI" = "AI";
 
-/* Auto generate note titles */
-"Auto generate note titles" = "自動產生筆記標題";
+/* Auto-generate titles */
+"Auto-generate titles" = "自動產生標題";
 
 /* Model */
 "Model" = "模型";
@@ -112,8 +112,8 @@
 /* Quick wake-up */
 "Quick wake-up" = "快速喚醒";
 
-/* Double press Option key to toggle window */
-"Double press Option key to toggle window" = "雙擊 Option 鍵切換視窗";
+/* Works even when Flint is in the background */
+"Works even when Flint is in the background" = "Flint 在背景時也能使用";
 
 /* Quick save */
 "Quick save" = "快速儲存";
@@ -436,8 +436,8 @@
 /* No more notes */
 "No more notes" = "沒有更多筆記了";
 
-/* Cmd + C (double click) */
-"Cmd + C (double click)" = "Cmd + C (雙擊)";
+/* Cmd + C × 2 */
+"Cmd + C × 2" = "Cmd + C × 2";
 
 /* Welcome to Flint */
 "Welcome to Flint" = "歡迎使用 Flint";
@@ -445,8 +445,8 @@
 /* Double press Option key */
 "Double press Option key" = "雙擊 Option 鍵";
 
-/* Auto save important clipboard content */
-"Auto save important clipboard content" = "自動儲存重要剪貼簿內容";
+/* Smart clipboard saving */
+"Smart clipboard saving" = "智慧剪貼簿儲存";
 
 /* Show Word Count */
 "Show Word Count" = "顯示字數統計";
@@ -463,8 +463,7 @@
 /* Show in Dock */
 "Show in Dock" = "在 Dock 列顯示";
 
-/* Notification Permission */
-"Notification Permission" = "通知權限";
+/* Notifications (settings section) - uses existing "Notifications" key */
 
 /* Enabled */
 "Enabled" = "已開啟";
@@ -475,11 +474,20 @@
 /* Open System Settings */
 "Open System Settings" = "前往系統設定";
 
-/* Quick Save Notification */
-"Quick Save Notification" = "快速儲存通知";
+/* Notify on quick save */
+"Notify on quick save" = "快速儲存時通知";
 
-/* Auto Clipboard Notification */
-"Auto Clipboard Notification" = "自動剪貼簿通知";
+/* Notify on clipboard save */
+"Notify on clipboard save" = "剪貼簿儲存時通知";
 
 /* More */
 "More" = "更多";
+
+/* Enable AI Features */
+"Enable AI Features" = "啟用 AI 功能";
+
+/* Auto-generate titles, smart clipboard saving, and more. */
+"Auto-generate titles, smart clipboard saving, and more." = "自動產生標題、智慧剪貼簿儲存等。";
+
+/* Smart clipboard saving */
+"Smart clipboard saving" = "智慧剪貼簿儲存";

@@ -102,6 +102,7 @@ final class MiniMaxAPI {
     // MARK: - API Key Management
 
     static var hasConfiguredAPIKey: Bool {
+        guard UserDefaults.standard.bool(forKey: AppStorageKeys.enableAI) else { return false }
         _ = ensureMigration
         return !storedAPIKey.isEmpty
     }

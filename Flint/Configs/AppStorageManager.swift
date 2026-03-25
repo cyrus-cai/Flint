@@ -15,6 +15,7 @@ enum AppStorageKeys {
     static let hasRequestedLaunchPermission = "hasRequestedLaunchPermission"
 
     // AI Settings
+    static let enableAI = "enableAI"
     static let AIProvider = "AIProvider"
     static let AIModel = "AIModel" // Legacy, migrated to per-provider keys
     static let miniMaxAPIKey = "MiniMaxAPIKey" // Legacy, migrated to Keychain
@@ -52,6 +53,7 @@ struct AppDefaults {
     static let hasRequestedLaunchPermission = false
 
     // AI Settings
+    static let enableAI = false
     static let AIProviderDefault = AIProvider.minimax.rawValue
     static let AIModel = AIModelConfig.availableModels.first?.modelId ?? "MiniMax-M2.5"
     static let miniMaxAPIKey = ""

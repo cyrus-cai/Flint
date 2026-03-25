@@ -79,6 +79,9 @@ class LocalFileManager {
     static let shared = LocalFileManager()
     let fm = Foundation.FileManager.default
 
+    /// Cached base directory – resolved once at init, refreshed on setCustomDirectory.
+    private var _cachedBaseDirectory: URL?
+
     // Shared UserDefaults domain so both App (bundle ID "Flint") and CLI read the same prefs
     static let defaults: UserDefaults = {
         let suite = UserDefaults(suiteName: "Flint") ?? .standard
@@ -95,6 +98,28 @@ class LocalFileManager {
         return suite
     }()
 
+    private init() {
+        _cachedBaseDirectory = Self.resolveBaseDirectory()
+    }
+
+    /// Resolve the base directory from settings or default Documents/Flint path.
+    private static func resolveBaseDirectory() -> URL? {
+        if let customPath = defaults.string(forKey: kCustomNotesDirectoryPath) {
+            return URL(fileURLWithPath: customPath)
+        }
+
+        let fileManager = Foundation.FileManager.default
+        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+
+        let defaultPath = documentsURL.appendingPathComponent("Flint")
+        if !fileManager.fileExists(atPath: defaultPath.path) {
+            try? fileManager.createDirectory(at: defaultPath, withIntermediateDirectories: true)
+        }
+        return defaultPath
+    }
+
     // Get current week folder name (e.g., "2024W50")
     public var currentWeekFolder: String {
         let calendar = Calendar(identifier: .iso8601)
@@ -106,30 +131,9 @@ class LocalFileManager {
         return "\(year)W\(String(format: "%02d", week))"
     }
 
-    // Get base notes directory (Obsidian vault)
+    // Get base notes directory (cached)
     var baseDirectory: URL? {
-        // First check if user has set a custom path
-        if let customPath = Self.defaults.string(forKey: kCustomNotesDirectoryPath) {
-            return URL(fileURLWithPath: customPath)
-        }
-
-        // If no custom path, use default path in Documents folder
-        let fileManager = Foundation.FileManager.default
-        guard
-            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
-        else {
-            return nil
-        }
-
-        // Create default Flint folder in Documents
-        let defaultPath = documentsURL.appendingPathComponent("Flint")
-
-        // Create directory if it doesn't exist
-        if !fileManager.fileExists(atPath: defaultPath.path) {
-            try? fileManager.createDirectory(at: defaultPath, withIntermediateDirectories: true)
-        }
-
-        return defaultPath
+        _cachedBaseDirectory
     }
 
     // Get Float directory
@@ -155,6 +159,7 @@ class LocalFileManager {
     // Set custom directory (Obsidian vault)
     func setCustomDirectory(_ url: URL) {
         Self.defaults.set(url.path, forKey: kCustomNotesDirectoryPath)
+        _cachedBaseDirectory = url
 
         // Create Float directory and current week directory
         if let floatDir = floatDirectory,

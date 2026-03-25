@@ -331,7 +331,7 @@ class LocalizationManager: ObservableObject {
         "Check for updates": ["zh-Hans": "检查更新", "zh-Hant": "檢查更新"],
         "Latest available": ["zh-Hans": "已是最新版本", "zh-Hant": "已是最新版本"],
         "Double press Option key": ["zh-Hans": "双击 Option 键", "zh-Hant": "雙擊 Option 鍵"],
-        "Cmd + C (double click)": ["zh-Hans": "Cmd + C (双击)", "zh-Hant": "Cmd + C (雙擊)"],
+        "Cmd + C × 2": ["zh-Hans": "Cmd + C × 2", "zh-Hant": "Cmd + C × 2"],
         "Stop": ["zh-Hans": "停止", "zh-Hant": "停止"],
         "No more notes": ["zh-Hans": "没有更多笔记了", "zh-Hant": "沒有更多筆記了"],
         "Welcome to Flint": ["zh-Hans": "欢迎使用 Flint", "zh-Hant": "歡迎使用 Flint"],
@@ -400,15 +400,15 @@ class LocalizationManager: ObservableObject {
         "Get your API Key": ["zh-Hans": "获取 API Key", "zh-Hant": "取得 API Key"],
         "Enter your API Key": ["zh-Hans": "填写你的 API Key", "zh-Hant": "填寫你的 API Key"],
         "Enter your API Key first": ["zh-Hans": "请先填写 API Key", "zh-Hant": "請先填寫 API Key"],
-        "Auto generate note titles": ["zh-Hans": "自动生成笔记标题", "zh-Hant": "自動產生筆記標題"],
-        "Auto save important clipboard content": ["zh-Hans": "自动保存重要剪贴板内容", "zh-Hant": "自動儲存重要剪貼簿內容"],
+        "Auto-generate titles": ["zh-Hans": "自动生成标题", "zh-Hant": "自動產生標題"],
+        "Smart clipboard saving": ["zh-Hans": "智能剪贴板保存", "zh-Hant": "智慧剪貼簿儲存"],
         "Status": ["zh-Hans": "状态", "zh-Hant": "狀態"],
         // SettingsView - More items (duplicates removed: Preferences, Font, Double press Option key, Latest available)
         "Launch at login": ["zh-Hans": "开机启动", "zh-Hant": "開機啟動"],
         "Change...": ["zh-Hans": "更改...", "zh-Hant": "更改..."],
         "Wake Up": ["zh-Hans": "快速唤醒", "zh-Hant": "快速喚醒"],
         "Quick wake-up": ["zh-Hans": "快速唤醒", "zh-Hant": "快速喚醒"],
-        "Double press Option key to toggle window": ["zh-Hans": "双击 Option 键切换窗口", "zh-Hant": "雙擊 Option 鍵切換視窗"],
+        "Works even when Flint is in the background": ["zh-Hans": "Flint 在后台时也能使用", "zh-Hant": "Flint 在背景時也能使用"],
         "Quick save": ["zh-Hans": "快速保存", "zh-Hant": "快速儲存"],
         "Downloading... %d%": ["zh-Hans": "正在下载... %d%", "zh-Hant": "正在下載... %d%"],
         "Checking...": ["zh-Hans": "检查中...", "zh-Hant": "檢查中..."],
@@ -486,14 +486,15 @@ class LocalizationManager: ObservableObject {
         "Failed to save the reminder.": ["zh-Hans": "保存提醒失败。", "zh-Hant": "儲存提醒失敗。"],
         // General Settings - Dock & Notifications
         "Show in Dock": ["zh-Hans": "在 Dock 栏显示", "zh-Hant": "在 Dock 列顯示"],
-        "Notification Permission": ["zh-Hans": "通知权限", "zh-Hant": "通知權限"],
         "Enabled": ["zh-Hans": "已开启", "zh-Hant": "已開啟"],
         "Disabled": ["zh-Hans": "未开启", "zh-Hant": "未開啟"],
         "Open System Settings": ["zh-Hans": "前往系统设置", "zh-Hant": "前往系統設定"],
-        "Quick Save Notification": ["zh-Hans": "快速保存通知", "zh-Hant": "快速儲存通知"],
-        "Auto Clipboard Notification": ["zh-Hans": "自动剪贴板通知", "zh-Hant": "自動剪貼簿通知"],
+        "Notify on quick save": ["zh-Hans": "快速保存时通知", "zh-Hant": "快速儲存時通知"],
+        "Notify on clipboard save": ["zh-Hans": "剪贴板保存时通知", "zh-Hant": "剪貼簿儲存時通知"],
         "More": ["zh-Hans": "更多", "zh-Hant": "更多"],
-        "Show Word Count": ["zh-Hans": "显示字数统计", "zh-Hant": "顯示字數統計"]
+        "Show Word Count": ["zh-Hans": "显示字数统计", "zh-Hant": "顯示字數統計"],
+        "Enable AI Features": ["zh-Hans": "启用 AI 功能", "zh-Hant": "啟用 AI 功能"],
+        "Auto-generate titles, smart clipboard saving, and more.": ["zh-Hans": "自动生成标题、智能剪贴板保存等。", "zh-Hant": "自動產生標題、智慧剪貼簿儲存等。"]
     ]
 
     private init() {

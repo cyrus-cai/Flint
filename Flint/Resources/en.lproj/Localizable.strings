@@ -97,8 +97,8 @@
 /* AI */
 "AI" = "AI";
 
-/* Auto generate note titles */
-"Auto generate note titles" = "Auto generate note titles";
+/* Auto-generate titles */
+"Auto-generate titles" = "Auto-generate titles";
 
 /* Model */
 "Model" = "Model";
@@ -112,8 +112,8 @@
 /* Quick wake-up */
 "Quick wake-up" = "Quick wake-up";
 
-/* Double press Option key to toggle window */
-"Double press Option key to toggle window" = "Double press Option key to toggle window";
+/* Works even when Flint is in the background */
+"Works even when Flint is in the background" = "Works even when Flint is in the background";
 
 /* Quick save */
 "Quick save" = "Quick save";
@@ -439,8 +439,8 @@
 /* No more notes */
 "No more notes" = "No more notes";
 
-/* Cmd + C (double click) */
-"Cmd + C (double click)" = "Cmd + C (double click)";
+/* Cmd + C × 2 */
+"Cmd + C × 2" = "Cmd + C × 2";
 
 /* Welcome to Flint */
 "Welcome to Flint" = "Welcome to Flint";
@@ -463,8 +463,7 @@
 /* Show in Dock */
 "Show in Dock" = "Show in Dock";
 
-/* Notification Permission */
-"Notification Permission" = "Notification Permission";
+/* Notifications (settings section) - uses existing "Notifications" key */
 
 /* Enabled */
 "Enabled" = "Enabled";
@@ -475,11 +474,20 @@
 /* Open System Settings */
 "Open System Settings" = "Open System Settings";
 
-/* Quick Save Notification */
-"Quick Save Notification" = "Quick Save Notification";
+/* Notify on quick save */
+"Notify on quick save" = "Notify on quick save";
 
-/* Auto Clipboard Notification */
-"Auto Clipboard Notification" = "Auto Clipboard Notification";
+/* Notify on clipboard save */
+"Notify on clipboard save" = "Notify on clipboard save";
 
 /* More */
 "More" = "More";
+
+/* Enable AI Features */
+"Enable AI Features" = "Enable AI Features";
+
+/* Auto-generate titles, smart clipboard saving, and more. */
+"Auto-generate titles, smart clipboard saving, and more." = "Auto-generate titles, smart clipboard saving, and more.";
+
+/* Smart clipboard saving */
+"Smart clipboard saving" = "Smart clipboard saving";

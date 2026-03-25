@@ -97,8 +97,8 @@
 /* AI */
 "AI" = "AI";
 
-/* Auto generate note titles */
-"Auto generate note titles" = "自动生成笔记标题";
+/* Auto-generate titles */
+"Auto-generate titles" = "自动生成标题";
 
 /* Model */
 "Model" = "模型";
@@ -112,8 +112,8 @@
 /* Quick wake-up */
 "Quick wake-up" = "快速唤醒";
 
-/* Double press Option key to toggle window */
-"Double press Option key to toggle window" = "双击 Option 键切换窗口";
+/* Works even when Flint is in the background */
+"Works even when Flint is in the background" = "Flint 在后台时也能使用";
 
 /* Quick save */
 "Quick save" = "快速保存";
@@ -439,8 +439,8 @@
 /* No more notes */
 "No more notes" = "没有更多笔记了";
 
-/* Cmd + C (double click) */
-"Cmd + C (double click)" = "Cmd + C (双击)";
+/* Cmd + C × 2 */
+"Cmd + C × 2" = "Cmd + C × 2";
 
 /* Welcome to Flint */
 "Welcome to Flint" = "欢迎使用 Flint";
@@ -448,8 +448,8 @@
 /* Double press Option key */
 "Double press Option key" = "双击 Option 键";
 
-/* Auto save important clipboard content */
-"Auto save important clipboard content" = "自动保存重要剪贴板内容";
+/* Smart clipboard saving */
+"Smart clipboard saving" = "智能剪贴板保存";
 
 /* Show Word Count */
 "Show Word Count" = "显示字数统计";
@@ -466,8 +466,7 @@
 /* Show in Dock */
 "Show in Dock" = "在 Dock 栏显示";
 
-/* Notification Permission */
-"Notification Permission" = "通知权限";
+/* Notifications (settings section) - uses existing "Notifications" key */
 
 /* Enabled */
 "Enabled" = "已开启";
@@ -478,11 +477,17 @@
 /* Open System Settings */
 "Open System Settings" = "前往系统设置";
 
-/* Quick Save Notification */
-"Quick Save Notification" = "快速保存通知";
+/* Notify on quick save */
+"Notify on quick save" = "快速保存时通知";
 
-/* Auto Clipboard Notification */
-"Auto Clipboard Notification" = "自动剪贴板通知";
+/* Notify on clipboard save */
+"Notify on clipboard save" = "剪贴板保存时通知";
 
 /* More */
 "More" = "更多";
+
+/* Enable AI Features */
+"Enable AI Features" = "启用 AI 功能";
+
+/* Auto-generate titles, smart clipboard saving, and more. */
+"Auto-generate titles, smart clipboard saving, and more." = "自动生成标题、智能剪贴板保存等。";

@@ -149,7 +149,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         installCLI()
         UpdateManager.shared.checkAndDownloadUpdate()
 
-        if UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") {
+        if UserDefaults.standard.bool(forKey: AppStorageKeys.enableAI),
+           UserDefaults.standard.bool(forKey: "enableAutoSaveClipboard") {
             MaybeLikeService.shared.startMonitoring()
         }
 
@@ -780,6 +781,7 @@ class ContentSavedWindowController: NSWindowController {
 
 private func registerDefaultSettings() {
     let defaults: [String: Any] = [
+        AppStorageKeys.enableAI: AppDefaults.enableAI,
         AppStorageKeys.enableAIRename: AppDefaults.enableAIRename,
         AppStorageKeys.enableAutoSaveClipboard: AppDefaults.enableAutoSaveClipboard,
         AppStorageKeys.AIModel: AppDefaults.AIModel,
