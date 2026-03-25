@@ -32,6 +32,13 @@ enum AppStorageKeys {
     // Hotkey Settings
     static let enableDoubleOption = "enableDoubleOption"
 
+    // Notification Settings
+    static let enableQuickSaveNotification = "enableQuickSaveNotification"
+    static let enableAutoClipboardNotification = "enableAutoClipboardNotification"
+
+    // Dock Settings
+    static let showInDock = "showInDock"
+
     // Filter Settings
     static let filterShowManual = "filterShowManual"
     static let filterShowHotKey = "filterShowHotKey"
@@ -61,6 +68,13 @@ struct AppDefaults {
 
     // Hotkey Settings
     static let enableDoubleOption = true
+
+    // Notification Settings
+    static let enableQuickSaveNotification = true
+    static let enableAutoClipboardNotification = true
+
+    // Dock Settings
+    static let showInDock = false
 
     // Filter Settings
     static let filterShowManual = true

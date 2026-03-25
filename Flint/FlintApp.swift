@@ -153,7 +153,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             MaybeLikeService.shared.startMonitoring()
         }
 
-        NSApp.setActivationPolicy(.accessory)
+        let showInDock = UserDefaults.standard.bool(forKey: AppStorageKeys.showInDock)
+        NSApp.setActivationPolicy(showInDock ? .regular : .accessory)
         NSUserNotificationCenter.default.delegate = self
         globalKeyMonitor = GlobalKeyMonitor()
 
@@ -502,13 +503,15 @@ class GlobalKeyMonitor {
                 let finalTextWithMetadata = textWithMetadata
                 let finalSourceApp = sourceApp
                 
-                // Send notification using NotificationService
-                await NotificationService.shared.sendAIActionSuccess(
-                    title: L("Content Saved"),
-                    message: "\(finalSourceApp) | \(finalSummary)",
-                    filePath: finalFileURL.path,
-                    content: finalTextWithMetadata
-                )
+                // Send notification if enabled
+                if UserDefaults.standard.bool(forKey: AppStorageKeys.enableQuickSaveNotification) {
+                    await NotificationService.shared.sendAIActionSuccess(
+                        title: L("Content Saved"),
+                        message: "\(finalSourceApp) | \(finalSummary)",
+                        filePath: finalFileURL.path,
+                        content: finalTextWithMetadata
+                    )
+                }
             }
         } catch {
             print("Save failed: \(error.localizedDescription)")
@@ -780,6 +783,9 @@ private func registerDefaultSettings() {
         AppStorageKeys.enableAIRename: AppDefaults.enableAIRename,
         AppStorageKeys.enableAutoSaveClipboard: AppDefaults.enableAutoSaveClipboard,
         AppStorageKeys.AIModel: AppDefaults.AIModel,
+        AppStorageKeys.enableQuickSaveNotification: AppDefaults.enableQuickSaveNotification,
+        AppStorageKeys.enableAutoClipboardNotification: AppDefaults.enableAutoClipboardNotification,
+        AppStorageKeys.showInDock: AppDefaults.showInDock,
     ]
 
     UserDefaults.standard.register(defaults: defaults)

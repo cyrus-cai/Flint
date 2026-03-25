@@ -459,3 +459,27 @@
 
 /* Delete */
 "Delete" = "刪除";
+
+/* Show in Dock */
+"Show in Dock" = "在 Dock 列顯示";
+
+/* Notification Permission */
+"Notification Permission" = "通知權限";
+
+/* Enabled */
+"Enabled" = "已開啟";
+
+/* Disabled */
+"Disabled" = "未開啟";
+
+/* Open System Settings */
+"Open System Settings" = "前往系統設定";
+
+/* Quick Save Notification */
+"Quick Save Notification" = "快速儲存通知";
+
+/* Auto Clipboard Notification */
+"Auto Clipboard Notification" = "自動剪貼簿通知";
+
+/* More */
+"More" = "更多";

@@ -462,3 +462,27 @@
 
 /* Delete */
 "Delete" = "删除";
+
+/* Show in Dock */
+"Show in Dock" = "在 Dock 栏显示";
+
+/* Notification Permission */
+"Notification Permission" = "通知权限";
+
+/* Enabled */
+"Enabled" = "已开启";
+
+/* Disabled */
+"Disabled" = "未开启";
+
+/* Open System Settings */
+"Open System Settings" = "前往系统设置";
+
+/* Quick Save Notification */
+"Quick Save Notification" = "快速保存通知";
+
+/* Auto Clipboard Notification */
+"Auto Clipboard Notification" = "自动剪贴板通知";
+
+/* More */
+"More" = "更多";

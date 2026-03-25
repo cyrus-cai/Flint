@@ -979,14 +979,16 @@ class MaybeLikeService: ObservableObject {
                 try textWithMetadata.write(to: fileURL, atomically: true, encoding: .utf8)
                 print("MaybeLike: Saved note to \(fileURL.path)")
 
-                // Send notification using NotificationService
-                Task {
-                    await NotificationService.shared.sendAIActionSuccess(
-                        title: L("Maybe Like Captured"),
-                        message: "\(sourceApp) | \(finalTitle)",
-                        filePath: fileURL.path,
-                        content: textWithMetadata
-                    )
+                // Send notification if enabled
+                if UserDefaults.standard.bool(forKey: AppStorageKeys.enableAutoClipboardNotification) {
+                    Task {
+                        await NotificationService.shared.sendAIActionSuccess(
+                            title: L("Maybe Like Captured"),
+                            message: "\(sourceApp) | \(finalTitle)",
+                            filePath: fileURL.path,
+                            content: textWithMetadata
+                        )
+                    }
                 }
 
             } catch {
