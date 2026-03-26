@@ -10,6 +10,10 @@
 
 Flint lives in the background until you need it. Hit a shortcut and a note appears — type, dismiss, done. If you copy something twice with `Cmd+C`, it becomes a note automatically. Every note is a plain text file on your machine, no account, no cloud. And because Flint speaks MCP, your AI agent — Claude Code, Cursor, whatever you use — can read, search, and create notes just like you do.
 
+<p align="center">
+  <img src="screenshot.png" width="720" alt="Flint screenshot">
+</p>
+
 ## Download
 
 ```bash
