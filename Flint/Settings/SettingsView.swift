@@ -1057,7 +1057,7 @@ struct HotkeySettingsView: View {
                     HStack {
                         Text(L("Quick save"))
                         Spacer()
-                        Text(L("Cmd + C × 2"))
+                        Text(L("Double click Cmd + C"))
                             .foregroundColor(.secondary)
                     }
                 }

@@ -62,6 +62,13 @@ struct OnboardingView: View {
             permissionState.refresh()
             shortcutState.sync()
         }
+        .onChange(of: shortcutState.didAccept) { _, accepted in
+            if accepted {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    moveNext()
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -161,6 +168,22 @@ struct OnboardingView: View {
     private func moveNext() {
         guard canMoveNext else { return }
         guard let index = pages.firstIndex(of: page), index < pages.count - 1 else { return }
+
+        // When leaving the storage page, open NSOpenPanel so the system grants
+        // folder-access permission right away (instead of prompting later).
+        if page == .storage {
+            let openPanel = NSOpenPanel()
+            openPanel.canChooseDirectories = true
+            openPanel.canChooseFiles = false
+            openPanel.allowsMultipleSelection = false
+            openPanel.title = L("Select Notes Directory")
+            openPanel.directoryURL = URL(fileURLWithPath: storagePath)
+
+            guard openPanel.runModal() == .OK, let selectedURL = openPanel.url else { return }
+            LocalFileManager.shared.setCustomDirectory(selectedURL)
+            storagePath = LocalFileManager.shared.currentNotesPath
+        }
+
         page = pages[index + 1]
     }
 

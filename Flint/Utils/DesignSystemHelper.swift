@@ -331,7 +331,7 @@ class LocalizationManager: ObservableObject {
         "Check for updates": ["zh-Hans": "检查更新", "zh-Hant": "檢查更新"],
         "Latest available": ["zh-Hans": "已是最新版本", "zh-Hant": "已是最新版本"],
         "Double press Option key": ["zh-Hans": "双击 Option 键", "zh-Hant": "雙擊 Option 鍵"],
-        "Cmd + C × 2": ["zh-Hans": "Cmd + C × 2", "zh-Hant": "Cmd + C × 2"],
+        "Double click Cmd + C": ["zh-Hans": "Double click Cmd + C", "zh-Hant": "Double click Cmd + C"],
         "Stop": ["zh-Hans": "停止", "zh-Hant": "停止"],
         "No more notes": ["zh-Hans": "没有更多笔记了", "zh-Hant": "沒有更多筆記了"],
         "Welcome to Flint": ["zh-Hans": "欢迎使用 Flint", "zh-Hant": "歡迎使用 Flint"],
