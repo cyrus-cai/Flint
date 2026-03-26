@@ -13,13 +13,20 @@ import Security
 // MARK: - Keychain Helper
 
 enum KeychainHelper {
+    private static let service = Bundle.main.bundleIdentifier ?? "com.kii.flint"
+
+    private static func baseQuery(key: String) -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+        ]
+    }
+
     @discardableResult
     static func save(key: String, value: String) -> Bool {
         guard let data = value.data(using: .utf8) else { return false }
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-        ]
+        let query = baseQuery(key: key)
         SecItemDelete(query as CFDictionary)
         guard !value.isEmpty else { return true }
         var addQuery = query
@@ -29,23 +36,42 @@ enum KeychainHelper {
     }
 
     static func load(key: String) -> String? {
-        let query: [String: Any] = [
+        // Try loading with service-scoped query first
+        var query = baseQuery(key: key)
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        var result: AnyObject?
+        var status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecSuccess, let data = result as? Data,
+           let value = String(data: data, encoding: .utf8) {
+            return value
+        }
+
+        // Fallback: try legacy query without service, then migrate
+        let legacyQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
+        status = SecItemCopyMatching(legacyQuery as CFDictionary, &result)
+        if status == errSecSuccess, let data = result as? Data,
+           let value = String(data: data, encoding: .utf8) {
+            // Migrate: delete legacy first, then save with service
+            let deleteLegacy: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrAccount as String: key,
+            ]
+            SecItemDelete(deleteLegacy as CFDictionary)
+            save(key: key, value: value)
+            return value
+        }
+
+        return nil
     }
 
     static func delete(key: String) {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-        ]
+        let query = baseQuery(key: key)
         SecItemDelete(query as CFDictionary)
     }
 }
