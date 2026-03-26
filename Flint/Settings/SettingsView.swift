@@ -626,7 +626,7 @@ struct AISettingsView: View {
                     }
                     if !enableAI {
                         Text(L("Auto-generate titles, smart clipboard saving, and more."))
-                            .font(.caption)
+                            .font(.system(size: 12))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -787,7 +787,7 @@ struct AISettingsView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("MCP Server")
                                 Text("Claude Code")
-                                    .font(.caption)
+                                    .font(.system(size: 12))
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
@@ -1043,7 +1043,8 @@ struct HotkeySettingsView: View {
                     }
 
                     HStack {
-                        Text(L("Double press Option key"))
+                        Text(L("Double press Control key"))
+                        PopoverHint(text: "Double press Option? Claude called dibs.")
                         Spacer()
                         Toggle("", isOn: $enableDoubleOption)
                             .toggleStyle(.switch)
@@ -1057,8 +1058,12 @@ struct HotkeySettingsView: View {
                     HStack {
                         Text(L("Quick save"))
                         Spacer()
-                        Text(L("Double click Cmd + C"))
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Text(L("Double click"))
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                            KeyboardShortcutBadge(keys: ["Cmd", "C"])
+                        }
                     }
                 }
                 .padding(12)
@@ -1231,7 +1236,7 @@ struct AboutSettingsView: View {
             HStack {
                 Spacer()
                 Text(L("© 2026 Flint. All rights reserved."))
-                    .font(.caption)
+                    .font(.system(size: 12))
                     .foregroundColor(.secondary)
                 Spacer()
             }
@@ -1472,6 +1477,23 @@ struct FontOptionView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct PopoverHint: View {
+    let text: String
+    @State private var isPresented = false
+
+    var body: some View {
+        Image(systemName: "questionmark.circle")
+            .font(.system(size: 12))
+            .foregroundColor(.secondary)
+            .onTapGesture { isPresented.toggle() }
+            .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+                Text(text)
+                    .font(.system(size: 12))
+                    .padding(10)
+            }
     }
 }
 

@@ -442,8 +442,8 @@
 /* Welcome to Flint */
 "Welcome to Flint" = "歡迎使用 Flint";
 
-/* Double press Option key */
-"Double press Option key" = "雙擊 Option 鍵";
+/* Double press Control key */
+"Double press Control key" = "雙擊 Control 鍵";
 
 /* Smart clipboard saving */
 "Smart clipboard saving" = "智慧剪貼簿儲存";
@@ -491,3 +491,31 @@
 
 /* Smart clipboard saving */
 "Smart clipboard saving" = "智慧剪貼簿儲存";
+
+/* Onboarding - Page titles */
+"Summon It" = "喚醒它";
+"Your Files, Your Folder" = "你的檔案，你的資料夾";
+"Almost There" = "就快好了";
+"You're Set" = "準備就緒";
+
+/* Onboarding - Subtitles */
+"Flint lives in the background until you need it." = "Flint 安靜地待在背景，直到你需要它。";
+"Pick a shortcut. Flint stays hidden until you call." = "選一個快捷鍵。Flint 會隱藏，直到你呼喚。";
+"Every note is a plain text file. No account, no cloud." = "每條筆記都是純文字檔案。無需帳號，無需雲端。";
+
+/* Onboarding - Permission reasons */
+"So Flint can appear anywhere, anytime." = "讓 Flint 能隨時隨地出現。";
+"So you know when a note is saved." = "讓你知道筆記已儲存。";
+
+/* Onboarding - Done page tips */
+"to write something down" = "隨手記點什麼";
+"to pick up where you left off" = "回到上次的位置";
+"to capture from anywhere" = "從任何地方擷取";
+"Ready" = "準備好了";
+
+/* Onboarding - Storage page */
+"Grant Folder Access" = "授權資料夾存取";
+"Enable Double press Control key" = "啟用雙擊 Control 鍵";
+
+/* Onboarding - Done page */
+"Try it now — press" = "試試看 — 按下";

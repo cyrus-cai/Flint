@@ -15,37 +15,55 @@ import UserNotifications
 
 struct OnboardingView: View {
     @Binding var isFirstLaunch: Bool
-    @State private var page: OnboardingPage = .wake
+    @State private var page: OnboardingPage = .welcome
     @State private var storagePath = LocalFileManager.shared.currentNotesPath
     @StateObject private var shortcutState = ShortcutCaptureState()
     @StateObject private var permissionState = PermissionState()
     @Environment(\.colorScheme) private var colorScheme
+    @State private var welcomeLogoAppeared = false
+    @State private var welcomeTextAppeared = false
+    @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleControl = AppDefaults.enableDoubleOption
 
     private var pages: [OnboardingPage] { OnboardingPage.allCases }
-    private var canMoveNext: Bool { page != .wake || shortcutState.hasShortcut }
+
+    private var canMoveNext: Bool {
+        switch page {
+        case .welcome: return true
+        case .wake: return shortcutState.hasShortcut
+        case .storage: return true
+        case .permissions: return true
+        case .done: return false
+        }
+    }
 
     var body: some View {
         ZStack {
             background
 
             VStack(spacing: 0) {
+                progressBar
+                    .padding(.top, 20)
+                    .padding(.bottom, 24)
+                    .padding(.horizontal, 28)
+
                 Spacer(minLength: 0)
 
-                VStack(spacing: 24) {
-                    Text(page.title)
-                        .font(.system(size: 32, weight: .semibold))
-
-                    pageContent
-                        .frame(maxWidth: 640)
-                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                Group {
+                    if page == .welcome {
+                        welcomeContent
+                    } else {
+                        splitContent
+                    }
                 }
+                .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 .animation(.easeInOut(duration: 0.18), value: page)
 
                 Spacer(minLength: 0)
 
                 footer
             }
-            .padding(28)
+            .padding(.horizontal, 28)
+            .padding(.bottom, 28)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
@@ -71,17 +89,118 @@ struct OnboardingView: View {
         }
     }
 
+    // MARK: - Welcome (Centered)
+
+    private var welcomeContent: some View {
+        VStack(spacing: 28) {
+            Image(colorScheme == .dark ? "brand-name-icon-dark" : "brand-name-icon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 80)
+                .scaleEffect(welcomeLogoAppeared ? 1 : 1.2)
+                .opacity(welcomeLogoAppeared ? 1 : 0)
+
+            Text(L("Flint lives in the background until you need it."))
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 480)
+                .opacity(welcomeTextAppeared ? 1 : 0)
+                .offset(y: welcomeTextAppeared ? 0 : 8)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.8)) {
+                welcomeLogoAppeared = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.easeOut(duration: 0.6)) {
+                    welcomeTextAppeared = true
+                }
+            }
+        }
+    }
+
+    // MARK: - Split Layout (Pages 2–5)
+
+    private var splitContent: some View {
+        HStack(spacing: 0) {
+            leftColumn
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            rightColumn
+                .frame(maxWidth: .infinity, maxHeight: 380)
+        }
+        .frame(maxWidth: 840)
+    }
+
     @ViewBuilder
-    private var pageContent: some View {
+    private var leftColumn: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(page.title)
+                .font(.custom("Georgia", size: 32).weight(.semibold))
+
+            if let subtitle = page.subtitle {
+                Text(subtitle)
+                    .font(.system(size: 15))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer().frame(height: 4)
+
+            leftPageContent
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.trailing, 28)
+    }
+
+    @ViewBuilder
+    private var leftPageContent: some View {
         switch page {
+        case .welcome:
+            EmptyView()
         case .wake:
             WakePage(state: shortcutState)
         case .storage:
-            StoragePage(storagePath: storagePath, onChangeLocation: selectCustomDirectory)
+            StoragePage(storagePath: storagePath)
         case .permissions:
             PermissionsPage(state: permissionState)
+        case .done:
+            DonePage(shortcutDescription: shortcutState.shownShortcut?.description ?? "", onFinish: finishOnboarding)
         }
     }
+
+    @ViewBuilder
+    private var rightColumn: some View {
+        Color.clear
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Progress Bar
+
+    private var progressBar: some View {
+        let progress = CGFloat((page.rawValue)) / CGFloat(pages.count - 1)
+        return GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                // Full bar — dim glass
+                Capsule()
+                    .fill(Color.primary.opacity(0.08))
+                    .frame(height: 6)
+
+                // Progress portion — brighter glass overlay
+                Capsule()
+                    .fill(Color.primary.opacity(0.18))
+                    .frame(width: max(6, geo.size.width * progress), height: 6)
+            }
+            .animation(.easeInOut(duration: 0.3), value: page)
+        }
+        .frame(width: 120, height: 6)
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Footer
 
     private var footer: some View {
         HStack {
@@ -98,19 +217,17 @@ struct OnboardingView: View {
 
             Spacer()
 
-            HStack(spacing: 8) {
-                ForEach(pages) { item in
-                    Capsule()
-                        .fill(item == page ? Color.accentColor.opacity(0.88) : Color.primary.opacity(0.12))
-                        .frame(width: item == page ? 20 : 8, height: 8)
-                }
-            }
-
-            Spacer()
-
-            if page == .permissions {
-                Button(L("New Note")) {
-                    finishOnboarding()
+            if page == .done {
+                Color.clear.frame(width: 36, height: 36)
+            } else if page == .storage {
+                Button {
+                    grantFolderAccessAndAdvance()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.open.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text(L("Grant Folder Access"))
+                    }
                 }
                 .buttonStyle(MinimalPrimaryButtonStyle())
             } else {
@@ -126,6 +243,8 @@ struct OnboardingView: View {
             }
         }
     }
+
+    // MARK: - Background
 
     private var background: some View {
         ZStack {
@@ -153,6 +272,8 @@ struct OnboardingView: View {
         .ignoresSafeArea()
     }
 
+    // MARK: - Navigation
+
     private func handlePageChange(_ newPage: OnboardingPage) {
         if newPage == .wake {
             shortcutState.activateIfNeeded()
@@ -168,22 +289,6 @@ struct OnboardingView: View {
     private func moveNext() {
         guard canMoveNext else { return }
         guard let index = pages.firstIndex(of: page), index < pages.count - 1 else { return }
-
-        // When leaving the storage page, open NSOpenPanel so the system grants
-        // folder-access permission right away (instead of prompting later).
-        if page == .storage {
-            let openPanel = NSOpenPanel()
-            openPanel.canChooseDirectories = true
-            openPanel.canChooseFiles = false
-            openPanel.allowsMultipleSelection = false
-            openPanel.title = L("Select Notes Directory")
-            openPanel.directoryURL = URL(fileURLWithPath: storagePath)
-
-            guard openPanel.runModal() == .OK, let selectedURL = openPanel.url else { return }
-            LocalFileManager.shared.setCustomDirectory(selectedURL)
-            storagePath = LocalFileManager.shared.currentNotesPath
-        }
-
         page = pages[index + 1]
     }
 
@@ -192,17 +297,18 @@ struct OnboardingView: View {
         page = pages[index - 1]
     }
 
-    private func selectCustomDirectory() {
+    private func grantFolderAccessAndAdvance() {
         let openPanel = NSOpenPanel()
         openPanel.canChooseDirectories = true
         openPanel.canChooseFiles = false
         openPanel.allowsMultipleSelection = false
         openPanel.title = L("Select Notes Directory")
+        openPanel.directoryURL = URL(fileURLWithPath: storagePath)
 
-        if openPanel.runModal() == .OK, let selectedPath = openPanel.url {
-            LocalFileManager.shared.setCustomDirectory(selectedPath)
-            storagePath = LocalFileManager.shared.currentNotesPath
-        }
+        guard openPanel.runModal() == .OK, let selectedURL = openPanel.url else { return }
+        LocalFileManager.shared.setCustomDirectory(selectedURL)
+        storagePath = LocalFileManager.shared.currentNotesPath
+        moveNext()
     }
 
     private func finishOnboarding() {
@@ -213,66 +319,106 @@ struct OnboardingView: View {
     }
 }
 
+// MARK: - Page Enum
+
 private enum OnboardingPage: Int, CaseIterable, Identifiable {
+    case welcome
     case wake
     case storage
     case permissions
+    case done
 
     var id: Int { rawValue }
 
     var title: String {
         switch self {
+        case .welcome:
+            return "Flint"
         case .wake:
-            return L("Press Two Keys")
+            return L("Summon It")
         case .storage:
-            return L("Save Here")
+            return L("Your Files, Your Folder")
         case .permissions:
-            return L("Open Permissions")
+            return L("Almost There")
+        case .done:
+            return L("Ready")
+        }
+    }
+
+    var subtitle: String? {
+        switch self {
+        case .welcome:
+            return nil
+        case .wake:
+            return L("Pick a shortcut. Flint stays hidden until you call.")
+        case .storage:
+            return L("Every note is a plain text file. No account, no cloud.")
+        case .permissions:
+            return nil
+        case .done:
+            return nil
         }
     }
 }
 
+// MARK: - Page Content Views
+
 private struct WakePage: View {
     @ObservedObject var state: ShortcutCaptureState
+    @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleControl = AppDefaults.enableDoubleOption
 
     var body: some View {
-        Button {
-            state.startRecording()
-        } label: {
-            HStack(spacing: 20) {
-                ShortcutKeyCap(
-                    text: state.modifierText,
-                    isRecording: state.isRecording,
-                    isFilled: !state.modifierText.isEmpty
-                )
+        VStack(alignment: .leading, spacing: 20) {
+            Button {
+                state.startRecording()
+            } label: {
+                HStack(spacing: 16) {
+                    ShortcutKeyCap(
+                        text: state.modifierText,
+                        isRecording: state.isRecording,
+                        isFilled: !state.modifierText.isEmpty
+                    )
 
-                ShortcutKeyCap(
-                    text: state.keyText,
-                    isRecording: state.isRecording,
-                    isFilled: !state.keyText.isEmpty
-                )
-            }
-            .overlay(alignment: .topTrailing) {
-                if state.didAccept {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundColor(.accentColor)
-                        .background(Circle().fill(Color.noteWindowBackground))
-                        .transition(.scale.combined(with: .opacity))
+                    ShortcutKeyCap(
+                        text: state.keyText,
+                        isRecording: state.isRecording,
+                        isFilled: !state.keyText.isEmpty
+                    )
                 }
+                .overlay(alignment: .topTrailing) {
+                    if state.didAccept {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundColor(.accentColor)
+                            .background(Circle().fill(Color.noteWindowBackground))
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                .animation(.spring(response: 0.22, dampingFraction: 0.8), value: state.didAccept)
             }
-            .animation(.spring(response: 0.22, dampingFraction: 0.8), value: state.didAccept)
+            .buttonStyle(.plain)
+
+            HStack(spacing: 10) {
+                Toggle("", isOn: $enableDoubleControl)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
+                Text(L("Enable Double press Control key"))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
         }
-        .buttonStyle(.plain)
+        .onAppear {
+            enableDoubleControl = true
+        }
     }
 }
 
 private struct StoragePage: View {
     let storagePath: String
-    let onChangeLocation: () -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             Image(systemName: "folder.fill")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.accentColor)
@@ -287,19 +433,7 @@ private struct StoragePage: View {
                 .foregroundColor(.secondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
-
-            Spacer(minLength: 12)
-
-            Button {
-                onChangeLocation()
-            } label: {
-                Image(systemName: "folder.badge.gearshape")
-                    .font(.system(size: 15, weight: .semibold))
-            }
-            .buttonStyle(MinimalIconButtonStyle())
         }
-        .padding(18)
-        .modifier(GlassCardModifier(cornerRadius: 20))
     }
 }
 
@@ -310,18 +444,127 @@ private struct PermissionsPage: View {
         VStack(spacing: 12) {
             PermissionRow(
                 title: L("Accessibility"),
+                reason: L("So Flint can appear anywhere, anytime."),
                 isEnabled: state.accessibilityEnabled,
                 action: state.requestAccessibility
             )
 
             PermissionRow(
                 title: L("Notifications"),
+                reason: L("So you know when a note is saved."),
                 isEnabled: state.notificationsEnabled,
                 action: state.requestNotifications
             )
         }
     }
 }
+
+private struct DonePage: View {
+    let shortcutDescription: String
+    let onFinish: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            tipRow(badge: shortcutDescription, text: L("to write something down"))
+            tipRow(badge: "Ctrl Ctrl", text: L("to pick up where you left off"))
+            tipRow(badge: "⌘C ⌘C", text: L("to capture from anywhere"))
+
+            Spacer().frame(height: 12)
+
+            Button(L("New Note")) {
+                onFinish()
+            }
+            .buttonStyle(MinimalPrimaryButtonStyle())
+        }
+    }
+
+    private func tipRow(badge: String, text: String) -> some View {
+        HStack(spacing: 12) {
+            Text(badge)
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .foregroundColor(.accentColor)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(Color.accentColor.opacity(0.10))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .frame(minWidth: 72, alignment: .leading)
+            Text(text)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.primary.opacity(0.8))
+        }
+    }
+}
+
+// MARK: - Right Column Illustrations
+
+private struct WakeIllustration: View {
+    var body: some View {
+        Image("quick-wake-demo")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(20)
+    }
+}
+
+private struct StorageIllustration: View {
+    var body: some View {
+        Image("local-private-demo")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(20)
+    }
+}
+
+private struct PermissionsIllustration: View {
+    var body: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "lock.shield.fill")
+                .font(.system(size: 64, weight: .light))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundColor(.accentColor)
+
+            HStack(spacing: 20) {
+                VStack(spacing: 6) {
+                    Image(systemName: "hand.raised.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.accentColor.opacity(0.7))
+                    Text(L("Accessibility"))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                VStack(spacing: 6) {
+                    Image(systemName: "bell.badge.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.accentColor.opacity(0.7))
+                    Text(L("Notifications"))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+}
+
+private struct DoneIllustration: View {
+    let colorScheme: ColorScheme
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(colorScheme == .dark ? "brand-name-icon-dark" : "brand-name-icon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 56)
+
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 48, weight: .light))
+                .foregroundColor(.accentColor)
+        }
+    }
+}
+
+// MARK: - Shortcut Capture State
 
 @MainActor
 private final class ShortcutCaptureState: ObservableObject {
@@ -388,6 +631,13 @@ private final class ShortcutCaptureState: ObservableObject {
         }
     }
 
+    private static let reservedKeys: Set<Int> = [
+        kVK_ANSI_W, kVK_ANSI_Q, kVK_ANSI_H, kVK_ANSI_M,   // Cmd+W/Q/H/M
+        kVK_ANSI_C, kVK_ANSI_V, kVK_ANSI_X, kVK_ANSI_A,   // Cmd+C/V/X/A
+        kVK_ANSI_Z, kVK_ANSI_S, kVK_ANSI_N, kVK_ANSI_O,   // Cmd+Z/S/N/O
+        kVK_ANSI_P, kVK_ANSI_F, kVK_Tab,                    // Cmd+P/F/Tab
+    ].map { Int($0) }.reduce(into: Set<Int>()) { $0.insert($1) }
+
     private func handle(_ event: NSEvent) -> NSEvent? {
         guard isRecording else { return event }
 
@@ -400,6 +650,13 @@ private final class ShortcutCaptureState: ObservableObject {
             let shortcut = KeyboardShortcuts.Shortcut(event: event),
             shortcut.modifiers.subtracting([.shift, .function]).isEmpty == false
         else {
+            NSSound.beep()
+            return nil
+        }
+
+        // Block system-reserved shortcuts (Cmd+W, Cmd+Q, etc.)
+        let onlyCmd = shortcut.modifiers.subtracting([.shift, .function]) == .command
+        if onlyCmd && Self.reservedKeys.contains(Int(event.keyCode)) {
             NSSound.beep()
             return nil
         }
@@ -418,6 +675,8 @@ private final class ShortcutCaptureState: ObservableObject {
         return nil
     }
 }
+
+// MARK: - Permission State
 
 @MainActor
 private final class PermissionState: ObservableObject {
@@ -468,6 +727,8 @@ private final class PermissionState: ObservableObject {
     }
 }
 
+// MARK: - Component Views
+
 private struct ShortcutKeyCap: View {
     let text: String
     let isRecording: Bool
@@ -475,15 +736,15 @@ private struct ShortcutKeyCap: View {
 
     var body: some View {
         Color.clear
-            .frame(width: 180, height: 180)
-            .modifier(GlassCardModifier(cornerRadius: 28, shadowOpacity: 0.06))
+            .frame(width: 140, height: 140)
+            .modifier(GlassCardModifier(cornerRadius: 24, shadowOpacity: 0.06))
             .overlay {
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 24)
                     .stroke(strokeColor, lineWidth: isRecording || isFilled ? 1.5 : 1)
             }
             .overlay {
                 Text(text)
-                    .font(.system(size: 52, weight: .semibold, design: .rounded))
+                    .font(.system(size: 42, weight: .semibold, design: .rounded))
                     .foregroundColor(.primary.opacity(isFilled ? 0.88 : 0))
             }
     }
@@ -503,26 +764,33 @@ private struct ShortcutKeyCap: View {
 
 private struct PermissionRow: View {
     let title: String
+    let reason: String
     let isEnabled: Bool
     let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
-            Text(title)
-                .font(.system(size: 15, weight: .medium))
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 14) {
+                Text(title)
+                    .font(.custom("Georgia", size: 15).weight(.medium))
 
-            Spacer()
+                Spacer()
 
-            if isEnabled {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.accentColor)
-            } else {
-                Button(L("Enable")) {
-                    action()
+                if isEnabled {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.accentColor)
+                } else {
+                    Button(L("Enable")) {
+                        action()
+                    }
+                    .buttonStyle(MinimalSecondaryButtonStyle())
                 }
-                .buttonStyle(MinimalSecondaryButtonStyle())
             }
+
+            Text(reason)
+                .font(.system(size: 12))
+                .foregroundColor(.secondary.opacity(0.8))
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
@@ -530,10 +798,12 @@ private struct PermissionRow: View {
     }
 }
 
+// MARK: - Button Styles
+
 private struct MinimalPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14, weight: .semibold))
+            .font(.custom("Georgia", size: 14).weight(.semibold))
             .foregroundColor(.white)
             .padding(.horizontal, 18)
             .frame(height: 38)
@@ -568,7 +838,7 @@ private struct MinimalIconButtonStyle: ButtonStyle {
 private struct MinimalSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .semibold))
+            .font(.custom("Georgia", size: 13).weight(.semibold))
             .foregroundColor(.accentColor)
             .padding(.horizontal, 14)
             .frame(height: 34)
@@ -581,6 +851,8 @@ private struct MinimalSecondaryButtonStyle: ButtonStyle {
             .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
     }
 }
+
+// MARK: - Glass Effects
 
 private struct GlassBackdrop: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -666,6 +938,8 @@ private struct CapsuleGlassModifier: ViewModifier {
         }
     }
 }
+
+// MARK: - Helpers
 
 private extension NSEvent.ModifierFlags {
     var displayText: String {

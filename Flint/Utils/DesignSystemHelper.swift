@@ -234,7 +234,7 @@ class WindowConfigurationHelper {
 extension NSColor {
     static let noteWindowBackgroundColor: NSColor = {
         let lightColor = NSColor(srgbRed: 1.0, green: 248.0 / 255.0, blue: 231.0 / 255.0, alpha: 1.0)
-        let darkColor = NSColor(srgbRed: 0.0, green: 7.0 / 255.0, blue: 24.0 / 255.0, alpha: 1.0)
+        let darkColor = NSColor(srgbRed: 0.12, green: 0.11, blue: 0.10, alpha: 1.0)
 
         return NSColor(name: nil) { appearance in
             switch appearance.bestMatch(from: [.darkAqua, .vibrantDark, .aqua, .vibrantLight]) {
@@ -494,7 +494,25 @@ class LocalizationManager: ObservableObject {
         "More": ["zh-Hans": "更多", "zh-Hant": "更多"],
         "Show Word Count": ["zh-Hans": "显示字数统计", "zh-Hant": "顯示字數統計"],
         "Enable AI Features": ["zh-Hans": "启用 AI 功能", "zh-Hant": "啟用 AI 功能"],
-        "Auto-generate titles, smart clipboard saving, and more.": ["zh-Hans": "自动生成标题、智能剪贴板保存等。", "zh-Hant": "自動產生標題、智慧剪貼簿儲存等。"]
+        "Auto-generate titles, smart clipboard saving, and more.": ["zh-Hans": "自动生成标题、智能剪贴板保存等。", "zh-Hant": "自動產生標題、智慧剪貼簿儲存等。"],
+
+        // Onboarding
+        "Summon It": ["zh-Hans": "唤醒它", "zh-Hant": "喚醒它"],
+        "Your Files, Your Folder": ["zh-Hans": "你的文件，你的文件夹", "zh-Hant": "你的檔案，你的資料夾"],
+        "Almost There": ["zh-Hans": "就快好了", "zh-Hant": "就快好了"],
+        "You're Set": ["zh-Hans": "准备就绪", "zh-Hant": "準備就緒"],
+        "Flint lives in the background until you need it.": ["zh-Hans": "Flint 安静地待在后台，直到你需要它。", "zh-Hant": "Flint 安靜地待在背景，直到你需要它。"],
+        "Pick a shortcut. Flint stays hidden until you call.": ["zh-Hans": "选一个快捷键。Flint 会隐藏，直到你呼唤。", "zh-Hant": "選一個快捷鍵。Flint 會隱藏，直到你呼喚。"],
+        "Every note is a plain text file. No account, no cloud.": ["zh-Hans": "每条笔记都是纯文本文件。无需账号，无需云端。", "zh-Hant": "每條筆記都是純文字檔案。無需帳號，無需雲端。"],
+        "So Flint can appear anywhere, anytime.": ["zh-Hans": "让 Flint 能随时随地出现。", "zh-Hant": "讓 Flint 能隨時隨地出現。"],
+        "So you know when a note is saved.": ["zh-Hans": "让你知道笔记已保存。", "zh-Hant": "讓你知道筆記已儲存。"],
+        "to write something down": ["zh-Hans": "随手记点什么", "zh-Hant": "隨手記點什麼"],
+        "to pick up where you left off": ["zh-Hans": "回到上次的位置", "zh-Hant": "回到上次的位置"],
+        "to capture from anywhere": ["zh-Hans": "从任何地方捕获", "zh-Hant": "從任何地方擷取"],
+        "Ready": ["zh-Hans": "准备好了", "zh-Hant": "準備好了"],
+        "Grant Folder Access": ["zh-Hans": "授权文件夹访问", "zh-Hant": "授權資料夾存取"],
+        "Enable Double press Control key": ["zh-Hans": "启用双击 Control 键", "zh-Hant": "啟用雙擊 Control 鍵"],
+        "Try it now — press": ["zh-Hans": "试试看 — 按下", "zh-Hant": "試試看 — 按下"]
     ]
 
     private init() {

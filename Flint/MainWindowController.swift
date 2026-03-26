@@ -136,7 +136,8 @@ class MainWindowController: NSWindowController {
     /// so the window stays stable while SwiftUI fills in the new content.
     private(set) var isHeightFrozen: Bool = false
     private var lastOptionKeyTapDate: Date?
-    private var optionKeyTapCount: Int = 0  // 用于记录 Option 键点击次数
+    private var optionKeyTapCount: Int = 0
+    private var ctrlCooldownUntil: Date?
     private var optionKeyTapMonitor: Any?
     private var globalOptionKeyTapMonitor: Any?
     private lazy var contentHostingView: NSHostingView<AnyView> = {
@@ -187,15 +188,20 @@ class MainWindowController: NSWindowController {
     // ... (existing code)
 
     private func checkTripleOptionKey(_ event: NSEvent) {
-        let onlyOptionPressed = event.modifierFlags.contains(.option) &&
+        let onlyControlPressed = event.modifierFlags.contains(.control) &&
             !event.modifierFlags.contains(.command) &&
-            !event.modifierFlags.contains(.control) &&
+            !event.modifierFlags.contains(.option) &&
             !event.modifierFlags.contains(.shift) &&
             !event.modifierFlags.contains(.function)
 
-        if onlyOptionPressed {
+        if onlyControlPressed {
             let now = Date()
-            
+
+            // Cooldown after a successful double/triple tap to prevent re-trigger
+            if let cooldown = ctrlCooldownUntil, now < cooldown {
+                return
+            }
+
             if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
                 optionKeyTapCount += 1
             } else {
@@ -210,14 +216,18 @@ class MainWindowController: NSWindowController {
                     name: Notification.Name("ShowRecentNotesNotification"),
                     object: nil
                 )
-                
+
                 optionKeyTapCount = 0
                 self.lastOptionKeyTapDate = nil
+                self.ctrlCooldownUntil = Date().addingTimeInterval(0.5)
                 return
             }
-            
+
             if optionKeyTapCount == 2 && UserDefaults.standard.bool(forKey: "enableDoubleOption") {
                 self.performQuickWakeup()
+                optionKeyTapCount = 0
+                self.lastOptionKeyTapDate = nil
+                self.ctrlCooldownUntil = Date().addingTimeInterval(0.5)
             }
             
         } else if event.modifierFlags.isEmpty {
