@@ -230,6 +230,13 @@ update_versions() {
     /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$PLIST_PATH"
     /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 1" "$PLIST_PATH"
 
+    # Write release channel so the app knows whether to check for beta updates
+    if /usr/libexec/PlistBuddy -c "Print :FlintReleaseChannel" "$PLIST_PATH" >/dev/null 2>&1; then
+        /usr/libexec/PlistBuddy -c "Set :FlintReleaseChannel $RELEASE_CHANNEL" "$PLIST_PATH"
+    else
+        /usr/libexec/PlistBuddy -c "Add :FlintReleaseChannel string $RELEASE_CHANNEL" "$PLIST_PATH"
+    fi
+
     sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $version;/g" Flint.xcodeproj/project.pbxproj
     sed -i '' "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = 1;/g" Flint.xcodeproj/project.pbxproj
     sed -i '' "s/return \".*\"/return \"$version\"/" FlintCLI/CLIVersion.swift
