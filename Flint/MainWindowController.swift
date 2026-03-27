@@ -137,7 +137,6 @@ class MainWindowController: NSWindowController {
     private(set) var isHeightFrozen: Bool = false
     private var lastOptionKeyTapDate: Date?
     private var optionKeyTapCount: Int = 0
-    private var ctrlCooldownUntil: Date?
     private var optionKeyTapMonitor: Any?
     private var globalOptionKeyTapMonitor: Any?
     private lazy var contentHostingView: NSHostingView<AnyView> = {
@@ -197,11 +196,6 @@ class MainWindowController: NSWindowController {
         if onlyControlPressed {
             let now = Date()
 
-            // Cooldown after a successful double/triple tap to prevent re-trigger
-            if let cooldown = ctrlCooldownUntil, now < cooldown {
-                return
-            }
-
             if let lastDate = self.lastOptionKeyTapDate, now.timeIntervalSince(lastDate) < 0.3 {
                 optionKeyTapCount += 1
             } else {
@@ -219,7 +213,6 @@ class MainWindowController: NSWindowController {
 
                 optionKeyTapCount = 0
                 self.lastOptionKeyTapDate = nil
-                self.ctrlCooldownUntil = Date().addingTimeInterval(0.5)
                 return
             }
 
@@ -227,7 +220,6 @@ class MainWindowController: NSWindowController {
                 self.performQuickWakeup()
                 optionKeyTapCount = 0
                 self.lastOptionKeyTapDate = nil
-                self.ctrlCooldownUntil = Date().addingTimeInterval(0.5)
             }
             
         } else if event.modifierFlags.isEmpty {
