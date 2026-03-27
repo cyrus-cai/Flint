@@ -31,6 +31,7 @@ enum KeychainHelper {
         guard !value.isEmpty else { return true }
         var addQuery = query
         addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         return status == errSecSuccess
     }
@@ -39,11 +40,20 @@ enum KeychainHelper {
         // Try loading with service-scoped query first
         var query = baseQuery(key: key)
         query[kSecReturnData as String] = true
+        query[kSecReturnAttributes as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: AnyObject?
         var status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecSuccess, let data = result as? Data,
+        if status == errSecSuccess,
+           let attrs = result as? [String: Any],
+           let data = attrs[kSecValueData as String] as? Data,
            let value = String(data: data, encoding: .utf8) {
+            // Re-save if missing kSecAttrAccessibleAfterFirstUnlock to stop future prompts
+            let accessible = attrs[kSecAttrAccessible as String] as? String
+            if accessible != (kSecAttrAccessibleAfterFirstUnlock as String) {
+                SecItemDelete(baseQuery(key: key) as CFDictionary)
+                save(key: key, value: value)
+            }
             return value
         }
 
@@ -57,7 +67,7 @@ enum KeychainHelper {
         status = SecItemCopyMatching(legacyQuery as CFDictionary, &result)
         if status == errSecSuccess, let data = result as? Data,
            let value = String(data: data, encoding: .utf8) {
-            // Migrate: delete legacy first, then save with service
+            // Migrate: delete legacy first, then save with service + proper accessibility
             let deleteLegacy: [String: Any] = [
                 kSecClass as String: kSecClassGenericPassword,
                 kSecAttrAccount as String: key,
@@ -87,6 +97,13 @@ final class MiniMaxAPI {
     private var currentTask: URLSessionDataTask?
     private var currentSession: URLSession?
 
+    /// In-memory cache of API keys, keyed by AIProvider.keychainKey.
+    /// Populated lazily on first real need — never at app launch — so Keychain
+    /// access (and its system permission dialog) only happens when the user has
+    /// explicitly enabled AI.
+    private static var keyCache: [String: String] = [:]
+    private static var keyCacheWarmed = false
+
     // MARK: - Provider
 
     static var currentProvider: AIProvider {
@@ -95,13 +112,31 @@ final class MiniMaxAPI {
     }
 
     private init() {
-        runMigrations()
+        // Only migrate UserDefaults-based settings (no Keychain access).
+        // Keychain migration happens lazily in warmCacheIfNeeded().
+        Self.runUserDefaultsMigrations()
     }
 
-    // MARK: - Migrations (idempotent)
+    // MARK: - Migrations & Cache
 
-    private func runMigrations() {
-        // 1. Legacy UserDefaults API key → Keychain (MiniMax only)
+    /// Migrate non-Keychain settings. Safe to call at launch.
+    private static func runUserDefaultsMigrations() {
+        // Legacy global AIModel → per-provider AIModel_minimax
+        if let oldModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel),
+           UserDefaults.standard.string(forKey: AIProvider.minimax.modelStorageKey) == nil {
+            UserDefaults.standard.set(oldModel, forKey: AIProvider.minimax.modelStorageKey)
+            UserDefaults.standard.removeObject(forKey: AppStorageKeys.AIModel)
+        }
+    }
+
+    /// Read all provider keys from Keychain into memory (once).
+    /// Also handles legacy UserDefaults → Keychain migration for MiniMax.
+    /// Called only when AI is actually needed, never at app launch.
+    private static func warmCacheIfNeeded() {
+        guard !keyCacheWarmed else { return }
+        keyCacheWarmed = true
+
+        // Legacy UserDefaults API key → Keychain (MiniMax only)
         let legacyKey = UserDefaults.standard.string(forKey: AppStorageKeys.miniMaxAPIKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if !legacyKey.isEmpty {
@@ -112,51 +147,46 @@ final class MiniMaxAPI {
             }
         }
 
-        // 2. Legacy global AIModel → per-provider AIModel_minimax
-        if let oldModel = UserDefaults.standard.string(forKey: AppStorageKeys.AIModel),
-           UserDefaults.standard.string(forKey: AIProvider.minimax.modelStorageKey) == nil {
-            UserDefaults.standard.set(oldModel, forKey: AIProvider.minimax.modelStorageKey)
-            UserDefaults.standard.removeObject(forKey: AppStorageKeys.AIModel)
+        // Warm cache for all providers
+        for provider in AIProvider.allCases {
+            let key = KeychainHelper.load(key: provider.keychainKey)?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            keyCache[provider.keychainKey] = key
         }
     }
-
-    /// Ensures migration runs once, even when accessed via static properties.
-    private static let ensureMigration: Void = {
-        _ = shared
-    }()
 
     // MARK: - API Key Management
 
     static var hasConfiguredAPIKey: Bool {
         guard UserDefaults.standard.bool(forKey: AppStorageKeys.enableAI) else { return false }
-        _ = ensureMigration
+        warmCacheIfNeeded()
         return !storedAPIKey.isEmpty
     }
 
     static func hasAPIKey(for provider: AIProvider) -> Bool {
-        _ = ensureMigration
-        let key = KeychainHelper.load(key: provider.keychainKey)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return !key.isEmpty
+        warmCacheIfNeeded()
+        return !(keyCache[provider.keychainKey] ?? "").isEmpty
     }
 
     private static var storedAPIKey: String {
-        _ = ensureMigration
-        return KeychainHelper.load(key: currentProvider.keychainKey)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return keyCache[currentProvider.keychainKey] ?? ""
     }
 
     @discardableResult
     static func setAPIKey(_ value: String, for provider: AIProvider? = nil) -> Bool {
         let p = provider ?? currentProvider
-        return KeychainHelper.save(key: p.keychainKey, value: value)
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ok = KeychainHelper.save(key: p.keychainKey, value: trimmed)
+        if ok {
+            keyCache[p.keychainKey] = trimmed
+        }
+        return ok
     }
 
     static func loadAPIKey(for provider: AIProvider? = nil) -> String {
-        _ = ensureMigration
+        warmCacheIfNeeded()
         let p = provider ?? currentProvider
-        return KeychainHelper.load(key: p.keychainKey)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return keyCache[p.keychainKey] ?? ""
     }
 
     private var apiKey: String {
@@ -296,6 +326,25 @@ final class MiniMaxAPI {
         let completion = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
         let rawContent = completion.choices.first?.message.content ?? ""
         return Self.sanitizeOutput(rawContent)
+    }
+
+    /// Lightweight connectivity test: sends a minimal request to verify the API key works.
+    func testConnectivity() async throws {
+        let messages = [ChatMessage(role: "user", content: "hi")]
+        let urlRequest = try makeRequest(messages: messages, stream: false, temperature: 0.1)
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AIServiceError.invalidResponse
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let errorBody = String(data: data, encoding: .utf8) ?? ""
+            throw AIServiceError.requestFailed(
+                statusCode: httpResponse.statusCode,
+                message: errorBody
+            )
+        }
     }
 
     private static func stripThinkingTags(from text: String) -> String {

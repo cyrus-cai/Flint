@@ -605,6 +605,26 @@ struct AISettingsView: View {
     @State private var enableAutoSaveClipboard: Bool = false
     @State private var mcpRegistered: Bool = false
 
+    // Connectivity test state
+    enum ConnTestState {
+        case idle, testing, success, failure(String)
+
+        var isTesting: Bool {
+            if case .testing = self { return true }
+            return false
+        }
+
+        var tooltip: String {
+            switch self {
+            case .idle: return L("Test API Key connectivity")
+            case .testing: return L("Testing…")
+            case .success: return L("Connection successful")
+            case .failure(let msg): return msg
+            }
+        }
+    }
+    @State private var connTestState: ConnTestState = .idle
+
     private var provider: AIProvider {
         AIProvider(rawValue: selectedProviderRaw) ?? .minimax
     }
@@ -685,6 +705,30 @@ struct AISettingsView: View {
                                 Text("sk-•••" + apiKey.suffix(4))
                                     .foregroundColor(.secondary)
                                     .font(.callout.monospaced())
+
+                                // Connectivity test
+                                Button {
+                                    runConnectivityTest()
+                                } label: {
+                                    switch connTestState {
+                                    case .idle:
+                                        Text(L("Test"))
+                                    case .testing:
+                                        ProgressView()
+                                            .controlSize(.small)
+                                            .frame(width: 16, height: 16)
+                                    case .success:
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                    case .failure:
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                                .controlSize(.small)
+                                .disabled(connTestState.isTesting)
+                                .help(connTestState.tooltip)
+
                                 Button(L("Change")) {
                                     isEditingAPIKey = true
                                 }
@@ -821,6 +865,7 @@ struct AISettingsView: View {
             // Provider switched: load its key and model, post notification
             loadProviderState()
             isEditingAPIKey = false
+            connTestState = .idle
             NotificationCenter.default.post(name: .aiProviderDidChange, object: nil)
         }
         .onChange(of: selectedModelId) { newValue in
@@ -893,6 +938,29 @@ struct AISettingsView: View {
             UserDefaults.standard.set(false, forKey: AppStorageKeys.enableAIRename)
             UserDefaults.standard.set(false, forKey: AppStorageKeys.enableAutoSaveClipboard)
             MaybeLikeService.shared.stopMonitoring()
+        }
+    }
+
+    // MARK: - API Connectivity Test
+
+    private func runConnectivityTest() {
+        connTestState = .testing
+        Task {
+            do {
+                try await MiniMaxAPI.shared.testConnectivity()
+                await MainActor.run { connTestState = .success }
+            } catch {
+                let message: String
+                if let aiError = error as? AIServiceError {
+                    message = aiError.localizedDescription
+                } else {
+                    message = error.localizedDescription
+                }
+                await MainActor.run { connTestState = .failure(message) }
+            }
+            // Reset to idle after a few seconds
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            await MainActor.run { connTestState = .idle }
         }
     }
 
