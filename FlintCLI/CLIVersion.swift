@@ -10,5 +10,5 @@ let kFlintCLIVersion: String = {
         return version
     }
     // Fallback: compile-time constant synced by release.sh
-    return "0.9.24"
+    return "0.9.25"
 }()
