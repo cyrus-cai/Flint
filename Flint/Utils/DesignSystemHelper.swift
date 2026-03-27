@@ -234,7 +234,7 @@ class WindowConfigurationHelper {
 extension NSColor {
     static let noteWindowBackgroundColor: NSColor = {
         let lightColor = NSColor(srgbRed: 1.0, green: 248.0 / 255.0, blue: 231.0 / 255.0, alpha: 1.0)
-        let darkColor = NSColor(srgbRed: 0.12, green: 0.11, blue: 0.10, alpha: 1.0)
+        let darkColor = NSColor(srgbRed: 0.15, green: 0.14, blue: 0.12, alpha: 1.0)
 
         return NSColor(name: nil) { appearance in
             switch appearance.bestMatch(from: [.darkAqua, .vibrantDark, .aqua, .vibrantLight]) {
@@ -512,7 +512,9 @@ class LocalizationManager: ObservableObject {
         "Ready": ["zh-Hans": "准备好了", "zh-Hant": "準備好了"],
         "Grant Folder Access": ["zh-Hans": "授权文件夹访问", "zh-Hant": "授權資料夾存取"],
         "Enable Double press Control key": ["zh-Hans": "启用双击 Control 键", "zh-Hant": "啟用雙擊 Control 鍵"],
-        "Try it now — press": ["zh-Hans": "试试看 — 按下", "zh-Hant": "試試看 — 按下"]
+        "Try it now — press": ["zh-Hans": "试试看 — 按下", "zh-Hant": "試試看 — 按下"],
+        "Double Press Control": ["zh-Hans": "双击 Control", "zh-Hant": "雙擊 Control"],
+        "This is how you summon Flint. Try it now.": ["zh-Hans": "这就是唤醒 Flint 的方式。试试看。", "zh-Hant": "這就是喚醒 Flint 的方式。試試看。"]
     ]
 
     private init() {

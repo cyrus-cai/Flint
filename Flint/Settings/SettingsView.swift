@@ -331,10 +331,11 @@ struct GeneralSettingsView: View {
                     HStack {
                         Text(L("Notifications"))
                         Spacer()
-                        Circle()
-                            .fill(notificationAuthorized ? Color.green : Color.secondary.opacity(0.3))
-                            .frame(width: 8, height: 8)
-                        if !notificationAuthorized {
+                        if notificationAuthorized {
+                            Text(L("Enabled"))
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                        } else {
                             Button(L("Open System Settings")) {
                                 openNotificationSettings()
                             }

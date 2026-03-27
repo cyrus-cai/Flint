@@ -7,9 +7,7 @@
 
 import AppKit
 import ApplicationServices
-import Carbon.HIToolbox
 import Foundation
-import KeyboardShortcuts
 import SwiftUI
 import UserNotifications
 
@@ -17,11 +15,13 @@ struct OnboardingView: View {
     @Binding var isFirstLaunch: Bool
     @State private var page: OnboardingPage = .welcome
     @State private var storagePath = LocalFileManager.shared.currentNotesPath
-    @StateObject private var shortcutState = ShortcutCaptureState()
     @StateObject private var permissionState = PermissionState()
     @Environment(\.colorScheme) private var colorScheme
     @State private var welcomeLogoAppeared = false
-    @State private var welcomeTextAppeared = false
+    @State private var controlKeyMonitor: Any?
+    @State private var controlPressCount = 0
+    @State private var lastControlPressDate: Date?
+    @State private var controlFlash = false
     @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleControl = AppDefaults.enableDoubleOption
 
     private var pages: [OnboardingPage] { OnboardingPage.allCases }
@@ -29,7 +29,7 @@ struct OnboardingView: View {
     private var canMoveNext: Bool {
         switch page {
         case .welcome: return true
-        case .wake: return shortcutState.hasShortcut
+        case .wake: return true
         case .storage: return true
         case .permissions: return true
         case .done: return false
@@ -69,6 +69,11 @@ struct OnboardingView: View {
         .onAppear {
             handlePageChange(page)
             permissionState.refresh()
+            enableDoubleControl = true
+            startControlKeyMonitor()
+        }
+        .onDisappear {
+            stopControlKeyMonitor()
         }
         .onChange(of: page) { _, newPage in
             handlePageChange(newPage)
@@ -78,46 +83,22 @@ struct OnboardingView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             permissionState.refresh()
-            shortcutState.sync()
-        }
-        .onChange(of: shortcutState.didAccept) { _, accepted in
-            if accepted {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    moveNext()
-                }
-            }
         }
     }
 
     // MARK: - Welcome (Centered)
 
     private var welcomeContent: some View {
-        VStack(spacing: 28) {
-            Image(colorScheme == .dark ? "brand-name-icon-dark" : "brand-name-icon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: 80)
-                .scaleEffect(welcomeLogoAppeared ? 1 : 1.2)
-                .opacity(welcomeLogoAppeared ? 1 : 0)
-
-            Text(L("Flint lives in the background until you need it."))
-                .font(.system(size: 16))
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 480)
-                .opacity(welcomeTextAppeared ? 1 : 0)
-                .offset(y: welcomeTextAppeared ? 0 : 8)
-        }
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
-                welcomeLogoAppeared = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                withAnimation(.easeOut(duration: 0.6)) {
-                    welcomeTextAppeared = true
+        Image(colorScheme == .dark ? "brand-name-icon-dark" : "brand-name-icon")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(height: 80)
+            .opacity(welcomeLogoAppeared ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.8)) {
+                    welcomeLogoAppeared = true
                 }
             }
-        }
     }
 
     // MARK: - Split Layout (Pages 2–5)
@@ -162,13 +143,13 @@ struct OnboardingView: View {
         case .welcome:
             EmptyView()
         case .wake:
-            WakePage(state: shortcutState)
+            EmptyView()
         case .storage:
             StoragePage(storagePath: storagePath)
         case .permissions:
             PermissionsPage(state: permissionState)
         case .done:
-            DonePage(shortcutDescription: shortcutState.shownShortcut?.description ?? "", onFinish: finishOnboarding)
+            DonePage(onFinish: finishOnboarding)
         }
     }
 
@@ -203,7 +184,7 @@ struct OnboardingView: View {
     // MARK: - Footer
 
     private var footer: some View {
-        HStack {
+        HStack(alignment: .bottom) {
             Button {
                 moveBack()
             } label: {
@@ -218,7 +199,7 @@ struct OnboardingView: View {
             Spacer()
 
             if page == .done {
-                Color.clear.frame(width: 36, height: 36)
+                EmptyView()
             } else if page == .storage {
                 Button {
                     grantFolderAccessAndAdvance()
@@ -231,17 +212,51 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(MinimalPrimaryButtonStyle())
             } else {
-                Button {
-                    moveNext()
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .buttonStyle(MinimalIconButtonStyle())
-                .disabled(!canMoveNext)
-                .opacity(canMoveNext ? 1 : 0.35)
+                controlHintLabel
             }
         }
+    }
+
+    private var controlHintLabel: some View {
+        VStack(alignment: .trailing, spacing: 6) {
+            // Mac-style keycap: ⌃ top-right, control bottom-left
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(controlFlash
+                        ? Color.accentColor.opacity(0.18)
+                        : Color.primary.opacity(0.04))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(controlFlash
+                                ? Color.accentColor.opacity(0.35)
+                                : Color.primary.opacity(0.12), lineWidth: 0.5)
+                    )
+                    .shadow(color: .black.opacity(0.06), radius: 1, y: 1)
+
+                Text("⌃")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(controlFlash ? .accentColor : .primary.opacity(0.55))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(.top, 8)
+                    .padding(.trailing, 10)
+
+                Text("control")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(controlFlash ? .accentColor : .primary.opacity(0.55))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    .padding(.bottom, 8)
+                    .padding(.leading, 10)
+            }
+            .frame(width: 80, height: 80)
+            .scaleEffect(controlFlash ? 0.92 : 1)
+            .animation(.easeOut(duration: 0.1), value: controlFlash)
+
+            // Caption below keycap, right-aligned with keycap
+            Text(page == .wake ? "× 2" : "Press to continue")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.secondary.opacity(0.6))
+        }
+        .opacity(canMoveNext ? 1 : 0.35)
     }
 
     // MARK: - Background
@@ -275,21 +290,68 @@ struct OnboardingView: View {
     // MARK: - Navigation
 
     private func handlePageChange(_ newPage: OnboardingPage) {
-        if newPage == .wake {
-            shortcutState.activateIfNeeded()
-        } else {
-            shortcutState.stopRecording(restoreDisplay: true)
-        }
-
         if newPage == .permissions {
             permissionState.refresh()
         }
+        controlPressCount = 0
     }
 
     private func moveNext() {
         guard canMoveNext else { return }
         guard let index = pages.firstIndex(of: page), index < pages.count - 1 else { return }
         page = pages[index + 1]
+    }
+
+    // MARK: - Control Key Monitor
+
+    private func startControlKeyMonitor() {
+        controlKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+            // Only react to pure Control (no Cmd/Option/Shift)
+            let onlyControl = event.modifierFlags.contains(.control)
+                && !event.modifierFlags.contains(.command)
+                && !event.modifierFlags.contains(.option)
+                && !event.modifierFlags.contains(.shift)
+
+            guard onlyControl else { return event }
+
+            // Skip pages that shouldn't advance via Control
+            guard page != .storage, page != .done else { return event }
+
+            // Visual flash feedback
+            controlFlash = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                controlFlash = false
+            }
+
+            let now = Date()
+
+            if page == .wake {
+                // Double-tap Control (within 0.3s) to advance
+                if let last = lastControlPressDate, now.timeIntervalSince(last) < 0.3 {
+                    controlPressCount += 1
+                    lastControlPressDate = nil
+                    moveNext()
+                } else {
+                    controlPressCount += 1
+                    lastControlPressDate = now
+                }
+            } else {
+                // Single press to advance
+                controlPressCount += 1
+                if canMoveNext {
+                    moveNext()
+                }
+            }
+
+            return event
+        }
+    }
+
+    private func stopControlKeyMonitor() {
+        if let monitor = controlKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            controlKeyMonitor = nil
+        }
     }
 
     private func moveBack() {
@@ -335,7 +397,7 @@ private enum OnboardingPage: Int, CaseIterable, Identifiable {
         case .welcome:
             return "Flint"
         case .wake:
-            return L("Summon It")
+            return L("Double Press Control")
         case .storage:
             return L("Your Files, Your Folder")
         case .permissions:
@@ -350,7 +412,7 @@ private enum OnboardingPage: Int, CaseIterable, Identifiable {
         case .welcome:
             return nil
         case .wake:
-            return L("Pick a shortcut. Flint stays hidden until you call.")
+            return L("This is how you summon Flint. Try it now.")
         case .storage:
             return L("Every note is a plain text file. No account, no cloud.")
         case .permissions:
@@ -362,57 +424,6 @@ private enum OnboardingPage: Int, CaseIterable, Identifiable {
 }
 
 // MARK: - Page Content Views
-
-private struct WakePage: View {
-    @ObservedObject var state: ShortcutCaptureState
-    @AppStorage(AppStorageKeys.enableDoubleOption) private var enableDoubleControl = AppDefaults.enableDoubleOption
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Button {
-                state.startRecording()
-            } label: {
-                HStack(spacing: 16) {
-                    ShortcutKeyCap(
-                        text: state.modifierText,
-                        isRecording: state.isRecording,
-                        isFilled: !state.modifierText.isEmpty
-                    )
-
-                    ShortcutKeyCap(
-                        text: state.keyText,
-                        isRecording: state.isRecording,
-                        isFilled: !state.keyText.isEmpty
-                    )
-                }
-                .overlay(alignment: .topTrailing) {
-                    if state.didAccept {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(.accentColor)
-                            .background(Circle().fill(Color.noteWindowBackground))
-                            .transition(.scale.combined(with: .opacity))
-                    }
-                }
-                .animation(.spring(response: 0.22, dampingFraction: 0.8), value: state.didAccept)
-            }
-            .buttonStyle(.plain)
-
-            HStack(spacing: 10) {
-                Toggle("", isOn: $enableDoubleControl)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .controlSize(.small)
-                Text(L("Enable Double press Control key"))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.secondary)
-            }
-        }
-        .onAppear {
-            enableDoubleControl = true
-        }
-    }
-}
 
 private struct StoragePage: View {
     let storagePath: String
@@ -460,13 +471,11 @@ private struct PermissionsPage: View {
 }
 
 private struct DonePage: View {
-    let shortcutDescription: String
     let onFinish: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            tipRow(badge: shortcutDescription, text: L("to write something down"))
-            tipRow(badge: "Ctrl Ctrl", text: L("to pick up where you left off"))
+            tipRow(badge: "Ctrl Ctrl", text: L("to write something down"))
             tipRow(badge: "⌘C ⌘C", text: L("to capture from anywhere"))
 
             Spacer().frame(height: 12)
@@ -564,118 +573,6 @@ private struct DoneIllustration: View {
     }
 }
 
-// MARK: - Shortcut Capture State
-
-@MainActor
-private final class ShortcutCaptureState: ObservableObject {
-    @Published private(set) var shownShortcut: KeyboardShortcuts.Shortcut?
-    @Published private(set) var isRecording = false
-    @Published var didAccept = false
-
-    private var eventMonitor: Any?
-
-    var hasShortcut: Bool { shownShortcut != nil }
-
-    var modifierText: String {
-        guard let shortcut = shownShortcut else { return "" }
-        return shortcut.modifiers.displayText
-    }
-
-    var keyText: String {
-        guard let shortcut = shownShortcut else { return "" }
-        let whole = shortcut.description
-        let modifiers = shortcut.modifiers.displayText
-        guard !modifiers.isEmpty, whole.hasPrefix(modifiers) else { return whole }
-        return String(whole.dropFirst(modifiers.count))
-    }
-
-    init() {
-        shownShortcut = KeyboardShortcuts.getShortcut(for: .quickWakeup)
-    }
-
-    func sync() {
-        if !isRecording {
-            shownShortcut = KeyboardShortcuts.getShortcut(for: .quickWakeup)
-        }
-    }
-
-    func activateIfNeeded() {
-        sync()
-
-        if shownShortcut == nil {
-            startRecording()
-        }
-    }
-
-    func startRecording() {
-        stopRecording(restoreDisplay: false)
-        shownShortcut = nil
-        isRecording = true
-
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self else { return event }
-            return self.handle(event)
-        }
-    }
-
-    func stopRecording(restoreDisplay: Bool) {
-        if let eventMonitor {
-            NSEvent.removeMonitor(eventMonitor)
-            self.eventMonitor = nil
-        }
-
-        isRecording = false
-
-        if restoreDisplay {
-            shownShortcut = KeyboardShortcuts.getShortcut(for: .quickWakeup)
-        }
-    }
-
-    private static let reservedKeys: Set<Int> = [
-        kVK_ANSI_W, kVK_ANSI_Q, kVK_ANSI_H, kVK_ANSI_M,   // Cmd+W/Q/H/M
-        kVK_ANSI_C, kVK_ANSI_V, kVK_ANSI_X, kVK_ANSI_A,   // Cmd+C/V/X/A
-        kVK_ANSI_Z, kVK_ANSI_S, kVK_ANSI_N, kVK_ANSI_O,   // Cmd+Z/S/N/O
-        kVK_ANSI_P, kVK_ANSI_F, kVK_Tab,                    // Cmd+P/F/Tab
-    ].map { Int($0) }.reduce(into: Set<Int>()) { $0.insert($1) }
-
-    private func handle(_ event: NSEvent) -> NSEvent? {
-        guard isRecording else { return event }
-
-        if event.modifierFlags.isEmpty, event.keyCode == kVK_Escape {
-            stopRecording(restoreDisplay: true)
-            return nil
-        }
-
-        guard
-            let shortcut = KeyboardShortcuts.Shortcut(event: event),
-            shortcut.modifiers.subtracting([.shift, .function]).isEmpty == false
-        else {
-            NSSound.beep()
-            return nil
-        }
-
-        // Block system-reserved shortcuts (Cmd+W, Cmd+Q, etc.)
-        let onlyCmd = shortcut.modifiers.subtracting([.shift, .function]) == .command
-        if onlyCmd && Self.reservedKeys.contains(Int(event.keyCode)) {
-            NSSound.beep()
-            return nil
-        }
-
-        KeyboardShortcuts.setShortcut(shortcut, for: .quickWakeup)
-        shownShortcut = shortcut
-        stopRecording(restoreDisplay: false)
-        didAccept = true
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
-            Task { @MainActor in
-                self?.didAccept = false
-            }
-        }
-
-        return nil
-    }
-}
-
 // MARK: - Permission State
 
 @MainActor
@@ -729,39 +626,6 @@ private final class PermissionState: ObservableObject {
 
 // MARK: - Component Views
 
-private struct ShortcutKeyCap: View {
-    let text: String
-    let isRecording: Bool
-    let isFilled: Bool
-
-    var body: some View {
-        Color.clear
-            .frame(width: 140, height: 140)
-            .modifier(GlassCardModifier(cornerRadius: 24, shadowOpacity: 0.06))
-            .overlay {
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(strokeColor, lineWidth: isRecording || isFilled ? 1.5 : 1)
-            }
-            .overlay {
-                Text(text)
-                    .font(.system(size: 42, weight: .semibold, design: .rounded))
-                    .foregroundColor(.primary.opacity(isFilled ? 0.88 : 0))
-            }
-    }
-
-    private var strokeColor: Color {
-        if isRecording {
-            return Color.accentColor.opacity(0.48)
-        }
-
-        if isFilled {
-            return Color.accentColor.opacity(0.20)
-        }
-
-        return Color.primary.opacity(0.08)
-    }
-}
-
 private struct PermissionRow: View {
     let title: String
     let reason: String
@@ -777,8 +641,8 @@ private struct PermissionRow: View {
                 Spacer()
 
                 if isEnabled {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18, weight: .semibold))
+                    Text(L("Enabled"))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.accentColor)
                 } else {
                     Button(L("Enable")) {
@@ -834,6 +698,7 @@ private struct MinimalIconButtonStyle: ButtonStyle {
             .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
     }
 }
+
 
 private struct MinimalSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -936,31 +801,5 @@ private struct CapsuleGlassModifier: ViewModifier {
                 )
                 .shadow(color: .black.opacity(shadowOpacity), radius: 14, x: 0, y: 8)
         }
-    }
-}
-
-// MARK: - Helpers
-
-private extension NSEvent.ModifierFlags {
-    var displayText: String {
-        var value = ""
-
-        if contains(.control) {
-            value += "⌃"
-        }
-
-        if contains(.option) {
-            value += "⌥"
-        }
-
-        if contains(.shift) {
-            value += "⇧"
-        }
-
-        if contains(.command) {
-            value += "⌘"
-        }
-
-        return value
     }
 }
