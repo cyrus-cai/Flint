@@ -66,7 +66,14 @@ class AutoUpdater {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let releases = try decoder.decode([GitHubRelease].self, from: data)
 
-        guard let release = releases.first(where: { !$0.draft && !$0.tagName.contains("-beta") }) else {
+        // If the current build is a beta (version contains "-beta"), include
+        // beta releases when looking for updates; otherwise only match stable.
+        let currentIsBeta = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)?
+            .contains("-beta") ?? false
+
+        guard let release = releases.first(where: {
+            !$0.draft && (currentIsBeta || !$0.tagName.contains("-beta"))
+        }) else {
             return nil
         }
 
@@ -279,8 +286,15 @@ class AutoUpdater {
     }
 
     func compareVersions(_ version1: String, isGreaterThan version2: String) -> Bool {
-        let v1Components = version1.split(separator: ".").compactMap { Int($0) }
-        let v2Components = version2.split(separator: ".").compactMap { Int($0) }
+        // Strip pre-release suffixes (e.g. "-beta") so "17-beta" parses as 17
+        func numericComponents(_ version: String) -> [Int] {
+            version.split(separator: ".").compactMap { part in
+                let digits = part.prefix(while: { $0.isNumber })
+                return Int(digits)
+            }
+        }
+        let v1Components = numericComponents(version1)
+        let v2Components = numericComponents(version2)
 
         let maxLength = max(v1Components.count, v2Components.count)
 
