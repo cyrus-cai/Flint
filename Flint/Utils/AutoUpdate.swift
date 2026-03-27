@@ -67,16 +67,11 @@ class AutoUpdater {
         let releases = try decoder.decode([GitHubRelease].self, from: data)
 
         // Determine if this build is a beta release.
-        // Check the FlintReleaseChannel plist key (set by release.sh),
-        // falling back to whether the version string contains "-beta".
+        // Check the FlintReleaseChannel plist key (set by release.sh).
+        // If absent (older builds before this key was introduced), assume beta
+        // since all published versions so far are beta.
         let channel = Bundle.main.infoDictionary?["FlintReleaseChannel"] as? String
-        let currentIsBeta: Bool
-        if let channel {
-            currentIsBeta = (channel == "beta")
-        } else {
-            currentIsBeta = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)?
-                .contains("-beta") ?? false
-        }
+        let currentIsBeta = (channel ?? "beta") == "beta"
 
         guard let release = releases.first(where: {
             !$0.draft && (currentIsBeta || !$0.tagName.contains("-beta"))
