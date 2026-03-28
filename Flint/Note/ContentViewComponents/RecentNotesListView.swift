@@ -749,7 +749,20 @@ struct NoteRow: View {
                     }
                     .padding(.vertical, 4)
                 }
-                
+
+                Button(action: {
+                    NSWorkspace.shared.activateFileViewerSelecting([note.fileURL])
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "folder")
+                            .imageScale(.medium)
+                            .foregroundColor(.secondary)
+                        Text(L("Show in Finder"))
+                            .font(.system(size: 13))
+                    }
+                    .padding(.vertical, 4)
+                }
+
                 Button(action: onDelete) {
                     HStack(spacing: 8) {
                         Image(systemName: "trash")
