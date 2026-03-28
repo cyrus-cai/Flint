@@ -915,6 +915,9 @@ class MaybeLikeService: ObservableObject {
     // Configuration
     private let minChars = 5     // Ignore very short copies
     private let maxContextChars = 300 // For AI context window optimization
+
+    // Deduplication: track recently processed content to avoid duplicate AI calls and saves
+    private var lastProcessedContent: String?
     
     private init() {
         self.lastChangeCount = pasteboard.changeCount
@@ -989,6 +992,13 @@ class MaybeLikeService: ObservableObject {
         if content.count < minChars { return }
         if CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: content)) { return }
         
+        // Deduplication: skip if identical content was already processed
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let last = lastProcessedContent, trimmed == last {
+            return
+        }
+        lastProcessedContent = trimmed
+
         processContent(content)
     }
     
@@ -1002,16 +1012,16 @@ class MaybeLikeService: ObservableObject {
         Task {
             do {
                 let sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "Unknown"
-                if sourceApp == "Flint" { return } 
-                
+                if sourceApp == "Flint" { return }
+
                 print("MaybeLike: Asking AI to check content relevance...")
                 let isRelevent = try await MiniMaxAPI.shared.checkRelevance(text: aiInput)
-                
+
                 if isRelevent {
                     print("MaybeLike: AI accepted content, generating title...")
                     let aiTitle = try await MiniMaxAPI.shared.generateTitle(text: aiInput)
                     print("MaybeLike: Generated title: \(aiTitle)")
-                    
+
                     await MainActor.run {
                         self.saveToNotes(content, sourceApp: sourceApp, title: aiTitle)
                     }
@@ -1029,7 +1039,7 @@ class MaybeLikeService: ObservableObject {
     private func saveToNotes(_ content: String, sourceApp: String, title: String) {
         let safeTitle = title.map { $0 == "/" || $0 == ":" ? "-" : $0 }
         let finalTitle: String
-        
+
         if String(safeTitle).trimmingCharacters(in: .whitespaces).isEmpty {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -1037,9 +1047,9 @@ class MaybeLikeService: ObservableObject {
         } else {
             finalTitle = String(safeTitle)
         }
-        
+
         let textWithMetadata = "<!-- Source: \(sourceApp) -->\n<!-- Type: MaybeLike -->\n\(content)"
-        
+
         if var fileURL = LocalFileManager.shared.fileURL(for: finalTitle) {
             if FileManager.default.fileExists(atPath: fileURL.path) {
                 let dateFormatter = DateFormatter()
@@ -1050,7 +1060,7 @@ class MaybeLikeService: ObservableObject {
                     fileURL = uniqueURL
                 }
             }
-            
+
             do {
                 try textWithMetadata.write(to: fileURL, atomically: true, encoding: .utf8)
                 print("MaybeLike: Saved note to \(fileURL.path)")
