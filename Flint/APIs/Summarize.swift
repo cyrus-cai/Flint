@@ -123,9 +123,8 @@ final class MiniMaxAPI {
             object: nil,
             queue: .main
         ) { _ in
-            if Self.keyCacheWarmed {
-                Self.syncHasKeyFlag()
-            }
+            guard Self.keyCacheWarmed else { return }
+            Self.syncHasKeyFlag()
         }
     }
 
@@ -185,9 +184,13 @@ final class MiniMaxAPI {
         guard UserDefaults.standard.bool(forKey: AppStorageKeys.enableAI) else { return false }
         // Before Keychain cache is warmed, use a lightweight UserDefaults flag
         // so that app-launch code paths never trigger a Keychain permission dialog.
-        if !keyCacheWarmed {
+        // If the flag has never been set (upgrade from older version), fall through
+        // to warmCacheIfNeeded() so existing users don't lose AI features.
+        if !keyCacheWarmed,
+           UserDefaults.standard.object(forKey: AppStorageKeys.hasAPIKeyInKeychain) != nil {
             return UserDefaults.standard.bool(forKey: AppStorageKeys.hasAPIKeyInKeychain)
         }
+        warmCacheIfNeeded()
         return !storedAPIKey.isEmpty
     }
 
