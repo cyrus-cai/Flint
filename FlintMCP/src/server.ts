@@ -11,7 +11,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 const SERVER_NAME = "flint-notes";
-const SERVER_VERSION = "0.9.28";
+const SERVER_VERSION = "0.9.29";
 
 type ToolArgs = {
     [key: string]: unknown;
