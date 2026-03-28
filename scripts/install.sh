@@ -37,7 +37,7 @@ if [ -n "${GITHUB_TOKEN:-}" ]; then
 fi
 
 resolve_release_asset() {
-    curl -fsSL "${AUTH_HEADER[@]}" "https://api.github.com/repos/$REPO/releases?per_page=50" |
+    curl -fsSL ${AUTH_HEADER[@]+"${AUTH_HEADER[@]}"} "https://api.github.com/repos/$REPO/releases?per_page=50" |
         jq -r --arg asset "$ASSET_NAME" '
             [
                 .[]
@@ -104,7 +104,7 @@ fi
 echo "==> Downloading $APP_NAME from $RELEASE_TAG"
 if [ -n "${GITHUB_TOKEN:-}" ]; then
     # Private repo: download via API with Accept header for binary
-    curl -fL "${AUTH_HEADER[@]}" -H "Accept: application/octet-stream" "$API_URL" -o "$TEMP_DIR/$ASSET_NAME"
+    curl -fL ${AUTH_HEADER[@]+"${AUTH_HEADER[@]}"} -H "Accept: application/octet-stream" "$API_URL" -o "$TEMP_DIR/$ASSET_NAME"
 else
     # Public repo: browser_download_url works directly
     curl -fL "$BROWSER_URL" -o "$TEMP_DIR/$ASSET_NAME"
