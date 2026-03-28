@@ -1017,8 +1017,9 @@ class MaybeLikeService: ObservableObject {
         let trimmedForFilter = content.trimmingCharacters(in: .whitespacesAndNewlines)
         let lines = trimmedForFilter.components(separatedBy: .newlines).filter { !$0.isEmpty }
 
-        // Single-line content under 50 chars is almost never worth saving
-        if lines.count == 1 && trimmedForFilter.count < 50 { return }
+        // Single-line content under 50 chars is usually transient,
+        // but keep short code/command snippets for AI classification.
+        if lines.count == 1 && trimmedForFilter.count < 50 && !looksLikeCode(trimmedForFilter) { return }
 
         // Pure URLs without context
         if lines.count == 1,
@@ -1074,8 +1075,18 @@ class MaybeLikeService: ObservableObject {
         }
     }
     
-    // Private method removed as it is now in MiniMaxAPI
-    
+    private func looksLikeCode(_ text: String) -> Bool {
+        let codeChars: [Character] = ["{", "}", "[", "]", "(", ")", ";", "=", "<", ">", "|", "&"]
+        if text.contains(where: { codeChars.contains($0) }) { return true }
+        if text.contains("=>") || text.contains("::") || text.contains("->") { return true }
+        let prefixes = ["git ", "npm ", "pnpm ", "yarn ", "brew ", "docker ", "kubectl ",
+                        "cd ", "ls ", "rm ", "cp ", "mv ", "cat ", "echo ", "sudo ",
+                        "curl ", "wget ", "pip ", "python ", "swift ", "xcodebuild "]
+        let lower = text.lowercased().trimmingCharacters(in: .whitespaces)
+        if prefixes.contains(where: { lower.hasPrefix($0) }) { return true }
+        return false
+    }
+
     private func saveToNotes(_ content: String, sourceApp: String, title: String) {
         let safeTitle = title.map { $0 == "/" || $0 == ":" ? "-" : $0 }
         let finalTitle: String
