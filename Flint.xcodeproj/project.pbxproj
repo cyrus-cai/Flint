@@ -38,6 +38,7 @@
 		A37D47532CDE6ECF00B2E727 /* FlintUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37D47522CDE6ECF00B2E727 /* FlintUITestsLaunchTests.swift */; };
 		A3847FA62CFF3C3300722D35 /* SettingsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3847FA52CFF3C3300722D35 /* SettingsListView.swift */; };
 		A398BF7F2D394A6D00187871 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398BF7E2D394A6D00187871 /* AppConfig.swift */; };
+		88F669102B62BC4C0DF5F1F5 /* FlintSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2774B53EEEBA37062414BD92 /* FlintSkill.swift */; };
 		A3A50DA42D3AB27D00382A2A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A50DA32D3AB27D00382A2A /* OnboardingView.swift */; };
 		A3A50DA62D3AB2FD00382A2A /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */; };
 		A3AICONF2D910A0100000001 /* AIConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AICONF2D910A0100000002 /* AIConfirmationView.swift */; };
@@ -125,6 +126,7 @@
 		A37D47522CDE6ECF00B2E727 /* FlintUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlintUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		A3847FA52CFF3C3300722D35 /* SettingsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListView.swift; sourceTree = "<group>"; };
 		A398BF7E2D394A6D00187871 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		2774B53EEEBA37062414BD92 /* FlintSkill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlintSkill.swift; sourceTree = "<group>"; };
 		A3A50DA32D3AB27D00382A2A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A3A50DA52D3AB2FD00382A2A /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindowController.swift; sourceTree = "<group>"; };
 		A3AICONF2D910A0100000002 /* AIConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfirmationView.swift; sourceTree = "<group>"; };
@@ -348,6 +350,7 @@
 			children = (
 				A37C396C2D5E501F003EBCC6 /* KeyboardShortcutNames.swift */,
 				A398BF7E2D394A6D00187871 /* AppConfig.swift */,
+				2774B53EEEBA37062414BD92 /* FlintSkill.swift */,
 				A30FF3952CE1057D0034F9DC /* markdownconfig.json */,
 				A3F6F19F2D8ECA3800982367 /* AppStorageManager.swift */,
 			);
@@ -615,6 +618,7 @@
 				A37D47352CDE6ECE00B2E727 /* FlintApp.swift in Sources */,
 				A37C396D2D5E501F003EBCC6 /* KeyboardShortcutNames.swift in Sources */,
 				A398BF7F2D394A6D00187871 /* AppConfig.swift in Sources */,
+				88F669102B62BC4C0DF5F1F5 /* FlintSkill.swift in Sources */,
 				A30FF3902CE084E10034F9DC /* MainWindowController.swift in Sources */,
 				A3B1E21E2CF3330700C75E71 /* SettingsView.swift in Sources */,
 				A32671EC2CF8D15100162AF4 /* checkUpdates.swift in Sources */,

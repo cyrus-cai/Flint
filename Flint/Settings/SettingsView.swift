@@ -605,6 +605,7 @@ struct AISettingsView: View {
     @State private var enableAIRename: Bool = false
     @State private var enableAutoSaveClipboard: Bool = false
     @State private var mcpRegistered: Bool = false
+    @State private var skillsCopied: Bool = false
 
     // Connectivity test state
     enum ConnTestState {
@@ -664,7 +665,7 @@ struct AISettingsView: View {
             }
 
             if enableAI {
-                // Provider, Model, API Key
+                // AI Features: Provider + Model + API Key + Feature toggles
                 GroupBox {
                     VStack(alignment: .leading, spacing: 12) {
                         // Provider picker
@@ -772,13 +773,10 @@ struct AISettingsView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                    }
-                    .padding(12)
-                }
 
-                // Feature toggles
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 12) {
+                        Divider()
+
+                        // Feature toggles
                         HStack {
                             Text(L("Auto-generate titles"))
                             Spacer()
@@ -787,7 +785,6 @@ struct AISettingsView: View {
                                 set: { newValue in
                                     enableAIRename = newValue
                                     UserDefaults.standard.set(newValue, forKey: provider.enableAIRenameKey)
-                                    // Sync to global key for external readers
                                     UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAIRename)
                                 }
                             ))
@@ -807,7 +804,6 @@ struct AISettingsView: View {
                                 set: { newValue in
                                     enableAutoSaveClipboard = newValue
                                     UserDefaults.standard.set(newValue, forKey: provider.enableAutoSaveClipboardKey)
-                                    // Sync to global key for external readers
                                     UserDefaults.standard.set(newValue, forKey: AppStorageKeys.enableAutoSaveClipboard)
                                     if newValue {
                                         MaybeLikeService.shared.startMonitoring()
@@ -825,14 +821,16 @@ struct AISettingsView: View {
                     .padding(12)
                 }
 
-                // MCP Server
+                // Claude Code
                 GroupBox {
                     VStack(alignment: .leading, spacing: 12) {
+                        // MCP Server
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("MCP Server")
-                                Text("Claude Code")
-                                    .font(.system(size: 12))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(L("MCP Server"))
+                                    .font(.system(size: 13, weight: .medium))
+                                Text(L("Register MCP Server to connect with Claude Code"))
+                                    .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
@@ -850,6 +848,29 @@ struct AISettingsView: View {
                                 }
                                 .controlSize(.small)
                             }
+                        }
+
+                        Divider()
+
+                        // Skills
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(L("Install Skills"))
+                                    .font(.system(size: 13))
+                                Text("/flint-daily-digest, /flint-weekly-review")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Button(skillsCopied ? L("Copied") : L("Copy to Claude Code")) {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(FlintSkill.allSkillsClipboardText, forType: .string)
+                                withAnimation { skillsCopied = true }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                    withAnimation { skillsCopied = false }
+                                }
+                            }
+                            .controlSize(.small)
                         }
                     }
                     .padding(12)

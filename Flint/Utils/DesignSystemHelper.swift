@@ -514,7 +514,12 @@ class LocalizationManager: ObservableObject {
         "Enable Double press Control key": ["zh-Hans": "启用双击 Control 键", "zh-Hant": "啟用雙擊 Control 鍵"],
         "Try it now — press": ["zh-Hans": "试试看 — 按下", "zh-Hant": "試試看 — 按下"],
         "Double Press Control": ["zh-Hans": "双击 Control", "zh-Hant": "雙擊 Control"],
-        "This is how you summon Flint. Try it now.": ["zh-Hans": "这就是唤醒 Flint 的方式。试试看。", "zh-Hant": "這就是喚醒 Flint 的方式。試試看。"]
+        "This is how you summon Flint. Try it now.": ["zh-Hans": "这就是唤醒 Flint 的方式。试试看。", "zh-Hant": "這就是喚醒 Flint 的方式。試試看。"],
+        // Skills
+        "Register MCP Server to connect with Claude Code": ["zh-Hans": "注册 MCP Server 以��接 Claude Code", "zh-Hant": "註冊 MCP Server 以連接 Claude Code"],
+        "Install Skills": ["zh-Hans": "安装技能", "zh-Hant": "安裝技能"],
+        "Copy to Claude Code": ["zh-Hans": "复制到 Claude Code", "zh-Hant": "複製到 Claude Code"],
+        "Copied": ["zh-Hans": "已复制", "zh-Hant": "已複製"]
     ]
 
     private init() {
