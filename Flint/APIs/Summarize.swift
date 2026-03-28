@@ -115,6 +115,18 @@ final class MiniMaxAPI {
         // Only migrate UserDefaults-based settings (no Keychain access).
         // Keychain migration happens lazily in warmCacheIfNeeded().
         Self.runUserDefaultsMigrations()
+
+        // When the user switches AI provider, re-sync the lightweight flag
+        // so the next app launch checks the correct provider's key.
+        NotificationCenter.default.addObserver(
+            forName: .aiProviderDidChange,
+            object: nil,
+            queue: .main
+        ) { _ in
+            if Self.keyCacheWarmed {
+                Self.syncHasKeyFlag()
+            }
+        }
     }
 
     // MARK: - Migrations & Cache
@@ -159,10 +171,12 @@ final class MiniMaxAPI {
         syncHasKeyFlag()
     }
 
-    /// Update the UserDefaults flag that mirrors "at least one provider has a key".
+    /// Update the UserDefaults flag that mirrors whether the *current* provider has a key.
+    /// Must match the semantics of storedAPIKey so the pre-cache and post-cache
+    /// paths of hasConfiguredAPIKey behave identically.
     private static func syncHasKeyFlag() {
-        let hasAny = !keyCache.values.filter({ !$0.isEmpty }).isEmpty
-        UserDefaults.standard.set(hasAny, forKey: AppStorageKeys.hasAPIKeyInKeychain)
+        let currentKey = keyCache[currentProvider.keychainKey] ?? ""
+        UserDefaults.standard.set(!currentKey.isEmpty, forKey: AppStorageKeys.hasAPIKeyInKeychain)
     }
 
     // MARK: - API Key Management
