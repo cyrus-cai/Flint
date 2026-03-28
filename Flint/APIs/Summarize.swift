@@ -605,7 +605,28 @@ final class MiniMaxAPI {
     }
 
     func checkRelevance(text: String) async throws -> Bool {
-        let systemPrompt = "You are a specialized content filter. Analyze the user's clipboard content. If it contains valuable information (technical knowledge, code, instructions, useful data) that a user might want to save for later, reply with 'SAVE'. If it is trivial (random numbers, passwords, temporary logs, system gibberish) or junk, reply with 'REJECT'. Only reply with one word: SAVE or REJECT."
+        let systemPrompt = """
+You are a strict content filter for a personal knowledge base. \
+The user copies many things throughout the day — most are transient and not worth saving. \
+Only a small fraction deserves being kept.
+
+Reply SAVE only if the content is:
+- A knowledge snippet worth revisiting (article excerpt, technical explanation, tutorial steps)
+- Code or configuration worth referencing later
+- A structured note, meeting summary, or action items
+- Substantial original writing or analysis
+
+Reply REJECT if the content is:
+- Casual chat messages, greetings, short replies, or small talk
+- URLs, links, or file paths without surrounding context
+- Addresses, phone numbers, tracking numbers, order IDs
+- Single sentences without substantial informational value
+- Content that only makes sense in the moment
+- UI text, button labels, error dialogs, or system notifications
+- Anything that feels like a transient copy-paste during normal computer use
+
+Default to REJECT when uncertain. Only reply with one word: SAVE or REJECT.
+"""
 
         let messages = [
             ChatMessage(role: "system", content: systemPrompt),
@@ -991,7 +1012,26 @@ class MaybeLikeService: ObservableObject {
         // Basic filters
         if content.count < minChars { return }
         if CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: content)) { return }
-        
+
+        // Pre-AI rule-based filters to save API calls
+        let trimmedForFilter = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lines = trimmedForFilter.components(separatedBy: .newlines).filter { !$0.isEmpty }
+
+        // Single-line content under 50 chars is almost never worth saving
+        if lines.count == 1 && trimmedForFilter.count < 50 { return }
+
+        // Pure URLs without context
+        if lines.count == 1,
+           (trimmedForFilter.hasPrefix("http://") || trimmedForFilter.hasPrefix("https://")) {
+            return
+        }
+
+        // Pure file paths without context
+        if lines.count == 1,
+           (trimmedForFilter.hasPrefix("/") || trimmedForFilter.hasPrefix("~/")) {
+            return
+        }
+
         // Deduplication: skip if identical content was already processed
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         if let last = lastProcessedContent, trimmed == last {
