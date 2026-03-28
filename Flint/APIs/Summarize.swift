@@ -153,13 +153,27 @@ final class MiniMaxAPI {
                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             keyCache[provider.keychainKey] = key
         }
+
+        // Sync the lightweight UserDefaults flag so future launches can skip
+        // Keychain access for the common hasConfiguredAPIKey check.
+        syncHasKeyFlag()
+    }
+
+    /// Update the UserDefaults flag that mirrors "at least one provider has a key".
+    private static func syncHasKeyFlag() {
+        let hasAny = !keyCache.values.filter({ !$0.isEmpty }).isEmpty
+        UserDefaults.standard.set(hasAny, forKey: AppStorageKeys.hasAPIKeyInKeychain)
     }
 
     // MARK: - API Key Management
 
     static var hasConfiguredAPIKey: Bool {
         guard UserDefaults.standard.bool(forKey: AppStorageKeys.enableAI) else { return false }
-        warmCacheIfNeeded()
+        // Before Keychain cache is warmed, use a lightweight UserDefaults flag
+        // so that app-launch code paths never trigger a Keychain permission dialog.
+        if !keyCacheWarmed {
+            return UserDefaults.standard.bool(forKey: AppStorageKeys.hasAPIKeyInKeychain)
+        }
         return !storedAPIKey.isEmpty
     }
 
@@ -179,6 +193,7 @@ final class MiniMaxAPI {
         let ok = KeychainHelper.save(key: p.keychainKey, value: trimmed)
         if ok {
             keyCache[p.keychainKey] = trimmed
+            syncHasKeyFlag()
         }
         return ok
     }
@@ -190,7 +205,8 @@ final class MiniMaxAPI {
     }
 
     private var apiKey: String {
-        Self.storedAPIKey
+        Self.warmCacheIfNeeded()
+        return Self.storedAPIKey
     }
 
     // MARK: - Model Selection
