@@ -21,6 +21,7 @@ enum AppStorageKeys {
     static let miniMaxAPIKey = "MiniMaxAPIKey" // Legacy, migrated to Keychain
     static let enableAIRename = "enableAIRename"
     static let enableAutoSaveClipboard = "enableAutoSaveClipboard"
+    static let hasAPIKeyInKeychain = "hasAPIKeyInKeychain"
     static let editorFont = "editorFont"
     static let autoSaveInterval = "autoSaveInterval"
     static let notionIntegration = "notionIntegration"

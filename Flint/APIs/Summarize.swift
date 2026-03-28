@@ -115,6 +115,17 @@ final class MiniMaxAPI {
         // Only migrate UserDefaults-based settings (no Keychain access).
         // Keychain migration happens lazily in warmCacheIfNeeded().
         Self.runUserDefaultsMigrations()
+
+        // When the user switches AI provider, re-sync the lightweight flag
+        // so the next app launch checks the correct provider's key.
+        NotificationCenter.default.addObserver(
+            forName: .aiProviderDidChange,
+            object: nil,
+            queue: .main
+        ) { _ in
+            guard Self.keyCacheWarmed else { return }
+            Self.syncHasKeyFlag()
+        }
     }
 
     // MARK: - Migrations & Cache
@@ -153,12 +164,32 @@ final class MiniMaxAPI {
                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             keyCache[provider.keychainKey] = key
         }
+
+        // Sync the lightweight UserDefaults flag so future launches can skip
+        // Keychain access for the common hasConfiguredAPIKey check.
+        syncHasKeyFlag()
+    }
+
+    /// Update the UserDefaults flag that mirrors whether the *current* provider has a key.
+    /// Must match the semantics of storedAPIKey so the pre-cache and post-cache
+    /// paths of hasConfiguredAPIKey behave identically.
+    private static func syncHasKeyFlag() {
+        let currentKey = keyCache[currentProvider.keychainKey] ?? ""
+        UserDefaults.standard.set(!currentKey.isEmpty, forKey: AppStorageKeys.hasAPIKeyInKeychain)
     }
 
     // MARK: - API Key Management
 
     static var hasConfiguredAPIKey: Bool {
         guard UserDefaults.standard.bool(forKey: AppStorageKeys.enableAI) else { return false }
+        // Before Keychain cache is warmed, use a lightweight UserDefaults flag
+        // so that app-launch code paths never trigger a Keychain permission dialog.
+        // If the flag has never been set (upgrade from older version), fall through
+        // to warmCacheIfNeeded() so existing users don't lose AI features.
+        if !keyCacheWarmed,
+           UserDefaults.standard.object(forKey: AppStorageKeys.hasAPIKeyInKeychain) != nil {
+            return UserDefaults.standard.bool(forKey: AppStorageKeys.hasAPIKeyInKeychain)
+        }
         warmCacheIfNeeded()
         return !storedAPIKey.isEmpty
     }
@@ -179,6 +210,7 @@ final class MiniMaxAPI {
         let ok = KeychainHelper.save(key: p.keychainKey, value: trimmed)
         if ok {
             keyCache[p.keychainKey] = trimmed
+            syncHasKeyFlag()
         }
         return ok
     }
@@ -190,7 +222,8 @@ final class MiniMaxAPI {
     }
 
     private var apiKey: String {
-        Self.storedAPIKey
+        Self.warmCacheIfNeeded()
+        return Self.storedAPIKey
     }
 
     // MARK: - Model Selection
