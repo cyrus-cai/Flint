@@ -611,6 +611,11 @@ struct AISettingsView: View {
     enum ConnTestState {
         case idle, testing, success, failure(String)
 
+        var isIdle: Bool {
+            if case .idle = self { return true }
+            return false
+        }
+
         var isTesting: Bool {
             if case .testing = self { return true }
             return false
@@ -626,6 +631,8 @@ struct AISettingsView: View {
         }
     }
     @State private var connTestState: ConnTestState = .idle
+    @State private var isHoveringAPIKey: Bool = false
+    @State private var isHoveringMCP: Bool = false
 
     private var provider: AIProvider {
         AIProvider(rawValue: selectedProviderRaw) ?? .minimax
@@ -701,40 +708,51 @@ struct AISettingsView: View {
 
                         // API Key
                         if hasPersistedAPIKey && !isEditingAPIKey {
-                            HStack {
+                            HStack(spacing: 6) {
                                 Text("API Key")
                                 Spacer()
+
+                                // Hover actions slide in from right
+                                HStack(spacing: 6) {
+                                    // Connectivity test
+                                    Button {
+                                        runConnectivityTest()
+                                    } label: {
+                                        switch connTestState {
+                                        case .idle:
+                                            Text(L("Test"))
+                                        case .testing:
+                                            ProgressView()
+                                                .controlSize(.small)
+                                                .frame(width: 16, height: 16)
+                                        case .success:
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.green)
+                                        case .failure:
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.red)
+                                        }
+                                    }
+                                    .controlSize(.small)
+                                    .disabled(connTestState.isTesting)
+                                    .help(connTestState.tooltip)
+
+                                    Button(L("Change")) {
+                                        isEditingAPIKey = true
+                                    }
+                                    .controlSize(.small)
+                                }
+                                .opacity(isHoveringAPIKey || !connTestState.isIdle ? 1 : 0)
+
                                 Text("sk-•••" + apiKey.suffix(4))
                                     .foregroundColor(.secondary)
                                     .font(.callout.monospaced())
-
-                                // Connectivity test
-                                Button {
-                                    runConnectivityTest()
-                                } label: {
-                                    switch connTestState {
-                                    case .idle:
-                                        Text(L("Test"))
-                                    case .testing:
-                                        ProgressView()
-                                            .controlSize(.small)
-                                            .frame(width: 16, height: 16)
-                                    case .success:
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                    case .failure:
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.red)
-                                    }
+                            }
+                            .contentShape(Rectangle())
+                            .onHover { hovering in
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    isHoveringAPIKey = hovering
                                 }
-                                .controlSize(.small)
-                                .disabled(connTestState.isTesting)
-                                .help(connTestState.tooltip)
-
-                                Button(L("Change")) {
-                                    isEditingAPIKey = true
-                                }
-                                .controlSize(.small)
                             }
                         } else {
                             VStack(alignment: .leading, spacing: 8) {
@@ -834,19 +852,27 @@ struct AISettingsView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Circle()
-                                .fill(mcpRegistered ? Color.green : Color.secondary.opacity(0.3))
-                                .frame(width: 8, height: 8)
                             if mcpRegistered {
                                 Button(L("Unregister")) {
                                     unregisterMCPServer()
                                 }
                                 .controlSize(.small)
+                                .opacity(isHoveringMCP ? 1 : 0)
+
+                                Text(L("Connected"))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.green)
                             } else {
                                 Button(L("Register")) {
                                     registerMCPServer()
                                 }
                                 .controlSize(.small)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isHoveringMCP = hovering
                             }
                         }
 
