@@ -4,7 +4,7 @@
 
 <h1 align="center">Flint</h1>
 <p align="center">
-  <b>Your AI agent's notepad. Open-source, keyboard-first, MCP-native.</b>
+  <b>Opensource alternative to Raycast Note, for humans, for agents.</b>
 </p>
 <p align="center">
   <a href="https://github.com/cyrus-cai/Flint/releases/latest"><img src="https://img.shields.io/github/v/release/cyrus-cai/Flint?include_prereleases&label=version" alt="Latest release"></a>
