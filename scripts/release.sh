@@ -31,6 +31,8 @@ RELEASE_SUPPORT_FILES=(
     "scripts/release.sh"
     "scripts/install.sh"
     "scripts/publish.sh"
+    "scripts/update-cask.sh"
+    "homebrew/Casks/flint.rb"
     "README.md"
     "docs/release.md"
 )
@@ -563,6 +565,19 @@ if [ "$SKIP_GITHUB_RELEASE" = "0" ]; then
     require_command gh
     gh auth status >/dev/null
     publish_github_release "$REPO" "$TAG"
+fi
+
+if [ "$SKIP_GITHUB_RELEASE" = "0" ] && [ -x "$SCRIPT_DIR/update-cask.sh" ]; then
+    echo "==> Updating Homebrew cask"
+    if "$SCRIPT_DIR/update-cask.sh" "$VERSION" --tag-suffix "$TAG_SUFFIX"; then
+        if ! git diff --quiet -- homebrew/; then
+            git add homebrew/Casks/flint.rb
+            git commit -m "Update Homebrew cask to ${VERSION}"
+            git push origin "$(git rev-parse --abbrev-ref HEAD)"
+        fi
+    else
+        echo "Warning: Homebrew cask update failed (non-fatal)" >&2
+    fi
 fi
 
 echo "==> Release complete"
