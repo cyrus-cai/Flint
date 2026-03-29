@@ -4,21 +4,68 @@
 
 <h1 align="center">Flint</h1>
 <p align="center">
+  <b>Your AI agent's notepad. Open-source, keyboard-first, MCP-native.</b>
+</p>
+<p align="center">
   <a href="https://github.com/cyrus-cai/Flint/releases/latest"><img src="https://img.shields.io/github/v/release/cyrus-cai/Flint?include_prereleases&label=version" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/cyrus-cai/Flint" alt="License"></a>
   <img src="https://img.shields.io/badge/macOS-15%2B-blue" alt="macOS 15+">
   <img src="https://img.shields.io/badge/Apple_Silicon-required-blue" alt="Apple Silicon">
-  <br>
+  <a href="https://github.com/cyrus-cai/Flint/stargazers"><img src="https://img.shields.io/github/stars/cyrus-cai/Flint?style=social" alt="GitHub stars"></a>
 </p>
 
+Hit a shortcut, type a note, dismiss. Press `Cmd+C` twice and AI saves it for you. Plain Markdown, no cloud, no account. Built-in [MCP](https://modelcontextprotocol.io) server so Claude Code, Cursor, and other AI agents can read and write your notes.
 
-<p align="center">
-  <b>Opensource alternative to Raycast Note, for humans, for agents.</b>  
-</p>
+## Features
 
-Flint lives in the background until you need it. Hit a shortcut and a note appears — type, dismiss, done. Copy something twice with `Cmd+C` and it becomes a note automatically. Every note is a plain Markdown file on your machine, no account, no cloud. And because Flint speaks [MCP](https://modelcontextprotocol.io), your AI agent — Claude Code, Cursor, whatever you use — can read, search, and create notes just like you do.
+<table>
+<tr>
+<td width="50%">
 
-## Download
+### AI Capture
+Press `Cmd+C` — AI decides if it's worth keeping, generates a title, and saves it as a note.
+
+</td>
+<td width="50%">
+<img src="feature-history.png" width="400" alt="Note history with AI titles">
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="feature-ai.png" width="400" alt="AI settings and MCP server">
+</td>
+<td width="50%">
+
+### AI + MCP Native
+Ships with an MCP server — Claude Code, Cursor, and other AI tools can read, search, and create your notes.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Keyboard-First
+Every action has a shortcut. Quick wake-up, new note, copy all, navigate — no mouse needed.
+
+</td>
+<td width="50%">
+<img src="feature-shortcuts.png" width="400" alt="Keyboard shortcuts settings">
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="feature-personal.png" width="400" alt="Theme and editor personalization">
+</td>
+<td width="50%">
+
+### Make It Yours
+Light, Dark, or Liquid Glass. Four fonts. Notes live in a folder you choose — works as an Obsidian vault.
+
+</td>
+</tr>
+</table>
+
+## Install
 
 **Claude Code:**
 ```
@@ -35,75 +82,22 @@ brew install --cask https://raw.githubusercontent.com/cyrus-cai/Flint/main/homeb
 curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
 ```
 
-## Features
-
-<table>
-<tr>
-<td width="50%">
-
-### AI Capture
-Every time you press `Cmd+C` — AI decides if it's worth keeping, generates a title, and saves it as a note. No manual sorting, no junk.
-
-</td>
-<td width="50%">
-<img src="feature-history.png" width="400" alt="Note history with AI titles">
-</td>
-</tr>
-<tr>
-<td width="50%">
-<img src="feature-ai.png" width="400" alt="AI settings and MCP server">
-</td>
-<td width="50%">
-
-### AI + MCP Native
-Built-in AI for titling and smart clipboard. Ships with an MCP server so Claude Code can read, search, and create your notes.
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### Keyboard-First
-Every action has a shortcut. Quick wake-up, new note, copy all, navigate history — all without touching the mouse.
-
-</td>
-<td width="50%">
-<img src="feature-shortcuts.png" width="400" alt="Keyboard shortcuts settings">
-</td>
-</tr>
-<tr>
-<td width="50%">
-<img src="feature-personal.png" width="400" alt="Theme and editor personalization">
-</td>
-<td width="50%">
-
-### Make It Yours
-System, Light, or Dark theme. Liquid Glass style. Four font families. Your notes live in a folder you choose — works great as an Obsidian vault.
-
-</td>
-</tr>
-</table>
-
 ## MCP Server
 
-Flint ships with an MCP server (`FlintMCP/`) that exposes your notes to any MCP-compatible AI client.
-
-**Available tools:** `list_notes` · `search_notes` · `read_note` · `create_note` · `edit_note` · `delete_note` · `get_status`
-
-To connect, add the MCP server config in your AI client (Claude Code, Cursor, etc.) — see [MCP documentation](https://modelcontextprotocol.io) for details.
-
-## Building from Source
-
 ```bash
-git clone https://github.com/cyrus-cai/Flint.git
-cd Flint
-open Flint.xcodeproj
+claude mcp add flint-notes -- node /Applications/Flint.app/Contents/Resources/FlintMCP/dist/server.mjs
 ```
 
-Select your development team under **Signing & Capabilities**, then build and run (`Cmd+R`).
+**Tools:** `list_notes` · `search_notes` · `read_note` · `create_note` · `edit_note` · `delete_note` · `get_status`
 
-**Requirements:** macOS 15+ · Apple Silicon · Xcode 16+
+For Cursor / Windsurf / other MCP clients, use the same command in your MCP config.
 
-## License
+## Build from Source
 
-[MIT](LICENSE)
+```bash
+git clone https://github.com/cyrus-cai/Flint.git && cd Flint && open Flint.xcodeproj
+```
+
+Requires macOS 15+, Apple Silicon, Xcode 16+.
+
+## [Contributing](CONTRIBUTING.md) · [License (MIT)](LICENSE)

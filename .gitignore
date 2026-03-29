@@ -65,3 +65,6 @@ FlintMCP/package-lock.json
 FlintMCP/dist/
 
 docs/
+
+# Launch
+launch-posts.md
