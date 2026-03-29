@@ -403,7 +403,7 @@ class GlobalKeyMonitor {
     private var monitor: Any?
     private var lastCommandCPress: Date?
     // 定义双击的最大时间间隔（秒）
-    private let doublePressThreshold: TimeInterval = 0.3
+    private let doublePressThreshold: TimeInterval = 0.5
 
     init() {
         startMonitoring()

@@ -10,54 +10,100 @@ import Foundation
 import Combine
 import Security
 
-// MARK: - Keychain Helper
+// MARK: - File-based Key Store (replaces Keychain to avoid authorization prompts)
 
-enum KeychainHelper {
-    private static let service = Bundle.main.bundleIdentifier ?? "com.kii.flint"
+enum FileKeyStore {
+    private static let fileName = "api-keys.json"
 
-    private static func baseQuery(key: String) -> [String: Any] {
-        [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: key,
-        ]
+    private static var storeURL: URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = appSupport.appendingPathComponent(Bundle.main.bundleIdentifier ?? "com.kii.flint")
+        return dir.appendingPathComponent(fileName)
+    }
+
+    private static func ensureDirectory() {
+        let dir = storeURL.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        // Restrict directory to owner only
+        try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: dir.path)
+    }
+
+    private static func readStore() -> [String: String] {
+        guard let data = try? Data(contentsOf: storeURL),
+              let dict = try? JSONDecoder().decode([String: String].self, from: data) else {
+            return [:]
+        }
+        return dict
+    }
+
+    private static func writeStore(_ dict: [String: String]) -> Bool {
+        ensureDirectory()
+        guard let data = try? JSONEncoder().encode(dict) else { return false }
+        do {
+            try data.write(to: storeURL, options: [.atomic])
+            // Restrict file to owner read/write only
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: storeURL.path)
+            return true
+        } catch {
+            return false
+        }
     }
 
     @discardableResult
     static func save(key: String, value: String) -> Bool {
-        guard let data = value.data(using: .utf8) else { return false }
-        let query = baseQuery(key: key)
-        SecItemDelete(query as CFDictionary)
-        guard !value.isEmpty else { return true }
-        var addQuery = query
-        addQuery[kSecValueData as String] = data
-        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-        let status = SecItemAdd(addQuery as CFDictionary, nil)
-        return status == errSecSuccess
+        var dict = readStore()
+        if value.isEmpty {
+            dict.removeValue(forKey: key)
+        } else {
+            dict[key] = value
+        }
+        return writeStore(dict)
     }
 
     static func load(key: String) -> String? {
-        // Try loading with service-scoped query first
-        var query = baseQuery(key: key)
-        query[kSecReturnData as String] = true
-        query[kSecReturnAttributes as String] = true
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
-        var result: AnyObject?
-        var status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecSuccess,
-           let attrs = result as? [String: Any],
-           let data = attrs[kSecValueData as String] as? Data,
-           let value = String(data: data, encoding: .utf8) {
-            // Re-save if missing kSecAttrAccessibleAfterFirstUnlock to stop future prompts
-            let accessible = attrs[kSecAttrAccessible as String] as? String
-            if accessible != (kSecAttrAccessibleAfterFirstUnlock as String) {
-                SecItemDelete(baseQuery(key: key) as CFDictionary)
-                save(key: key, value: value)
-            }
+        // Try file store first
+        let dict = readStore()
+        if let value = dict[key], !value.isEmpty {
             return value
         }
 
-        // Fallback: try legacy query without service, then migrate
+        // Migrate from Keychain if present
+        if let value = loadFromKeychain(key: key), !value.isEmpty {
+            save(key: key, value: value)
+            deleteFromKeychain(key: key)
+            return value
+        }
+
+        return nil
+    }
+
+    static func delete(key: String) {
+        var dict = readStore()
+        dict.removeValue(forKey: key)
+        writeStore(dict)
+    }
+
+    // MARK: - One-time Keychain migration helpers
+
+    private static let service = Bundle.main.bundleIdentifier ?? "com.kii.flint"
+
+    private static func loadFromKeychain(key: String) -> String? {
+        // Try service-scoped query
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        var result: AnyObject?
+        var status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecSuccess, let data = result as? Data,
+           let value = String(data: data, encoding: .utf8) {
+            return value
+        }
+
+        // Fallback: legacy query without service
         let legacyQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -67,22 +113,27 @@ enum KeychainHelper {
         status = SecItemCopyMatching(legacyQuery as CFDictionary, &result)
         if status == errSecSuccess, let data = result as? Data,
            let value = String(data: data, encoding: .utf8) {
-            // Migrate: delete legacy first, then save with service + proper accessibility
-            let deleteLegacy: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrAccount as String: key,
-            ]
-            SecItemDelete(deleteLegacy as CFDictionary)
-            save(key: key, value: value)
             return value
         }
 
         return nil
     }
 
-    static func delete(key: String) {
-        let query = baseQuery(key: key)
+    private static func deleteFromKeychain(key: String) {
+        // Delete service-scoped entry
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+        ]
         SecItemDelete(query as CFDictionary)
+
+        // Delete legacy entry (without service)
+        let legacyQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(legacyQuery as CFDictionary)
     }
 }
 
@@ -98,9 +149,7 @@ final class MiniMaxAPI {
     private var currentSession: URLSession?
 
     /// In-memory cache of API keys, keyed by AIProvider.keychainKey.
-    /// Populated lazily on first real need — never at app launch — so Keychain
-    /// access (and its system permission dialog) only happens when the user has
-    /// explicitly enabled AI.
+    /// Populated lazily on first real need — never at app launch.
     private static var keyCache: [String: String] = [:]
     private static var keyCacheWarmed = false
 
@@ -112,8 +161,8 @@ final class MiniMaxAPI {
     }
 
     private init() {
-        // Only migrate UserDefaults-based settings (no Keychain access).
-        // Keychain migration happens lazily in warmCacheIfNeeded().
+        // Only migrate UserDefaults-based settings.
+        // File-based key migration happens lazily in warmCacheIfNeeded().
         Self.runUserDefaultsMigrations()
 
         // When the user switches AI provider, re-sync the lightweight flag
@@ -140,33 +189,34 @@ final class MiniMaxAPI {
         }
     }
 
-    /// Read all provider keys from Keychain into memory (once).
-    /// Also handles legacy UserDefaults → Keychain migration for MiniMax.
+    /// Read all provider keys from file store into memory (once).
+    /// Also handles legacy UserDefaults → file migration for MiniMax,
+    /// and Keychain → file migration for all providers.
     /// Called only when AI is actually needed, never at app launch.
     private static func warmCacheIfNeeded() {
         guard !keyCacheWarmed else { return }
         keyCacheWarmed = true
 
-        // Legacy UserDefaults API key → Keychain (MiniMax only)
+        // Legacy UserDefaults API key → file store (MiniMax only)
         let legacyKey = UserDefaults.standard.string(forKey: AppStorageKeys.miniMaxAPIKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if !legacyKey.isEmpty {
-            if let existing = KeychainHelper.load(key: AIProvider.minimax.keychainKey), !existing.isEmpty {
+            if let existing = FileKeyStore.load(key: AIProvider.minimax.keychainKey), !existing.isEmpty {
                 // Already migrated
-            } else if KeychainHelper.save(key: AIProvider.minimax.keychainKey, value: legacyKey) {
+            } else if FileKeyStore.save(key: AIProvider.minimax.keychainKey, value: legacyKey) {
                 UserDefaults.standard.removeObject(forKey: AppStorageKeys.miniMaxAPIKey)
             }
         }
 
-        // Warm cache for all providers
+        // Warm cache for all providers (FileKeyStore.load auto-migrates from Keychain)
         for provider in AIProvider.allCases {
-            let key = KeychainHelper.load(key: provider.keychainKey)?
+            let key = FileKeyStore.load(key: provider.keychainKey)?
                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             keyCache[provider.keychainKey] = key
         }
 
         // Sync the lightweight UserDefaults flag so future launches can skip
-        // Keychain access for the common hasConfiguredAPIKey check.
+        // file access for the common hasConfiguredAPIKey check.
         syncHasKeyFlag()
     }
 
@@ -182,8 +232,8 @@ final class MiniMaxAPI {
 
     static var hasConfiguredAPIKey: Bool {
         guard UserDefaults.standard.bool(forKey: AppStorageKeys.enableAI) else { return false }
-        // Before Keychain cache is warmed, use a lightweight UserDefaults flag
-        // so that app-launch code paths never trigger a Keychain permission dialog.
+        // Before cache is warmed, use a lightweight UserDefaults flag
+        // so that app-launch code paths stay fast.
         // If the flag has never been set (upgrade from older version), fall through
         // to warmCacheIfNeeded() so existing users don't lose AI features.
         if !keyCacheWarmed,
@@ -207,7 +257,7 @@ final class MiniMaxAPI {
     static func setAPIKey(_ value: String, for provider: AIProvider? = nil) -> Bool {
         let p = provider ?? currentProvider
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        let ok = KeychainHelper.save(key: p.keychainKey, value: trimmed)
+        let ok = FileKeyStore.save(key: p.keychainKey, value: trimmed)
         if ok {
             keyCache[p.keychainKey] = trimmed
             syncHasKeyFlag()
@@ -972,7 +1022,10 @@ class MaybeLikeService: ObservableObject {
 
     // Deduplication: track recently processed content to avoid duplicate AI calls and saves
     private var lastProcessedContent: String?
-    
+
+    // HotKey suppression: skip processing when HotKey just saved the same clipboard content
+    private var hotKeySuppressUntil: Date = .distantPast
+
     private init() {
         self.lastChangeCount = pasteboard.changeCount
         NotificationCenter.default.addObserver(
@@ -1021,14 +1074,22 @@ class MaybeLikeService: ObservableObject {
         let currentCount = pasteboard.changeCount
         if lastChangeCount != currentCount {
             lastChangeCount = currentCount
-            print("MaybeLike Service: Ignoring current clipboard change (manually handled)")
         }
+        // Suppress MaybeLike processing for 3 seconds after HotKey save
+        hotKeySuppressUntil = Date().addingTimeInterval(3)
+        print("MaybeLike Service: Ignoring current clipboard change (manually handled via HotKey)")
     }
     
     private func checkPasteboard() {
         guard pasteboard.changeCount != lastChangeCount else { return }
         lastChangeCount = pasteboard.changeCount
-        
+
+        // 0. HotKey suppression: skip if HotKey just handled this clipboard content
+        if Date() < hotKeySuppressUntil {
+            print("MaybeLike: Skipped — within HotKey suppression window")
+            return
+        }
+
         // 1. Privacy Check: Ignore confidential types
         if let types = pasteboard.types {
             let typeNames = types.map { $0.rawValue }

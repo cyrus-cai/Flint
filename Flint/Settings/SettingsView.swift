@@ -600,7 +600,7 @@ struct AISettingsView: View {
     @State private var selectedModelId: String = ""
     @State private var apiKey: String = ""
     @State private var isEditingAPIKey: Bool = false
-    /// Whether a key is confirmed persisted in Keychain (not just typed in the field).
+    /// Whether a key is confirmed persisted (not just typed in the field).
     @State private var hasPersistedAPIKey: Bool = false
     @State private var enableAIRename: Bool = false
     @State private var enableAutoSaveClipboard: Bool = false
@@ -663,7 +663,7 @@ struct AISettingsView: View {
             }
             .onChange(of: enableAI) { newValue in
                 if newValue {
-                    // First time enabling: load provider state which accesses Keychain
+                    // First time enabling: load provider state
                     loadProviderState()
                 } else {
                     // Disable all AI sub-features
@@ -971,7 +971,7 @@ struct AISettingsView: View {
 
         guard MiniMaxAPI.setAPIKey(trimmed, for: provider) else { return }
 
-        // Verify the key was actually persisted to Keychain before updating UI
+        // Verify the key was actually persisted before updating UI
         let persisted = MiniMaxAPI.loadAPIKey(for: provider)
         guard persisted == trimmed else { return }
 

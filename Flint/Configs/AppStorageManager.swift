@@ -18,7 +18,7 @@ enum AppStorageKeys {
     static let enableAI = "enableAI"
     static let AIProvider = "AIProvider"
     static let AIModel = "AIModel" // Legacy, migrated to per-provider keys
-    static let miniMaxAPIKey = "MiniMaxAPIKey" // Legacy, migrated to Keychain
+    static let miniMaxAPIKey = "MiniMaxAPIKey" // Legacy, migrated to file store
     static let enableAIRename = "enableAIRename"
     static let enableAutoSaveClipboard = "enableAutoSaveClipboard"
     static let hasAPIKeyInKeychain = "hasAPIKeyInKeychain"
