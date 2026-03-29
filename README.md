@@ -14,7 +14,7 @@
   <a href="https://github.com/cyrus-cai/Flint/stargazers"><img src="https://img.shields.io/github/stars/cyrus-cai/Flint?style=social" alt="GitHub stars"></a>
 </p>
 
-Hit a shortcut, type a note, dismiss. Press `Cmd+C` twice and AI saves it for you. Plain Markdown, no cloud, no account. Built-in [MCP](https://modelcontextprotocol.io) server so Claude Code, Cursor, and other AI agents can read and write your notes.
+Flint lives in the background until you need it. Hit a shortcut and a note appears — type, dismiss, done. Copy something twice with `Cmd+C` and it becomes a note automatically. Every note is a plain Markdown file on your machine, no account, no cloud. And because Flint speaks [MCP](https://modelcontextprotocol.io), your AI agent — Claude Code, Cursor, whatever you use — can read, search, and create notes just like you do.
 
 ## Features
 
