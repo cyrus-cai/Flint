@@ -1,6 +1,6 @@
 cask "flint" do
-  version "0.9.30"
-  sha256 "7a029ec70400d12cd4e94219bd5d15dcc3f483aff0220862a4acf0c5acc7b12c"
+  version "0.9.31"
+  sha256 "5fe6a081e4903f95aeae2211baf1455d1dbc223b342b78f9e5741dd52e88d60e"
 
   url "https://github.com/cyrus-cai/Flint/releases/download/v#{version}-beta/Flint.zip"
   name "Flint"
