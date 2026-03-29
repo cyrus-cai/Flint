@@ -18,6 +18,26 @@
 
 Flint lives in the background until you need it. Hit a shortcut and a note appears — type, dismiss, done. Copy something twice with `Cmd+C` and it becomes a note automatically. Every note is a plain Markdown file on your machine, no account, no cloud. And because Flint speaks [MCP](https://modelcontextprotocol.io), your AI agent — Claude Code, Cursor, whatever you use — can read, search, and create notes just like you do.
 
+## Download
+
+**Homebrew:**
+```bash
+brew install --cask https://raw.githubusercontent.com/cyrus-cai/Flint/main/homebrew/Casks/flint.rb
+```
+
+**Shell:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
+```
+
+**Claude Code / AI agent:**
+```
+Install Flint — https://github.com/cyrus-cai/Flint/releases/latest
+```
+Paste this into Claude Code and it will download and install Flint for you.
+
+**Manual:** download [Flint.dmg](https://github.com/cyrus-cai/Flint/releases/latest) from GitHub Releases.
+
 ## Features
 
 <table>
@@ -66,20 +86,6 @@ System, Light, or Dark theme. Liquid Glass style. Four font families. Your notes
 </td>
 </tr>
 </table>
-
-## Download
-
-**Homebrew:**
-```bash
-brew install --cask https://raw.githubusercontent.com/cyrus-cai/Flint/main/homebrew/Casks/flint.rb
-```
-
-**Shell:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
-```
-
-**Manual:** download [Flint.dmg](https://github.com/cyrus-cai/Flint/releases/latest) from GitHub Releases.
 
 ## MCP Server
 
