@@ -3,13 +3,17 @@
 </p>
 
 <h1 align="center">Flint</h1>
-
 <p align="center">
-  <b>Opensource alternative to Raycast Note, for humans, for agents.</b><br>
   <a href="https://github.com/cyrus-cai/Flint/releases/latest"><img src="https://img.shields.io/github/v/release/cyrus-cai/Flint?include_prereleases&label=version" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/cyrus-cai/Flint" alt="License"></a>
   <img src="https://img.shields.io/badge/macOS-15%2B-blue" alt="macOS 15+">
   <img src="https://img.shields.io/badge/Apple_Silicon-required-blue" alt="Apple Silicon">
+  <br>
+</p>
+
+
+<p align="center">
+  <b>Opensource alternative to Raycast Note, for humans, for agents.</b>  
 </p>
 
 Flint lives in the background until you need it. Hit a shortcut and a note appears — type, dismiss, done. Copy something twice with `Cmd+C` and it becomes a note automatically. Every note is a plain Markdown file on your machine, no account, no cloud. And because Flint speaks [MCP](https://modelcontextprotocol.io), your AI agent — Claude Code, Cursor, whatever you use — can read, search, and create notes just like you do.
