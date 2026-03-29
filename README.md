@@ -20,6 +20,11 @@ Flint lives in the background until you need it. Hit a shortcut and a note appea
 
 ## Download
 
+**Claude Code:**
+```
+Install Flint — https://github.com/cyrus-cai/Flint/releases/latest
+```
+
 **Homebrew:**
 ```bash
 brew install --cask https://raw.githubusercontent.com/cyrus-cai/Flint/main/homebrew/Casks/flint.rb
@@ -29,14 +34,6 @@ brew install --cask https://raw.githubusercontent.com/cyrus-cai/Flint/main/homeb
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
 ```
-
-**Claude Code / AI agent:**
-```
-Install Flint — https://github.com/cyrus-cai/Flint/releases/latest
-```
-Paste this into Claude Code and it will download and install Flint for you.
-
-**Manual:** download [Flint.dmg](https://github.com/cyrus-cai/Flint/releases/latest) from GitHub Releases.
 
 ## Features
 
