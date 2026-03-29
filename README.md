@@ -6,9 +6,11 @@
 
 <p align="center">
   <b>Opensource alternative to Raycast Note, for humans, for agents.</b><br>
+  <a href="https://github.com/cyrus-cai/Flint/releases/latest"><img src="https://img.shields.io/github/v/release/cyrus-cai/Flint?include_prereleases&label=version" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/cyrus-cai/Flint" alt="License"></a>
+  <img src="https://img.shields.io/badge/macOS-15%2B-blue" alt="macOS 15+">
+  <img src="https://img.shields.io/badge/Apple_Silicon-required-blue" alt="Apple Silicon">
 </p>
-
-
 
 Flint lives in the background until you need it. Hit a shortcut and a note appears — type, dismiss, done. Copy something twice with `Cmd+C` and it becomes a note automatically. Every note is a plain Markdown file on your machine, no account, no cloud. And because Flint speaks [MCP](https://modelcontextprotocol.io), your AI agent — Claude Code, Cursor, whatever you use — can read, search, and create notes just like you do.
 
@@ -63,9 +65,17 @@ System, Light, or Dark theme. Liquid Glass style. Four font families. Your notes
 
 ## Download
 
+**Homebrew:**
+```bash
+brew install --cask https://raw.githubusercontent.com/cyrus-cai/Flint/main/homebrew/Casks/flint.rb
+```
+
+**Shell:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cyrus-cai/Flint/main/scripts/install.sh | bash -s -- --beta
 ```
+
+**Manual:** download [Flint.dmg](https://github.com/cyrus-cai/Flint/releases/latest) from GitHub Releases.
 
 ## MCP Server
 
