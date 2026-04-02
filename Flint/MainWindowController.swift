@@ -187,8 +187,8 @@ class MainWindowController: NSWindowController {
     // ... (existing code)
 
     private func checkTripleOptionKey(_ event: NSEvent) {
-        let onlyControlPressed = event.modifierFlags.contains(.control) &&
-            !event.modifierFlags.contains(.command) &&
+        let onlyControlPressed = event.modifierFlags.contains(.command) &&
+            !event.modifierFlags.contains(.control) &&
             !event.modifierFlags.contains(.option) &&
             !event.modifierFlags.contains(.shift) &&
             !event.modifierFlags.contains(.function)

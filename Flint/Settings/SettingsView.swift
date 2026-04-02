@@ -1159,7 +1159,7 @@ struct HotkeySettingsView: View {
                     }
 
                     HStack {
-                        Text(L("Double press Control key"))
+                        Text(L("Double press Command key"))
                         PopoverHint(text: "Double press Option? Claude called dibs.")
                         Spacer()
                         Toggle("", isOn: $enableDoubleOption)

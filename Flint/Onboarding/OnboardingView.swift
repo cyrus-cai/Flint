@@ -233,14 +233,14 @@ struct OnboardingView: View {
                     )
                     .shadow(color: .black.opacity(0.06), radius: 1, y: 1)
 
-                Text("⌃")
+                Text("⌘")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(controlFlash ? .accentColor : .primary.opacity(0.55))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(.top, 8)
                     .padding(.trailing, 10)
 
-                Text("control")
+                Text("command")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(controlFlash ? .accentColor : .primary.opacity(0.55))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
@@ -307,8 +307,8 @@ struct OnboardingView: View {
     private func startControlKeyMonitor() {
         controlKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
             // Only react to pure Control (no Cmd/Option/Shift)
-            let onlyControl = event.modifierFlags.contains(.control)
-                && !event.modifierFlags.contains(.command)
+            let onlyControl = event.modifierFlags.contains(.command)
+                && !event.modifierFlags.contains(.control)
                 && !event.modifierFlags.contains(.option)
                 && !event.modifierFlags.contains(.shift)
 
@@ -397,7 +397,7 @@ private enum OnboardingPage: Int, CaseIterable, Identifiable {
         case .welcome:
             return "Flint"
         case .wake:
-            return L("Double Press Control")
+            return L("Double Press Command")
         case .storage:
             return L("Your Files, Your Folder")
         case .permissions:
